@@ -1,18 +1,14 @@
-import { createServer } from "node:http";
+import { buildApp } from "./app.js";
 
-const port = Number(process.env.PORT ?? 3000);
+async function main() {
+  const app = buildApp();
+  const port = Number(process.env.PORT ?? 3000);
+  const host = process.env.HOST ?? "0.0.0.0";
 
-const server = createServer((_req, res) => {
-  res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
-  res.end(
-    JSON.stringify({
-      service: "canix402",
-      status: "ok"
-    })
-  );
-});
+  await app.listen({ port, host });
+}
 
-server.listen(port, () => {
-  // Initial scaffold logger. Replace with structured logging in Part 2+.
-  console.log(`canix402 API listening on port ${port}`);
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
 });

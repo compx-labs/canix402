@@ -18,13 +18,13 @@ Status legend:
 
 ## 2) API Skeleton (Node.js/TypeScript)
 
-- [ ] Choose HTTP framework and set up base server.
-- [ ] Add typed route modules for:
-  - [ ] Aggregated opportunities
-  - [ ] Protocol-specific opportunities
-  - [ ] Health/metadata
-- [ ] Add shared error model and response envelope format.
-- [ ] Add runtime validation for inbound query parameters.
+- [x] Choose HTTP framework and set up base server.
+- [x] Add typed route modules for:
+  - [x] Aggregated opportunities
+  - [x] Protocol-specific opportunities
+  - [x] Health/metadata
+- [x] Add shared error model and response envelope format.
+- [x] Add runtime validation for inbound query parameters.
 
 ## 3) x402 Payment Gating
 

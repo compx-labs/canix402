@@ -1,4 +1,2 @@
-export interface ApiResponse<TData> {
-  data: TData;
-  meta?: Record<string, string | number | boolean | null>;
-}
+export type { ApiSuccess, MetaValue } from "./api.js";
+export type { ApiError, ApiErrorCode } from "./errors.js";

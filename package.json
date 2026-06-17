@@ -13,7 +13,11 @@
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@fastify/type-provider-typebox": "^6.1.0",
+    "@sinclair/typebox": "^0.34.49",
+    "fastify": "^5.8.5"
+  },
   "devDependencies": {
     "@types/node": "^24.0.10",
     "tsx": "^4.20.3",
