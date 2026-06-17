@@ -2,6 +2,8 @@ import { Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 
 import {
+  fetchPactOpportunities,
+  PactAdapterError,
   fetchTinymanOpportunities,
   TinymanAdapterError
 } from "../adapters/index.js";
@@ -58,13 +60,30 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
       try {
         if (protocol === "tinyman") {
           data = await fetchTinymanOpportunities();
+        } else if (protocol === "pact") {
+          data = await fetchPactOpportunities();
         } else if (protocol === undefined) {
-          data = await fetchTinymanOpportunities();
+          const [tinymanResult, pactResult] = await Promise.allSettled([
+            fetchTinymanOpportunities(),
+            fetchPactOpportunities()
+          ]);
+          if (
+            tinymanResult.status === "rejected" &&
+            pactResult.status === "rejected"
+          ) {
+            throw tinymanResult.reason;
+          }
+
+          const tinymanData =
+            tinymanResult.status === "fulfilled" ? tinymanResult.value : [];
+          const pactData =
+            pactResult.status === "fulfilled" ? pactResult.value : [];
+          data = [...tinymanData, ...pactData];
         } else if (SupportedProtocolValues.includes(protocol)) {
           data = [];
         }
       } catch (error) {
-        if (error instanceof TinymanAdapterError) {
+        if (error instanceof TinymanAdapterError || error instanceof PactAdapterError) {
           throw error;
         }
         throw error;

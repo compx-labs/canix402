@@ -1,11 +1,12 @@
 import {
+  fetchPactOpportunities,
   fetchTinymanOpportunities
 } from "../adapters/index.js";
 import { OpportunityRecordV1 } from "../types/opportunity.js";
 
-type CliProtocol = "tinyman";
+type CliProtocol = "tinyman" | "pact";
 
-const SUPPORTED_PROTOCOLS: CliProtocol[] = ["tinyman"];
+const SUPPORTED_PROTOCOLS: CliProtocol[] = ["tinyman", "pact"];
 
 interface ProtocolOutput {
   protocol: CliProtocol;
@@ -121,7 +122,10 @@ function resolveProtocols(protocolArg?: string): CliProtocol[] {
 }
 
 async function fetchByProtocol(protocol: CliProtocol): Promise<OpportunityRecordV1[]> {
-  return fetchTinymanOpportunities();
+  if (protocol === "tinyman") {
+    return fetchTinymanOpportunities();
+  }
+  return fetchPactOpportunities();
 }
 
 void main();

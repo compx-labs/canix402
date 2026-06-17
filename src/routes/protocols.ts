@@ -2,6 +2,8 @@ import { Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 
 import {
+  fetchPactOpportunities,
+  PactAdapterError,
   fetchTinymanOpportunities,
   TinymanAdapterError
 } from "../adapters/index.js";
@@ -63,9 +65,11 @@ export function registerProtocolRoutes(app: FastifyInstance) {
       try {
         if (protocol === "tinyman") {
           data = await fetchTinymanOpportunities();
+        } else if (protocol === "pact") {
+          data = await fetchPactOpportunities();
         }
       } catch (error) {
-        if (error instanceof TinymanAdapterError) {
+        if (error instanceof TinymanAdapterError || error instanceof PactAdapterError) {
           throw error;
         }
         throw error;

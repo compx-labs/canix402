@@ -5,10 +5,10 @@ This section tracks protocol-specific source contracts and normalization rules.
 ## Implemented Protocols
 
 - [Tinyman](tinyman.md)
+- [Pact](pact.md)
 
 ## Planned Protocols
 
-- Pact
 - Folks Finance
 - CompX
 - Dork.fi

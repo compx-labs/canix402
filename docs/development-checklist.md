@@ -40,7 +40,7 @@ Status legend:
 ## 4) Protocol Data Source Research and Adapters
 
 - [x] Tinyman adapter (API/SDK mapping + normalization).
-- [ ] Pact adapter (API/SDK mapping + normalization).
+- [x] Pact adapter (API/SDK mapping + normalization).
 - [ ] Folks Finance adapter (API/SDK mapping + normalization).
 - [ ] CompX adapter (internal/public data mapping + normalization).
 - [ ] Dork.fi adapter (API/SDK mapping + normalization).

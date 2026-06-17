@@ -99,6 +99,7 @@ Protocol-specific output:
 
 ```sh
 npm run cli:opportunities -- --protocol tinyman
+npm run cli:opportunities -- --protocol pact
 ```
 
 Compact single-line JSON:
@@ -113,16 +114,19 @@ Fail if no data rows are returned:
 npm run cli:opportunities -- --require-data
 ```
 
-## Tinyman Live Data Test
+## Live Data Tests
 
-To verify we can fetch real Tinyman data (non-mocked):
+To verify we can fetch real adapter data (non-mocked):
 
 ```sh
-npm run test:tinyman-live
+npm run test:live
 ```
 
-This test checks that live records are returned with numeric `apy` and
-`tvlUsd`.
+This suite currently checks:
+
+- Tinyman live records are returned with numeric `apy` and `tvlUsd`.
+- Pact live records are returned with numeric `apy` and `tvlUsd`, including LP
+  and farm opportunity type coverage when available.
 
 ## Troubleshooting
 
