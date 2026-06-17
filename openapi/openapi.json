@@ -1,0 +1,123 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "canix402 API",
+    "version": "0.1.0",
+    "description": "x402-gated Algorand DeFi opportunities data API"
+  },
+  "servers": [
+    {
+      "url": "https://api.canix402.local"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Service health check",
+        "tags": ["system"],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/metadata": {
+      "get": {
+        "summary": "Service metadata and policy surface",
+        "tags": ["system", "discovery"],
+        "responses": {
+          "200": {
+            "description": "Metadata"
+          }
+        }
+      }
+    },
+    "/discovery": {
+      "get": {
+        "summary": "Machine-readable endpoint catalog for agents",
+        "tags": ["discovery", "agents"],
+        "responses": {
+          "200": {
+            "description": "Discovery document"
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "summary": "OpenAPI contract document",
+        "tags": ["discovery", "openapi"],
+        "responses": {
+          "200": {
+            "description": "OpenAPI JSON"
+          }
+        }
+      }
+    },
+    "/opportunities": {
+      "get": {
+        "summary": "Aggregated DeFi opportunities",
+        "tags": ["defi", "opportunities"],
+        "parameters": [
+          { "name": "protocol", "in": "query", "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 200 } },
+          { "name": "offset", "in": "query", "schema": { "type": "integer", "minimum": 0 } },
+          { "name": "includeInactive", "in": "query", "schema": { "type": "boolean" } }
+        ],
+        "responses": {
+          "200": { "description": "Opportunity list" },
+          "402": { "description": "Payment required" },
+          "500": { "description": "Internal error" }
+        },
+        "x-x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet",
+            "asset": "31566704",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.01"
+          }
+        }
+      }
+    },
+    "/protocols/{protocol}/opportunities": {
+      "get": {
+        "summary": "DeFi opportunities for a single protocol",
+        "tags": ["defi", "opportunities", "protocol"],
+        "parameters": [
+          {
+            "name": "protocol",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["tinyman", "pact", "folks-finance", "compx", "dorkfi", "haystack"]
+            }
+          },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 200 } },
+          { "name": "offset", "in": "query", "schema": { "type": "integer", "minimum": 0 } },
+          { "name": "includeInactive", "in": "query", "schema": { "type": "boolean" } }
+        ],
+        "responses": {
+          "200": { "description": "Protocol opportunity list" },
+          "402": { "description": "Payment required" },
+          "500": { "description": "Internal error" }
+        },
+        "x-x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet",
+            "asset": "31566704",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.01"
+          }
+        }
+      }
+    }
+  }
+}

@@ -5,3 +5,5 @@ export type AdapterName =
   | "compx"
   | "dorkfi"
   | "haystack";
+
+export { fetchTinymanOpportunities, normalizeTinymanPool, TinymanAdapterError } from "./tinyman.js";

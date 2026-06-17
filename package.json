@@ -11,7 +11,11 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "tsx --test tests/integration/*.test.ts",
+    "build:caddy-x402": "mkdir -p .bin && xcaddy build --output .bin/caddy-x402 --with github.com/algorandecosystem/caddy-x402avm=../caddy-x402avm",
+    "test:x402-e2e": "tsx --test tests/e2e/*.test.ts",
+    "test:ci": "npm run test && npm run test:x402-e2e"
   },
   "dependencies": {
     "@fastify/type-provider-typebox": "^6.1.0",

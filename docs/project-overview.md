@@ -109,8 +109,33 @@ Planned endpoint families (exact contracts to be defined during implementation):
 - Aggregated opportunities endpoint across all protocols
 - Protocol-specific opportunities endpoint
 - Health/metadata endpoints (non-paid where appropriate)
+- Discovery endpoints (`/discovery`, `/openapi.json`) for agents and marketplaces
 
 x402 gating should be applied consistently to paid data endpoints.
+
+## Discovery Contract (Grade A)
+
+The API publishes two free discovery surfaces:
+
+- `GET /discovery`: canonical machine-readable catalog for agent/bazaar indexing.
+- `GET /openapi.json`: OpenAPI contract for client/tooling generation.
+
+Discovery guarantees:
+
+- `apiVersion` and `discoveryVersion` are explicit in discovery documents.
+- Endpoint inventory is shared across runtime policy, discovery output, and OpenAPI.
+- Paid endpoints include x402 metadata:
+  - protocol version
+  - required payment headers
+  - requirement template (`scheme`, `network`, `asset`, `payTo`, `maxAmountRequired`)
+- Error catalog includes stable machine-readable payment and validation codes.
+
+### Agent Onboarding Sequence
+
+1. Read `/discovery` to learn endpoints and payment policy.
+2. Read `/openapi.json` for detailed operation schemas.
+3. Call free endpoints (`/health`, `/metadata`, discovery endpoints) directly.
+4. Call paid endpoints and follow x402 negotiation (`PAYMENT-REQUIRED` -> `PAYMENT-SIGNATURE` -> `PAYMENT-RESPONSE`).
 
 ## Operational Expectations
 
@@ -134,3 +159,4 @@ Use this section to record major decisions as the project evolves.
 
 - 2026-06-17: Initial strategy set to on-demand fetching without persistent storage for v1.
 - 2026-06-17: Redis chosen as the preferred first cache implementation path for v2.
+- 2026-06-17: Discovery strategy set to dual-surface (`/discovery` and `/openapi.json`) with shared endpoint policy source-of-truth.

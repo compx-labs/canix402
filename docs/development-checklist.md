@@ -28,18 +28,18 @@ Status legend:
 
 ## 3) x402 Payment Gating
 
-- [ ] Integrate GoPlausible x402 facilitator into API request flow.
-- [ ] Configure USDC-denominated payment requirements for paid endpoints.
-- [ ] Integrate Nodely Caddy implementation for gateway behavior.
-- [ ] Define paid vs non-paid endpoint policy matrix.
-- [ ] Add integration tests for:
-  - [ ] Successful paid request
-  - [ ] Missing/invalid payment flow
-  - [ ] Expired or malformed payment proof
+- [x] Integrate GoPlausible x402 facilitator into API request flow.
+- [x] Configure USDC-denominated payment requirements for paid endpoints.
+- [x] Integrate Nodely Caddy implementation for gateway behavior.
+- [x] Define paid vs non-paid endpoint policy matrix.
+- [x] Add integration tests for:
+  - [x] Successful paid request
+  - [x] Missing/invalid payment flow
+  - [x] Expired or malformed payment proof
 
 ## 4) Protocol Data Source Research and Adapters
 
-- [ ] Tinyman adapter (API/SDK mapping + normalization).
+- [x] Tinyman adapter (API/SDK mapping + normalization).
 - [ ] Pact adapter (API/SDK mapping + normalization).
 - [ ] Folks Finance adapter (API/SDK mapping + normalization).
 - [ ] CompX adapter (internal/public data mapping + normalization).
@@ -104,3 +104,5 @@ Status legend:
 - [ ] Keep this checklist updated as tasks are completed or expanded.
 - [ ] Reflect major architectural decisions first in `docs/project-overview.md`.
 - [ ] Add new protocol adapter tasks here before implementation starts.
+- [ ] Keep `/discovery` and `/openapi.json` contracts in sync with endpoint policy changes.
+- [ ] Keep `test:x402-e2e` passing to preserve validator-path confidence through Caddy.

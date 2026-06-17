@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 
+import { TinymanAdapterError } from "./adapters/index.js";
 import { ApiError } from "./types/index.js";
 import { registerRoutes } from "./routes/index.js";
 
@@ -21,14 +22,21 @@ export function buildApp() {
             details
           }
         }
-      : {
-          error: {
-            code: "INTERNAL_ERROR",
-            message: "Internal server error."
+      : error instanceof TinymanAdapterError
+        ? {
+            error: {
+              code: "INTERNAL_ERROR",
+              message: error.message
+            }
           }
-        };
+        : {
+            error: {
+              code: "INTERNAL_ERROR",
+              message: "Internal server error."
+            }
+          };
 
-    const statusCode = details ? 400 : 500;
+    const statusCode = details ? 400 : error instanceof TinymanAdapterError ? 502 : 500;
 
     reply.status(statusCode).send(payload);
   });

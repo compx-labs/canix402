@@ -2,6 +2,7 @@ import { Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 
 import { ApiSuccess } from "../types/index.js";
+import { endpointPolicyMatrix } from "../services/payment-policy.js";
 import { SupportedProtocolValues } from "./schemas.js";
 
 interface HealthData {
@@ -13,6 +14,7 @@ interface MetadataData {
   service: "canix402";
   environment: string;
   supportedProtocols: readonly string[];
+  endpointPolicy: typeof endpointPolicyMatrix;
 }
 
 const healthReplySchema = Type.Object({
@@ -26,7 +28,19 @@ const metadataReplySchema = Type.Object({
   data: Type.Object({
     service: Type.Literal("canix402"),
     environment: Type.String(),
-    supportedProtocols: Type.Array(Type.String())
+    supportedProtocols: Type.Array(Type.String()),
+    endpointPolicy: Type.Array(
+      Type.Object({
+        id: Type.String(),
+        method: Type.Literal("GET"),
+        pathPattern: Type.String(),
+        access: Type.Union([Type.Literal("free"), Type.Literal("paid")]),
+        summary: Type.String(),
+        tags: Type.Array(Type.String()),
+        pathParams: Type.Optional(Type.Array(Type.String())),
+        queryParams: Type.Optional(Type.Array(Type.String()))
+      })
+    )
   })
 });
 
@@ -64,7 +78,8 @@ export function registerHealthRoutes(app: FastifyInstance) {
         data: {
           service: "canix402",
           environment: process.env.NODE_ENV ?? "development",
-          supportedProtocols: SupportedProtocolValues
+          supportedProtocols: SupportedProtocolValues,
+          endpointPolicy: endpointPolicyMatrix
         }
       };
     }

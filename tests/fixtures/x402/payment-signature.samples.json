@@ -1,0 +1,88 @@
+{
+  "valid": {
+    "x402Version": 2,
+    "paymentPayload": {
+      "paymentGroup": "c2lnbmVkLWFsZ29yYW5kLXR4bi1ncm91cA==",
+      "paymentIndex": 0
+    },
+    "paymentRequirements": {
+      "scheme": "exact",
+      "network": "algorand-mainnet",
+      "asset": "31566704",
+      "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+      "maxAmountRequired": "10000",
+      "resource": "https://api.canix402.local/opportunities",
+      "extra": {
+        "avmSplitQuote": {
+          "quoteId": "quote-live-1",
+          "actionFingerprint": "opportunities-v1",
+          "assetId": "31566704",
+          "nonce": "nonce-live-1",
+          "expiresAt": "2099-01-01T00:00:00.000Z",
+          "split": [
+            {
+              "role": "merchant",
+              "address": "REPLACE_WITH_PAYTO_ADDRESS",
+              "amount": "9000"
+            },
+            {
+              "role": "platform",
+              "address": "REPLACE_WITH_PLATFORM_ADDRESS",
+              "amount": "1000"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "expired": {
+    "x402Version": 2,
+    "paymentPayload": {
+      "paymentGroup": "c2lnbmVkLWFsZ29yYW5kLXR4bi1ncm91cA==",
+      "paymentIndex": 1
+    },
+    "paymentRequirements": {
+      "scheme": "exact",
+      "network": "algorand-mainnet",
+      "asset": "31566704",
+      "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+      "maxAmountRequired": "10000",
+      "resource": "https://api.canix402.local/protocols/tinyman/opportunities",
+      "extra": {
+        "avmSplitQuote": {
+          "quoteId": "quote-expired-1",
+          "actionFingerprint": "protocol-opportunities-v1",
+          "assetId": "31566704",
+          "nonce": "nonce-expired-1",
+          "expiresAt": "2020-01-01T00:00:00.000Z",
+          "split": [
+            {
+              "role": "merchant",
+              "address": "REPLACE_WITH_PAYTO_ADDRESS",
+              "amount": "9000"
+            },
+            {
+              "role": "platform",
+              "address": "REPLACE_WITH_PLATFORM_ADDRESS",
+              "amount": "1000"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "malformedMissingPaymentGroup": {
+    "x402Version": 2,
+    "paymentPayload": {
+      "paymentIndex": 0
+    },
+    "paymentRequirements": {
+      "scheme": "exact",
+      "network": "algorand-mainnet",
+      "asset": "31566704",
+      "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+      "maxAmountRequired": "10000",
+      "resource": "https://api.canix402.local/opportunities"
+    }
+  }
+}

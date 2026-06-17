@@ -1,0 +1,36 @@
+{
+    order x402 before reverse_proxy
+}
+
+:{$CADDY_LISTEN_PORT:8080} {
+    @free path /health /metadata /discovery /openapi.json
+    handle @free {
+        reverse_proxy {$UPSTREAM_API:http://localhost:3000}
+    }
+
+    @paid path /opportunities /protocols/*/opportunities
+    handle @paid {
+        x402 {
+            description "canix402 paid DeFi data endpoint"
+            mime_type application/json
+            facilitator_url {$FACILITATOR_URL:https://facilitator.goplausible.xyz}
+
+            # Optional settlement proof support for upstream verification.
+            proof_shared_secret {$PROOF_SHARED_SECRET:replace-me}
+            settlement_gate_path_regex {$SETTLEMENT_GATE_PATH_REGEX:^/sessions/[^/]+/paid-action$}
+
+            accept {
+                pay_to {$X402_PAY_TO:REPLACE_WITH_PAYTO_ADDRESS}
+                price {$X402_PRICE_USDC:0.01}
+                network {$X402_NETWORK:algorand-mainnet}
+                scheme {$X402_SCHEME:exact}
+            }
+        }
+
+        reverse_proxy {$UPSTREAM_API:http://localhost:3000}
+    }
+
+    handle {
+        respond "not found" 404
+    }
+}
