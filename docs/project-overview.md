@@ -62,6 +62,12 @@ Each protocol adapter should document:
 - Field-level mappings into the normalized model
 - Known caveats (rate limits, delayed updates, missing fields)
 
+Current adapter implementation status:
+
+- Active runtime focus: Tinyman
+- Planned next: Pact, Folks Finance, CompX, Dork.fi, Haystack
+- Protocol docs index: `docs/data-sources/README.md`
+
 ## Normalized Opportunity Data Model (Initial)
 
 All protocol adapters should map into a shared structure with at least:
@@ -75,6 +81,13 @@ All protocol adapters should map into a shared structure with at least:
 - `sourceTimestamp`: timestamp from upstream source when available
 - `fetchedAt`: timestamp of ingestion by this service
 - `notes`: caveats or confidence annotations for consumers
+
+Current implementation shape (`OpportunityRecordV1`) emphasizes:
+
+- `apy` (required)
+- `tvlUsd` (required)
+- `opportunityId`, `assetPair`, `sourceTimestamp`, `fetchedAt`
+- optional `apr` and `notes`
 
 ## Storage and Caching Strategy
 

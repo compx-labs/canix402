@@ -1,7 +1,10 @@
 import { Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 
-import { fetchTinymanOpportunities, TinymanAdapterError } from "../adapters/index.js";
+import {
+  fetchTinymanOpportunities,
+  TinymanAdapterError
+} from "../adapters/index.js";
 import { ApiSuccess } from "../types/index.js";
 import { OpportunityRecordV1 } from "../types/opportunity.js";
 import {

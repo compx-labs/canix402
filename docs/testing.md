@@ -18,12 +18,19 @@ Coverage:
 - Discovery contract coverage (`/discovery`)
 - OpenAPI consistency coverage (`/openapi.json`)
 - App-level x402 behavior simulation for paid/free routes
+- Adapter and protocol-route coverage for:
+  - Tinyman
+  - Pact
+  - Folks Finance
 
 Files:
 
 - `tests/integration/discovery-contract.test.ts`
 - `tests/integration/openapi-consistency.test.ts`
 - `tests/integration/x402-gating.test.ts`
+- `tests/integration/tinyman-adapter.test.ts`
+- `tests/integration/pact-adapter.test.ts`
+- `tests/integration/folks-finance-adapter.test.ts`
 
 ### x402 E2E tests through Caddy (`tests/e2e`)
 
@@ -79,6 +86,43 @@ Before merging, also run:
 npm run build
 npm run typecheck
 ```
+
+## Data Shape CLI
+
+To inspect the current normalized output shape and live adapter payloads in JSON:
+
+```sh
+npm run cli:opportunities
+```
+
+Protocol-specific output:
+
+```sh
+npm run cli:opportunities -- --protocol tinyman
+```
+
+Compact single-line JSON:
+
+```sh
+npm run cli:opportunities -- --compact
+```
+
+Fail if no data rows are returned:
+
+```sh
+npm run cli:opportunities -- --require-data
+```
+
+## Tinyman Live Data Test
+
+To verify we can fetch real Tinyman data (non-mocked):
+
+```sh
+npm run test:tinyman-live
+```
+
+This test checks that live records are returned with numeric `apy` and
+`tvlUsd`.
 
 ## Troubleshooting
 

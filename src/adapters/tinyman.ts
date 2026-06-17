@@ -1,17 +1,23 @@
 import { OpportunityRecordV1 } from "../types/opportunity.js";
 
 interface TinymanPoolApiRecord {
-  id?: string;
-  pairName?: string;
-  apy?: number | string | null;
-  tvlUsd?: number | string | null;
-  apr?: number | string | null;
-  updatedAt?: string | null;
-  type?: string | null;
+  address?: string;
+  version?: string;
+  is_verified?: boolean | null;
+  annual_percentage_rate?: number | string | null;
+  annual_percentage_yield?: number | string | null;
+  total_annual_percentage_rate?: number | string | null;
+  total_annual_percentage_yield?: number | string | null;
+  staking_total_annual_percentage_rate?: number | string | null;
+  staking_total_annual_percentage_yield?: number | string | null;
+  liquidity_in_usd?: number | string | null;
+  is_stable?: boolean | null;
+  asset_1?: { unit_name?: string | null; name?: string | null };
+  asset_2?: { unit_name?: string | null; name?: string | null };
 }
 
 interface TinymanApiResponse {
-  pools?: TinymanPoolApiRecord[];
+  results?: TinymanPoolApiRecord[];
 }
 
 export class TinymanAdapterError extends Error {
@@ -30,8 +36,17 @@ export async function fetchTinymanOpportunities(
   const baseUrl =
     process.env.TINYMAN_API_BASE_URL ?? "https://mainnet.analytics.tinyman.org/api/v1";
   const apiKey = process.env.TINYMAN_API_KEY;
-  const requestUrl = `${trimTrailingSlash(baseUrl)}/pools`;
+  const query = new URLSearchParams({
+    with_statistics: "true",
+    limit: process.env.TINYMAN_POOL_LIMIT ?? "100"
+  });
+  const versions = parseVersions(process.env.TINYMAN_POOL_VERSIONS ?? "2.0");
+  for (const version of versions) {
+    query.append("version__in", version);
+  }
+  const requestUrl = `${trimTrailingSlash(baseUrl)}/pools/?${query.toString()}`;
   const fetchedAt = new Date().toISOString();
+  const onlyVerified = parseBoolean(process.env.TINYMAN_ONLY_VERIFIED, true);
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
@@ -55,11 +70,11 @@ export async function fetchTinymanOpportunities(
     }
 
     const payload = (await response.json()) as TinymanApiResponse;
-    const records = payload.pools ?? [];
+    const records = payload.results ?? [];
 
     return records
-      .map((record) => normalizeTinymanPool(record, fetchedAt))
-      .filter((record): record is OpportunityRecordV1 => record !== null);
+      .filter((record) => (onlyVerified ? record.is_verified === true : true))
+      .flatMap((record) => normalizeTinymanPoolOpportunities(record, fetchedAt));
   } catch (error) {
     if (error instanceof TinymanAdapterError) {
       throw error;
@@ -75,18 +90,21 @@ export function normalizeTinymanPool(
   record: TinymanPoolApiRecord,
   fetchedAtIso: string = new Date().toISOString()
 ): OpportunityRecordV1 | null {
-  const apy = toNumber(record.apy);
-  const tvlUsd = toNumber(record.tvlUsd);
+  const apy =
+    toNumber(record.annual_percentage_yield) ??
+    toNumber(record.total_annual_percentage_yield);
+  const tvlUsd = toNumber(record.liquidity_in_usd);
 
   if (apy === null || tvlUsd === null) {
     return null;
   }
 
-  const apr = toNumber(record.apr);
-  const opportunityType = normalizeOpportunityType(record.type);
-  const sourceTimestamp = record.updatedAt ?? fetchedAtIso;
-  const id = record.id ?? "";
-  const pairName = record.pairName ?? "";
+  const apr =
+    toNumber(record.annual_percentage_rate) ??
+    toNumber(record.total_annual_percentage_rate);
+  const sourceTimestamp = fetchedAtIso;
+  const id = record.address ?? "";
+  const pairName = buildPairName(record);
 
   const notes =
     id.length === 0 || pairName.length === 0
@@ -95,8 +113,8 @@ export function normalizeTinymanPool(
 
   return {
     protocol: "tinyman",
-    opportunityType,
-    opportunityId: id.length > 0 ? id : `tinyman-${pairName || "unknown"}`,
+    opportunityType: "lp",
+    opportunityId: id.length > 0 ? `${id}:lp` : `tinyman-${pairName || "unknown"}:lp`,
     assetPair: pairName || "unknown/unknown",
     apy,
     tvlUsd,
@@ -107,18 +125,79 @@ export function normalizeTinymanPool(
   };
 }
 
-function normalizeOpportunityType(type: string | null | undefined): OpportunityRecordV1["opportunityType"] {
-  const value = (type ?? "").toLowerCase();
-  if (value.includes("farm")) {
-    return "farm";
+function normalizeTinymanPoolOpportunities(
+  record: TinymanPoolApiRecord,
+  fetchedAtIso: string
+): OpportunityRecordV1[] {
+  const output: OpportunityRecordV1[] = [];
+  const lpOpportunity = normalizeTinymanPool(record, fetchedAtIso);
+  if (lpOpportunity !== null) {
+    output.push(lpOpportunity);
   }
-  if (value.includes("stake")) {
-    return "staking";
+
+  const farmOpportunity = normalizeTinymanFarm(record, fetchedAtIso);
+  if (farmOpportunity !== null) {
+    output.push(farmOpportunity);
   }
-  if (value.includes("lend")) {
-    return "lending";
+
+  return output;
+}
+
+function normalizeTinymanFarm(
+  record: TinymanPoolApiRecord,
+  fetchedAtIso: string
+): OpportunityRecordV1 | null {
+  const stakingApy = toNumber(record.staking_total_annual_percentage_yield);
+  const stakingApr = toNumber(record.staking_total_annual_percentage_rate);
+  const tvlUsd = toNumber(record.liquidity_in_usd);
+  if (tvlUsd === null) {
+    return null;
   }
-  return "lp";
+
+  const hasFarmData =
+    (stakingApy !== null && stakingApy > 0) ||
+    (stakingApr !== null && stakingApr > 0);
+  if (!hasFarmData) {
+    return null;
+  }
+
+  const sourceTimestamp = fetchedAtIso;
+  const id = record.address ?? "";
+  const pairName = buildPairName(record);
+  const notes =
+    id.length === 0 || pairName.length === 0
+      ? "Some source fields were missing; fallback identifiers were used."
+      : undefined;
+
+  return {
+    protocol: "tinyman",
+    opportunityType: "farm",
+    opportunityId: id.length > 0 ? `${id}:farm` : `tinyman-${pairName || "unknown"}:farm`,
+    assetPair: pairName || "unknown/unknown",
+    apy: stakingApy ?? 0,
+    tvlUsd,
+    ...(stakingApr !== null ? { apr: stakingApr } : {}),
+    sourceTimestamp,
+    fetchedAt: fetchedAtIso,
+    ...(notes ? { notes } : {})
+  };
+}
+
+function buildPairName(record: TinymanPoolApiRecord): string {
+  const left = record.asset_1?.unit_name ?? record.asset_1?.name;
+  const right = record.asset_2?.unit_name ?? record.asset_2?.name;
+
+  if (left && right) {
+    return `${left}/${right}`;
+  }
+  if (left) {
+    return `${left}/unknown`;
+  }
+  if (right) {
+    return `unknown/${right}`;
+  }
+
+  return "";
 }
 
 function toNumber(value: number | string | null | undefined): number | null {
@@ -136,4 +215,26 @@ function toNumber(value: number | string | null | undefined): number | null {
 
 function trimTrailingSlash(value: string): string {
   return value.endsWith("/") ? value.slice(0, -1) : value;
+}
+
+function parseVersions(value: string): string[] {
+  const versions = value
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+  return versions.length > 0 ? versions : ["2.0"];
+}
+
+function parseBoolean(value: string | undefined, defaultValue: boolean): boolean {
+  if (value === undefined) {
+    return defaultValue;
+  }
+  const normalized = value.trim().toLowerCase();
+  if (["1", "true", "yes", "on"].includes(normalized)) {
+    return true;
+  }
+  if (["0", "false", "no", "off"].includes(normalized)) {
+    return false;
+  }
+  return defaultValue;
 }

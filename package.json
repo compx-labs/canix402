@@ -11,8 +11,10 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
+    "cli:opportunities": "tsx src/cli/opportunities.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "tsx --test tests/integration/*.test.ts",
+    "test:tinyman-live": "tsx --test tests/live/*.test.ts",
     "build:caddy-x402": "mkdir -p .bin && xcaddy build --output .bin/caddy-x402 --with github.com/algorandecosystem/caddy-x402avm=../caddy-x402avm",
     "test:x402-e2e": "tsx --test tests/e2e/*.test.ts",
     "test:ci": "npm run test && npm run test:x402-e2e"
@@ -20,6 +22,7 @@
   "dependencies": {
     "@fastify/type-provider-typebox": "^6.1.0",
     "@sinclair/typebox": "^0.34.49",
+    "@tinymanorg/tinyman-js-sdk": "^5.1.4",
     "fastify": "^5.8.5"
   },
   "devDependencies": {

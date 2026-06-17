@@ -36,7 +36,12 @@ export function buildApp() {
             }
           };
 
-    const statusCode = details ? 400 : error instanceof TinymanAdapterError ? 502 : 500;
+    const statusCode =
+      details
+        ? 400
+        : error instanceof TinymanAdapterError
+          ? 502
+          : 500;
 
     reply.status(statusCode).send(payload);
   });

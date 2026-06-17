@@ -7,12 +7,20 @@ This document defines the current Tinyman adapter contract used by canix402.
 - Mode: API-first
 - Adapter file: `src/adapters/tinyman.ts`
 - Base URL: `TINYMAN_API_BASE_URL`
-- Endpoint used: `GET /pools`
+- Endpoint used: `GET /pools/`
+- Default query profile matches Tinyman app pool listing behavior:
+  - `with_statistics=true`
+  - `version__in=2.0` (override with `TINYMAN_POOL_VERSIONS`)
+  - `limit=100` (override with `TINYMAN_POOL_LIMIT`)
+  - verified-only filtering in adapter (`TINYMAN_ONLY_VERIFIED=true` by default)
 
 ## Environment Variables
 
 - `TINYMAN_API_BASE_URL` (required in production)
 - `TINYMAN_API_KEY` (optional; sent as bearer token when provided)
+- `TINYMAN_POOL_VERSIONS` (optional CSV, default `2.0`)
+- `TINYMAN_ONLY_VERIFIED` (optional boolean, default `true`)
+- `TINYMAN_POOL_LIMIT` (optional integer-like string, default `100`)
 
 ## Normalized Output Fields
 
@@ -33,23 +41,32 @@ Other emitted fields:
 - `fetchedAt`
 - `notes` (only when fallback identifiers are used)
 
+When farm incentives are present, one upstream pool can emit **two** normalized
+opportunities:
+
+- `lp` for the base pool position
+- `farm` for staking/farming incentives on that same pair
+
 ## Field Mapping
 
 | Tinyman field | Normalized field | Notes |
 |---|---|---|
-| `id` | `opportunityId` | Falls back to generated id if missing |
-| `pairName` | `assetPair` | Falls back to `unknown/unknown` if missing |
-| `apy` | `apy` | Required; record dropped when invalid |
-| `tvlUsd` | `tvlUsd` | Required; record dropped when invalid |
-| `apr` | `apr` | Optional |
-| `updatedAt` | `sourceTimestamp` | Falls back to `fetchedAt` if missing |
-| `type` | `opportunityType` | Mapped by keyword (`farm`, `stake`, `lend`) else `lp` |
+| `address` | `opportunityId` | Suffixes `:lp` or `:farm` for uniqueness |
+| `asset_1.unit_name` + `asset_2.unit_name` | `assetPair` | Falls back to `unknown/unknown` if missing |
+| `annual_percentage_yield` | `apy` (`lp`) | Required for LP output |
+| `staking_total_annual_percentage_yield` | `apy` (`farm`) | Farm output emitted when > 0 |
+| `liquidity_in_usd` | `tvlUsd` | Required; record dropped when invalid |
+| `annual_percentage_rate` | `apr` (`lp`) | Optional |
+| `staking_total_annual_percentage_rate` | `apr` (`farm`) | Optional |
+| fetch timestamp | `sourceTimestamp` | Source currently does not expose per-row update timestamp |
+| incentive presence (`staking_total_annual_percentage_*`) | `opportunityType` | Emits `farm` in addition to `lp` |
 
 ## Error and Data Quality Behavior
 
 - Non-2xx response from Tinyman API -> adapter throws `TinymanAdapterError`.
 - Invalid JSON/transport timeout -> adapter throws `TinymanAdapterError`.
 - Rows missing either APY or TVL (USD) are filtered out, not partially emitted.
+- Rows are filtered to verified pools by default (`TINYMAN_ONLY_VERIFIED=true`).
 
 ## Rate-Limit and Reliability Notes
 
@@ -60,7 +77,7 @@ Other emitted fields:
 ## Known Caveats
 
 - Endpoint/field names are controlled by Tinyman and may evolve.
-- `type` classification may require protocol-specific refinement as farm products
-  evolve.
+- Pool endpoint data maps to `lp`; farming incentives are emitted as separate
+  `farm` opportunities when staking fields are present.
 - `tvlUsd` and `apy` are trusted from source; cross-protocol normalization
   tolerances will be refined as additional adapters are added.

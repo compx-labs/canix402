@@ -46,9 +46,9 @@ Status legend:
 - [ ] Dork.fi adapter (API/SDK mapping + normalization).
 - [ ] Haystack adapter (API/SDK mapping + normalization).
 - [ ] For each adapter, document:
-  - [ ] Source endpoint(s) or SDK methods
-  - [ ] Rate-limit and error characteristics
-  - [ ] Field mapping and known caveats
+  - [~] Source endpoint(s) or SDK methods
+  - [~] Rate-limit and error characteristics
+  - [~] Field mapping and known caveats
 
 ## 5) Data Normalization and Contract Definition
 
