@@ -61,8 +61,8 @@ test("valid PAYMENT-SIGNATURE triggers verify then settle and returns 200", asyn
 
     assert.equal(verifyBody.x402Version, 2);
     assert.equal(
-      typeof (nestedPayload?.paymentGroup ?? paymentPayload.paymentGroup),
-      "string"
+      Array.isArray(nestedPayload?.paymentGroup ?? paymentPayload.paymentGroup),
+      true
     );
     assert.equal(
       nestedPayload?.paymentIndex ?? paymentPayload.paymentIndex,

@@ -24,7 +24,7 @@ export interface X402PaymentRequirements {
 }
 
 export interface X402PaymentPayload {
-  paymentGroup: string;
+  paymentGroup: string[];
   paymentIndex: number;
 }
 
@@ -148,11 +148,13 @@ function isPaymentPayload(value: unknown): value is X402PaymentPayload {
   };
 
   return (
-    typeof candidate.paymentGroup === "string" &&
-    isValidBase64(candidate.paymentGroup) &&
+    Array.isArray(candidate.paymentGroup) &&
+    candidate.paymentGroup.length > 0 &&
+    candidate.paymentGroup.every((item) => typeof item === "string" && isValidBase64(item)) &&
     typeof candidate.paymentIndex === "number" &&
     Number.isInteger(candidate.paymentIndex) &&
-    candidate.paymentIndex >= 0
+    candidate.paymentIndex >= 0 &&
+    candidate.paymentIndex < candidate.paymentGroup.length
   );
 }
 

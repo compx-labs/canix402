@@ -3,7 +3,7 @@ import { createServer, IncomingMessage, Server, ServerResponse } from "node:http
 interface VerifyRequestBody {
   x402Version: number;
   paymentPayload: {
-    paymentGroup: string;
+    paymentGroup: string[];
     paymentIndex: number;
   };
   paymentRequirements: {

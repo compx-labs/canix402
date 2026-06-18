@@ -132,7 +132,7 @@ This suite currently checks:
 
 ## Live x402 Integration Tests
 
-To verify live Caddy + facilitator compatibility:
+To verify live Caddy + facilitator compatibility and live paid settlement:
 
 ```sh
 npm run test:x402-live
@@ -143,17 +143,12 @@ This performs a real local stack run:
 - real Fastify API
 - real Caddy x402 plugin
 - real facilitator preflight compatibility checks (`PAYMENT-REQUIRED` from paid route)
-
-To also run the paid retry path (wallet-signed payment + facilitator settle),
-set `X402_CLIENT_MNEMONIC` first:
-
-```sh
-X402_CLIENT_MNEMONIC="your 25-word mnemonic" \
-npm run test:x402-live
-```
+- wallet-signed payment retry and facilitator settlement
 
 Configuration source for the live suite:
 
+- local `.env` and `caddy/.env` files are loaded automatically
+- shell-exported values take precedence over local env file values
 - Caddy payment policy from existing env (`X402_PAYMENT_RECEIVER_ADDRESS`, `X402_PAYMENT_AMOUNT_USDC`, etc.)
 - facilitator URL from `X402_FACILITATOR_BASE_URL`
 - Algod URL from `X402_ALGOD_URL` (default: `https://mainnet-api.algonode.cloud`)

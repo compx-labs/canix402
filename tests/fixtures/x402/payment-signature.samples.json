@@ -2,7 +2,7 @@
   "valid": {
     "x402Version": 2,
     "paymentPayload": {
-      "paymentGroup": "c2lnbmVkLWFsZ29yYW5kLXR4bi1ncm91cA==",
+      "paymentGroup": ["c2lnbmVkLWFsZ29yYW5kLXR4bi1ncm91cA=="],
       "paymentIndex": 0
     },
     "paymentRequirements": {
@@ -38,7 +38,10 @@
   "expired": {
     "x402Version": 2,
     "paymentPayload": {
-      "paymentGroup": "c2lnbmVkLWFsZ29yYW5kLXR4bi1ncm91cA==",
+      "paymentGroup": [
+        "c2lnbmVkLWFsZ29yYW5kLXR4bi1ncm91cA==",
+        "c2lnbmVkLWFsZ29yYW5kLXR4bi1ncm91cA=="
+      ],
       "paymentIndex": 1
     },
     "paymentRequirements": {

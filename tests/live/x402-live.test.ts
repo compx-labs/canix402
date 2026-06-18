@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn, ChildProcessWithoutNullStreams } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { createServer, Server } from "node:http";
 import { resolve } from "node:path";
 import test from "node:test";
@@ -10,6 +10,8 @@ import algosdk from "algosdk";
 import { buildApp } from "../../src/app.js";
 
 const CADDY_BINARY = resolve(process.cwd(), ".bin/caddy-x402");
+
+loadLiveEnvFiles();
 
 test("live x402 preflight returns 402 + payment requirements", async () => {
   const env = getLiveEnv();
@@ -41,10 +43,9 @@ test("live x402 preflight returns 402 + payment requirements", async () => {
 
 test(
   "live x402 paid request settles via facilitator and returns data",
-  { skip: !hasClientMnemonic() },
   async () => {
     const env = getLiveEnv();
-    assert.ok(env.clientMnemonic);
+    const clientMnemonic = requireClientMnemonic();
 
     const harness = await startLiveCaddyHarness(env);
     try {
@@ -59,7 +60,7 @@ test(
       const paymentSignature = await buildLivePaymentSignature({
         paymentRequest,
         requestUrl: `${harness.caddyBaseUrl}${paidPath}`,
-        clientMnemonic: env.clientMnemonic,
+        clientMnemonic,
         algodUrl: env.algodUrl
       });
 
@@ -89,7 +90,6 @@ interface LiveEnv {
   scheme: string;
   priceUsdc: string;
   algodUrl: string;
-  clientMnemonic?: string;
 }
 
 function getLiveEnv(): LiveEnv {
@@ -107,8 +107,7 @@ function getLiveEnv(): LiveEnv {
     network: process.env.X402_NETWORK ?? "algorand-mainnet",
     scheme: process.env.X402_SCHEME ?? "exact",
     priceUsdc: configuredPrice && configuredPrice.length > 0 ? configuredPrice : "0.01",
-    algodUrl: process.env.X402_ALGOD_URL ?? "https://mainnet-api.algonode.cloud",
-    clientMnemonic: process.env.X402_CLIENT_MNEMONIC
+    algodUrl: process.env.X402_ALGOD_URL ?? "https://mainnet-api.algonode.cloud"
   };
 }
 
@@ -339,22 +338,22 @@ async function buildLivePaymentSignature(
   const account = algosdk.mnemonicToSecretKey(input.clientMnemonic);
   const algod = new algosdk.Algodv2("", input.algodUrl, "");
   const suggested = await algod.getTransactionParams().do();
+  const feePayer = getFeePayer(accepted);
 
-  const transfer = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-    sender: account.addr,
-    receiver: accepted.payTo,
-    amount: amountMicroUsdc,
-    assetIndex: BigInt(accepted.asset),
-    suggestedParams: {
-      ...suggested,
-      flatFee: true,
-      fee: 1_000
-    },
-    note: new TextEncoder().encode("x402-payment-v2")
-  });
-
-  const signed = algosdk.signTransaction(transfer, account.sk);
-  const paymentGroup = Buffer.from(signed.blob).toString("base64");
+  const payment = feePayer
+    ? buildFeePayerPayment({
+        account,
+        accepted,
+        amountMicroUsdc,
+        suggested,
+        feePayer
+      })
+    : buildDirectPayment({
+        account,
+        accepted,
+        amountMicroUsdc,
+        suggested
+      });
 
   const paymentSignaturePayload = {
     x402Version: input.paymentRequest.x402Version ?? 2,
@@ -368,8 +367,8 @@ async function buildLivePaymentSignature(
     extensions: {},
     outputSchema: null,
     payload: {
-      paymentGroup,
-      paymentIndex: 0
+      paymentGroup: payment.paymentGroup,
+      paymentIndex: payment.paymentIndex
     },
     paymentRequired: input.paymentRequest
   };
@@ -379,6 +378,141 @@ async function buildLivePaymentSignature(
   );
 }
 
-function hasClientMnemonic(): boolean {
-  return Boolean(process.env.X402_CLIENT_MNEMONIC);
+interface PaymentBuildInput {
+  account: algosdk.Account;
+  accepted: PaymentRequestAccept;
+  amountMicroUsdc: bigint;
+  suggested: algosdk.SuggestedParams;
+}
+
+interface BuiltPayment {
+  paymentGroup: string[];
+  paymentIndex: number;
+}
+
+function buildDirectPayment(input: PaymentBuildInput): BuiltPayment {
+  const transfer = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+    sender: input.account.addr,
+    receiver: input.accepted.payTo,
+    amount: input.amountMicroUsdc,
+    assetIndex: BigInt(input.accepted.asset),
+    suggestedParams: {
+      ...input.suggested,
+      flatFee: true,
+      fee: 1_000
+    },
+    note: new TextEncoder().encode("x402-payment-v2")
+  });
+
+  const signed = algosdk.signTransaction(transfer, input.account.sk);
+  return {
+    paymentGroup: [Buffer.from(signed.blob).toString("base64")],
+    paymentIndex: 0
+  };
+}
+
+function buildFeePayerPayment(
+  input: PaymentBuildInput & { feePayer: string }
+): BuiltPayment {
+  const feePayerTxn = new algosdk.Transaction({
+    type: algosdk.TransactionType.pay,
+    sender: input.feePayer,
+    suggestedParams: {
+      ...input.suggested,
+      flatFee: true,
+      fee: 2_000
+    },
+    paymentParams: {
+      receiver: input.feePayer,
+      amount: 0
+    },
+    note: new TextEncoder().encode("x402-fee-payer")
+  });
+
+  const transfer = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+    sender: input.account.addr,
+    receiver: input.accepted.payTo,
+    amount: input.amountMicroUsdc,
+    assetIndex: BigInt(input.accepted.asset),
+    suggestedParams: {
+      ...input.suggested,
+      flatFee: true,
+      fee: 0
+    },
+    note: new TextEncoder().encode("x402-payment-v2")
+  });
+
+  algosdk.assignGroupID([feePayerTxn, transfer]);
+
+  const feePayerBytes = algosdk.encodeUnsignedTransaction(feePayerTxn);
+  const signedTransfer = algosdk.signTransaction(transfer, input.account.sk);
+
+  return {
+    paymentGroup: [
+      Buffer.from(feePayerBytes).toString("base64"),
+      Buffer.from(signedTransfer.blob).toString("base64")
+    ],
+    paymentIndex: 1
+  };
+}
+
+function getFeePayer(accepted: PaymentRequestAccept): string | undefined {
+  const extra = accepted.extra;
+  if (typeof extra !== "object" || extra === null) {
+    return undefined;
+  }
+
+  const feePayer = (extra as { feePayer?: unknown }).feePayer;
+  return typeof feePayer === "string" && feePayer.length > 0 ? feePayer : undefined;
+}
+
+function requireClientMnemonic(): string {
+  const mnemonic = process.env.X402_CLIENT_MNEMONIC;
+  if (!mnemonic) {
+    throw new Error(
+      "X402_CLIENT_MNEMONIC is required for npm run test:x402-live. Add it to .env or export it before running the live paid test."
+    );
+  }
+  return mnemonic;
+}
+
+function loadLiveEnvFiles(): void {
+  for (const filePath of [resolve(process.cwd(), ".env"), resolve(process.cwd(), "caddy/.env")]) {
+    loadEnvFileIfPresent(filePath);
+  }
+}
+
+function loadEnvFileIfPresent(filePath: string): void {
+  if (!existsSync(filePath)) {
+    return;
+  }
+
+  const contents = readFileSync(filePath, "utf-8");
+  for (const rawLine of contents.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) {
+      continue;
+    }
+
+    const separatorIndex = line.indexOf("=");
+    if (separatorIndex <= 0) {
+      continue;
+    }
+
+    const key = line.slice(0, separatorIndex).trim().replace(/^export\s+/, "");
+    const value = stripOptionalQuotes(line.slice(separatorIndex + 1).trim());
+    process.env[key] ??= value;
+  }
+}
+
+function stripOptionalQuotes(value: string): string {
+  if (
+    value.length >= 2 &&
+    ((value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'")))
+  ) {
+    return value.slice(1, -1);
+  }
+
+  return value;
 }
