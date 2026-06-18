@@ -8,8 +8,8 @@
 		reverse_proxy {$UPSTREAM_API}
 	}
 
-	@paid path /opportunities /opportunities/search /protocols/*/opportunities
-	handle @paid {
+	@paid_aggregate path /opportunities
+	handle @paid_aggregate {
 		x402 {
 			description "canix402 paid DeFi data endpoint"
 			mime_type application/json
@@ -17,7 +17,43 @@
 
 			accept {
 				pay_to {$X402_PAY_TO}
-				price {$X402_PRICE_USDC}
+				price {$X402_PRICE_AGGREGATE_USDC}
+				network {$X402_NETWORK}
+				scheme {$X402_SCHEME}
+			}
+		}
+
+		reverse_proxy {$UPSTREAM_API}
+	}
+
+	@paid_search path /opportunities/search
+	handle @paid_search {
+		x402 {
+			description "canix402 paid DeFi data endpoint"
+			mime_type application/json
+			facilitator_url {$FACILITATOR_URL}
+
+			accept {
+				pay_to {$X402_PAY_TO}
+				price {$X402_PRICE_SEARCH_USDC}
+				network {$X402_NETWORK}
+				scheme {$X402_SCHEME}
+			}
+		}
+
+		reverse_proxy {$UPSTREAM_API}
+	}
+
+	@paid_protocol path /protocols/*/opportunities
+	handle @paid_protocol {
+		x402 {
+			description "canix402 paid DeFi data endpoint"
+			mime_type application/json
+			facilitator_url {$FACILITATOR_URL}
+
+			accept {
+				pay_to {$X402_PAY_TO}
+				price {$X402_PRICE_PROTOCOL_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
 			}
