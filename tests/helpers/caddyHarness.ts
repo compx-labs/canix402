@@ -34,7 +34,7 @@ export async function startCaddyHarness(
 
   const caddy = spawn(
     resolvedBinary,
-    ["run", "--config", "infra/caddy/Caddyfile", "--adapter", "caddyfile"],
+    ["run", "--config", "caddy/Caddyfile", "--adapter", "caddyfile"],
     {
       cwd: resolve(process.cwd()),
       env: {

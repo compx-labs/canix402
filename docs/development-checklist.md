@@ -31,6 +31,7 @@ Status legend:
 - [x] Integrate GoPlausible x402 facilitator into API request flow.
 - [x] Configure USDC-denominated payment requirements for paid endpoints.
 - [x] Integrate Nodely Caddy implementation for gateway behavior.
+- [x] Move runtime gateway config to project-owned `caddy/Caddyfile` (separate from example/plugin repo).
 - [x] Define paid vs non-paid endpoint policy matrix.
 - [x] Add integration tests for:
   - [x] Successful paid request

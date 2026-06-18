@@ -38,6 +38,12 @@ Initial protocol coverage:
   - GoPlausible x402 facilitator
   - Nodely Caddy implementation
 
+Gateway configuration ownership:
+
+- Each x402 integration keeps its own project-specific Caddyfile and run wiring.
+- In this repo, runtime gateway config lives under `caddy/`.
+- `caddy-x402avm` is retained as plugin/example source, not the runtime config source.
+
 This allows standard HTTP API usage while ensuring requests are authorized only after successful x402 payment flow.
 
 ## Technical Baseline
@@ -173,3 +179,4 @@ Use this section to record major decisions as the project evolves.
 - 2026-06-17: Initial strategy set to on-demand fetching without persistent storage for v1.
 - 2026-06-17: Redis chosen as the preferred first cache implementation path for v2.
 - 2026-06-17: Discovery strategy set to dual-surface (`/discovery` and `/openapi.json`) with shared endpoint policy source-of-truth.
+- 2026-06-18: Caddy runtime configuration moved to project-owned `caddy/`; `infra/caddy` retired and `caddy-x402avm` kept as plugin/example source.

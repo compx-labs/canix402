@@ -67,6 +67,8 @@ npm run build:caddy-x402
 
 This generates `.bin/caddy-x402` used by the E2E harness.
 
+The E2E harness loads `caddy/Caddyfile` as the project-owned gateway config.
+
 ## Full CI-equivalent run
 
 ```sh
@@ -134,7 +136,7 @@ This suite currently checks:
   - run `npm run build:caddy-x402`
 - `Caddy exited early`:
   - inspect test output logs from `tests/helpers/caddyHarness.ts`
-  - verify `infra/caddy/Caddyfile` syntax and environment values
+  - verify `caddy/Caddyfile` syntax and environment values
 - E2E passes locally but fails in CI:
   - confirm the CI environment has Go and `xcaddy` available for binary build
 

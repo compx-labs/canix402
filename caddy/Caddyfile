@@ -2,7 +2,7 @@
     order x402 before reverse_proxy
 }
 
-:{$CADDY_LISTEN_PORT:8080} {
+:{$CADDY_LISTEN_PORT:8081} {
     @free path /health /metadata /discovery /openapi.json
     handle @free {
         reverse_proxy {$UPSTREAM_API:http://localhost:3000}
@@ -17,7 +17,7 @@
 
             # Optional settlement proof support for upstream verification.
             proof_shared_secret {$PROOF_SHARED_SECRET:replace-me}
-            settlement_gate_path_regex {$SETTLEMENT_GATE_PATH_REGEX:^/sessions/[^/]+/paid-action$}
+            settlement_gate_path_regex {$SETTLEMENT_GATE_PATH_REGEX:^/opportunities$|^/protocols/[^/]+/opportunities$}
 
             accept {
                 pay_to {$X402_PAY_TO:REPLACE_WITH_PAYTO_ADDRESS}
