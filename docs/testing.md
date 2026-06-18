@@ -130,6 +130,35 @@ This suite currently checks:
 - Pact live records are returned with numeric `apy` and `tvlUsd`, including LP
   and farm opportunity type coverage when available.
 
+## Live x402 Integration Tests
+
+To verify live Caddy + facilitator compatibility:
+
+```sh
+npm run test:x402-live
+```
+
+This performs a real local stack run:
+
+- real Fastify API
+- real Caddy x402 plugin
+- real facilitator preflight compatibility checks (`PAYMENT-REQUIRED` from paid route)
+
+To also run the paid retry path (wallet-signed payment + facilitator settle),
+set `X402_CLIENT_MNEMONIC` first:
+
+```sh
+X402_CLIENT_MNEMONIC="your 25-word mnemonic" \
+npm run test:x402-live
+```
+
+Configuration source for the live suite:
+
+- Caddy payment policy from existing env (`X402_PAYMENT_RECEIVER_ADDRESS`, `X402_PAYMENT_AMOUNT_USDC`, etc.)
+- facilitator URL from `X402_FACILITATOR_BASE_URL`
+- Algod URL from `X402_ALGOD_URL` (default: `https://mainnet-api.algonode.cloud`)
+- never commit mnemonic values to the repository
+
 ## Troubleshooting
 
 - `Caddy binary not found`:

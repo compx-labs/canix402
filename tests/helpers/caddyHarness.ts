@@ -46,8 +46,7 @@ export async function startCaddyHarness(
         X402_PRICE_USDC: "0.01",
         X402_NETWORK: "algorand-mainnet",
         X402_SCHEME: "exact",
-        PROOF_SHARED_SECRET: "test-proof-secret",
-        SETTLEMENT_GATE_PATH_REGEX: "^/opportunities$|^/protocols/[^/]+/opportunities$"
+        PROOF_SHARED_SECRET: "test-proof-secret"
       }
     }
   );

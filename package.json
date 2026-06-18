@@ -15,8 +15,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "tsx --test tests/integration/*.test.ts",
     "test:live": "tsx --test tests/live/*.test.ts",
+    "test:x402-live": "tsx --test tests/live/x402-live.test.ts",
     "test:tinyman-live": "npm run test:live",
-    "build:caddy-x402": "mkdir -p .bin && xcaddy build --output .bin/caddy-x402 --with github.com/algorandecosystem/caddy-x402avm=./caddy-x402avm",
+    "build:caddy-x402": "mkdir -p .bin && xcaddy build --output .bin/caddy-x402 --with github.com/algorandecosystem/caddy-x402avm=./caddy/plugin",
     "dev:caddy": ".bin/caddy-x402 run --config caddy/Caddyfile --adapter caddyfile",
     "test:x402-e2e": "tsx --test tests/e2e/*.test.ts",
     "test:ci": "npm run test && npm run test:x402-e2e"
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.0.10",
+    "algosdk": "^3.6.0",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }

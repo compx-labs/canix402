@@ -3,8 +3,9 @@
 This folder contains the canix402-owned Caddy edge configuration used to gate
 paid API endpoints with x402.
 
-The `caddy-x402avm` subtree remains separate as plugin/example source. This
-folder is the runtime config for this project.
+The runtime Caddy config lives at `caddy/Caddyfile`. The Go plugin source lives
+under `caddy/plugin` so the gateway implementation and deployment policy stay in
+one Caddy area while remaining separately owned.
 
 ## Route Access Policy
 
@@ -54,3 +55,7 @@ Expected:
 - `PAYMENT-REQUIRED` (402 response with payment requirements)
 - `PAYMENT-SIGNATURE` (client retry with payment payload)
 - `PAYMENT-RESPONSE` (success response with settlement receipt)
+
+Note: the payer wallet is client-side. Caddy only needs payment policy values
+(`pay_to`, `price`, `network`) and facilitator URL; it does not store a payer
+mnemonic/private key.

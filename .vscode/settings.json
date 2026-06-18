@@ -1,0 +1,13 @@
+{
+  "files.associations": {
+    "Caddyfile": "caddyfile",
+    "**/Caddyfile": "caddyfile",
+    "**/Caddyfile.*": "caddyfile"
+  },
+  "[caddyfile]": {
+    "editor.defaultFormatter": "matthewpi.caddyfile-support",
+    "editor.formatOnSave": true,
+    "editor.insertSpaces": false,
+    "editor.tabSize": 4
+  }
+}

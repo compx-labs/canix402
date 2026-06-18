@@ -57,7 +57,7 @@ export async function startFacilitatorMock(
       const body = (await readJson(req)) as VerifyRequestBody;
       calls.push({ endpoint: "/verify", body });
 
-      sendJson(res, 200, {
+      sendJson(res, verifyResult.isValid ? 200 : 402, {
         isValid: verifyResult.isValid,
         invalidReason: verifyResult.invalidReason,
         invalidMessage: verifyResult.invalidMessage,
@@ -82,7 +82,17 @@ export async function startFacilitatorMock(
     }
 
     if (req.method === "GET" && req.url === "/supported") {
-      sendJson(res, 200, []);
+      sendJson(res, 200, {
+        kinds: [
+          {
+            x402Version: 2,
+            scheme: "exact",
+            network: "algorand:wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8="
+          }
+        ],
+        extensions: [],
+        signers: {}
+      });
       return;
     }
 
