@@ -8,18 +8,33 @@ export const SupportedProtocolValues = [
   "dorkfi",
   "haystack"
 ] as const;
+export const SupportedOpportunityTypeValues = ["lp", "farm", "staking", "lending"] as const;
 
 export const ProtocolSchema = Type.Union(
   SupportedProtocolValues.map((value) => Type.Literal(value))
 );
 
 export type Protocol = Static<typeof ProtocolSchema>;
+export type OpportunityType = (typeof SupportedOpportunityTypeValues)[number];
 
-export const PaginationQuerySchema = Type.Object({
-  limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 200, default: 50 })),
-  offset: Type.Optional(Type.Integer({ minimum: 0, default: 0 })),
-  includeInactive: Type.Optional(Type.Boolean({ default: false }))
-});
+export const AGGREGATE_OPPORTUNITIES_DEFAULT_LIMIT = 10;
+export const PROTOCOL_OPPORTUNITIES_DEFAULT_LIMIT = 25;
+
+function createPaginationQuerySchema(defaultLimit: number) {
+  return Type.Object({
+    limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 200, default: defaultLimit })),
+    offset: Type.Optional(Type.Integer({ minimum: 0, default: 0 })),
+    includeInactive: Type.Optional(Type.Boolean({ default: false }))
+  });
+}
+
+export const PaginationQuerySchema = createPaginationQuerySchema(
+  AGGREGATE_OPPORTUNITIES_DEFAULT_LIMIT
+);
+
+export const ProtocolPaginationQuerySchema = createPaginationQuerySchema(
+  PROTOCOL_OPPORTUNITIES_DEFAULT_LIMIT
+);
 
 export const OpportunitiesQuerySchema = Type.Composite([
   PaginationQuerySchema,
@@ -30,11 +45,26 @@ export const OpportunitiesQuerySchema = Type.Composite([
 
 export type OpportunitiesQuery = Static<typeof OpportunitiesQuerySchema>;
 
+export const FilteredOpportunitiesDefaultLimit = 25;
+export const FilteredOpportunitiesQuerySchema = Type.Object({
+  platform: Type.Optional(Type.String()),
+  type: Type.Optional(Type.String()),
+  minApy: Type.Optional(Type.Number()),
+  maxApy: Type.Optional(Type.Number()),
+  minTvlUsd: Type.Optional(Type.Number({ minimum: 0 })),
+  limit: Type.Optional(
+    Type.Integer({ minimum: 1, maximum: 200, default: FilteredOpportunitiesDefaultLimit })
+  ),
+  offset: Type.Optional(Type.Integer({ minimum: 0, default: 0 })),
+  includeInactive: Type.Optional(Type.Boolean({ default: false }))
+});
+export type FilteredOpportunitiesQuery = Static<typeof FilteredOpportunitiesQuerySchema>;
+
 export const ProtocolOpportunitiesParamsSchema = Type.Object({
   protocol: ProtocolSchema
 });
 
-export const ProtocolOpportunitiesQuerySchema = PaginationQuerySchema;
+export const ProtocolOpportunitiesQuerySchema = ProtocolPaginationQuerySchema;
 
 export type ProtocolOpportunitiesParams = Static<
   typeof ProtocolOpportunitiesParamsSchema

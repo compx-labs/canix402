@@ -57,11 +57,11 @@
     },
     "/opportunities": {
       "get": {
-        "summary": "Aggregated DeFi opportunities",
+        "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
         "tags": ["defi", "opportunities"],
         "parameters": [
           { "name": "protocol", "in": "query", "schema": { "type": "string" } },
-          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 200 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 200, "default": 10 } },
           { "name": "offset", "in": "query", "schema": { "type": "integer", "minimum": 0 } },
           { "name": "includeInactive", "in": "query", "schema": { "type": "boolean" } }
         ],
@@ -83,9 +83,59 @@
         }
       }
     },
+    "/opportunities/search": {
+      "get": {
+        "summary": "Caller-filtered opportunities across supported platforms",
+        "tags": ["defi", "opportunities", "search"],
+        "parameters": [
+          {
+            "name": "platform",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Comma-separated list of platforms."
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Comma-separated list of opportunity types."
+            }
+          },
+          { "name": "minApy", "in": "query", "schema": { "type": "number" } },
+          { "name": "maxApy", "in": "query", "schema": { "type": "number" } },
+          { "name": "minTvlUsd", "in": "query", "schema": { "type": "number", "minimum": 0 } },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 200, "default": 25 }
+          },
+          { "name": "offset", "in": "query", "schema": { "type": "integer", "minimum": 0 } },
+          { "name": "includeInactive", "in": "query", "schema": { "type": "boolean" } }
+        ],
+        "responses": {
+          "200": { "description": "Filtered opportunity list" },
+          "402": { "description": "Payment required" },
+          "500": { "description": "Internal error" }
+        },
+        "x-x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet",
+            "asset": "31566704",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.01"
+          }
+        }
+      }
+    },
     "/protocols/{protocol}/opportunities": {
       "get": {
-        "summary": "DeFi opportunities for a single protocol",
+        "summary": "Top 25 DeFi opportunities for a single protocol ranked by APY",
         "tags": ["defi", "opportunities", "protocol"],
         "parameters": [
           {
@@ -97,7 +147,7 @@
               "enum": ["tinyman", "pact", "folks-finance", "compx", "dorkfi", "haystack"]
             }
           },
-          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 200 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 200, "default": 25 } },
           { "name": "offset", "in": "query", "schema": { "type": "integer", "minimum": 0 } },
           { "name": "includeInactive", "in": "query", "schema": { "type": "boolean" } }
         ],

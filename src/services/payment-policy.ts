@@ -49,7 +49,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     method: "GET",
     pathPattern: "/opportunities",
     access: "paid",
-    summary: "Aggregated DeFi opportunities",
+    summary: "Top 10 aggregated DeFi opportunities ranked by APY",
     tags: ["defi", "opportunities"],
     queryParams: ["protocol", "limit", "offset", "includeInactive"]
   },
@@ -58,10 +58,28 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     method: "GET",
     pathPattern: "/protocols/:protocol/opportunities",
     access: "paid",
-    summary: "DeFi opportunities for a single protocol",
+    summary: "Top 25 DeFi opportunities for a single protocol ranked by APY",
     tags: ["defi", "opportunities", "protocol"],
     pathParams: ["protocol"],
     queryParams: ["limit", "offset", "includeInactive"]
+  },
+  {
+    id: "filteredOpportunities",
+    method: "GET",
+    pathPattern: "/opportunities/search",
+    access: "paid",
+    summary: "Caller-filtered opportunities across supported platforms",
+    tags: ["defi", "opportunities", "search"],
+    queryParams: [
+      "platform",
+      "type",
+      "minApy",
+      "maxApy",
+      "minTvlUsd",
+      "limit",
+      "offset",
+      "includeInactive"
+    ]
   }
 ] as const;
 
@@ -106,6 +124,7 @@ export function getX402EndpointMetadata(): X402EndpointMetadata {
 
 const paidPathMatchers = [
   /^\/opportunities$/,
+  /^\/opportunities\/search$/,
   /^\/protocols\/[^/]+\/opportunities$/
 ];
 

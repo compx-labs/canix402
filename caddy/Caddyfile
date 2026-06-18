@@ -8,7 +8,7 @@
 		reverse_proxy {$UPSTREAM_API}
 	}
 
-	@paid path /opportunities /protocols/*/opportunities
+	@paid path /opportunities /opportunities/search /protocols/*/opportunities
 	handle @paid {
 		x402 {
 			description "canix402 paid DeFi data endpoint"

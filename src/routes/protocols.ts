@@ -2,14 +2,18 @@ import { Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 
 import {
+  fetchFolksFinanceOpportunities,
+  FolksFinanceAdapterError,
   fetchPactOpportunities,
   PactAdapterError,
   fetchTinymanOpportunities,
   TinymanAdapterError
 } from "../adapters/index.js";
+import { rankOpportunitiesByApy } from "../services/opportunity-ranking.js";
 import { ApiSuccess } from "../types/index.js";
 import { OpportunityRecordV1 } from "../types/opportunity.js";
 import {
+  PROTOCOL_OPPORTUNITIES_DEFAULT_LIMIT,
   ProtocolOpportunitiesParams,
   ProtocolOpportunitiesParamsSchema,
   ProtocolOpportunitiesQuery,
@@ -59,7 +63,11 @@ export function registerProtocolRoutes(app: FastifyInstance) {
     },
     async (request) => {
       const { protocol } = request.params;
-      const { limit = 50, offset = 0, includeInactive = false } = request.query;
+      const {
+        limit = PROTOCOL_OPPORTUNITIES_DEFAULT_LIMIT,
+        offset = 0,
+        includeInactive = false
+      } = request.query;
 
       let data: OpportunityRecordV1[] = [];
       try {
@@ -67,15 +75,21 @@ export function registerProtocolRoutes(app: FastifyInstance) {
           data = await fetchTinymanOpportunities();
         } else if (protocol === "pact") {
           data = await fetchPactOpportunities();
+        } else if (protocol === "folks-finance") {
+          data = await fetchFolksFinanceOpportunities();
         }
       } catch (error) {
-        if (error instanceof TinymanAdapterError || error instanceof PactAdapterError) {
+        if (
+          error instanceof TinymanAdapterError ||
+          error instanceof PactAdapterError ||
+          error instanceof FolksFinanceAdapterError
+        ) {
           throw error;
         }
         throw error;
       }
 
-      const pagedData = data.slice(offset, offset + limit);
+      const pagedData = rankOpportunitiesByApy(data).slice(offset, offset + limit);
 
       return {
         data: pagedData,

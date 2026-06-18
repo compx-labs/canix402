@@ -63,6 +63,21 @@ test("missing payment signature on paid route returns 402", async () => {
   await app.close();
 });
 
+test("filtered opportunities route requires payment signature", async () => {
+  const app = await buildEdgeGatedApp();
+
+  const response = await app.inject({
+    method: "GET",
+    url: "/opportunities/search?platform=compx"
+  });
+
+  assert.equal(response.statusCode, 402);
+  assert.equal(response.headers["payment-required"] !== undefined, true);
+  assert.equal(response.json().error.code, "MISSING_PAYMENT_SIGNATURE");
+
+  await app.close();
+});
+
 test("malformed payment signature returns 402", async () => {
   const app = await buildEdgeGatedApp();
 

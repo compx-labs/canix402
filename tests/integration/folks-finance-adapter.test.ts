@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createServer, Server } from "node:http";
 import test from "node:test";
 
 import {
@@ -84,7 +85,10 @@ test("fetchFolksFinanceOpportunities maps API payload and skips invalid records"
   }
 });
 
-test("protocol route currently focuses on Tinyman and returns empty for Folks", async () => {
+test("GET /protocols/folks-finance/opportunities returns Folks normalized data", async () => {
+  const mockServer = await startFolksFinanceMockServer();
+  process.env.FOLKS_FINANCE_API_BASE_URL = mockServer.baseUrl;
+
   const app = buildApp();
   await app.ready();
 
@@ -95,10 +99,77 @@ test("protocol route currently focuses on Tinyman and returns empty for Folks", 
     });
 
     assert.equal(response.statusCode, 200);
-    const body = response.json() as { data: unknown[] };
-    assert.equal(body.data.length, 0);
+    const body = response.json() as {
+      data: Array<{ protocol: string; opportunityId: string; apy: number }>;
+    };
+    assert.equal(body.data.length, 1);
+    assert.equal(body.data[0]?.protocol, "folks-finance");
+    assert.equal(body.data[0]?.opportunityId, "folks-good");
+    assert.equal(body.data[0]?.apy, 4.9);
   } finally {
     await app.close();
+    await mockServer.close();
+    delete process.env.FOLKS_FINANCE_API_BASE_URL;
   }
 });
+
+interface FolksFinanceMockServer {
+  baseUrl: string;
+  close: () => Promise<void>;
+}
+
+async function startFolksFinanceMockServer(): Promise<FolksFinanceMockServer> {
+  const server = createServer((req, res) => {
+    if (req.method === "GET" && req.url === "/opportunities") {
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(
+        JSON.stringify({
+          opportunities: [
+            {
+              id: "folks-good",
+              marketName: "ALGO Lending",
+              apy: 4.9,
+              tvlUsd: 500000
+            }
+          ]
+        })
+      );
+      return;
+    }
+
+    res.writeHead(404, { "content-type": "application/json" });
+    res.end(JSON.stringify({ error: "not found" }));
+  });
+
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      server.off("error", reject);
+      resolve();
+    });
+  });
+
+  const address = server.address();
+  if (!address || typeof address === "string") {
+    await closeServer(server);
+    throw new Error("Failed to bind Folks Finance mock server.");
+  }
+
+  return {
+    baseUrl: `http://127.0.0.1:${address.port}`,
+    close: async () => closeServer(server)
+  };
+}
+
+async function closeServer(server: Server): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    server.close((error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve();
+    });
+  });
+}
 
