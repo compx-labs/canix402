@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 
 import { PactAdapterError, TinymanAdapterError } from "./adapters/index.js";
+import { AccountAssetsError } from "./services/account-assets.js";
 import { ApiError } from "./types/index.js";
 import { registerRoutes } from "./routes/index.js";
 
@@ -24,6 +25,7 @@ export function buildApp() {
         }
       : error instanceof TinymanAdapterError
           || error instanceof PactAdapterError
+          || error instanceof AccountAssetsError
         ? {
             error: {
               code: "INTERNAL_ERROR",
@@ -42,6 +44,7 @@ export function buildApp() {
         ? 400
         : error instanceof TinymanAdapterError
           || error instanceof PactAdapterError
+          || error instanceof AccountAssetsError
           ? 502
           : 500;
 

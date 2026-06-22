@@ -133,6 +133,42 @@
         }
       }
     },
+    "/opportunities/personalized": {
+      "get": {
+        "summary": "Top opportunities tuned to a wallet's held assets",
+        "description": "Returns the top opportunities whose underlying assets the supplied Algorand wallet holds (ASAs opted into with balance greater than 0, plus native ALGO when held). Paid route: initial call returns 402 with PAYMENT-REQUIRED; the client signs and retries with PAYMENT-SIGNATURE.",
+        "tags": ["defi", "opportunities", "personalized", "wallet"],
+        "parameters": [
+          {
+            "name": "address",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Algorand account address to personalize opportunities for."
+          },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 200, "default": 10 } },
+          { "name": "offset", "in": "query", "schema": { "type": "integer", "minimum": 0 } },
+          { "name": "includeInactive", "in": "query", "schema": { "type": "boolean" } }
+        ],
+        "responses": {
+          "200": { "description": "Personalized opportunity list" },
+          "400": { "description": "Invalid Algorand address" },
+          "402": { "description": "Payment required" },
+          "500": { "description": "Internal error" }
+        },
+        "x-x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet",
+            "asset": "31566704",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.05"
+          }
+        }
+      }
+    },
     "/protocols/{protocol}/opportunities": {
       "get": {
         "summary": "Top 25 DeFi opportunities for a single protocol ranked by APY",

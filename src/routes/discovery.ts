@@ -55,7 +55,6 @@ export function registerDiscoveryRoutes(app: FastifyInstance) {
 }
 
 function buildDiscoveryDocument(): DiscoveryDocument {
-  const x402Metadata = getX402EndpointMetadata();
   const endpoints: DiscoveryEndpointDescriptor[] = endpointPolicyMatrix.map((endpoint) => {
     const baseDescriptor: DiscoveryEndpointDescriptor = {
       id: endpoint.id,
@@ -72,7 +71,7 @@ function buildDiscoveryDocument(): DiscoveryDocument {
     return endpoint.access === "paid"
       ? {
           ...baseDescriptor,
-          x402: x402Metadata
+          x402: getX402EndpointMetadata(endpoint.priceUsdc)
         }
       : baseDescriptor;
   });
@@ -84,6 +83,7 @@ function buildDiscoveryDocument(): DiscoveryDocument {
     capabilities: [
       "algorand-defi-opportunities",
       "x402-paid-data",
+      "wallet-personalization",
       "agent-discovery",
       "openapi"
     ],

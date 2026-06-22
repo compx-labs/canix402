@@ -8,10 +8,12 @@ interface PactPoolApiRecord {
   apr_7d_all?: number | string | null;
   is_verified?: boolean | null;
   primary_asset?: {
+    algoid?: number | string | null;
     unit_name?: string | null;
     name?: string | null;
   };
   secondary_asset?: {
+    algoid?: number | string | null;
     unit_name?: string | null;
     name?: string | null;
   };
@@ -114,6 +116,7 @@ export function normalizePactPool(
     toNumber(record.apr_7d_all);
   const id = getPoolId(record);
   const pairName = buildPairName(record);
+  const assetIds = buildAssetIds(record);
   const sourceTimestamp = fetchedAtIso;
   const notes =
     id.length === 0 || pairName.length === 0
@@ -125,6 +128,7 @@ export function normalizePactPool(
     opportunityType: "lp",
     opportunityId: id.length > 0 ? `${id}:lp` : `pact-${pairName || "unknown"}:lp`,
     assetPair: pairName || "unknown/unknown",
+    ...(assetIds.length > 0 ? { assetIds } : {}),
     apy,
     tvlUsd,
     ...(apr !== null ? { apr } : {}),
@@ -178,6 +182,7 @@ function normalizePactFarm(
   const poolId = getPoolId(pool);
   const farmId = getFarmId(farm);
   const pairName = buildPairName(pool);
+  const assetIds = buildAssetIds(pool);
   const sourceTimestamp = fetchedAtIso;
   const notes =
     poolId.length === 0 || pairName.length === 0
@@ -191,6 +196,7 @@ function normalizePactFarm(
     opportunityType: "farm",
     opportunityId: baseId.length > 0 ? `${baseId}:farm` : `pact-${pairName || "unknown"}:farm`,
     assetPair: pairName || "unknown/unknown",
+    ...(assetIds.length > 0 ? { assetIds } : {}),
     apy,
     tvlUsd,
     ...(apr !== null ? { apr } : {}),
@@ -213,6 +219,20 @@ function toNumber(value: number | string | null | undefined): number | null {
 
 function trimTrailingSlash(value: string): string {
   return value.endsWith("/") ? value.slice(0, -1) : value;
+}
+
+function buildAssetIds(record: PactPoolApiRecord): number[] {
+  return [record.primary_asset?.algoid, record.secondary_asset?.algoid]
+    .map((value) => toAssetId(value))
+    .filter((value): value is number => value !== null);
+}
+
+function toAssetId(value: number | string | null | undefined): number | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : null;
 }
 
 function buildPairName(record: PactPoolApiRecord): string {

@@ -9,6 +9,7 @@ export interface EndpointPolicyDefinition {
   tags: string[];
   pathParams?: string[];
   queryParams?: string[];
+  priceUsdc?: string;
 }
 
 export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
@@ -80,6 +81,16 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
       "offset",
       "includeInactive"
     ]
+  },
+  {
+    id: "personalizedOpportunities",
+    method: "GET",
+    pathPattern: "/opportunities/personalized",
+    access: "paid",
+    summary: "Top opportunities tuned to a wallet's held assets",
+    tags: ["defi", "opportunities", "personalized", "wallet"],
+    queryParams: ["address", "limit", "offset", "includeInactive"],
+    priceUsdc: process.env.X402_PRICE_PERSONALIZED_USDC ?? "0.05"
   }
 ] as const;
 
@@ -102,7 +113,7 @@ export interface X402EndpointMetadata {
   requirementTemplate: X402RequirementTemplate;
 }
 
-export function getX402EndpointMetadata(): X402EndpointMetadata {
+export function getX402EndpointMetadata(amountUsdc?: string): X402EndpointMetadata {
   return {
     protocolVersion: 2,
     requiredHeaders: [
@@ -117,7 +128,8 @@ export function getX402EndpointMetadata(): X402EndpointMetadata {
       network: process.env.X402_PAYMENT_NETWORK ?? "algorand-mainnet",
       asset: process.env.X402_USDC_ASSET_ID ?? "31566704",
       payTo: process.env.X402_PAYMENT_RECEIVER_ADDRESS ?? "REPLACE_WITH_PAYTO_ADDRESS",
-      maxAmountRequired: process.env.X402_PAYMENT_AMOUNT_USDC ?? "0.01"
+      maxAmountRequired:
+        amountUsdc ?? process.env.X402_PAYMENT_AMOUNT_USDC ?? "0.01"
     }
   };
 }
@@ -125,6 +137,7 @@ export function getX402EndpointMetadata(): X402EndpointMetadata {
 const paidPathMatchers = [
   /^\/opportunities$/,
   /^\/opportunities\/search$/,
+  /^\/opportunities\/personalized$/,
   /^\/protocols\/[^/]+\/opportunities$/
 ];
 

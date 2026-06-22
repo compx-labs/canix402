@@ -151,7 +151,9 @@ Configuration source for the live suite:
 - shell-exported values take precedence over local env file values
 - Caddy payment policy from existing env (`X402_PAYMENT_RECEIVER_ADDRESS`, `X402_PAYMENT_AMOUNT_USDC`, etc.)
 - facilitator URL from `X402_FACILITATOR_BASE_URL`
-- Algod URL from `X402_ALGOD_URL` (default: `https://mainnet-api.algonode.cloud`)
+- Algod connection from shared vars used by all integrations:
+  - `X402_ALGOD_URL` (default: `https://mainnet-api.algonode.cloud`)
+  - `X402_ALGOD_TOKEN` (default: empty string)
 - never commit mnemonic values to the repository
 
 ## Troubleshooting

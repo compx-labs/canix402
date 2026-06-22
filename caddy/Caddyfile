@@ -44,6 +44,24 @@
 		reverse_proxy {$UPSTREAM_API}
 	}
 
+	@paid_personalized path /opportunities/personalized
+	handle @paid_personalized {
+		x402 {
+			description "canix402 wallet-personalized DeFi data endpoint"
+			mime_type application/json
+			facilitator_url {$FACILITATOR_URL}
+
+			accept {
+				pay_to {$X402_PAY_TO}
+				price {$X402_PRICE_PERSONALIZED_USDC}
+				network {$X402_NETWORK}
+				scheme {$X402_SCHEME}
+			}
+		}
+
+		reverse_proxy {$UPSTREAM_API}
+	}
+
 	@paid_protocol path /protocols/*/opportunities
 	handle @paid_protocol {
 		x402 {

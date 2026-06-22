@@ -60,6 +60,23 @@ export const FilteredOpportunitiesQuerySchema = Type.Object({
 });
 export type FilteredOpportunitiesQuery = Static<typeof FilteredOpportunitiesQuerySchema>;
 
+export const PERSONALIZED_OPPORTUNITIES_DEFAULT_LIMIT = 10;
+export const PersonalizedOpportunitiesQuerySchema = Type.Object({
+  address: Type.String({ minLength: 1 }),
+  limit: Type.Optional(
+    Type.Integer({
+      minimum: 1,
+      maximum: 200,
+      default: PERSONALIZED_OPPORTUNITIES_DEFAULT_LIMIT
+    })
+  ),
+  offset: Type.Optional(Type.Integer({ minimum: 0, default: 0 })),
+  includeInactive: Type.Optional(Type.Boolean({ default: false }))
+});
+export type PersonalizedOpportunitiesQuery = Static<
+  typeof PersonalizedOpportunitiesQuerySchema
+>;
+
 export const ProtocolOpportunitiesParamsSchema = Type.Object({
   protocol: ProtocolSchema
 });

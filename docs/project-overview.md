@@ -94,6 +94,7 @@ Current implementation shape (`OpportunityRecordV1`) emphasizes:
 - `tvlUsd` (required)
 - `opportunityId`, `assetPair`, `sourceTimestamp`, `fetchedAt`
 - optional `apr` and `notes`
+- optional `assetIds` (on-chain asset ids backing the opportunity, used for wallet personalization)
 
 ## Storage and Caching Strategy
 
@@ -127,10 +128,28 @@ Planned endpoint families (exact contracts to be defined during implementation):
 
 - Aggregated opportunities endpoint across all protocols
 - Protocol-specific opportunities endpoint
+- Caller-filtered opportunities endpoint (`/opportunities/search`)
+- Wallet-personalized opportunities endpoint (`/opportunities/personalized`)
 - Health/metadata endpoints (non-paid where appropriate)
 - Discovery endpoints (`/discovery`, `/openapi.json`) for agents and marketplaces
 
 x402 gating should be applied consistently to paid data endpoints.
+
+### Wallet-Personalized Opportunities (`GET /opportunities/personalized`)
+
+A premium paid route (0.05 USDC) that tunes results to a specific wallet:
+
+- Caller supplies an Algorand `address` query parameter.
+- The service reads the account's holdings from algod and treats an asset as "held"
+  when its balance is greater than 0. Opted-in ASAs and native ALGO (asset id `0`)
+  both count.
+- Opportunities are matched by exact on-chain asset id. To support this,
+  `OpportunityRecordV1` carries an optional `assetIds` array populated by each adapter
+  (Tinyman/Pact pool asset ids, Folks Finance pool asset id).
+- An opportunity is included when the wallet holds any of its underlying assets;
+  results are ranked by APY and capped (default top 10).
+- Pricing is configured independently via `X402_PRICE_PERSONALIZED_USDC` in both the
+  API discovery metadata and the Caddy accept policy.
 
 ## Discovery Contract (Grade A)
 
@@ -180,3 +199,4 @@ Use this section to record major decisions as the project evolves.
 - 2026-06-17: Redis chosen as the preferred first cache implementation path for v2.
 - 2026-06-17: Discovery strategy set to dual-surface (`/discovery` and `/openapi.json`) with shared endpoint policy source-of-truth.
 - 2026-06-18: Caddy runtime configuration moved to project-owned `caddy/`; `infra/caddy` retired and the Caddy x402 Go plugin source consolidated under `caddy/plugin`.
+- 2026-06-22: Added wallet-personalized opportunities route (`/opportunities/personalized`, 0.05 USDC); opportunities enriched with optional on-chain `assetIds` and matched against algod-reported wallet holdings (balance greater than 0, including native ALGO).

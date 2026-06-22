@@ -10,6 +10,7 @@ export { fetchTinymanOpportunities, normalizeTinymanPool, TinymanAdapterError } 
 export { fetchPactOpportunities, normalizePactPool, PactAdapterError } from "./pact.js";
 export {
   fetchFolksFinanceOpportunities,
-  normalizeFolksFinanceRecord,
+  normalizeFolksLendingOpportunity,
+  setFolksFinanceSdkDependenciesForTests,
   FolksFinanceAdapterError
 } from "./folksFinance.js";

@@ -22,6 +22,8 @@ Status legend:
 - [x] Add typed route modules for:
   - [x] Aggregated opportunities
   - [x] Protocol-specific opportunities
+  - [x] Caller-filtered opportunities (`GET /opportunities/search`)
+  - [x] Wallet-personalized opportunities (`GET /opportunities/personalized`)
   - [x] Health/metadata
 - [x] Add shared error model and response envelope format.
 - [x] Add runtime validation for inbound query parameters.
@@ -33,6 +35,9 @@ Status legend:
 - [x] Integrate Nodely Caddy implementation for gateway behavior.
 - [x] Move runtime gateway config to project-owned `caddy/Caddyfile` (separate from example/plugin repo).
 - [x] Define paid vs non-paid endpoint policy matrix.
+- [x] Split Caddy paid routes into separate blocks to support per-endpoint pricing.
+- [x] Add separate Caddy env vars for endpoint-specific prices.
+- [x] Add premium-priced wallet-personalized route (`/opportunities/personalized`, 0.05 USDC).
 - [x] Add integration tests for:
   - [x] Successful paid request
   - [x] Missing/invalid payment flow
@@ -42,7 +47,7 @@ Status legend:
 
 - [x] Tinyman adapter (API/SDK mapping + normalization).
 - [x] Pact adapter (API/SDK mapping + normalization).
-- [ ] Folks Finance adapter (API/SDK mapping + normalization).
+- [x] Folks Finance adapter (API/SDK mapping + normalization).
 - [ ] CompX adapter (internal/public data mapping + normalization).
 - [ ] Dork.fi adapter (API/SDK mapping + normalization).
 - [ ] Haystack adapter (API/SDK mapping + normalization).
@@ -53,8 +58,8 @@ Status legend:
 
 ## 5) Data Normalization and Contract Definition
 
-- [ ] Finalize normalized opportunity schema (`protocol`, `opportunityType`, `apr`, `apy`, etc.).
-- [ ] Implement adapter-to-normalized model transformers.
+- [~] Finalize normalized opportunity schema (`protocol`, `opportunityType`, `apr`, `apy`, etc.).
+- [~] Implement adapter-to-normalized model transformers.
 - [ ] Standardize decimals/precision rules across protocols.
 - [ ] Include source metadata (`sourceTimestamp`, `fetchedAt`, confidence/caveat notes).
 - [ ] Publish sample response payloads for consumers.
@@ -62,8 +67,8 @@ Status legend:
 ## 6) Initial Delivery Mode (No Storage)
 
 - [ ] Implement on-demand fetch orchestration per request.
-- [ ] Add timeout, retry, and partial-failure behavior.
-- [ ] Define behavior when one protocol fails (degraded aggregate vs full failure).
+- [~] Add timeout, retry, and partial-failure behavior.
+- [x] Define behavior when one protocol fails (degraded aggregate vs full failure).
 - [ ] Add request-level tracing/logging for upstream calls.
 - [ ] Validate response-time targets under expected baseline load.
 
@@ -78,9 +83,9 @@ Status legend:
 
 ## 8) Testing and Quality Gates
 
-- [ ] Unit tests for normalization and adapter transforms.
-- [ ] Integration tests for route behavior and payment gating.
-- [ ] Contract tests for response schema stability.
+- [~] Unit tests for normalization and adapter transforms.
+- [x] Integration tests for route behavior and payment gating.
+- [x] Contract tests for response schema stability.
 - [ ] Add CI checks (typecheck, lint, tests).
 - [ ] Define minimum quality gate before deploy.
 
@@ -94,7 +99,7 @@ Status legend:
 
 ## 10) Go-Live Readiness
 
-- [ ] Validate paid flow end-to-end in a production-like environment.
+- [x] Validate paid flow end-to-end in a production-like environment.
 - [ ] Run protocol accuracy checks against source systems.
 - [ ] Confirm API consumer onboarding documentation is complete.
 - [ ] Publish versioned API contract for first release.

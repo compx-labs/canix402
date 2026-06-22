@@ -5,6 +5,7 @@ export interface OpportunityRecordV1 {
   opportunityType: "lp" | "farm" | "staking" | "lending";
   opportunityId: string;
   assetPair: string;
+  assetIds?: number[];
   apy: number;
   tvlUsd: number;
   apr?: number;

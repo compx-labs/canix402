@@ -1,18 +1,17 @@
+import algosdk, { Algodv2 } from "algosdk";
+import {
+  MainnetOracle,
+  MainnetPoolManagerAppId,
+  MainnetPools,
+  Pool,
+  PoolInfo,
+  PoolManagerInfo,
+  getOraclePrices,
+  retrievePoolInfo,
+  retrievePoolManagerInfo
+} from "@folks-finance/algorand-sdk";
+
 import { OpportunityRecordV1 } from "../types/opportunity.js";
-
-interface FolksMarketApiRecord {
-  id?: string;
-  marketName?: string;
-  apy?: number | string | null;
-  tvlUsd?: number | string | null;
-  apr?: number | string | null;
-  updatedAt?: string | null;
-  type?: string | null;
-}
-
-interface FolksApiResponse {
-  opportunities?: FolksMarketApiRecord[];
-}
 
 export class FolksFinanceAdapterError extends Error {
   public readonly cause?: unknown;
@@ -24,112 +23,173 @@ export class FolksFinanceAdapterError extends Error {
   }
 }
 
-export async function fetchFolksFinanceOpportunities(
-  fetchImpl: typeof fetch = fetch
-): Promise<OpportunityRecordV1[]> {
-  const baseUrl = process.env.FOLKS_FINANCE_API_BASE_URL;
-  if (!baseUrl) {
-    throw new FolksFinanceAdapterError("FOLKS_FINANCE_API_BASE_URL is not configured.");
-  }
+type RetrievePoolManagerInfoFn = typeof retrievePoolManagerInfo;
+type RetrievePoolInfoFn = typeof retrievePoolInfo;
+type GetOraclePricesFn = typeof getOraclePrices;
 
-  const apiKey = process.env.FOLKS_FINANCE_API_KEY;
-  const requestUrl = `${trimTrailingSlash(baseUrl)}/opportunities`;
+interface FolksFinanceSdkDependencies {
+  createAlgodClient: () => Algodv2;
+  retrievePoolManagerInfoFn: RetrievePoolManagerInfoFn;
+  retrievePoolInfoFn: RetrievePoolInfoFn;
+  getOraclePricesFn: GetOraclePricesFn;
+  mainnetPools: typeof MainnetPools;
+  mainnetPoolManagerAppId: number;
+  mainnetOracle: typeof MainnetOracle;
+}
+
+let folksFinanceSdkDependencyOverrides: Partial<FolksFinanceSdkDependencies> | undefined;
+
+export function setFolksFinanceSdkDependenciesForTests(
+  overrides?: Partial<FolksFinanceSdkDependencies>
+): void {
+  folksFinanceSdkDependencyOverrides = overrides;
+}
+
+export async function fetchFolksFinanceOpportunities(): Promise<OpportunityRecordV1[]> {
+  const dependencies = resolveDependencies();
   const fetchedAt = new Date().toISOString();
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
-
   try {
-    const requestInit: RequestInit = {
-      signal: controller.signal
-    };
-    if (apiKey) {
-      requestInit.headers = { authorization: `Bearer ${apiKey}` };
-    }
+    const algodClient = dependencies.createAlgodClient();
+    const [poolManagerInfo, oraclePrices] = await Promise.all([
+      dependencies.retrievePoolManagerInfoFn(
+        algodClient,
+        dependencies.mainnetPoolManagerAppId
+      ),
+      dependencies.getOraclePricesFn(algodClient, dependencies.mainnetOracle)
+    ]);
 
-    const response = await fetchImpl(requestUrl, requestInit);
-    if (!response.ok) {
+    const poolEntries = Object.entries(dependencies.mainnetPools);
+    const poolInfos = await Promise.allSettled(
+      poolEntries.map(async ([symbol, pool]) => {
+        const poolInfo = await dependencies.retrievePoolInfoFn(algodClient, pool);
+        return { symbol, pool, poolInfo };
+      })
+    );
+
+    const opportunities = poolInfos
+      .filter(
+        (
+          result
+        ): result is PromiseFulfilledResult<{ symbol: string; pool: Pool; poolInfo: PoolInfo }> =>
+          result.status === "fulfilled"
+      )
+      .map(({ value }) =>
+        normalizeFolksLendingOpportunity({
+          symbol: value.symbol,
+          pool: value.pool,
+          poolInfo: value.poolInfo,
+          poolManagerInfo,
+          oraclePrice: oraclePrices.prices[value.pool.assetId]?.price,
+          fetchedAtIso: fetchedAt
+        })
+      )
+      .filter((record): record is OpportunityRecordV1 => record !== null);
+
+    if (opportunities.length === 0) {
       throw new FolksFinanceAdapterError(
-        `Folks Finance API returned non-2xx status: ${response.status}`
+        "Folks Finance SDK returned no valid lending opportunities."
       );
     }
 
-    const payload = (await response.json()) as FolksApiResponse;
-    const records = payload.opportunities ?? [];
-
-    return records
-      .map((record) => normalizeFolksFinanceRecord(record, fetchedAt))
-      .filter((record): record is OpportunityRecordV1 => record !== null);
+    return opportunities;
   } catch (error) {
     if (error instanceof FolksFinanceAdapterError) {
       throw error;
     }
 
-    throw new FolksFinanceAdapterError("Folks Finance adapter request failed.", error);
-  } finally {
-    clearTimeout(timeout);
+    throw new FolksFinanceAdapterError("Folks Finance SDK request failed.", error);
   }
 }
 
-export function normalizeFolksFinanceRecord(
-  record: FolksMarketApiRecord,
-  fetchedAtIso: string = new Date().toISOString()
+interface NormalizeFolksLendingOpportunityInput {
+  symbol: string;
+  pool: Pool;
+  poolInfo: PoolInfo;
+  poolManagerInfo: PoolManagerInfo;
+  oraclePrice: bigint | undefined;
+  fetchedAtIso: string;
+}
+
+export function normalizeFolksLendingOpportunity(
+  input: NormalizeFolksLendingOpportunityInput
 ): OpportunityRecordV1 | null {
-  const apy = toNumber(record.apy);
-  const tvlUsd = toNumber(record.tvlUsd);
-  if (apy === null || tvlUsd === null) {
+  const { symbol, pool, poolInfo, poolManagerInfo, oraclePrice, fetchedAtIso } = input;
+  const poolManagerState = poolManagerInfo.pools[pool.appId];
+  if (!poolManagerState || oraclePrice === undefined) {
     return null;
   }
 
-  const apr = toNumber(record.apr);
-  const opportunityType = normalizeOpportunityType(record.type);
-  const id = record.id ?? "";
-  const marketName = record.marketName ?? "";
-  const sourceTimestamp = record.updatedAt ?? fetchedAtIso;
-  const notes =
-    id.length === 0 || marketName.length === 0
-      ? "Some source fields were missing; fallback identifiers were used."
-      : undefined;
+  const apy = fromScaledValue(poolManagerState.depositInterestYield, 16);
+  const apr = fromScaledValue(poolManagerState.depositInterestRate, 16);
+  const tvlUsd = calcTvlUsd(poolInfo.interest.totalDeposits, pool.assetDecimals, oraclePrice);
+
+  if (!Number.isFinite(apy) || !Number.isFinite(tvlUsd)) {
+    return null;
+  }
 
   return {
     protocol: "folks-finance",
-    opportunityType,
-    opportunityId: id.length > 0 ? id : `folks-${marketName || "unknown"}`,
-    assetPair: marketName || "unknown",
+    opportunityType: "lending",
+    opportunityId: `folks-lending-${pool.appId}`,
+    assetPair: symbol,
+    assetIds: [Number(pool.assetId)],
     apy,
     tvlUsd,
     ...(apr !== null ? { apr } : {}),
-    sourceTimestamp,
+    sourceTimestamp: fetchedAtIso,
     fetchedAt: fetchedAtIso,
-    ...(notes ? { notes } : {})
+    notes: `Folks mainnet lending pool ${pool.appId}`
   };
 }
 
-function normalizeOpportunityType(type: string | null | undefined): OpportunityRecordV1["opportunityType"] {
-  const value = (type ?? "").toLowerCase();
-  if (value.includes("farm")) {
-    return "farm";
-  }
-  if (value.includes("stake")) {
-    return "staking";
-  }
-  if (value.includes("lend")) {
-    return "lending";
-  }
-  return "lp";
+function resolveDependencies(): FolksFinanceSdkDependencies {
+  return {
+    createAlgodClient: createFolksAlgodClient,
+    retrievePoolManagerInfoFn: retrievePoolManagerInfo,
+    retrievePoolInfoFn: retrievePoolInfo,
+    getOraclePricesFn: getOraclePrices,
+    mainnetPools: MainnetPools,
+    mainnetPoolManagerAppId: MainnetPoolManagerAppId,
+    mainnetOracle: MainnetOracle,
+    ...folksFinanceSdkDependencyOverrides
+  };
 }
 
-function toNumber(value: number | string | null | undefined): number | null {
-  if (typeof value === "number") {
-    return Number.isFinite(value) ? value : null;
+function createFolksAlgodClient(): Algodv2 {
+  const server =
+    process.env.X402_ALGOD_URL ??
+    "https://mainnet-api.algonode.cloud";
+  const token = process.env.X402_ALGOD_TOKEN ?? "";
+  return new algosdk.Algodv2(token, trimTrailingSlash(server), "");
+}
+
+function fromScaledValue(value: bigint, scale: number): number {
+  const sign = value < 0n ? -1 : 1;
+  const absolute = value < 0n ? -value : value;
+  const asString = absolute.toString();
+
+  if (scale === 0) {
+    return sign * Number(asString);
   }
-  if (typeof value === "string") {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-  return null;
+
+  const wholePart =
+    asString.length > scale ? asString.slice(0, asString.length - scale) : "0";
+  const fractionalPart =
+    asString.length > scale ? asString.slice(asString.length - scale) : asString.padStart(scale, "0");
+  const normalized = Number(`${wholePart}.${fractionalPart}`);
+  return sign * normalized;
+}
+
+function calcTvlUsd(totalDeposits: bigint, assetDecimals: number, oraclePrice: bigint): number {
+  const depositUnits = fromScaledValue(totalDeposits, assetDecimals);
+  const assetPriceUsd = fromScaledValue(oraclePrice, 14);
+  return depositUnits * assetPriceUsd;
 }
 
 function trimTrailingSlash(value: string): string {
-  return value.endsWith("/") ? value.slice(0, -1) : value;
+  if (value.endsWith("/")) {
+    return value.slice(0, -1);
+  }
+  return value;
 }

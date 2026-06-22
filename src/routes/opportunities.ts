@@ -1,3 +1,4 @@
+import algosdk from "algosdk";
 import { Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 
@@ -9,8 +10,10 @@ import {
   fetchTinymanOpportunities,
   TinymanAdapterError
 } from "../adapters/index.js";
+import { fetchHeldAssetIds } from "../services/account-assets.js";
 import { rankOpportunitiesByApy } from "../services/opportunity-ranking.js";
-import { ApiSuccess } from "../types/index.js";
+import { selectPersonalizedOpportunities } from "../services/personalized-opportunities.js";
+import { ApiError, ApiSuccess } from "../types/index.js";
 import { OpportunityRecordV1 } from "../types/opportunity.js";
 import {
   AGGREGATE_OPPORTUNITIES_DEFAULT_LIMIT,
@@ -19,6 +22,9 @@ import {
   FilteredOpportunitiesQuerySchema,
   OpportunitiesQuery,
   OpportunitiesQuerySchema,
+  PERSONALIZED_OPPORTUNITIES_DEFAULT_LIMIT,
+  PersonalizedOpportunitiesQuery,
+  PersonalizedOpportunitiesQuerySchema,
   Protocol,
   SupportedOpportunityTypeValues,
   SupportedProtocolValues
@@ -45,6 +51,34 @@ const opportunitiesReplySchema = Type.Object({
       offset: Type.Integer(),
       includeInactive: Type.Boolean(),
       paymentRequired: Type.Boolean()
+    })
+  )
+});
+
+const personalizedOpportunitiesReplySchema = Type.Object({
+  data: Type.Array(
+    Type.Object({
+      protocol: Type.String(),
+      opportunityId: Type.String(),
+      opportunityType: Type.String(),
+      assetPair: Type.String(),
+      assetIds: Type.Optional(Type.Array(Type.Integer())),
+      apr: Type.Optional(Type.Number()),
+      apy: Type.Number(),
+      tvlUsd: Type.Number(),
+      sourceTimestamp: Type.String(),
+      fetchedAt: Type.String(),
+      notes: Type.Optional(Type.String())
+    })
+  ),
+  meta: Type.Optional(
+    Type.Object({
+      limit: Type.Integer(),
+      offset: Type.Integer(),
+      includeInactive: Type.Boolean(),
+      paymentRequired: Type.Boolean(),
+      address: Type.String(),
+      heldAssetCount: Type.Integer()
     })
   )
 });
@@ -141,6 +175,59 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
           paymentRequired: true
         }
       };
+    }
+  );
+
+  app.get<{
+    Querystring: PersonalizedOpportunitiesQuery;
+    Reply: ApiSuccess<OpportunityRecordV1[]> | ApiError;
+  }>(
+    "/opportunities/personalized",
+    {
+      schema: {
+        querystring: PersonalizedOpportunitiesQuerySchema,
+        response: {
+          200: personalizedOpportunitiesReplySchema
+        }
+      }
+    },
+    async (request, reply) => {
+      const {
+        address,
+        limit = PERSONALIZED_OPPORTUNITIES_DEFAULT_LIMIT,
+        offset = 0,
+        includeInactive = false
+      } = request.query;
+
+      if (!algosdk.isValidAddress(address)) {
+        return reply.status(400).send({
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Query parameter 'address' is not a valid Algorand address."
+          }
+        });
+      }
+
+      const heldAssetIds = await fetchHeldAssetIds(address);
+      const data = await fetchOpportunitiesForProtocols(SUPPORTED_AGGREGATE_PROTOCOLS);
+
+      const personalized = selectPersonalizedOpportunities(
+        data,
+        heldAssetIds,
+        offset + limit
+      ).slice(offset, offset + limit);
+
+      return reply.send({
+        data: personalized,
+        meta: {
+          limit,
+          offset,
+          includeInactive,
+          paymentRequired: true,
+          address,
+          heldAssetCount: heldAssetIds.size
+        }
+      });
     }
   );
 }

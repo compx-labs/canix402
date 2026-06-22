@@ -12,8 +12,8 @@ interface TinymanPoolApiRecord {
   staking_total_annual_percentage_yield?: number | string | null;
   liquidity_in_usd?: number | string | null;
   is_stable?: boolean | null;
-  asset_1?: { unit_name?: string | null; name?: string | null };
-  asset_2?: { unit_name?: string | null; name?: string | null };
+  asset_1?: { id?: number | string | null; unit_name?: string | null; name?: string | null };
+  asset_2?: { id?: number | string | null; unit_name?: string | null; name?: string | null };
 }
 
 interface TinymanApiResponse {
@@ -105,6 +105,7 @@ export function normalizeTinymanPool(
   const sourceTimestamp = fetchedAtIso;
   const id = record.address ?? "";
   const pairName = buildPairName(record);
+  const assetIds = buildAssetIds(record);
 
   const notes =
     id.length === 0 || pairName.length === 0
@@ -116,6 +117,7 @@ export function normalizeTinymanPool(
     opportunityType: "lp",
     opportunityId: id.length > 0 ? `${id}:lp` : `tinyman-${pairName || "unknown"}:lp`,
     assetPair: pairName || "unknown/unknown",
+    ...(assetIds.length > 0 ? { assetIds } : {}),
     apy,
     tvlUsd,
     ...(apr !== null ? { apr } : {}),
@@ -164,6 +166,7 @@ function normalizeTinymanFarm(
   const sourceTimestamp = fetchedAtIso;
   const id = record.address ?? "";
   const pairName = buildPairName(record);
+  const assetIds = buildAssetIds(record);
   const notes =
     id.length === 0 || pairName.length === 0
       ? "Some source fields were missing; fallback identifiers were used."
@@ -174,6 +177,7 @@ function normalizeTinymanFarm(
     opportunityType: "farm",
     opportunityId: id.length > 0 ? `${id}:farm` : `tinyman-${pairName || "unknown"}:farm`,
     assetPair: pairName || "unknown/unknown",
+    ...(assetIds.length > 0 ? { assetIds } : {}),
     apy: stakingApy ?? 0,
     tvlUsd,
     ...(stakingApr !== null ? { apr: stakingApr } : {}),
@@ -181,6 +185,20 @@ function normalizeTinymanFarm(
     fetchedAt: fetchedAtIso,
     ...(notes ? { notes } : {})
   };
+}
+
+function buildAssetIds(record: TinymanPoolApiRecord): number[] {
+  return [record.asset_1?.id, record.asset_2?.id]
+    .map((value) => toAssetId(value))
+    .filter((value): value is number => value !== null);
+}
+
+function toAssetId(value: number | string | null | undefined): number | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : null;
 }
 
 function buildPairName(record: TinymanPoolApiRecord): string {
