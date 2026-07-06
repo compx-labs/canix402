@@ -1,19 +1,27 @@
 # DigitalOcean App Platform — protocol service
 
-The protocol package lives in an npm workspace monorepo. Runtime dependencies
-(`fastify`, etc.) are installed at the **repo root** `node_modules/`, not under
-`protocol/node_modules/`. Deploying with App Platform **source directory**
-`protocol/` causes `npm start` to fail with:
+## Docker deploy (recommended)
 
-```text
-ERR_MODULE_NOT_FOUND: Cannot find package 'fastify'
+The protocol Dockerfile is **self-contained** — it installs dependencies directly
+from `protocol/package.json` and does not rely on the monorepo workspace root.
+
+| Setting | Value |
+|---------|-------|
+| Source directory | `protocol` |
+| Dockerfile path | `Dockerfile` |
+| HTTP port | `3000` |
+| Public route | **None** (internal only) |
+
+Build locally:
+
+```sh
+docker build -t canix402-protocol protocol/
+docker run --rm -p 3000:3000 --env-file protocol/.env canix402-protocol
 ```
 
-Use one of the options below.
+## Node buildpack alternative
 
-## Option A — Node buildpack from repo root (simplest)
-
-In the App Platform component settings:
+If not using Docker, deploy from the **repo root** so npm workspaces resolve:
 
 | Setting | Value |
 |---------|-------|
@@ -21,30 +29,17 @@ In the App Platform component settings:
 | Build command | `npm ci && npm run build -w protocol` |
 | Run command | `npm run start -w protocol` |
 | HTTP port | `3000` |
-| Environment slug | Node.js |
 
-Keep the component **internal-only** (no public route). Caddy is the public
-gateway and should set `UPSTREAM_API` to this service's internal URL.
-
-## Option B — Dockerfile (recommended if you already use Docker for Caddy)
-
-| Setting | Value |
-|---------|-------|
-| Source directory | `/` (repo root) |
-| Dockerfile path | `protocol/Dockerfile` |
-| HTTP port | `3000` |
-
-Build locally:
-
-```sh
-docker build -f protocol/Dockerfile -t canix402-protocol .
-docker run --rm -p 3000:3000 --env-file protocol/.env canix402-protocol
-```
+Deploying the buildpack with source directory `protocol/` fails with
+`ERR_MODULE_NOT_FOUND: Cannot find package 'fastify'` because runtime deps are
+hoisted to the root `node_modules/`.
 
 ## Environment variables
 
 Set protocol runtime env vars on this component (see `protocol/.env.example`).
 Caddy/x402 vars belong on the Caddy component (`protocol/caddy/.env.example`).
+
+Caddy should set `UPSTREAM_API` to this service's **internal** App Platform URL.
 
 ## Health check
 

@@ -1,20 +1,18 @@
-# Build from repo root so npm workspaces can install protocol dependencies:
-#   docker build -f protocol/Dockerfile .
+# Standalone image for App Platform when source directory is `protocol/`.
+# Build locally: docker build -t canix402-protocol .
 
 FROM node:22-alpine AS build
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-COPY protocol/package.json ./protocol/
+COPY package.json ./
+RUN npm install --include=dev
 
-RUN npm ci --workspace=protocol --include=dev
+COPY tsconfig.json ./
+COPY src ./src/
+COPY openapi ./openapi/
 
-COPY protocol/tsconfig.json ./protocol/
-COPY protocol/src ./protocol/src/
-COPY protocol/openapi ./protocol/openapi/
-
-RUN npm run build -w protocol
+RUN npm run build
 
 FROM node:22-alpine AS runtime
 
@@ -23,14 +21,12 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-COPY package.json package-lock.json ./
-COPY protocol/package.json ./protocol/
+COPY package.json ./
+RUN npm install --omit=dev
 
-RUN npm ci --workspace=protocol --omit=dev
-
-COPY --from=build /app/protocol/dist ./protocol/dist
-COPY protocol/openapi ./protocol/openapi/
+COPY --from=build /app/dist ./dist
+COPY openapi ./openapi/
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start", "-w", "protocol"]
+CMD ["node", "dist/index.js"]
