@@ -82,9 +82,9 @@ All protocol adapters should map into a shared structure with at least:
 - `apr` and/or `apy`: numeric yield value and calculation basis if available
 - `tvlOrLiquidity`: relevant depth metric when provided
 - `rewards`: reward token metadata where applicable
-- `sourceTimestamp`: timestamp from upstream source when available
+- `sourceTimestamp`: timestamp from upstream source when available; equals `fetchedAt` when upstream does not expose a per-row update time
 - `fetchedAt`: timestamp of ingestion by this service
-- `notes`: caveats or confidence annotations for consumers
+- `notes`: standardized caveats (fetch-proxy timestamps, fallback identifiers) plus protocol-specific context
 
 Current implementation shape (`OpportunityRecordV1`) emphasizes:
 

@@ -10,6 +10,7 @@ import {
 
 import { OpportunityRecordV1 } from "../types/opportunity.js";
 import { resolveAssetDecimals } from "../services/asset-decimals.js";
+import { buildSourceMetadata } from "../services/source-metadata.js";
 
 export class CompXAdapterError extends Error {
   public readonly cause?: unknown;
@@ -178,7 +179,6 @@ export function normalizeCompxLendingOpportunity(
   }
 
   const baseSymbol = resolveAssetSymbol(market.baseTokenId, assetById);
-  const sourceTimestamp = toIsoTimestamp(market.lastUpdateTimestamp, fetchedAtIso);
 
   return {
     protocol: "compx",
@@ -189,9 +189,13 @@ export function normalizeCompxLendingOpportunity(
     apy,
     tvlUsd,
     ...(Number.isFinite(market.borrowApy) ? { apr: market.borrowApy } : {}),
-    sourceTimestamp,
-    fetchedAt: fetchedAtIso,
-    notes: `CompX lending market ${market.appId}; util=${market.utilizationRate.toFixed(1)}%; APR-derived yields`
+    ...buildSourceMetadata({
+      fetchedAtIso,
+      upstreamUnixSeconds: market.lastUpdateTimestamp,
+      contextNotes: [
+        `CompX lending market ${market.appId}; util=${market.utilizationRate.toFixed(1)}%; APR-derived yields.`
+      ]
+    })
   };
 }
 
@@ -242,8 +246,6 @@ export function normalizeCompxStakingOpportunity(
       ? stakedSymbol
       : `${stakedSymbol}/${rewardSymbol}`;
 
-  const sourceTimestamp = toIsoTimestamp(pool.lastUpdateTime, fetchedAtIso);
-
   return {
     protocol: "compx",
     opportunityType: "staking",
@@ -253,9 +255,13 @@ export function normalizeCompxStakingOpportunity(
     apy: apr,
     apr,
     tvlUsd,
-    sourceTimestamp,
-    fetchedAt: fetchedAtIso,
-    notes: `CompX staking pool ${pool.appId}; APR estimate; rewardsRemaining=${pool.rewardsRemaining.toString()}`
+    ...buildSourceMetadata({
+      fetchedAtIso,
+      upstreamUnixSeconds: pool.lastUpdateTime,
+      contextNotes: [
+        `CompX staking pool ${pool.appId}; APR estimate; rewardsRemaining=${pool.rewardsRemaining.toString()}.`
+      ]
+    })
   };
 }
 
@@ -464,14 +470,6 @@ function resolveAssetSymbol(assetId: number, assetById: Map<number, AssetInfo>):
   }
 
   return `ASSET-${assetId}`;
-}
-
-function toIsoTimestamp(unixSeconds: number, fallbackIso: string): string {
-  if (!Number.isFinite(unixSeconds) || unixSeconds <= 0) {
-    return fallbackIso;
-  }
-
-  return new Date(unixSeconds * 1000).toISOString();
 }
 
 function parseBoolean(value: string | undefined, defaultValue: boolean): boolean {

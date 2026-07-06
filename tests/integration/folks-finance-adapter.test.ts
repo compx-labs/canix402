@@ -106,6 +106,9 @@ test("normalizeFolksLendingOpportunity maps APY and TVL fields from SDK values",
   assert.equal(record?.apy, 0.055);
   assert.equal(record?.tvlUsd, 275);
   assert.equal(record?.apr, 0.045);
+  assert.equal(record?.sourceTimestamp, record?.fetchedAt);
+  assert.match(record?.notes ?? "", /sourceTimestamp equals fetchedAt/);
+  assert.match(record?.notes ?? "", /Folks mainnet lending pool 42/);
 });
 
 test("normalizeFolksLendingOpportunity drops rows when state is incomplete", () => {

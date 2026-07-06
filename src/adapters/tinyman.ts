@@ -1,3 +1,4 @@
+import { buildSourceMetadata } from "../services/source-metadata.js";
 import { OpportunityRecordV1 } from "../types/opportunity.js";
 
 interface TinymanPoolApiRecord {
@@ -102,15 +103,10 @@ export function normalizeTinymanPool(
   const apr =
     toNumber(record.annual_percentage_rate) ??
     toNumber(record.total_annual_percentage_rate);
-  const sourceTimestamp = fetchedAtIso;
   const id = record.address ?? "";
   const pairName = buildPairName(record);
   const assetIds = buildAssetIds(record);
-
-  const notes =
-    id.length === 0 || pairName.length === 0
-      ? "Some source fields were missing; fallback identifiers were used."
-      : undefined;
+  const usedFallbackIdentifiers = id.length === 0 || pairName.length === 0;
 
   return {
     protocol: "tinyman",
@@ -121,9 +117,10 @@ export function normalizeTinymanPool(
     apy,
     tvlUsd,
     ...(apr !== null ? { apr } : {}),
-    sourceTimestamp,
-    fetchedAt: fetchedAtIso,
-    ...(notes ? { notes } : {})
+    ...buildSourceMetadata({
+      fetchedAtIso,
+      usedFallbackIdentifiers
+    })
   };
 }
 
@@ -163,14 +160,10 @@ function normalizeTinymanFarm(
     return null;
   }
 
-  const sourceTimestamp = fetchedAtIso;
   const id = record.address ?? "";
   const pairName = buildPairName(record);
   const assetIds = buildAssetIds(record);
-  const notes =
-    id.length === 0 || pairName.length === 0
-      ? "Some source fields were missing; fallback identifiers were used."
-      : undefined;
+  const usedFallbackIdentifiers = id.length === 0 || pairName.length === 0;
 
   return {
     protocol: "tinyman",
@@ -181,9 +174,10 @@ function normalizeTinymanFarm(
     apy: stakingApy ?? 0,
     tvlUsd,
     ...(stakingApr !== null ? { apr: stakingApr } : {}),
-    sourceTimestamp,
-    fetchedAt: fetchedAtIso,
-    ...(notes ? { notes } : {})
+    ...buildSourceMetadata({
+      fetchedAtIso,
+      usedFallbackIdentifiers
+    })
   };
 }
 

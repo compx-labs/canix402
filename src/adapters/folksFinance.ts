@@ -13,6 +13,7 @@ import {
 
 import { OpportunityRecordV1 } from "../types/opportunity.js";
 import { resolveAssetDecimals } from "../services/asset-decimals.js";
+import { buildSourceMetadata } from "../services/source-metadata.js";
 
 export class FolksFinanceAdapterError extends Error {
   public readonly cause?: unknown;
@@ -152,9 +153,11 @@ export function normalizeFolksLendingOpportunity(
     apy,
     tvlUsd,
     ...(apr !== null ? { apr } : {}),
-    sourceTimestamp: fetchedAtIso,
-    fetchedAt: fetchedAtIso,
-    notes: `Folks mainnet lending pool ${pool.appId}`
+    ...buildSourceMetadata({
+      fetchedAtIso,
+      upstreamUnixSeconds: poolInfo.interest.latestUpdate,
+      contextNotes: [`Folks mainnet lending pool ${pool.appId}.`]
+    })
   };
 }
 

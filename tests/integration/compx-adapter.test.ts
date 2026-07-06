@@ -82,6 +82,10 @@ test("normalizeCompxLendingOpportunity maps APY and TVL fields from SDK values",
   assert.equal(record?.apy, 4.25);
   assert.equal(record?.apr, 8.5);
   assert.equal(record?.tvlUsd, 1_250_000);
+  assert.equal(record?.sourceTimestamp, "2023-11-14T22:13:20.000Z");
+  assert.equal(record?.fetchedAt, "2026-07-01T12:00:00.000Z");
+  assert.match(record?.notes ?? "", /CompX lending market 123456/);
+  assert.doesNotMatch(record?.notes ?? "", /sourceTimestamp equals fetchedAt/);
 });
 
 test("normalizeCompxLendingOpportunity drops rows when APY or TVL is invalid", () => {

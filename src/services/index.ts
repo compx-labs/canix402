@@ -22,3 +22,15 @@ export {
   formatOpportunitiesForAgent,
   formatOpportunityForAgent
 } from "./precision.js";
+export {
+  FALLBACK_IDENTIFIERS_NOTE,
+  SOURCE_TIMESTAMP_FETCH_PROXY_NOTE,
+  buildSourceMetadata,
+  resolveSourceTimestamp,
+  unixSecondsToIsoTimestamp
+} from "./source-metadata.js";
+export type {
+  BuildSourceMetadataInput,
+  SourceMetadataFields,
+  SourceTimestampOrigin
+} from "./source-metadata.js";

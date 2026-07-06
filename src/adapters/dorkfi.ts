@@ -1,3 +1,4 @@
+import { buildSourceMetadata } from "../services/source-metadata.js";
 import { OpportunityRecordV1 } from "../types/opportunity.js";
 
 interface DorkFiOpportunityApiRecord {
@@ -88,11 +89,7 @@ export function normalizeDorkFiOpportunity(
   const assetPair = normalizeAssetPair(record.assetName);
   const appId = normalizeIdentifier(record.appId);
   const assetId = toAssetId(record.assetId);
-  const sourceTimestamp = fetchedAtIso;
-  const notes =
-    appId.length === 0 || assetPair === "unknown"
-      ? "Some source fields were missing; fallback identifiers were used."
-      : undefined;
+  const usedFallbackIdentifiers = appId.length === 0 || assetPair === "unknown";
 
   const fallbackAssetId = assetId !== null ? String(assetId) : toSlug(assetPair);
   const opportunityId = [
@@ -111,9 +108,10 @@ export function normalizeDorkFiOpportunity(
     ...(assetId !== null ? { assetIds: [assetId] } : {}),
     apy,
     tvlUsd,
-    sourceTimestamp,
-    fetchedAt: fetchedAtIso,
-    ...(notes ? { notes } : {})
+    ...buildSourceMetadata({
+      fetchedAtIso,
+      usedFallbackIdentifiers
+    })
   };
 }
 

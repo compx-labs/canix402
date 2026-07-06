@@ -1,3 +1,4 @@
+import { buildSourceMetadata } from "../services/source-metadata.js";
 import { OpportunityRecordV1 } from "../types/opportunity.js";
 
 interface PactPoolApiRecord {
@@ -117,11 +118,7 @@ export function normalizePactPool(
   const id = getPoolId(record);
   const pairName = buildPairName(record);
   const assetIds = buildAssetIds(record);
-  const sourceTimestamp = fetchedAtIso;
-  const notes =
-    id.length === 0 || pairName.length === 0
-      ? "Some source fields were missing; fallback identifiers were used."
-      : undefined;
+  const usedFallbackIdentifiers = id.length === 0 || pairName.length === 0;
 
   return {
     protocol: "pact",
@@ -132,9 +129,10 @@ export function normalizePactPool(
     apy,
     tvlUsd,
     ...(apr !== null ? { apr } : {}),
-    sourceTimestamp,
-    fetchedAt: fetchedAtIso,
-    ...(notes ? { notes } : {})
+    ...buildSourceMetadata({
+      fetchedAtIso,
+      usedFallbackIdentifiers
+    })
   };
 }
 
@@ -183,11 +181,7 @@ function normalizePactFarm(
   const farmId = getFarmId(farm);
   const pairName = buildPairName(pool);
   const assetIds = buildAssetIds(pool);
-  const sourceTimestamp = fetchedAtIso;
-  const notes =
-    poolId.length === 0 || pairName.length === 0
-      ? "Some source fields were missing; fallback identifiers were used."
-      : undefined;
+  const usedFallbackIdentifiers = poolId.length === 0 || pairName.length === 0;
 
   const baseId = farmId.length > 0 ? farmId : poolId;
 
@@ -200,9 +194,10 @@ function normalizePactFarm(
     apy,
     tvlUsd,
     ...(apr !== null ? { apr } : {}),
-    sourceTimestamp,
-    fetchedAt: fetchedAtIso,
-    ...(notes ? { notes } : {})
+    ...buildSourceMetadata({
+      fetchedAtIso,
+      usedFallbackIdentifiers
+    })
   };
 }
 

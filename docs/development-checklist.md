@@ -66,7 +66,7 @@ Status legend:
   - [x] Resolve all asset decimals from chain via algod (`resolveAssetDecimals`); ALGO hardcoded to 6; no `?? 6` fallbacks.
   - [x] Cache + bounded-concurrency decimal lookups; drop rows with unresolvable decimals.
   - [x] Agent-facing output precision (default 6, max 12 decimal places) at the response boundary (`formatOpportunitiesForAgent`); contract published via `x-precision` in OpenAPI.
-- [~] Include source metadata (`sourceTimestamp`, `fetchedAt`, confidence/caveat notes).
+- [x] Include source metadata (`sourceTimestamp`, `fetchedAt`, confidence/caveat notes).
 - [ ] Publish sample response payloads for consumers.
 
 ## 6) Initial Delivery Mode (No Storage)

@@ -66,3 +66,31 @@ boundary by the shared `formatOpportunitiesForAgent` service
 
 The precision contract is published to agents via the `x-precision` extension in
 `GET /openapi.json`.
+
+## Source Metadata
+
+Every normalized opportunity row includes provenance fields so consumers can
+judge freshness and data quality:
+
+| Field | Meaning |
+|---|---|
+| `sourceTimestamp` | When the upstream source last updated the row (on-chain accrual or API row timestamp when available) |
+| `fetchedAt` | When canix402 fetched and normalized the row |
+| `notes` | Optional caveats about timestamp provenance, fallback identifiers, or yield estimates |
+
+Adapters build these fields through the shared `buildSourceMetadata` service
+(`src/services/source-metadata.ts`):
+
+- When upstream exposes a per-row or on-chain update timestamp, `sourceTimestamp`
+  is set from that value and `notes` carries any protocol-specific context.
+- When upstream does not expose a row timestamp (Tinyman, Pact, Dork.fi), or the
+  on-chain timestamp is unavailable, `sourceTimestamp` equals `fetchedAt` and
+  `notes` includes a standard fetch-proxy caveat.
+- When fallback identifiers are synthesized for `opportunityId` or `assetPair`,
+  `notes` also includes a standard fallback caveat.
+
+Per-protocol timestamp sources:
+
+- **CompX**: on-chain `lastUpdateTimestamp` / `lastUpdateTime`
+- **Folks Finance**: on-chain `poolInfo.interest.latestUpdate` when available
+- **Tinyman, Pact, Dork.fi**: fetch time (no per-row upstream timestamp)
