@@ -44,6 +44,27 @@ Refresh the snapshot from the protocol app:
 npx tsx ../protocol/scripts/export-discovery-snapshot.ts
 ```
 
+## Sample response payloads
+
+`/examples` renders illustrative sample response payloads for the paid opportunity
+routes from checked-in JSON under `src/data`:
+
+- `opportunities.sample.json` (`GET /opportunities`)
+- `opportunities-search.sample.json` (`GET /opportunities/search`)
+- `opportunities-personalized.sample.json` (`GET /opportunities/personalized`)
+- `protocol-opportunities.sample.json` (`GET /protocols/{protocol}/opportunities`)
+
+These are illustrative snapshots of the normalized response contract, not live paid
+data. They are generated through the protocol's precision formatter so numeric values
+honor the published precision contract (6 dp standard, up to 12 dp for small non-zero
+values). The same payloads are mirrored as examples in the OpenAPI document.
+
+Regenerate them from the protocol package:
+
+```sh
+npm run snapshot:responses
+```
+
 ## Deployment (canix402.compx.io)
 
 Recommended static hosting: Cloudflare Pages, Vercel, or existing CompX static host.

@@ -21,7 +21,8 @@
     "dev:caddy": ".bin/caddy-x402 run --config caddy/Caddyfile --adapter caddyfile",
     "test:x402-e2e": "tsx --test tests/e2e/*.test.ts",
     "test:ci": "npm run test && npm run test:x402-e2e",
-    "snapshot:discovery": "tsx scripts/export-discovery-snapshot.ts"
+    "snapshot:discovery": "tsx scripts/export-discovery-snapshot.ts",
+    "snapshot:responses": "tsx scripts/export-opportunity-snapshots.ts"
   },
   "dependencies": {
     "@compx/sdk": "^2.0.3",

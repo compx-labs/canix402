@@ -1,0 +1,40 @@
+{
+  "data": [
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks:lending:0",
+      "assetPair": "ALGO",
+      "assetIds": [
+        0
+      ],
+      "apy": 4.25,
+      "tvlUsd": 1875000.25,
+      "sourceTimestamp": "2026-07-06T08:55:00.000Z",
+      "fetchedAt": "2026-07-06T09:00:00.000Z"
+    },
+    {
+      "protocol": "tinyman",
+      "opportunityType": "lp",
+      "opportunityId": "tinyman:pool:1002541853",
+      "assetPair": "ALGO/USDC",
+      "apr": 10.512,
+      "apy": 12.5,
+      "tvlUsd": 2450000.5,
+      "sourceTimestamp": "2026-07-06T09:00:00.000Z",
+      "fetchedAt": "2026-07-06T09:00:00.000Z",
+      "assetIds": [
+        0,
+        31566704
+      ]
+    }
+  ],
+  "meta": {
+    "limit": 10,
+    "offset": 0,
+    "includeInactive": false,
+    "paymentRequired": true,
+    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "heldAssetCount": 2
+  }
+}

@@ -23,7 +23,15 @@
         "tags": ["system"],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" },
+                "examples": {
+                  "default": { "$ref": "#/components/examples/HealthResponseSample" }
+                }
+              }
+            }
           }
         }
       }
@@ -34,7 +42,15 @@
         "tags": ["system", "discovery"],
         "responses": {
           "200": {
-            "description": "Metadata"
+            "description": "Metadata",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MetadataResponse" },
+                "examples": {
+                  "default": { "$ref": "#/components/examples/MetadataResponseSample" }
+                }
+              }
+            }
           }
         }
       }
@@ -45,7 +61,15 @@
         "tags": ["discovery", "agents"],
         "responses": {
           "200": {
-            "description": "Discovery document"
+            "description": "Discovery document",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DiscoveryResponse" },
+                "examples": {
+                  "default": { "$ref": "#/components/examples/DiscoveryResponseSample" }
+                }
+              }
+            }
           }
         }
       }
@@ -56,7 +80,12 @@
         "tags": ["discovery", "openapi"],
         "responses": {
           "200": {
-            "description": "OpenAPI JSON"
+            "description": "OpenAPI JSON",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "description": "This OpenAPI 3.1 document." }
+              }
+            }
           }
         }
       }
@@ -72,9 +101,19 @@
           { "name": "includeInactive", "in": "query", "schema": { "type": "boolean" } }
         ],
         "responses": {
-          "200": { "description": "Opportunity list" },
-          "402": { "description": "Payment required" },
-          "500": { "description": "Internal error" }
+          "200": {
+            "description": "Opportunity list",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OpportunitiesListResponse" },
+                "examples": {
+                  "default": { "$ref": "#/components/examples/AggregateOpportunitiesSample" }
+                }
+              }
+            }
+          },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "500": { "$ref": "#/components/responses/InternalError" }
         },
         "x-x402": {
           "protocolVersion": 2,
@@ -122,9 +161,19 @@
           { "name": "includeInactive", "in": "query", "schema": { "type": "boolean" } }
         ],
         "responses": {
-          "200": { "description": "Filtered opportunity list" },
-          "402": { "description": "Payment required" },
-          "500": { "description": "Internal error" }
+          "200": {
+            "description": "Filtered opportunity list",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OpportunitiesListResponse" },
+                "examples": {
+                  "default": { "$ref": "#/components/examples/FilteredOpportunitiesSample" }
+                }
+              }
+            }
+          },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "500": { "$ref": "#/components/responses/InternalError" }
         },
         "x-x402": {
           "protocolVersion": 2,
@@ -157,10 +206,20 @@
           { "name": "includeInactive", "in": "query", "schema": { "type": "boolean" } }
         ],
         "responses": {
-          "200": { "description": "Personalized opportunity list" },
-          "400": { "description": "Invalid Algorand address" },
-          "402": { "description": "Payment required" },
-          "500": { "description": "Internal error" }
+          "200": {
+            "description": "Personalized opportunity list",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PersonalizedOpportunitiesListResponse" },
+                "examples": {
+                  "default": { "$ref": "#/components/examples/PersonalizedOpportunitiesSample" }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/InvalidAddress" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "500": { "$ref": "#/components/responses/InternalError" }
         },
         "x-x402": {
           "protocolVersion": 2,
@@ -194,9 +253,19 @@
           { "name": "includeInactive", "in": "query", "schema": { "type": "boolean" } }
         ],
         "responses": {
-          "200": { "description": "Protocol opportunity list" },
-          "402": { "description": "Payment required" },
-          "500": { "description": "Internal error" }
+          "200": {
+            "description": "Protocol opportunity list",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OpportunitiesListResponse" },
+                "examples": {
+                  "default": { "$ref": "#/components/examples/ProtocolOpportunitiesSample" }
+                }
+              }
+            }
+          },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "500": { "$ref": "#/components/responses/InternalError" }
         },
         "x-x402": {
           "protocolVersion": 2,
@@ -207,6 +276,522 @@
             "asset": "31566704",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.01"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiError": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": ["code", "message"],
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Stable machine-readable error code.",
+                "enum": [
+                  "VALIDATION_ERROR",
+                  "INTERNAL_ERROR",
+                  "NOT_FOUND",
+                  "MISSING_PAYMENT_SIGNATURE",
+                  "MALFORMED_PAYMENT_SIGNATURE",
+                  "EXPIRED_PAYMENT_PROOF"
+                ]
+              },
+              "message": { "type": "string" },
+              "details": {
+                "description": "Optional structured context for the error."
+              }
+            }
+          }
+        }
+      },
+      "OpportunityRecord": {
+        "type": "object",
+        "required": [
+          "protocol",
+          "opportunityType",
+          "opportunityId",
+          "assetPair",
+          "apy",
+          "tvlUsd",
+          "sourceTimestamp",
+          "fetchedAt"
+        ],
+        "properties": {
+          "protocol": {
+            "type": "string",
+            "description": "Source platform name.",
+            "enum": ["tinyman", "pact", "folks-finance", "compx", "dorkfi", "haystack"]
+          },
+          "opportunityType": {
+            "type": "string",
+            "enum": ["lp", "farm", "staking", "lending"]
+          },
+          "opportunityId": {
+            "type": "string",
+            "description": "Stable identifier for the opportunity within its protocol."
+          },
+          "assetPair": {
+            "type": "string",
+            "description": "Protocol-specific market identifier (e.g. ALGO/USDC or a single asset)."
+          },
+          "apy": {
+            "type": "number",
+            "description": "Yield as APY. Formatted to 6 decimal places (up to 12 for small non-zero values)."
+          },
+          "apr": {
+            "type": "number",
+            "description": "Yield as APR when the upstream source provides it."
+          },
+          "tvlUsd": {
+            "type": "number",
+            "description": "Total value locked / liquidity depth in USD."
+          },
+          "sourceTimestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Upstream or on-chain update time when available; otherwise equals fetchedAt."
+          },
+          "fetchedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When this service fetched and normalized the row."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Caveats about timestamp provenance, fallback identifiers, or yield estimates."
+          }
+        }
+      },
+      "PersonalizedOpportunityRecord": {
+        "allOf": [
+          { "$ref": "#/components/schemas/OpportunityRecord" },
+          {
+            "type": "object",
+            "properties": {
+              "assetIds": {
+                "type": "array",
+                "items": { "type": "integer" },
+                "description": "On-chain Algorand asset ids backing the opportunity. Native ALGO is asset id 0."
+              }
+            }
+          }
+        ]
+      },
+      "OpportunitiesListMeta": {
+        "type": "object",
+        "required": ["limit", "offset", "includeInactive", "paymentRequired"],
+        "properties": {
+          "limit": { "type": "integer" },
+          "offset": { "type": "integer" },
+          "includeInactive": { "type": "boolean" },
+          "paymentRequired": { "type": "boolean" }
+        }
+      },
+      "PersonalizedOpportunitiesListMeta": {
+        "allOf": [
+          { "$ref": "#/components/schemas/OpportunitiesListMeta" },
+          {
+            "type": "object",
+            "required": ["address", "heldAssetCount"],
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "Algorand address the results were personalized for."
+              },
+              "heldAssetCount": {
+                "type": "integer",
+                "description": "Number of distinct held assets used for matching."
+              }
+            }
+          }
+        ]
+      },
+      "OpportunitiesListResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/OpportunityRecord" }
+          },
+          "meta": { "$ref": "#/components/schemas/OpportunitiesListMeta" }
+        }
+      },
+      "PersonalizedOpportunitiesListResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PersonalizedOpportunityRecord" }
+          },
+          "meta": { "$ref": "#/components/schemas/PersonalizedOpportunitiesListMeta" }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": ["service", "status"],
+            "properties": {
+              "service": { "type": "string", "enum": ["canix402"] },
+              "status": { "type": "string", "enum": ["ok"] }
+            }
+          }
+        }
+      },
+      "EndpointPolicyEntry": {
+        "type": "object",
+        "required": ["id", "method", "pathPattern", "access", "summary", "tags"],
+        "properties": {
+          "id": { "type": "string" },
+          "method": { "type": "string", "enum": ["GET"] },
+          "pathPattern": { "type": "string" },
+          "access": { "type": "string", "enum": ["free", "paid"] },
+          "summary": { "type": "string" },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "pathParams": { "type": "array", "items": { "type": "string" } },
+          "queryParams": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "MetadataResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": ["service", "environment", "supportedProtocols", "endpointPolicy"],
+            "properties": {
+              "service": { "type": "string", "enum": ["canix402"] },
+              "environment": { "type": "string" },
+              "supportedProtocols": { "type": "array", "items": { "type": "string" } },
+              "endpointPolicy": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/EndpointPolicyEntry" }
+              }
+            }
+          }
+        }
+      },
+      "DiscoveryResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "service",
+              "apiVersion",
+              "discoveryVersion",
+              "capabilities",
+              "x402ProtocolVersion",
+              "endpoints",
+              "errorCatalog"
+            ],
+            "properties": {
+              "service": { "type": "string", "enum": ["canix402"] },
+              "apiVersion": { "type": "string" },
+              "discoveryVersion": { "type": "string" },
+              "capabilities": { "type": "array", "items": { "type": "string" } },
+              "x402ProtocolVersion": { "type": "integer", "enum": [2] },
+              "endpoints": { "type": "array", "items": { "type": "object" } },
+              "errorCatalog": { "type": "array", "items": { "type": "object" } }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "PaymentRequired": {
+        "description": "Payment required. The client must retry with a signed PAYMENT-SIGNATURE payload.",
+        "headers": {
+          "PAYMENT-REQUIRED": {
+            "description": "Base64-encoded JSON x402 payment requirements the client must satisfy before retrying.",
+            "schema": { "type": "string" }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ApiError" },
+            "examples": {
+              "missingPayment": { "$ref": "#/components/examples/MissingPaymentSignatureError" },
+              "malformedPayment": { "$ref": "#/components/examples/MalformedPaymentSignatureError" },
+              "expiredProof": { "$ref": "#/components/examples/ExpiredPaymentProofError" }
+            }
+          }
+        }
+      },
+      "InvalidAddress": {
+        "description": "Request validation failed.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ApiError" },
+            "examples": {
+              "invalidAddress": { "$ref": "#/components/examples/InvalidAddressError" }
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Internal error.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ApiError" },
+            "examples": {
+              "internalError": { "$ref": "#/components/examples/InternalError" }
+            }
+          }
+        }
+      }
+    },
+    "examples": {
+      "HealthResponseSample": {
+        "summary": "Healthy service",
+        "value": { "data": { "service": "canix402", "status": "ok" } }
+      },
+      "MetadataResponseSample": {
+        "summary": "Service metadata (endpoint policy trimmed)",
+        "value": {
+          "data": {
+            "service": "canix402",
+            "environment": "production",
+            "supportedProtocols": ["tinyman", "pact", "folks-finance", "compx", "dorkfi"],
+            "endpointPolicy": [
+              {
+                "id": "opportunities",
+                "method": "GET",
+                "pathPattern": "/opportunities",
+                "access": "paid",
+                "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
+                "tags": ["defi", "opportunities"],
+                "queryParams": ["protocol", "limit", "offset", "includeInactive"]
+              }
+            ]
+          }
+        }
+      },
+      "DiscoveryResponseSample": {
+        "summary": "Discovery document (endpoints trimmed)",
+        "value": {
+          "data": {
+            "service": "canix402",
+            "apiVersion": "0.1.0",
+            "discoveryVersion": "1.0.0",
+            "capabilities": [
+              "algorand-defi-opportunities",
+              "x402-paid-data",
+              "wallet-personalization",
+              "agent-discovery",
+              "openapi"
+            ],
+            "x402ProtocolVersion": 2,
+            "endpoints": [
+              {
+                "id": "opportunities",
+                "method": "GET",
+                "path": "/opportunities",
+                "access": "paid",
+                "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
+                "tags": ["defi", "opportunities"],
+                "pathParams": [],
+                "queryParams": ["protocol", "limit", "offset", "includeInactive"],
+                "responseCodes": [200, 402, 500],
+                "x402": {
+                  "protocolVersion": 2,
+                  "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
+                  "facilitator": "https://facilitator.goplausible.xyz",
+                  "requirementTemplate": {
+                    "scheme": "exact",
+                    "network": "algorand-mainnet",
+                    "asset": "31566704",
+                    "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+                    "maxAmountRequired": "0.01"
+                  }
+                }
+              }
+            ],
+            "errorCatalog": [
+              {
+                "code": "MISSING_PAYMENT_SIGNATURE",
+                "httpStatus": 402,
+                "description": "The paid endpoint was called without PAYMENT-SIGNATURE."
+              }
+            ]
+          }
+        }
+      },
+      "AggregateOpportunitiesSample": {
+        "summary": "Top aggregated opportunities",
+        "value": {
+          "data": [
+            {
+              "protocol": "tinyman",
+              "opportunityType": "lp",
+              "opportunityId": "tinyman:pool:1002541853",
+              "assetPair": "ALGO/USDC",
+              "apr": 10.512,
+              "apy": 12.5,
+              "tvlUsd": 2450000.5,
+              "sourceTimestamp": "2026-07-06T09:00:00.000Z",
+              "fetchedAt": "2026-07-06T09:00:00.000Z",
+              "notes": "sourceTimestamp reflects fetch time; upstream does not expose a per-row update time."
+            },
+            {
+              "protocol": "folks-finance",
+              "opportunityType": "lending",
+              "opportunityId": "folks:lending:31566704",
+              "assetPair": "USDC",
+              "apy": 6.06,
+              "tvlUsd": 29846.609471,
+              "sourceTimestamp": "2026-07-06T08:55:00.000Z",
+              "fetchedAt": "2026-07-06T09:00:00.000Z"
+            }
+          ],
+          "meta": {
+            "limit": 10,
+            "offset": 0,
+            "includeInactive": false,
+            "paymentRequired": true
+          }
+        }
+      },
+      "FilteredOpportunitiesSample": {
+        "summary": "Filtered by platform=tinyman and minApy",
+        "value": {
+          "data": [
+            {
+              "protocol": "tinyman",
+              "opportunityType": "lp",
+              "opportunityId": "tinyman:pool:1002541853",
+              "assetPair": "ALGO/USDC",
+              "apr": 10.512,
+              "apy": 12.5,
+              "tvlUsd": 2450000.5,
+              "sourceTimestamp": "2026-07-06T09:00:00.000Z",
+              "fetchedAt": "2026-07-06T09:00:00.000Z"
+            }
+          ],
+          "meta": {
+            "limit": 25,
+            "offset": 0,
+            "includeInactive": false,
+            "paymentRequired": true
+          }
+        }
+      },
+      "PersonalizedOpportunitiesSample": {
+        "summary": "Personalized to a wallet's held assets",
+        "value": {
+          "data": [
+            {
+              "protocol": "folks-finance",
+              "opportunityType": "lending",
+              "opportunityId": "folks:lending:0",
+              "assetPair": "ALGO",
+              "assetIds": [0],
+              "apy": 4.25,
+              "tvlUsd": 1875000.25,
+              "sourceTimestamp": "2026-07-06T08:55:00.000Z",
+              "fetchedAt": "2026-07-06T09:00:00.000Z"
+            },
+            {
+              "protocol": "tinyman",
+              "opportunityType": "lp",
+              "opportunityId": "tinyman:pool:1002541853",
+              "assetPair": "ALGO/USDC",
+              "assetIds": [0, 31566704],
+              "apr": 10.512,
+              "apy": 12.5,
+              "tvlUsd": 2450000.5,
+              "sourceTimestamp": "2026-07-06T09:00:00.000Z",
+              "fetchedAt": "2026-07-06T09:00:00.000Z"
+            }
+          ],
+          "meta": {
+            "limit": 10,
+            "offset": 0,
+            "includeInactive": false,
+            "paymentRequired": true,
+            "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "heldAssetCount": 2
+          }
+        }
+      },
+      "ProtocolOpportunitiesSample": {
+        "summary": "Single-protocol opportunities (tinyman)",
+        "value": {
+          "data": [
+            {
+              "protocol": "tinyman",
+              "opportunityType": "lp",
+              "opportunityId": "tinyman:pool:1002541853",
+              "assetPair": "ALGO/USDC",
+              "apr": 10.512,
+              "apy": 12.5,
+              "tvlUsd": 2450000.5,
+              "sourceTimestamp": "2026-07-06T09:00:00.000Z",
+              "fetchedAt": "2026-07-06T09:00:00.000Z"
+            }
+          ],
+          "meta": {
+            "limit": 25,
+            "offset": 0,
+            "includeInactive": false,
+            "paymentRequired": true
+          }
+        }
+      },
+      "MissingPaymentSignatureError": {
+        "summary": "Paid route called without PAYMENT-SIGNATURE",
+        "value": {
+          "error": {
+            "code": "MISSING_PAYMENT_SIGNATURE",
+            "message": "The paid endpoint was called without PAYMENT-SIGNATURE."
+          }
+        }
+      },
+      "MalformedPaymentSignatureError": {
+        "summary": "PAYMENT-SIGNATURE payload is malformed",
+        "value": {
+          "error": {
+            "code": "MALFORMED_PAYMENT_SIGNATURE",
+            "message": "PAYMENT-SIGNATURE payload is malformed."
+          }
+        }
+      },
+      "ExpiredPaymentProofError": {
+        "summary": "PAYMENT-SIGNATURE proof has expired",
+        "value": {
+          "error": {
+            "code": "EXPIRED_PAYMENT_PROOF",
+            "message": "PAYMENT-SIGNATURE proof has expired."
+          }
+        }
+      },
+      "InvalidAddressError": {
+        "summary": "Invalid Algorand address",
+        "value": {
+          "error": {
+            "code": "VALIDATION_ERROR",
+            "message": "Query parameter 'address' is not a valid Algorand address."
+          }
+        }
+      },
+      "InternalError": {
+        "summary": "Internal server error",
+        "value": {
+          "error": {
+            "code": "INTERNAL_ERROR",
+            "message": "Internal server error."
           }
         }
       }

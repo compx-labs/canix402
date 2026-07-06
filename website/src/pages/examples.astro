@@ -2,6 +2,12 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import CodeBlock from "../components/CodeBlock.astro";
 import { config } from "../lib/config";
+import aggregateSample from "../data/opportunities.sample.json";
+import searchSample from "../data/opportunities-search.sample.json";
+import personalizedSample from "../data/opportunities-personalized.sample.json";
+import protocolSample from "../data/protocol-opportunities.sample.json";
+
+const format = (value: unknown): string => JSON.stringify(value, null, 2);
 ---
 
 <BaseLayout title="Examples | CANIX402" description="Copy-paste examples for canix402 discovery and x402 paid calls.">
@@ -19,22 +25,76 @@ import { config } from "../lib/config";
   </section>
 
   <section class="panel">
-    <h2>Paid preflight</h2>
-    <CodeBlock code={`curl -i ${config.gatewayBaseUrl}/opportunities`} />
-  </section>
-
-  <section class="panel">
-    <h2>Filtered search preflight</h2>
-    <CodeBlock
-      code={`curl -i '${config.gatewayBaseUrl}/opportunities/search?platform=tinyman&minApy=0.05'`}
-    />
-  </section>
-
-  <section class="panel">
     <h2>Signed retry shape</h2>
     <p>The website does not sign payments. Your agent/client wallet must build this payload.</p>
     <CodeBlock
       code={`{\n  "x402Version": 2,\n  "scheme": "exact",\n  "network": "algorand-mainnet",\n  "accepted": { /* selected accept option from PAYMENT-REQUIRED */ },\n  "payload": {\n    "paymentGroup": ["<base64-signed-txn>"],\n    "paymentIndex": 0\n  },\n  "paymentRequired": { /* decoded PAYMENT-REQUIRED */ }\n}`}
+    />
+  </section>
+
+  <h2 id="sample-responses" class="page-title">Sample response payloads</h2>
+  <div class="notice">
+    These are illustrative snapshots of the normalized response contract, not live paid data.
+    Numeric values follow the precision contract (6 decimal places by default, up to 12 for small
+    non-zero values). Live responses vary in values and row count; the shape and field semantics
+    match. The full machine-readable schema and examples are published in
+    <a href={config.openApiUrl}>OpenAPI</a>.
+  </div>
+
+  <section class="panel">
+    <h2>Aggregated opportunities</h2>
+    <p><code>GET /opportunities</code> — top opportunities across all protocols, ranked by APY.</p>
+    <CodeBlock code={`curl -i ${config.gatewayBaseUrl}/opportunities`} />
+    <h3>Sample response (200)</h3>
+    <CodeBlock code={format(aggregateSample)} />
+  </section>
+
+  <section class="panel">
+    <h2>Filtered search</h2>
+    <p><code>GET /opportunities/search</code> — caller-filtered opportunities by platform, type, APY, and TVL.</p>
+    <CodeBlock
+      code={`curl -i '${config.gatewayBaseUrl}/opportunities/search?platform=tinyman&minApy=0.05'`}
+    />
+    <h3>Sample response (200)</h3>
+    <CodeBlock code={format(searchSample)} />
+  </section>
+
+  <section class="panel">
+    <h2>Wallet-personalized opportunities</h2>
+    <p>
+      <code>GET /opportunities/personalized</code> — opportunities tuned to a wallet's held assets.
+      Rows include <code>assetIds</code>; <code>meta</code> reports the queried <code>address</code>
+      and <code>heldAssetCount</code>.
+    </p>
+    <CodeBlock
+      code={`curl -i '${config.gatewayBaseUrl}/opportunities/personalized?address=YOUR_ALGORAND_ADDRESS'`}
+    />
+    <h3>Sample response (200)</h3>
+    <CodeBlock code={format(personalizedSample)} />
+  </section>
+
+  <section class="panel">
+    <h2>Protocol-specific opportunities</h2>
+    <p>
+      <code>GET /protocols/&#123;protocol&#125;/opportunities</code> — opportunities for a single
+      protocol. Substitute any supported protocol (e.g. <code>tinyman</code>, <code>pact</code>,
+      <code>folks-finance</code>, <code>compx</code>, <code>dorkfi</code>).
+    </p>
+    <CodeBlock code={`curl -i ${config.gatewayBaseUrl}/protocols/tinyman/opportunities`} />
+    <h3>Sample response (200)</h3>
+    <CodeBlock code={format(protocolSample)} />
+  </section>
+
+  <section class="panel">
+    <h2>Error responses</h2>
+    <p>Paid routes return <code>402</code> before payment; validation and server errors use a stable envelope.</p>
+    <h3>402 — payment required</h3>
+    <CodeBlock
+      code={`{\n  "error": {\n    "code": "MISSING_PAYMENT_SIGNATURE",\n    "message": "The paid endpoint was called without PAYMENT-SIGNATURE."\n  }\n}`}
+    />
+    <h3>400 — invalid Algorand address (personalized route)</h3>
+    <CodeBlock
+      code={`{\n  "error": {\n    "code": "VALIDATION_ERROR",\n    "message": "Query parameter 'address' is not a valid Algorand address."\n  }\n}`}
     />
   </section>
 </BaseLayout>

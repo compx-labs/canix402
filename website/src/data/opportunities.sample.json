@@ -1,0 +1,32 @@
+{
+  "data": [
+    {
+      "protocol": "tinyman",
+      "opportunityType": "lp",
+      "opportunityId": "tinyman:pool:1002541853",
+      "assetPair": "ALGO/USDC",
+      "apr": 10.512,
+      "apy": 12.5,
+      "tvlUsd": 2450000.5,
+      "sourceTimestamp": "2026-07-06T09:00:00.000Z",
+      "fetchedAt": "2026-07-06T09:00:00.000Z",
+      "notes": "sourceTimestamp reflects fetch time; upstream does not expose a per-row update time."
+    },
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks:lending:31566704",
+      "assetPair": "USDC",
+      "apy": 6.06,
+      "tvlUsd": 29846.609471,
+      "sourceTimestamp": "2026-07-06T08:55:00.000Z",
+      "fetchedAt": "2026-07-06T09:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "limit": 10,
+    "offset": 0,
+    "includeInactive": false,
+    "paymentRequired": true
+  }
+}

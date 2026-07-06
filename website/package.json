@@ -8,7 +8,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "typecheck": "astro check",
-    "snapshot:discovery": "tsx ../protocol/scripts/export-discovery-snapshot.ts"
+    "snapshot:discovery": "tsx ../protocol/scripts/export-discovery-snapshot.ts",
+    "snapshot:responses": "tsx ../protocol/scripts/export-opportunity-snapshots.ts"
   },
   "dependencies": {
     "astro": "^5.7.10"

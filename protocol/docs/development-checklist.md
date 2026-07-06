@@ -136,3 +136,34 @@ Simple human-facing site so developers and operators can quickly set up an agent
 - [x] Add new protocol adapter tasks here before implementation starts.
 - [x] Keep `/discovery` and `/openapi.json` contracts in sync with endpoint policy changes.
 - [x] Keep `test:x402-e2e` passing to preserve validator-path confidence through Caddy.
+
+## 12) Discoverability and Agent Indexing
+
+- [ ] Expose canonical OpenAPI at `/openapi.json`.
+  - [ ] Include x402/payment notes, prices, response examples, and errors.
+- [ ] Add x402 discovery manifest at `/.well-known/x402.json`.
+  - [ ] List resources, prices, chains/assets, facilitator, OpenAPI URL, and docs URL.
+- [ ] Add human agent docs at `/agents` or `/x402`.
+  - [ ] Explain use cases, pricing, curl examples, and agent examples.
+- [ ] Add LLM docs at `/llms.txt` and `/llms-full.txt`.
+  - [ ] Summarize endpoints, schemas, and usage examples.
+- [ ] Add MCP server.
+  - [ ] Include tools for `discover_opportunities`, `build_strategy`, `get_transaction_group`, and `simulate_strategy`.
+  - [ ] Link MCP server from docs and manifest.
+- [ ] Enable Bazaar indexing.
+  - [ ] Ensure endpoint uses supported x402 discovery metadata.
+  - [ ] Run at least one successful paid request via facilitator.
+  - [ ] Verify the API appears in Coinbase Bazaar.
+- [ ] Submit manually where needed.
+  - [ ] x402Scan "Add your API".
+  - [ ] Awesome x402 GitHub PR.
+  - [ ] Any curated directories worth targeting.
+- [ ] Add trust metadata.
+  - [ ] GitHub repo/docs link.
+  - [ ] Contact/support email.
+  - [ ] Version number.
+  - [ ] Terms/risk disclaimer.
+  - [ ] Example successful responses.
+- [ ] Add monitoring.
+  - [ ] Track x402 requests, failed payments, successful settlements, referrers, and user agents.
+  - [ ] Log which directories/agents send traffic.
