@@ -3,7 +3,11 @@ import { Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 
 import {
+  CompXAdapterError,
+  DorkFiAdapterError,
+  fetchCompXOpportunities,
   fetchFolksFinanceOpportunities,
+  fetchDorkFiOpportunities,
   FolksFinanceAdapterError,
   fetchPactOpportunities,
   PactAdapterError,
@@ -12,6 +16,7 @@ import {
 } from "../adapters/index.js";
 import { fetchHeldAssetIds } from "../services/account-assets.js";
 import { rankOpportunitiesByApy } from "../services/opportunity-ranking.js";
+import { formatOpportunitiesForAgent } from "../services/precision.js";
 import { selectPersonalizedOpportunities } from "../services/personalized-opportunities.js";
 import { ApiError, ApiSuccess } from "../types/index.js";
 import { OpportunityRecordV1 } from "../types/opportunity.js";
@@ -109,7 +114,7 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
       const pagedData = rankOpportunitiesByApy(data).slice(offset, offset + limit);
 
       return {
-        data: pagedData,
+        data: formatOpportunitiesForAgent(pagedData),
         meta: {
           limit,
           offset,
@@ -167,7 +172,7 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
 
       const pagedData = rankOpportunitiesByApy(filtered).slice(offset, offset + limit);
       return {
-        data: pagedData,
+        data: formatOpportunitiesForAgent(pagedData),
         meta: {
           limit,
           offset,
@@ -218,7 +223,7 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
       ).slice(offset, offset + limit);
 
       return reply.send({
-        data: personalized,
+        data: formatOpportunitiesForAgent(personalized),
         meta: {
           limit,
           offset,
@@ -232,7 +237,13 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
   );
 }
 
-const SUPPORTED_AGGREGATE_PROTOCOLS = ["tinyman", "pact", "folks-finance"] as const;
+const SUPPORTED_AGGREGATE_PROTOCOLS = [
+  "tinyman",
+  "pact",
+  "folks-finance",
+  "compx",
+  "dorkfi"
+] as const;
 
 async function fetchOpportunitiesForProtocols(
   protocols: readonly Protocol[]
@@ -266,6 +277,12 @@ async function fetchOpportunitiesForProtocol(protocol: Protocol): Promise<Opport
     if (protocol === "folks-finance") {
       return await fetchFolksFinanceOpportunities();
     }
+    if (protocol === "compx") {
+      return await fetchCompXOpportunities();
+    }
+    if (protocol === "dorkfi") {
+      return await fetchDorkFiOpportunities();
+    }
     if (SupportedProtocolValues.includes(protocol)) {
       return [];
     }
@@ -273,7 +290,9 @@ async function fetchOpportunitiesForProtocol(protocol: Protocol): Promise<Opport
     if (
       error instanceof TinymanAdapterError ||
       error instanceof PactAdapterError ||
-      error instanceof FolksFinanceAdapterError
+      error instanceof FolksFinanceAdapterError ||
+      error instanceof CompXAdapterError ||
+      error instanceof DorkFiAdapterError
     ) {
       throw error;
     }

@@ -31,6 +31,7 @@ export async function startCaddyHarness(
   const appServer = await startApiServer();
   const caddyPort = await getFreePort();
   const logs: string[] = [];
+  const defaultPrice = process.env.X402_PAYMENT_AMOUNT_USDC ?? "0.01";
 
   const caddy = spawn(
     resolvedBinary,
@@ -43,7 +44,10 @@ export async function startCaddyHarness(
         UPSTREAM_API: appServer.baseUrl,
         FACILITATOR_URL: facilitator.baseUrl,
         X402_PAY_TO: "REPLACE_WITH_PAYTO_ADDRESS",
-        X402_PRICE_USDC: "0.01",
+        X402_PRICE_AGGREGATE_USDC: process.env.X402_PRICE_AGGREGATE_USDC ?? defaultPrice,
+        X402_PRICE_SEARCH_USDC: process.env.X402_PRICE_SEARCH_USDC ?? defaultPrice,
+        X402_PRICE_PERSONALIZED_USDC: process.env.X402_PRICE_PERSONALIZED_USDC ?? "0.05",
+        X402_PRICE_PROTOCOL_USDC: process.env.X402_PRICE_PROTOCOL_USDC ?? defaultPrice,
         X402_NETWORK: "algorand-mainnet",
         X402_SCHEME: "exact",
         PROOF_SHARED_SECRET: "test-proof-secret"

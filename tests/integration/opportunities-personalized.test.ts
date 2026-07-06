@@ -6,7 +6,8 @@ import { setFolksFinanceSdkDependenciesForTests } from "../../src/adapters/index
 import { buildApp } from "../../src/app.js";
 import {
   selectPersonalizedOpportunities,
-  setAccountAssetsDependenciesForTests
+  setAccountAssetsDependenciesForTests,
+  setAssetDecimalsDependenciesForTests
 } from "../../src/services/index.js";
 import { OpportunityRecordV1 } from "../../src/types/opportunity.js";
 
@@ -14,6 +15,10 @@ const VALID_ADDRESS =
   "RS7TLLQRXKBAQDAVTSZC2ZLMVMLNSCL3FOUOESJJZ5XSKFFL56UI6X33CI";
 
 function stubFolksWithAssetIds(): void {
+  setAssetDecimalsDependenciesForTests({
+    createAlgodClient: () => ({}) as never,
+    getAssetById: async () => ({ params: { decimals: 6 } })
+  });
   setFolksFinanceSdkDependenciesForTests({
     createAlgodClient: () => ({}) as never,
     retrievePoolManagerInfoFn: async () => ({
@@ -217,6 +222,7 @@ test("GET /opportunities/personalized returns wallet-matched opportunities ranke
     delete process.env.TINYMAN_API_BASE_URL;
     setFolksFinanceSdkDependenciesForTests(undefined);
     setAccountAssetsDependenciesForTests(undefined);
+    setAssetDecimalsDependenciesForTests(undefined);
   }
 });
 
@@ -273,6 +279,7 @@ test("GET /opportunities/personalized returns empty data when no assets match", 
     delete process.env.TINYMAN_API_BASE_URL;
     setFolksFinanceSdkDependenciesForTests(undefined);
     setAccountAssetsDependenciesForTests(undefined);
+    setAssetDecimalsDependenciesForTests(undefined);
   }
 });
 

@@ -7,6 +7,14 @@ import {
   setFolksFinanceSdkDependenciesForTests
 } from "../../src/adapters/index.js";
 import { buildApp } from "../../src/app.js";
+import { setAssetDecimalsDependenciesForTests } from "../../src/services/asset-decimals.js";
+
+function mockOnChainAssetDecimals(): void {
+  setAssetDecimalsDependenciesForTests({
+    createAlgodClient: () => ({}) as never,
+    getAssetById: async () => ({ params: { decimals: 6 } })
+  });
+}
 
 test("normalizeFolksLendingOpportunity maps APY and TVL fields from SDK values", () => {
   const record = normalizeFolksLendingOpportunity({
@@ -88,6 +96,7 @@ test("normalizeFolksLendingOpportunity maps APY and TVL fields from SDK values",
       }
     },
     oraclePrice: 22000000000000n,
+    assetDecimals: 6,
     fetchedAtIso: "2026-06-17T21:05:00.000Z"
   });
 
@@ -166,6 +175,96 @@ test("normalizeFolksLendingOpportunity drops rows when state is incomplete", () 
         adminAddress: "ADMIN",
         pools: {}
       },
+      oraclePrice: undefined,
+      assetDecimals: 6,
+      fetchedAtIso: "2026-06-17T21:05:00.000Z"
+    }),
+    null
+  );
+});
+
+test("normalizeFolksLendingOpportunity drops rows when on-chain decimals are unavailable", () => {
+  assert.equal(
+    normalizeFolksLendingOpportunity({
+      symbol: "ALGO",
+      pool: {
+        appId: 42,
+        assetId: 0,
+        fAssetId: 1,
+        frAssetId: 2,
+        assetDecimals: 6,
+        poolManagerIndex: 0,
+        loans: {}
+      },
+      poolInfo: {
+        poolManagerAppId: 1,
+        poolAdminAddress: "A",
+        paramsAdminAddress: "B",
+        configAdminAddress: "C",
+        loansAdminAddress: "D",
+        variableBorrow: {
+          vr0: 0n,
+          vr1: 0n,
+          vr2: 0n,
+          totalVariableBorrowAmount: 0n,
+          variableBorrowInterestRate: 0n,
+          variableBorrowInterestYield: 0n,
+          variableBorrowInterestIndex: 0n
+        },
+        stableBorrow: {
+          sr0: 0n,
+          sr1: 0n,
+          sr2: 0n,
+          sr3: 0n,
+          optimalStableToTotalDebtRatio: 0n,
+          rebalanceUpUtilisationRatio: 0n,
+          rebalanceUpDepositInterestRate: 0n,
+          rebalanceDownDelta: 0n,
+          totalStableBorrowAmount: 0n,
+          stableBorrowInterestRate: 0n,
+          stableBorrowInterestYield: 0n,
+          overallStableBorrowInterestAmount: 0n
+        },
+        interest: {
+          retentionRate: 0n,
+          flashLoanFee: 0n,
+          optimalUtilisationRatio: 0n,
+          totalDeposits: 1_250_000_000n,
+          depositInterestRate: 0n,
+          depositInterestYield: 0n,
+          depositInterestIndex: 0n,
+          latestUpdate: 0n
+        },
+        caps: {
+          borrowCap: 0n,
+          stableBorrowPercentageCap: 0n
+        },
+        config: {
+          depreciated: false,
+          rewardsPaused: false,
+          stableBorrowSupported: false,
+          flashLoanSupported: false
+        }
+      },
+      poolManagerInfo: {
+        adminAddress: "ADMIN",
+        pools: {
+          42: {
+            variableBorrowInterestRate: 0n,
+            variableBorrowInterestYield: 0n,
+            variableBorrowInterestIndex: 0n,
+            depositInterestRate: 450000000000000n,
+            depositInterestYield: 550000000000000n,
+            metadata: {
+              oldVariableBorrowInterestIndex: 0n,
+              oldDepositInterestIndex: 0n,
+              oldTimestamp: 0n
+            }
+          }
+        }
+      },
+      oraclePrice: 22000000000000n,
+      assetDecimals: undefined,
       fetchedAtIso: "2026-06-17T21:05:00.000Z"
     }),
     null
@@ -173,6 +272,7 @@ test("normalizeFolksLendingOpportunity drops rows when state is incomplete", () 
 });
 
 test("fetchFolksFinanceOpportunities maps SDK responses and filters invalid rows", async () => {
+  mockOnChainAssetDecimals();
   setFolksFinanceSdkDependenciesForTests({
     createAlgodClient: () => ({}) as never,
     retrievePoolManagerInfoFn: async () => ({
@@ -278,10 +378,12 @@ test("fetchFolksFinanceOpportunities maps SDK responses and filters invalid rows
     assert.equal(opportunities[0]?.opportunityType, "lending");
   } finally {
     setFolksFinanceSdkDependenciesForTests(undefined);
+    setAssetDecimalsDependenciesForTests(undefined);
   }
 });
 
 test("GET /protocols/folks-finance/opportunities returns Folks normalized data", async () => {
+  mockOnChainAssetDecimals();
   setFolksFinanceSdkDependenciesForTests({
     createAlgodClient: () => ({}) as never,
     retrievePoolManagerInfoFn: async () => ({
@@ -389,6 +491,7 @@ test("GET /protocols/folks-finance/opportunities returns Folks normalized data",
   } finally {
     await app.close();
     setFolksFinanceSdkDependenciesForTests(undefined);
+    setAssetDecimalsDependenciesForTests(undefined);
   }
 });
 

@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { setFolksFinanceSdkDependenciesForTests } from "../../src/adapters/index.js";
 import { buildApp } from "../../src/app.js";
+import { setAssetDecimalsDependenciesForTests } from "../../src/services/asset-decimals.js";
 
 test("filtered opportunities default to limit 25", async () => {
   const app = buildApp();
@@ -23,6 +24,10 @@ test("filtered opportunities default to limit 25", async () => {
 });
 
 test("opportunities search applies platform, type, APY, and TVL filters", async () => {
+  setAssetDecimalsDependenciesForTests({
+    createAlgodClient: () => ({}) as never,
+    getAssetById: async () => ({ params: { decimals: 6 } })
+  });
   setFolksFinanceSdkDependenciesForTests({
     createAlgodClient: () => ({}) as never,
     retrievePoolManagerInfoFn: async () => ({
@@ -183,5 +188,6 @@ test("opportunities search applies platform, type, APY, and TVL filters", async 
   } finally {
     await app.close();
     setFolksFinanceSdkDependenciesForTests(undefined);
+    setAssetDecimalsDependenciesForTests(undefined);
   }
 });

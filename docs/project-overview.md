@@ -15,7 +15,7 @@ It replaces the earlier public standalone APR/APY website model with a paid API 
 
 ## Non-Goals (Initial Phase)
 
-- No public unauthenticated browsing interface.
+- No public unauthenticated data-browsing interface (the planned onboarding site is documentation only, not a free APR/APY explorer).
 - No persistent storage requirement in the first development iteration.
 - No full analytics warehouse in v1.
 
@@ -28,7 +28,6 @@ Initial protocol coverage:
 - Folks Finance
 - CompX
 - Dork.fi
-- Haystack
 
 ## Access and Monetization Model
 
@@ -70,8 +69,7 @@ Each protocol adapter should document:
 
 Current adapter implementation status:
 
-- Active runtime focus: Tinyman
-- Planned next: Pact, Folks Finance, CompX, Dork.fi, Haystack
+- Supported at runtime: Tinyman, Pact, Folks Finance, CompX, Dork.fi
 - Protocol docs index: `docs/data-sources/README.md`
 
 ## Normalized Opportunity Data Model (Initial)
@@ -95,6 +93,16 @@ Current implementation shape (`OpportunityRecordV1`) emphasizes:
 - `opportunityId`, `assetPair`, `sourceTimestamp`, `fetchedAt`
 - optional `apr` and `notes`
 - optional `assetIds` (on-chain asset ids backing the opportunity, used for wallet personalization)
+
+### Decimals and Precision
+
+- Asset decimals are always resolved on-chain from algod (`getAssetByID`) via the
+  shared `resolveAssetDecimals` service; native ALGO (asset id `0`) is hardcoded to
+  6. There is no implicit decimal fallback anywhere in the adapters.
+- Yield/USD outputs (`apy`, `apr`, `tvlUsd`) are formatted for agents at the
+  response boundary with a standard precision of 6 decimal places, extended up to
+  12 places only when needed for small non-zero values. The contract is published
+  via the `x-precision` extension in `/openapi.json`.
 
 ## Storage and Caching Strategy
 
@@ -175,6 +183,21 @@ Discovery guarantees:
 3. Call free endpoints (`/health`, `/metadata`, discovery endpoints) directly.
 4. Call paid endpoints and follow x402 negotiation (`PAYMENT-REQUIRED` -> `PAYMENT-SIGNATURE` -> `PAYMENT-RESPONSE`).
 
+## Agent Onboarding Website
+
+Machine-readable discovery (`/discovery`, `/openapi.json`) is the source of truth for agents. A simple human-facing website is planned so developers and operators can set up an agent without reading repo docs first.
+
+Intent:
+
+- Provide a single entry point for canix402 setup: supported protocols, endpoints, pricing, and x402 payment flow.
+- Link directly to live discovery/OpenAPI URLs and copy-paste examples for a first paid call.
+- Be linked from the main [compx.io](https://compx.io) site.
+- Likely hosted as a subdomain on the compx.io domain (e.g. `canix402.compx.io`; exact subdomain TBD).
+
+The site is documentation and onboarding only. Paid data access remains API-only via x402; the website does not expose unauthenticated opportunity browsing.
+
+Execution status: tracked in `docs/development-checklist.md` section 11.
+
 ## Operational Expectations
 
 - Define clear freshness targets per protocol.
@@ -200,3 +223,4 @@ Use this section to record major decisions as the project evolves.
 - 2026-06-17: Discovery strategy set to dual-surface (`/discovery` and `/openapi.json`) with shared endpoint policy source-of-truth.
 - 2026-06-18: Caddy runtime configuration moved to project-owned `caddy/`; `infra/caddy` retired and the Caddy x402 Go plugin source consolidated under `caddy/plugin`.
 - 2026-06-22: Added wallet-personalized opportunities route (`/opportunities/personalized`, 0.05 USDC); opportunities enriched with optional on-chain `assetIds` and matched against algod-reported wallet holdings (balance greater than 0, including native ALGO).
+- 2026-07-06: Planned agent onboarding website on compx.io subdomain; human-facing docs site for agent setup, linked from main compx.io property.

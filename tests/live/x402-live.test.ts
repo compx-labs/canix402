@@ -88,7 +88,10 @@ interface LiveEnv {
   payTo: string;
   network: string;
   scheme: string;
-  priceUsdc: string;
+  priceAggregateUsdc: string;
+  priceSearchUsdc: string;
+  pricePersonalizedUsdc: string;
+  priceProtocolUsdc: string;
   algodUrl: string;
 }
 
@@ -98,7 +101,7 @@ function getLiveEnv(): LiveEnv {
     ?? process.env.X402_PAY_TO
     ?? "REPLACE_WITH_PAYTO_ADDRESS";
 
-  const configuredPrice = process.env.X402_PRICE_USDC ?? process.env.X402_PAYMENT_AMOUNT_USDC;
+  const defaultPrice = process.env.X402_PAYMENT_AMOUNT_USDC ?? "0.01";
 
   return {
     facilitatorUrl:
@@ -106,7 +109,10 @@ function getLiveEnv(): LiveEnv {
     payTo,
     network: process.env.X402_NETWORK ?? "algorand-mainnet",
     scheme: process.env.X402_SCHEME ?? "exact",
-    priceUsdc: configuredPrice && configuredPrice.length > 0 ? configuredPrice : "0.01",
+    priceAggregateUsdc: process.env.X402_PRICE_AGGREGATE_USDC ?? defaultPrice,
+    priceSearchUsdc: process.env.X402_PRICE_SEARCH_USDC ?? defaultPrice,
+    pricePersonalizedUsdc: process.env.X402_PRICE_PERSONALIZED_USDC ?? "0.05",
+    priceProtocolUsdc: process.env.X402_PRICE_PROTOCOL_USDC ?? defaultPrice,
     algodUrl: process.env.X402_ALGOD_URL ?? "https://mainnet-api.algonode.cloud"
   };
 }
@@ -138,7 +144,10 @@ async function startLiveCaddyHarness(env: LiveEnv): Promise<LiveCaddyHarness> {
         UPSTREAM_API: appServer.baseUrl,
         FACILITATOR_URL: env.facilitatorUrl,
         X402_PAY_TO: env.payTo,
-        X402_PRICE_USDC: env.priceUsdc,
+        X402_PRICE_AGGREGATE_USDC: env.priceAggregateUsdc,
+        X402_PRICE_SEARCH_USDC: env.priceSearchUsdc,
+        X402_PRICE_PERSONALIZED_USDC: env.pricePersonalizedUsdc,
+        X402_PRICE_PROTOCOL_USDC: env.priceProtocolUsdc,
         X402_NETWORK: env.network,
         X402_SCHEME: env.scheme
       }

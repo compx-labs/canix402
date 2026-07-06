@@ -23,6 +23,7 @@
     "test:ci": "npm run test && npm run test:x402-e2e"
   },
   "dependencies": {
+    "@compx/sdk": "^2.0.3",
     "@fastify/type-provider-typebox": "^6.1.0",
     "@folks-finance/algorand-sdk": "^0.2.6",
     "@sinclair/typebox": "^0.34.49",

@@ -12,6 +12,7 @@ import {
 } from "@folks-finance/algorand-sdk";
 
 import { OpportunityRecordV1 } from "../types/opportunity.js";
+import { resolveAssetDecimals } from "../services/asset-decimals.js";
 
 export class FolksFinanceAdapterError extends Error {
   public readonly cause?: unknown;
@@ -60,12 +61,16 @@ export async function fetchFolksFinanceOpportunities(): Promise<OpportunityRecor
     ]);
 
     const poolEntries = Object.entries(dependencies.mainnetPools);
-    const poolInfos = await Promise.allSettled(
-      poolEntries.map(async ([symbol, pool]) => {
-        const poolInfo = await dependencies.retrievePoolInfoFn(algodClient, pool);
-        return { symbol, pool, poolInfo };
-      })
-    );
+    const poolAssetIds = poolEntries.map(([, pool]) => Number(pool.assetId));
+    const [decimalsByAssetId, poolInfos] = await Promise.all([
+      resolveAssetDecimals(poolAssetIds, algodClient),
+      Promise.allSettled(
+        poolEntries.map(async ([symbol, pool]) => {
+          const poolInfo = await dependencies.retrievePoolInfoFn(algodClient, pool);
+          return { symbol, pool, poolInfo };
+        })
+      )
+    ]);
 
     const opportunities = poolInfos
       .filter(
@@ -81,6 +86,7 @@ export async function fetchFolksFinanceOpportunities(): Promise<OpportunityRecor
           poolInfo: value.poolInfo,
           poolManagerInfo,
           oraclePrice: oraclePrices.prices[value.pool.assetId]?.price,
+          assetDecimals: decimalsByAssetId.get(Number(value.pool.assetId)),
           fetchedAtIso: fetchedAt
         })
       )
@@ -108,21 +114,30 @@ interface NormalizeFolksLendingOpportunityInput {
   poolInfo: PoolInfo;
   poolManagerInfo: PoolManagerInfo;
   oraclePrice: bigint | undefined;
+  assetDecimals: number | undefined;
   fetchedAtIso: string;
 }
 
 export function normalizeFolksLendingOpportunity(
   input: NormalizeFolksLendingOpportunityInput
 ): OpportunityRecordV1 | null {
-  const { symbol, pool, poolInfo, poolManagerInfo, oraclePrice, fetchedAtIso } = input;
+  const {
+    symbol,
+    pool,
+    poolInfo,
+    poolManagerInfo,
+    oraclePrice,
+    assetDecimals,
+    fetchedAtIso
+  } = input;
   const poolManagerState = poolManagerInfo.pools[pool.appId];
-  if (!poolManagerState || oraclePrice === undefined) {
+  if (!poolManagerState || oraclePrice === undefined || assetDecimals === undefined) {
     return null;
   }
 
   const apy = fromScaledValue(poolManagerState.depositInterestYield, 16);
   const apr = fromScaledValue(poolManagerState.depositInterestRate, 16);
-  const tvlUsd = calcTvlUsd(poolInfo.interest.totalDeposits, pool.assetDecimals, oraclePrice);
+  const tvlUsd = calcTvlUsd(poolInfo.interest.totalDeposits, assetDecimals, oraclePrice);
 
   if (!Number.isFinite(apy) || !Number.isFinite(tvlUsd)) {
     return null;

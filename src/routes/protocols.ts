@@ -2,7 +2,11 @@ import { Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 
 import {
+  CompXAdapterError,
+  DorkFiAdapterError,
+  fetchCompXOpportunities,
   fetchFolksFinanceOpportunities,
+  fetchDorkFiOpportunities,
   FolksFinanceAdapterError,
   fetchPactOpportunities,
   PactAdapterError,
@@ -10,6 +14,7 @@ import {
   TinymanAdapterError
 } from "../adapters/index.js";
 import { rankOpportunitiesByApy } from "../services/opportunity-ranking.js";
+import { formatOpportunitiesForAgent } from "../services/precision.js";
 import { ApiSuccess } from "../types/index.js";
 import { OpportunityRecordV1 } from "../types/opportunity.js";
 import {
@@ -77,12 +82,18 @@ export function registerProtocolRoutes(app: FastifyInstance) {
           data = await fetchPactOpportunities();
         } else if (protocol === "folks-finance") {
           data = await fetchFolksFinanceOpportunities();
+        } else if (protocol === "compx") {
+          data = await fetchCompXOpportunities();
+        } else if (protocol === "dorkfi") {
+          data = await fetchDorkFiOpportunities();
         }
       } catch (error) {
         if (
           error instanceof TinymanAdapterError ||
           error instanceof PactAdapterError ||
-          error instanceof FolksFinanceAdapterError
+          error instanceof FolksFinanceAdapterError ||
+          error instanceof CompXAdapterError ||
+          error instanceof DorkFiAdapterError
         ) {
           throw error;
         }
@@ -92,7 +103,7 @@ export function registerProtocolRoutes(app: FastifyInstance) {
       const pagedData = rankOpportunitiesByApy(data).slice(offset, offset + limit);
 
       return {
-        data: pagedData,
+        data: formatOpportunitiesForAgent(pagedData),
         meta: {
           limit,
           offset,

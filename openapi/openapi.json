@@ -3,7 +3,13 @@
   "info": {
     "title": "canix402 API",
     "version": "0.1.0",
-    "description": "x402-gated Algorand DeFi opportunities data API"
+    "description": "x402-gated Algorand DeFi opportunities data API. Numeric yield/USD fields (apy, apr, tvlUsd) are returned with a standard precision of 6 decimal places, extended up to 12 decimal places only when needed to represent small non-zero values. Asset decimals are always sourced on-chain from algod.",
+    "x-precision": {
+      "fields": ["apy", "apr", "tvlUsd"],
+      "defaultDecimalPlaces": 6,
+      "maxDecimalPlaces": 12,
+      "notes": "Values are rounded to 6 decimal places by default; precision is extended up to 12 decimal places when 6 would collapse a small non-zero value to zero."
+    }
   },
   "servers": [
     {

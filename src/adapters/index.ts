@@ -14,3 +14,15 @@ export {
   setFolksFinanceSdkDependenciesForTests,
   FolksFinanceAdapterError
 } from "./folksFinance.js";
+export {
+  fetchCompXOpportunities,
+  normalizeCompxLendingOpportunity,
+  normalizeCompxStakingOpportunity,
+  setCompXSdkDependenciesForTests,
+  CompXAdapterError
+} from "./compx.js";
+export {
+  fetchDorkFiOpportunities,
+  normalizeDorkFiOpportunity,
+  DorkFiAdapterError
+} from "./dorkfi.js";

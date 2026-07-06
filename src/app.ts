@@ -1,7 +1,13 @@
 import Fastify from "fastify";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 
-import { PactAdapterError, TinymanAdapterError } from "./adapters/index.js";
+import {
+  CompXAdapterError,
+  DorkFiAdapterError,
+  FolksFinanceAdapterError,
+  PactAdapterError,
+  TinymanAdapterError
+} from "./adapters/index.js";
 import { AccountAssetsError } from "./services/account-assets.js";
 import { ApiError } from "./types/index.js";
 import { registerRoutes } from "./routes/index.js";
@@ -25,6 +31,9 @@ export function buildApp() {
         }
       : error instanceof TinymanAdapterError
           || error instanceof PactAdapterError
+          || error instanceof FolksFinanceAdapterError
+          || error instanceof CompXAdapterError
+          || error instanceof DorkFiAdapterError
           || error instanceof AccountAssetsError
         ? {
             error: {
@@ -44,6 +53,9 @@ export function buildApp() {
         ? 400
         : error instanceof TinymanAdapterError
           || error instanceof PactAdapterError
+          || error instanceof FolksFinanceAdapterError
+          || error instanceof CompXAdapterError
+          || error instanceof DorkFiAdapterError
           || error instanceof AccountAssetsError
           ? 502
           : 500;
