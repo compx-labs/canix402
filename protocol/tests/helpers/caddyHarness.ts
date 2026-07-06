@@ -40,7 +40,7 @@ export async function startCaddyHarness(
       cwd: resolve(process.cwd()),
       env: {
         ...process.env,
-        CADDY_LISTEN_PORT: String(caddyPort),
+        CADDY_SITE_ADDRESS: `:${caddyPort}`,
         UPSTREAM_API: appServer.baseUrl,
         FACILITATOR_URL: facilitator.baseUrl,
         X402_PAY_TO: "REPLACE_WITH_PAYTO_ADDRESS",

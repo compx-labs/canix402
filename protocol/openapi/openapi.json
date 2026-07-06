@@ -13,7 +13,7 @@
   },
   "servers": [
     {
-      "url": "https://api.canix402.local"
+      "url": "https://api.canix402.compx.io"
     }
   ],
   "paths": {
@@ -90,9 +90,101 @@
         }
       }
     },
+    "/.well-known/x402.json": {
+      "get": {
+        "summary": "x402 discovery manifest for agent and directory indexing",
+        "tags": ["discovery", "agents", "x402"],
+        "responses": {
+          "200": {
+            "description": "x402 discovery manifest",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "service",
+                    "name",
+                    "version",
+                    "description",
+                    "x402Version",
+                    "docsUrl",
+                    "openapiUrl",
+                    "discoveryUrl",
+                    "facilitator",
+                    "chains",
+                    "resources"
+                  ],
+                  "properties": {
+                    "service": { "type": "string", "const": "canix402" },
+                    "name": { "type": "string", "const": "canix402" },
+                    "version": { "type": "string" },
+                    "description": { "type": "string" },
+                    "x402Version": { "type": "integer", "const": 2 },
+                    "docsUrl": { "type": "string", "format": "uri" },
+                    "openapiUrl": { "type": "string", "format": "uri" },
+                    "discoveryUrl": { "type": "string", "format": "uri" },
+                    "facilitator": { "type": "string", "format": "uri" },
+                    "chains": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "namespace": { "type": "string", "const": "algorand" },
+                          "network": { "type": "string" },
+                          "assets": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "symbol": { "type": "string", "const": "USDC" },
+                                "assetId": { "type": "string" },
+                                "decimals": { "type": "integer", "const": 6 }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "resources": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["id", "method", "path", "url", "description", "price", "x402"],
+                        "properties": {
+                          "id": { "type": "string" },
+                          "method": { "type": "string", "const": "GET" },
+                          "path": { "type": "string" },
+                          "url": { "type": "string", "format": "uri" },
+                          "description": { "type": "string" },
+                          "tags": { "type": "array", "items": { "type": "string" } },
+                          "price": {
+                            "type": "object",
+                            "properties": {
+                              "amount": { "type": "string" },
+                              "currency": { "type": "string", "const": "USDC" },
+                              "network": { "type": "string" },
+                              "asset": { "type": "string" }
+                            }
+                          },
+                          "x402": { "type": "object" }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "default": { "$ref": "#/components/examples/X402ManifestSample" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/opportunities": {
       "get": {
         "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
+        "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, and Haystack. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": ["defi", "opportunities"],
         "parameters": [
           { "name": "protocol", "in": "query", "schema": { "type": "string" } },
@@ -131,6 +223,7 @@
     "/opportunities/search": {
       "get": {
         "summary": "Caller-filtered opportunities across supported platforms",
+        "description": "Returns Algorand DeFi opportunities filtered by platform, opportunity type, APY range, and TVL threshold across supported sources. Use when an agent needs targeted discovery such as high-yield liquidity pools, lending markets, protocol-specific yield, or minimum-liquidity opportunities on Algorand. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": ["defi", "opportunities", "search"],
         "parameters": [
           {
@@ -191,7 +284,7 @@
     "/opportunities/personalized": {
       "get": {
         "summary": "Top opportunities tuned to a wallet's held assets",
-        "description": "Returns the top opportunities whose underlying assets the supplied Algorand wallet holds (ASAs opted into with balance greater than 0, plus native ALGO when held). Paid route: initial call returns 402 with PAYMENT-REQUIRED; the client signs and retries with PAYMENT-SIGNATURE.",
+        "description": "Returns Algorand DeFi opportunities whose underlying assets match a supplied wallet's holdings, including opted-in ASAs with positive balance and native ALGO when held. Use when an agent needs wallet-aware yield ideas based on assets the account already owns, with normalized APY/APR, TVL, asset ids, source freshness, and caveats. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": ["defi", "opportunities", "personalized", "wallet"],
         "parameters": [
           {
@@ -237,6 +330,7 @@
     "/protocols/{protocol}/opportunities": {
       "get": {
         "summary": "Top 25 DeFi opportunities for a single protocol ranked by APY",
+        "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, or haystack. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": ["defi", "opportunities", "protocol"],
         "parameters": [
           {
@@ -458,6 +552,7 @@
           "pathPattern": { "type": "string" },
           "access": { "type": "string", "enum": ["free", "paid"] },
           "summary": { "type": "string" },
+          "description": { "type": "string" },
           "tags": { "type": "array", "items": { "type": "string" } },
           "pathParams": { "type": "array", "items": { "type": "string" } },
           "queryParams": { "type": "array", "items": { "type": "string" } }
@@ -572,6 +667,7 @@
                 "pathPattern": "/opportunities",
                 "access": "paid",
                 "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
+                "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, and Haystack. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
                 "tags": ["defi", "opportunities"],
                 "queryParams": ["protocol", "limit", "offset", "includeInactive"]
               }
@@ -601,6 +697,7 @@
                 "path": "/opportunities",
                 "access": "paid",
                 "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
+                "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, and Haystack. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
                 "tags": ["defi", "opportunities"],
                 "pathParams": [],
                 "queryParams": ["protocol", "limit", "offset", "includeInactive"],
@@ -627,6 +724,61 @@
               }
             ]
           }
+        }
+      },
+      "X402ManifestSample": {
+        "summary": "x402 discovery manifest (resources trimmed)",
+        "value": {
+          "service": "canix402",
+          "name": "canix402",
+          "version": "0.1.0",
+          "description": "x402-gated Algorand DeFi opportunities data API with USDC payment support.",
+          "x402Version": 2,
+          "docsUrl": "https://canix402.compx.io/x402",
+          "openapiUrl": "https://api.canix402.compx.io/openapi.json",
+          "discoveryUrl": "https://api.canix402.compx.io/discovery",
+          "facilitator": "https://facilitator.goplausible.xyz",
+          "chains": [
+            {
+              "namespace": "algorand",
+              "network": "algorand-mainnet",
+              "assets": [
+                {
+                  "symbol": "USDC",
+                  "assetId": "31566704",
+                  "decimals": 6
+                }
+              ]
+            }
+          ],
+          "resources": [
+            {
+              "id": "opportunities",
+              "method": "GET",
+              "path": "/opportunities",
+              "url": "https://api.canix402.compx.io/opportunities",
+              "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, and Haystack. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
+              "tags": ["defi", "opportunities"],
+              "price": {
+                "amount": "0.01",
+                "currency": "USDC",
+                "network": "algorand-mainnet",
+                "asset": "31566704"
+              },
+              "x402": {
+                "protocolVersion": 2,
+                "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
+                "facilitator": "https://facilitator.goplausible.xyz",
+                "requirementTemplate": {
+                  "scheme": "exact",
+                  "network": "algorand-mainnet",
+                  "asset": "31566704",
+                  "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+                  "maxAmountRequired": "0.01"
+                }
+              }
+            }
+          ]
         }
       },
       "AggregateOpportunitiesSample": {

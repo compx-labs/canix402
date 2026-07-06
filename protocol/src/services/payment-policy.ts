@@ -6,6 +6,7 @@ export interface EndpointPolicyDefinition {
   pathPattern: string;
   access: Exclude<EndpointAccess, "unknown">;
   summary: string;
+  description?: string;
   tags: string[];
   pathParams?: string[];
   queryParams?: string[];
@@ -46,11 +47,21 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     tags: ["discovery", "openapi"]
   },
   {
+    id: "x402Manifest",
+    method: "GET",
+    pathPattern: "/.well-known/x402.json",
+    access: "free",
+    summary: "x402 discovery manifest for agent and directory indexing",
+    tags: ["discovery", "agents", "x402"]
+  },
+  {
     id: "opportunities",
     method: "GET",
     pathPattern: "/opportunities",
     access: "paid",
     summary: "Top 10 aggregated DeFi opportunities ranked by APY",
+    description:
+      "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, and Haystack. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
     tags: ["defi", "opportunities"],
     queryParams: ["protocol", "limit", "offset", "includeInactive"]
   },
@@ -60,6 +71,8 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     pathPattern: "/protocols/:protocol/opportunities",
     access: "paid",
     summary: "Top 25 DeFi opportunities for a single protocol ranked by APY",
+    description:
+      "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, or haystack. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
     tags: ["defi", "opportunities", "protocol"],
     pathParams: ["protocol"],
     queryParams: ["limit", "offset", "includeInactive"]
@@ -70,6 +83,8 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     pathPattern: "/opportunities/search",
     access: "paid",
     summary: "Caller-filtered opportunities across supported platforms",
+    description:
+      "Returns Algorand DeFi opportunities filtered by platform, opportunity type, APY range, and TVL threshold across supported sources. Use when an agent needs targeted discovery such as high-yield liquidity pools, lending markets, protocol-specific yield, or minimum-liquidity opportunities on Algorand. This endpoint provides normalized market data only; it does not build or submit transactions.",
     tags: ["defi", "opportunities", "search"],
     queryParams: [
       "platform",
@@ -88,6 +103,8 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     pathPattern: "/opportunities/personalized",
     access: "paid",
     summary: "Top opportunities tuned to a wallet's held assets",
+    description:
+      "Returns Algorand DeFi opportunities whose underlying assets match a supplied wallet's holdings, including opted-in ASAs with positive balance and native ALGO when held. Use when an agent needs wallet-aware yield ideas based on assets the account already owns, with normalized APY/APR, TVL, asset ids, source freshness, and caveats. This endpoint provides normalized market data only; it does not build or submit transactions.",
     tags: ["defi", "opportunities", "personalized", "wallet"],
     queryParams: ["address", "limit", "offset", "includeInactive"],
     priceUsdc: process.env.X402_PRICE_PERSONALIZED_USDC ?? "0.05"
@@ -141,7 +158,13 @@ const paidPathMatchers = [
   /^\/protocols\/[^/]+\/opportunities$/
 ];
 
-const freePathMatchers = [/^\/health$/, /^\/metadata$/, /^\/discovery$/, /^\/openapi\.json$/];
+const freePathMatchers = [
+  /^\/health$/,
+  /^\/metadata$/,
+  /^\/discovery$/,
+  /^\/openapi\.json$/,
+  /^\/\.well-known\/x402\.json$/
+];
 
 export function classifyEndpointAccess(path: string): EndpointAccess {
   if (freePathMatchers.some((matcher) => matcher.test(path))) {

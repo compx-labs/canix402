@@ -12,6 +12,9 @@ import {
 import { ApiSuccess } from "../types/api.js";
 import { DiscoveryDocument, DiscoveryEndpointDescriptor } from "../types/discovery.js";
 
+const DEFAULT_PUBLIC_BASE_URL = "https://api.canix402.compx.io";
+const DEFAULT_DOCS_URL = "https://canix402.compx.io/x402";
+
 const discoveryReplySchema = Type.Object({
   data: Type.Object({
     service: Type.Literal("canix402"),
@@ -22,6 +25,20 @@ const discoveryReplySchema = Type.Object({
     endpoints: Type.Array(Type.Any()),
     errorCatalog: Type.Array(Type.Any())
   })
+});
+
+const x402ManifestReplySchema = Type.Object({
+  service: Type.Literal("canix402"),
+  name: Type.Literal("canix402"),
+  version: Type.String(),
+  description: Type.String(),
+  x402Version: Type.Literal(2),
+  docsUrl: Type.String(),
+  openapiUrl: Type.String(),
+  discoveryUrl: Type.String(),
+  facilitator: Type.String(),
+  chains: Type.Array(Type.Any()),
+  resources: Type.Array(Type.Any())
 });
 
 export function registerDiscoveryRoutes(app: FastifyInstance) {
@@ -52,6 +69,18 @@ export function registerDiscoveryRoutes(app: FastifyInstance) {
     },
     async () => loadOpenApiDocument()
   );
+
+  app.get(
+    "/.well-known/x402.json",
+    {
+      schema: {
+        response: {
+          200: x402ManifestReplySchema
+        }
+      }
+    },
+    async () => buildX402Manifest()
+  );
 }
 
 function buildDiscoveryDocument(): DiscoveryDocument {
@@ -62,6 +91,7 @@ function buildDiscoveryDocument(): DiscoveryDocument {
       path: endpoint.pathPattern,
       access: endpoint.access,
       summary: endpoint.summary,
+      ...(endpoint.description ? { description: endpoint.description } : {}),
       tags: endpoint.tags,
       pathParams: endpoint.pathParams ?? [],
       queryParams: endpoint.queryParams ?? [],
@@ -78,7 +108,7 @@ function buildDiscoveryDocument(): DiscoveryDocument {
 
   return {
     service: "canix402",
-    apiVersion: process.env.npm_package_version ?? "0.1.0",
+    apiVersion: getApiVersion(),
     discoveryVersion: "1.0.0",
     capabilities: [
       "algorand-defi-opportunities",
@@ -119,10 +149,112 @@ function buildDiscoveryDocument(): DiscoveryDocument {
   };
 }
 
+interface X402DiscoveryManifest {
+  service: "canix402";
+  name: "canix402";
+  version: string;
+  description: string;
+  x402Version: 2;
+  docsUrl: string;
+  openapiUrl: string;
+  discoveryUrl: string;
+  facilitator: string;
+  chains: Array<{
+    namespace: "algorand";
+    network: string;
+    assets: Array<{
+      symbol: "USDC";
+      assetId: string;
+      decimals: 6;
+    }>;
+  }>;
+  resources: Array<{
+    id: string;
+    method: "GET";
+    path: string;
+    url: string;
+    description: string;
+    tags: string[];
+    price: {
+      amount: string;
+      currency: "USDC";
+      network: string;
+      asset: string;
+    };
+    x402: ReturnType<typeof getX402EndpointMetadata>;
+  }>;
+}
+
+function buildX402Manifest(): X402DiscoveryManifest {
+  const publicBaseUrl = trimTrailingSlash(
+    process.env.X402_PUBLIC_BASE_URL
+      ?? process.env.PUBLIC_GATEWAY_BASE_URL
+      ?? DEFAULT_PUBLIC_BASE_URL
+  );
+  const docsUrl =
+    process.env.X402_DOCS_URL ?? process.env.PUBLIC_DOCS_URL ?? DEFAULT_DOCS_URL;
+  const paidEndpoints = endpointPolicyMatrix.filter((endpoint) => endpoint.access === "paid");
+  const defaultX402 = getX402EndpointMetadata();
+
+  return {
+    service: "canix402",
+    name: "canix402",
+    version: getApiVersion(),
+    description:
+      "x402-gated Algorand DeFi opportunities data API with USDC payment support.",
+    x402Version: 2,
+    docsUrl,
+    openapiUrl: `${publicBaseUrl}/openapi.json`,
+    discoveryUrl: `${publicBaseUrl}/discovery`,
+    facilitator: defaultX402.facilitator,
+    chains: [
+      {
+        namespace: "algorand",
+        network: defaultX402.requirementTemplate.network,
+        assets: [
+          {
+            symbol: "USDC",
+            assetId: defaultX402.requirementTemplate.asset,
+            decimals: 6
+          }
+        ]
+      }
+    ],
+    resources: paidEndpoints.map((endpoint) => {
+      const x402 = getX402EndpointMetadata(endpoint.priceUsdc);
+      const path = endpoint.pathPattern.replace(":protocol", "{protocol}");
+
+      return {
+        id: endpoint.id,
+        method: endpoint.method,
+        path,
+        url: `${publicBaseUrl}${path}`,
+        description: endpoint.description ?? endpoint.summary,
+        tags: endpoint.tags,
+        price: {
+          amount: x402.requirementTemplate.maxAmountRequired,
+          currency: "USDC",
+          network: x402.requirementTemplate.network,
+          asset: x402.requirementTemplate.asset
+        },
+        x402
+      };
+    })
+  };
+}
+
 function loadOpenApiDocument(): unknown {
   const filePath = resolve(
     dirname(fileURLToPath(import.meta.url)),
     "../../openapi/openapi.json"
   );
   return JSON.parse(readFileSync(filePath, "utf-8")) as unknown;
+}
+
+function getApiVersion(): string {
+  return process.env.npm_package_version ?? "0.1.0";
+}
+
+function trimTrailingSlash(value: string): string {
+  return value.replace(/\/+$/, "");
 }

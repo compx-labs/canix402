@@ -2,8 +2,8 @@
 	order x402 before reverse_proxy
 }
 
-:{$CADDY_LISTEN_PORT} {
-	@free path /health /metadata /discovery /openapi.json
+{$CADDY_SITE_ADDRESS} {
+	@free path /health /metadata /discovery /openapi.json /.well-known/x402.json
 	handle @free {
 		reverse_proxy {$UPSTREAM_API}
 	}

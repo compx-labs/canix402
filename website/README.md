@@ -72,9 +72,9 @@ Recommended static hosting: Cloudflare Pages, Vercel, or existing CompX static h
 - **Build command:** `npm run build:website` (from repo root)
 - **Publish directory:** `website/dist`
 - **Production env vars:**
-  - `PUBLIC_GATEWAY_BASE_URL=https://canix402.compx.io` (live Caddy gateway URL)
-  - `PUBLIC_DISCOVERY_URL=https://canix402.compx.io/discovery`
-  - `PUBLIC_OPENAPI_URL=https://canix402.compx.io/openapi.json`
+  - `PUBLIC_GATEWAY_BASE_URL=https://api.canix402.compx.io` (live Caddy gateway URL)
+  - `PUBLIC_DISCOVERY_URL=https://api.canix402.compx.io/discovery`
+  - `PUBLIC_OPENAPI_URL=https://api.canix402.compx.io/openapi.json`
 
 After deploy:
 

@@ -134,9 +134,11 @@ test("free endpoints bypass validator and remain accessible", async () => {
   try {
     const health = await fetch(`${context.baseUrl}/health`);
     const metadata = await fetch(`${context.baseUrl}/metadata`);
+    const manifest = await fetch(`${context.baseUrl}/.well-known/x402.json`);
 
     assert.equal(health.status, 200);
     assert.equal(metadata.status, 200);
+    assert.equal(manifest.status, 200);
     assert.equal(context.facilitator.calls.length, 0);
   } finally {
     await context.teardown();

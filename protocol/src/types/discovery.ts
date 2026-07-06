@@ -12,6 +12,7 @@ export interface DiscoveryEndpointDescriptor {
   path: string;
   access: Exclude<EndpointAccess, "unknown">;
   summary: string;
+  description?: string;
   tags: string[];
   pathParams: string[];
   queryParams: string[];

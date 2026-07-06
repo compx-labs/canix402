@@ -5,6 +5,32 @@ import { buildApp } from "../../src/app.js";
 import { endpointPolicyMatrix } from "../../src/services/payment-policy.js";
 import { DiscoveryDocument } from "../../src/types/discovery.js";
 
+interface X402Manifest {
+  service: "canix402";
+  x402Version: 2;
+  docsUrl: string;
+  openapiUrl: string;
+  discoveryUrl: string;
+  facilitator: string;
+  chains: Array<{
+    network: string;
+    assets: Array<{ symbol: string; assetId: string; decimals: number }>;
+  }>;
+  resources: Array<{
+    id: string;
+    method: "GET";
+    path: string;
+    url: string;
+    price: {
+      amount: string;
+      currency: string;
+      network: string;
+      asset: string;
+    };
+    x402: unknown;
+  }>;
+}
+
 test("discovery includes every endpoint in policy matrix", async () => {
   const app = buildApp();
   await app.ready();
@@ -21,6 +47,46 @@ test("discovery includes every endpoint in policy matrix", async () => {
   const policyPaths = endpointPolicyMatrix.map((endpoint) => endpoint.pathPattern).sort();
 
   assert.deepEqual(discoveryPaths, policyPaths);
+
+  await app.close();
+});
+
+test("well-known x402 manifest lists paid resources and indexing links", async () => {
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "GET",
+    url: "/.well-known/x402.json"
+  });
+
+  assert.equal(response.statusCode, 200);
+
+  const manifest = response.json() as X402Manifest;
+  const paidPolicyEndpoints = endpointPolicyMatrix.filter(
+    (endpoint) => endpoint.access === "paid"
+  );
+  const manifestPaths = manifest.resources.map((resource) => resource.path).sort();
+  const paidPolicyPaths = paidPolicyEndpoints
+    .map((endpoint) => endpoint.pathPattern.replace(":protocol", "{protocol}"))
+    .sort();
+
+  assert.equal(manifest.service, "canix402");
+  assert.equal(manifest.x402Version, 2);
+  assert.equal(manifest.openapiUrl, "https://api.canix402.compx.io/openapi.json");
+  assert.equal(manifest.discoveryUrl, "https://api.canix402.compx.io/discovery");
+  assert.equal(manifest.docsUrl, "https://canix402.compx.io/x402");
+  assert.equal(typeof manifest.facilitator, "string");
+  assert.equal(manifest.chains[0]?.assets[0]?.symbol, "USDC");
+  assert.deepEqual(manifestPaths, paidPolicyPaths);
+
+  for (const resource of manifest.resources) {
+    assert.equal(resource.method, "GET");
+    assert.equal(resource.url.startsWith("https://api.canix402.compx.io/"), true);
+    assert.equal(resource.price.currency, "USDC");
+    assert.equal(typeof resource.price.amount, "string");
+    assert.ok(resource.x402);
+  }
 
   await app.close();
 });

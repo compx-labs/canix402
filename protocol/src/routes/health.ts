@@ -36,6 +36,7 @@ const metadataReplySchema = Type.Object({
         pathPattern: Type.String(),
         access: Type.Union([Type.Literal("free"), Type.Literal("paid")]),
         summary: Type.String(),
+        description: Type.Optional(Type.String()),
         tags: Type.Array(Type.String()),
         pathParams: Type.Optional(Type.Array(Type.String())),
         queryParams: Type.Optional(Type.Array(Type.String()))

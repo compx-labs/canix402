@@ -120,13 +120,19 @@ test("expired payment proof returns 402", async () => {
 test("free routes remain accessible without payment signature", async () => {
   const app = await buildEdgeGatedApp();
 
-  const response = await app.inject({
+  const health = await app.inject({
     method: "GET",
     url: "/health"
   });
+  const manifest = await app.inject({
+    method: "GET",
+    url: "/.well-known/x402.json"
+  });
 
-  assert.equal(response.statusCode, 200);
-  assert.equal(response.json().data.status, "ok");
+  assert.equal(health.statusCode, 200);
+  assert.equal(health.json().data.status, "ok");
+  assert.equal(manifest.statusCode, 200);
+  assert.equal(manifest.json().service, "canix402");
 
   await app.close();
 });

@@ -80,6 +80,24 @@
         ]
       },
       {
+        "id": "x402Manifest",
+        "method": "GET",
+        "path": "/.well-known/x402.json",
+        "access": "free",
+        "summary": "x402 discovery manifest for agent and directory indexing",
+        "tags": [
+          "discovery",
+          "agents",
+          "x402"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          500
+        ]
+      },
+      {
         "id": "opportunities",
         "method": "GET",
         "path": "/opportunities",

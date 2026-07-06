@@ -140,7 +140,7 @@ async function startLiveCaddyHarness(env: LiveEnv): Promise<LiveCaddyHarness> {
       cwd: resolve(process.cwd()),
       env: {
         ...process.env,
-        CADDY_LISTEN_PORT: String(caddyPort),
+        CADDY_SITE_ADDRESS: `:${caddyPort}`,
         UPSTREAM_API: appServer.baseUrl,
         FACILITATOR_URL: env.facilitatorUrl,
         X402_PAY_TO: env.payTo,

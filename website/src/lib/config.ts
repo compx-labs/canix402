@@ -1,4 +1,4 @@
-const defaultGateway = "https://canix402.compx.io";
+const defaultGateway = "https://api.canix402.compx.io";
 
 export const config = {
   gatewayBaseUrl: import.meta.env.PUBLIC_GATEWAY_BASE_URL ?? defaultGateway,
