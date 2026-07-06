@@ -2,6 +2,9 @@
 	order x402 before reverse_proxy
 }
 
+# AgentQuest local testing profile only — NOT used in canix402 production.
+# Production uses ../Caddyfile via ../Dockerfile.
+#
 # Local testing profile for AgentQuest:
 # - world server runs on :8787
 # - facilitator runs on :4022

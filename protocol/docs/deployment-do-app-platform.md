@@ -1,47 +1,61 @@
-# DigitalOcean App Platform — protocol service
+# DigitalOcean App Platform — deployment notes
 
-## Docker deploy (recommended)
-
-The protocol Dockerfile is **self-contained** — it installs dependencies directly
-from `protocol/package.json` and does not rely on the monorepo workspace root.
+## Protocol service (internal)
 
 | Setting | Value |
 |---------|-------|
 | Source directory | `protocol` |
 | Dockerfile path | `Dockerfile` |
-| HTTP port | `3000` |
-| Public route | **None** (internal only) |
+| Internal port | `3000` |
+| Public route | **None** |
 
-Build locally:
-
-```sh
-docker build -t canix402-protocol protocol/
-docker run --rm -p 3000:3000 --env-file protocol/.env canix402-protocol
-```
-
-## Node buildpack alternative
-
-If not using Docker, deploy from the **repo root** so npm workspaces resolve:
+## Caddy gateway (public)
 
 | Setting | Value |
 |---------|-------|
-| Source directory | `/` (repo root) |
-| Build command | `npm ci && npm run build -w protocol` |
-| Run command | `npm run start -w protocol` |
-| HTTP port | `3000` |
+| Source directory | `protocol/caddy` |
+| Dockerfile path | `Dockerfile` |
+| HTTP port | `8080` (or your configured public port) |
 
-Deploying the buildpack with source directory `protocol/` fails with
-`ERR_MODULE_NOT_FOUND: Cannot find package 'fastify'` because runtime deps are
-hoisted to the root `node_modules/`.
+**Important:** Do not build Caddy from `protocol/caddy/plugin/`. That directory
+contains an AgentQuest example `Caddyfile` that proxies to `localhost:8787`
+(`WORLD_UPSTREAM`), not the canix402 API (`UPSTREAM_API`).
 
-## Environment variables
+### Caddy environment variables
 
-Set protocol runtime env vars on this component (see `protocol/.env.example`).
-Caddy/x402 vars belong on the Caddy component (`protocol/caddy/.env.example`).
+See `protocol/caddy/.env.example`. Required for production:
 
-Caddy should set `UPSTREAM_API` to this service's **internal** App Platform URL.
+```env
+CADDY_SITE_ADDRESS=canix402-api.compx.io
+UPSTREAM_API=http://<protocol-component-name>:3000
+FACILITATOR_URL=https://facilitator.goplausible.xyz
+X402_PAY_TO=<your-address>
+X402_PRICE_AGGREGATE_USDC=0.01
+X402_PRICE_SEARCH_USDC=0.01
+X402_PRICE_PERSONALIZED_USDC=0.05
+X402_PRICE_PROTOCOL_USDC=0.01
+X402_NETWORK=algorand-mainnet
+X402_SCHEME=exact
+```
 
-## Health check
+`UPSTREAM_API` must use the protocol component's **internal** hostname on App
+Platform (for example `http://canix402-protocol:3000`), not `localhost`.
 
-App Platform can probe `GET /health` on port 3000. That route is free (no x402)
-at the Caddy edge and proxied through to the protocol service.
+### DO routing
+
+Add a component routing rule:
+
+- Domain: `canix402-api.compx.io`
+- Path: `/`
+- Component: Caddy
+
+Website stays on `canix402.compx.io` → website component.
+
+## Verify after deploy
+
+```sh
+curl -s https://canix402-api.compx.io/health
+curl -s -o /dev/null -w "%{http_code}\n" https://canix402-api.compx.io/opportunities
+```
+
+Expect `200` on health and `402` on opportunities.

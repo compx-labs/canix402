@@ -59,3 +59,15 @@ Expected:
 Note: the payer wallet is client-side. Caddy only needs payment policy values
 (`pay_to`, `price`, `network`) and facilitator URL; it does not store a payer
 mnemonic/private key.
+
+## Production Docker (App Platform)
+
+Build the gateway from **`protocol/caddy`**, not `protocol/caddy/plugin`:
+
+```sh
+docker build -t canix402-caddy protocol/caddy
+```
+
+The plugin subdirectory ships an AgentQuest example Caddyfile that proxies to
+`localhost:8787`. Production uses `protocol/caddy/Caddyfile` with `UPSTREAM_API`.
+
