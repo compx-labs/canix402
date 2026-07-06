@@ -1,0 +1,17 @@
+---
+interface Props {
+  variant?: "banner" | "mark";
+  alt?: string;
+  class?: string;
+}
+
+const {
+  variant = "mark",
+  alt = "CANIX402",
+  class: className = ""
+} = Astro.props;
+
+const src = variant === "banner" ? "/brand/canix402-banner.png" : "/brand/canix402-mark.png";
+---
+
+<img src={src} alt={alt} class={className} loading="eager" />

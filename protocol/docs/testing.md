@@ -3,14 +3,18 @@
 This document explains the current test suites, how to run them, and what each
 suite validates for canix402.
 
+The protocol package lives in `protocol/` within the monorepo. From repo root, prefer workspace scripts such as `npm run test:protocol`.
+
 ## Test Suites
 
-### Integration tests (`tests/integration`)
+### Integration tests (`protocol/tests/integration`)
 
 Run with:
 
 ```sh
-npm run test
+npm run test -w protocol
+# or from repo root
+npm run test:protocol
 ```
 
 Coverage:
@@ -32,12 +36,13 @@ Files:
 - `tests/integration/pact-adapter.test.ts`
 - `tests/integration/folks-finance-adapter.test.ts`
 
-### x402 E2E tests through Caddy (`tests/e2e`)
+### x402 E2E tests through Caddy (`protocol/tests/e2e`)
 
 Run with:
 
 ```sh
-npm run test:x402-e2e
+npm run build:caddy-x402 -w protocol
+npm run test:x402-e2e -w protocol
 ```
 
 Coverage:

@@ -1,0 +1,56 @@
+---
+import type { DiscoveryEndpoint } from "../lib/discovery";
+
+interface Props {
+  endpoints: DiscoveryEndpoint[];
+}
+
+const { endpoints } = Astro.props;
+
+function formatPrice(endpoint: DiscoveryEndpoint): string {
+  const amount = endpoint.x402?.requirementTemplate.maxAmountRequired;
+  if (!amount) {
+    return endpoint.access === "paid" ? "Paid" : "Free";
+  }
+
+  // Discovery metadata publishes USDC-denominated string values (e.g. "0.01", "0.05").
+  const parsed = Number(amount);
+  if (!Number.isFinite(parsed)) {
+    return `${amount} USDC`;
+  }
+
+  // Keep compact, human-readable pricing labels.
+  return `${parsed.toString()} USDC`;
+}
+---
+
+<div class="panel">
+  <table class="endpoint-table">
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>Path</th>
+        <th>Access</th>
+        <th>Summary</th>
+        <th>Pricing</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        endpoints.map((endpoint) => (
+          <tr>
+            <td><code>{endpoint.method}</code></td>
+            <td><code>{endpoint.path}</code></td>
+            <td>
+              <span class={`badge ${endpoint.access === "paid" ? "badge-paid" : "badge-free"}`}>
+                {endpoint.access}
+              </span>
+            </td>
+            <td>{endpoint.summary}</td>
+            <td>{formatPrice(endpoint)}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>

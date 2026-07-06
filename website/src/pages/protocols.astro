@@ -1,0 +1,51 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const protocols = [
+  {
+    name: "Tinyman",
+    summary: "LP and farm opportunities from Tinyman analytics pools API.",
+    notes: "Verified pools by default; emits pool asset ids for wallet personalization."
+  },
+  {
+    name: "Pact",
+    summary: "LP and farm opportunities from Pact pools and farms APIs.",
+    notes: "Combines pool TVL/APY with linked farm incentives where available."
+  },
+  {
+    name: "Folks Finance",
+    summary: "Lending opportunities from the Folks Finance Algorand SDK.",
+    notes: "Uses on-chain pool state and oracle pricing for TVL normalization."
+  },
+  {
+    name: "CompX",
+    summary: "Lending and staking opportunities via the CompX SDK.",
+    notes: "Covers lending markets and staking pools with optional active-only filtering."
+  },
+  {
+    name: "Dork.fi",
+    summary: "Cross-platform opportunities filtered to Algorand rows from Dork.fi static feed.",
+    notes: "API-first adapter with Algorand network filtering during normalization."
+  }
+];
+---
+
+<BaseLayout title="Protocols | CANIX402" description="Supported Algorand DeFi protocols covered by canix402.">
+  <h1 class="page-title">Supported protocols</h1>
+  <p class="muted">
+    canix402 normalizes all supported sources into a shared opportunity schema. Detailed adapter
+    contracts live in the protocol repo under <code>protocol/docs/data-sources/</code>.
+  </p>
+
+  <div class="card-grid">
+    {
+      protocols.map((protocol) => (
+        <article class="card">
+          <h3>{protocol.name}</h3>
+          <p>{protocol.summary}</p>
+          <p class="muted">{protocol.notes}</p>
+        </article>
+      ))
+    }
+  </div>
+</BaseLayout>

@@ -1,0 +1,59 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="FAQ | CANIX402" description="Frequently asked questions about canix402 agent onboarding.">
+  <h1 class="page-title">FAQ</h1>
+
+  <div class="faq-list">
+    <article class="faq-item">
+      <h2>Should my agent call the gateway or the upstream API directly?</h2>
+      <p>
+        Use the Caddy gateway URL. x402 enforcement, payment headers, and settlement happen at the
+        gateway edge. Discovery/OpenAPI should also be fetched through the gateway in production.
+      </p>
+    </article>
+
+    <article class="faq-item">
+      <h2>Why do paid routes return 402 first?</h2>
+      <p>
+        That is expected. The gateway advertises payment requirements through
+        <code>PAYMENT-REQUIRED</code> so your client can sign and retry with
+        <code>PAYMENT-SIGNATURE</code>.
+      </p>
+    </article>
+
+    <article class="faq-item">
+      <h2>Does the website sign payments for me?</h2>
+      <p>
+        No. Payment signing stays client-side in your agent or wallet integration. This site only
+        documents the flow and links to machine-readable contracts.
+      </p>
+    </article>
+
+    <article class="faq-item">
+      <h2>Which USDC asset id should I expect?</h2>
+      <p>
+        Use the asset id published in discovery/OpenAPI x402 metadata for the target network. On
+        Algorand mainnet the default documented id is <code>31566704</code>.
+      </p>
+    </article>
+
+    <article class="faq-item">
+      <h2>Can I browse opportunities on this website without paying?</h2>
+      <p>
+        No. This site is onboarding documentation only. Opportunity data remains API-only behind
+        x402 payment gates.
+      </p>
+    </article>
+
+    <article class="faq-item">
+      <h2>How do I test locally?</h2>
+      <p>
+        Run the protocol API and Caddy gateway from the monorepo, then point website env vars to
+        your local gateway URL during development. Production references in this site use
+        <code>https://canix402.compx.io</code>.
+      </p>
+    </article>
+  </div>
+</BaseLayout>

@@ -1,0 +1,19 @@
+<div class="flow-grid" aria-label="x402 payment flow">
+  <div class="flow-step">
+    <strong>1. Preflight</strong>
+    Call a paid route without <code>PAYMENT-SIGNATURE</code>. Gateway returns <code>402</code> with
+    <code>PAYMENT-REQUIRED</code>.
+  </div>
+  <div class="flow-step">
+    <strong>2. Sign</strong>
+    Client wallet builds and signs the USDC transfer payload expected by the facilitator.
+  </div>
+  <div class="flow-step">
+    <strong>3. Retry</strong>
+    Resend the request with <code>PAYMENT-SIGNATURE</code>. Caddy verifies and settles via facilitator.
+  </div>
+  <div class="flow-step">
+    <strong>4. Success</strong>
+    Paid route returns <code>200</code> and may include <code>PAYMENT-RESPONSE</code> settlement metadata.
+  </div>
+</div>

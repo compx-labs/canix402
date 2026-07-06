@@ -1,0 +1,56 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PaymentFlow from "../components/PaymentFlow.astro";
+import CodeBlock from "../components/CodeBlock.astro";
+import { config } from "../lib/config";
+---
+
+<BaseLayout title="x402 Payment Flow | CANIX402" description="How x402 payment works for canix402 paid routes.">
+  <h1 class="page-title">x402 payment flow</h1>
+  <p class="muted">
+    Payment enforcement happens at the Caddy gateway. The API publishes payment requirements through
+    discovery and OpenAPI; the gateway verifies and settles via the facilitator.
+  </p>
+
+  <PaymentFlow />
+
+  <section class="panel">
+    <h2>Required headers</h2>
+    <ul>
+      <li><code>PAYMENT-REQUIRED</code> — returned on initial paid preflight (<code>402</code>).</li>
+      <li><code>PAYMENT-SIGNATURE</code> — client retry header containing signed payment payload.</li>
+      <li><code>PAYMENT-RESPONSE</code> — optional success header with settlement receipt metadata.</li>
+    </ul>
+  </section>
+
+  <section class="panel">
+    <h2>Typical accept policy fields</h2>
+    <ul>
+      <li><code>scheme</code>: usually <code>exact</code></li>
+      <li><code>network</code>: e.g. <code>algorand-mainnet</code></li>
+      <li><code>asset</code>: USDC ASA id on Algorand mainnet</li>
+      <li><code>payTo</code>: receiver address configured for the gateway</li>
+      <li><code>maxAmountRequired</code>: USDC-denominated amount for the route (e.g. <code>0.01</code>).</li>
+    </ul>
+  </section>
+
+  <section class="panel">
+    <h2>Per-route pricing</h2>
+    <p>
+      Most paid routes default to <code>0.01 USDC</code>. Wallet-personalized opportunities at
+      <code>/opportunities/personalized</code> are priced separately (currently <code>0.05 USDC</code>).
+      See the <a href="/endpoints">endpoint catalog</a> for current values from discovery metadata.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>Common failure modes</h2>
+    <ul>
+      <li><code>402</code> without signature — expected preflight behavior.</li>
+      <li>Malformed signature — gateway/facilitator rejects before upstream call.</li>
+      <li>Expired proof — retry with a fresh signed payload.</li>
+      <li>Policy mismatch — network, asset id, payTo, or amount do not match discovery/Caddy policy.</li>
+    </ul>
+    <CodeBlock code={`curl -i ${config.gatewayBaseUrl}/opportunities`} />
+  </section>
+</BaseLayout>

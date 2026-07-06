@@ -1,0 +1,50 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import BrandLogo from "../components/BrandLogo.astro";
+import { supportedProtocols } from "../lib/config";
+---
+
+<BaseLayout title="CANIX402 | Agent onboarding">
+  <section class="hero">
+    <div class="hero-banner">
+      <BrandLogo variant="banner" alt="CANIX402 banner logo" />
+    </div>
+    <div class="hero-copy">
+      <span class="eyebrow">x402 paid Algorand DeFi data API</span>
+      <h1>Onboard agents to paid DeFi opportunity data</h1>
+      <p>
+        canix402 exposes normalized APR/APY opportunities across Tinyman, Pact, Folks Finance,
+        CompX, and Dork.fi. Agents discover endpoints through <code>/discovery</code>, inspect
+        schemas through <code>/openapi.json</code>, and pay in USDC via x402 at the Caddy gateway.
+      </p>
+      <div class="cta-row">
+        <a class="button button-primary" href="/quickstart">Start quickstart</a>
+        <a class="button" href="/endpoints">View endpoints</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Supported protocols</h2>
+    <div class="card-grid">
+      {
+        supportedProtocols.map((protocol) => (
+          <article class="card">
+            <h3>{protocol}</h3>
+            <p class="muted">Normalized opportunities available through paid API routes.</p>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>What agents need first</h2>
+    <ol>
+      <li>Read <a href="/endpoints">endpoint inventory</a> and x402 pricing.</li>
+      <li>Fetch discovery and OpenAPI contracts from the gateway.</li>
+      <li>Probe free routes like <code>/health</code> and <code>/metadata</code>.</li>
+      <li>Follow the x402 payment flow for paid opportunity routes.</li>
+    </ol>
+  </section>
+</BaseLayout>

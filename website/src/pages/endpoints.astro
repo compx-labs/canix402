@@ -1,0 +1,35 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import EndpointTable from "../components/EndpointTable.astro";
+import { config } from "../lib/config";
+import { loadDiscovery } from "../lib/discovery";
+
+const loaded = await loadDiscovery(config.discoveryUrl);
+const endpoints = loaded.document.endpoints;
+---
+
+<BaseLayout title="Endpoints | CANIX402" description="Free and paid canix402 API endpoints.">
+  <h1 class="page-title">Endpoints</h1>
+  <p class="muted">
+    Endpoint inventory is sourced from discovery metadata. Live source:
+    <a href={config.discoveryUrl}>{config.discoveryUrl}</a>
+  </p>
+
+  {
+    loaded.source === "snapshot" && (
+      <div class="notice">
+        Using checked-in sample discovery metadata because live discovery was unavailable at build time.
+      </div>
+    )
+  }
+
+  <EndpointTable endpoints={endpoints} />
+
+  <section class="panel">
+    <h2>OpenAPI contract</h2>
+    <p>
+      Detailed operation schemas are published at
+      <a href={config.openApiUrl}>{config.openApiUrl}</a>.
+    </p>
+  </section>
+</BaseLayout>

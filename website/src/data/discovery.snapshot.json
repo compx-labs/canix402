@@ -1,0 +1,276 @@
+{
+  "data": {
+    "service": "canix402",
+    "apiVersion": "0.1.0",
+    "discoveryVersion": "1.0.0",
+    "capabilities": [
+      "algorand-defi-opportunities",
+      "x402-paid-data",
+      "wallet-personalization",
+      "agent-discovery",
+      "openapi"
+    ],
+    "x402ProtocolVersion": 2,
+    "endpoints": [
+      {
+        "id": "health",
+        "method": "GET",
+        "path": "/health",
+        "access": "free",
+        "summary": "Service health check",
+        "tags": [
+          "system"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          500
+        ]
+      },
+      {
+        "id": "metadata",
+        "method": "GET",
+        "path": "/metadata",
+        "access": "free",
+        "summary": "Service metadata and policy surface",
+        "tags": [
+          "system",
+          "discovery"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          500
+        ]
+      },
+      {
+        "id": "discovery",
+        "method": "GET",
+        "path": "/discovery",
+        "access": "free",
+        "summary": "Machine-readable endpoint catalog for agents",
+        "tags": [
+          "discovery",
+          "agents"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          500
+        ]
+      },
+      {
+        "id": "openapi",
+        "method": "GET",
+        "path": "/openapi.json",
+        "access": "free",
+        "summary": "OpenAPI contract document",
+        "tags": [
+          "discovery",
+          "openapi"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          500
+        ]
+      },
+      {
+        "id": "opportunities",
+        "method": "GET",
+        "path": "/opportunities",
+        "access": "paid",
+        "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
+        "tags": [
+          "defi",
+          "opportunities"
+        ],
+        "pathParams": [],
+        "queryParams": [
+          "protocol",
+          "limit",
+          "offset",
+          "includeInactive"
+        ],
+        "responseCodes": [
+          200,
+          402,
+          500
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet",
+            "asset": "31566704",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.01"
+          }
+        }
+      },
+      {
+        "id": "protocolOpportunities",
+        "method": "GET",
+        "path": "/protocols/:protocol/opportunities",
+        "access": "paid",
+        "summary": "Top 25 DeFi opportunities for a single protocol ranked by APY",
+        "tags": [
+          "defi",
+          "opportunities",
+          "protocol"
+        ],
+        "pathParams": [
+          "protocol"
+        ],
+        "queryParams": [
+          "limit",
+          "offset",
+          "includeInactive"
+        ],
+        "responseCodes": [
+          200,
+          402,
+          500
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet",
+            "asset": "31566704",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.01"
+          }
+        }
+      },
+      {
+        "id": "filteredOpportunities",
+        "method": "GET",
+        "path": "/opportunities/search",
+        "access": "paid",
+        "summary": "Caller-filtered opportunities across supported platforms",
+        "tags": [
+          "defi",
+          "opportunities",
+          "search"
+        ],
+        "pathParams": [],
+        "queryParams": [
+          "platform",
+          "type",
+          "minApy",
+          "maxApy",
+          "minTvlUsd",
+          "limit",
+          "offset",
+          "includeInactive"
+        ],
+        "responseCodes": [
+          200,
+          402,
+          500
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet",
+            "asset": "31566704",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.01"
+          }
+        }
+      },
+      {
+        "id": "personalizedOpportunities",
+        "method": "GET",
+        "path": "/opportunities/personalized",
+        "access": "paid",
+        "summary": "Top opportunities tuned to a wallet's held assets",
+        "tags": [
+          "defi",
+          "opportunities",
+          "personalized",
+          "wallet"
+        ],
+        "pathParams": [],
+        "queryParams": [
+          "address",
+          "limit",
+          "offset",
+          "includeInactive"
+        ],
+        "responseCodes": [
+          200,
+          402,
+          500
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet",
+            "asset": "31566704",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.05"
+          }
+        }
+      }
+    ],
+    "errorCatalog": [
+      {
+        "code": "MISSING_PAYMENT_SIGNATURE",
+        "httpStatus": 402,
+        "description": "The paid endpoint was called without PAYMENT-SIGNATURE."
+      },
+      {
+        "code": "MALFORMED_PAYMENT_SIGNATURE",
+        "httpStatus": 402,
+        "description": "PAYMENT-SIGNATURE payload is malformed."
+      },
+      {
+        "code": "EXPIRED_PAYMENT_PROOF",
+        "httpStatus": 402,
+        "description": "PAYMENT-SIGNATURE proof has expired."
+      },
+      {
+        "code": "VALIDATION_ERROR",
+        "httpStatus": 400,
+        "description": "Request validation failed."
+      },
+      {
+        "code": "INTERNAL_ERROR",
+        "httpStatus": 500,
+        "description": "Internal server error."
+      }
+    ]
+  }
+}

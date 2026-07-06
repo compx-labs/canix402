@@ -1,0 +1,40 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import CodeBlock from "../components/CodeBlock.astro";
+import { config } from "../lib/config";
+---
+
+<BaseLayout title="Examples | CANIX402" description="Copy-paste examples for canix402 discovery and x402 paid calls.">
+  <h1 class="page-title">Examples</h1>
+  <p class="muted">All examples use the public Caddy gateway URL. Replace placeholders before running paid retries.</p>
+
+  <section class="panel">
+    <h2>Discovery fetch</h2>
+    <CodeBlock code={`curl -s ${config.discoveryUrl} | jq '.data.endpoints[] | {path, access, summary}'`} />
+  </section>
+
+  <section class="panel">
+    <h2>OpenAPI fetch</h2>
+    <CodeBlock code={`curl -s ${config.openApiUrl} | jq '.info, (.paths | keys)'`} />
+  </section>
+
+  <section class="panel">
+    <h2>Paid preflight</h2>
+    <CodeBlock code={`curl -i ${config.gatewayBaseUrl}/opportunities`} />
+  </section>
+
+  <section class="panel">
+    <h2>Filtered search preflight</h2>
+    <CodeBlock
+      code={`curl -i '${config.gatewayBaseUrl}/opportunities/search?platform=tinyman&minApy=0.05'`}
+    />
+  </section>
+
+  <section class="panel">
+    <h2>Signed retry shape</h2>
+    <p>The website does not sign payments. Your agent/client wallet must build this payload.</p>
+    <CodeBlock
+      code={`{\n  "x402Version": 2,\n  "scheme": "exact",\n  "network": "algorand-mainnet",\n  "accepted": { /* selected accept option from PAYMENT-REQUIRED */ },\n  "payload": {\n    "paymentGroup": ["<base64-signed-txn>"],\n    "paymentIndex": 0\n  },\n  "paymentRequired": { /* decoded PAYMENT-REQUIRED */ }\n}`}
+    />
+  </section>
+</BaseLayout>

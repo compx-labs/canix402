@@ -1,0 +1,19 @@
+{
+  "name": "canix402",
+  "private": true,
+  "workspaces": [
+    "protocol",
+    "website"
+  ],
+  "scripts": {
+    "dev:protocol": "npm run dev -w protocol",
+    "build:protocol": "npm run build -w protocol",
+    "typecheck:protocol": "npm run typecheck -w protocol",
+    "build:caddy-x402": "npm run build:caddy-x402 -w protocol",
+    "test:protocol": "npm run test:ci -w protocol",
+    "dev:website": "npm run dev -w website",
+    "build:website": "npm run build -w website",
+    "typecheck:website": "npm run typecheck -w website",
+    "check": "npm run typecheck:protocol && npm run build:caddy-x402 && npm run test:protocol && npm run typecheck:website && npm run build:website"
+  }
+}

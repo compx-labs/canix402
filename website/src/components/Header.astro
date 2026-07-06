@@ -1,0 +1,32 @@
+---
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
+
+const links = [
+  { href: "/quickstart", label: "Quickstart" },
+  { href: "/endpoints", label: "Endpoints" },
+  { href: "/x402", label: "x402" },
+  { href: "/examples", label: "Examples" },
+  { href: "/protocols", label: "Protocols" },
+  { href: "/faq", label: "FAQ" }
+];
+---
+
+<header class="site-header">
+  <a class="brand-link" href="/">
+    <img src="/brand/canix402-mark.png" alt="CANIX402 fox mark" width="42" height="42" />
+    <span>CANIX402</span>
+  </a>
+  <nav class="site-nav" aria-label="Primary">
+    {
+      links.map((link) => (
+        <a href={link.href} aria-current={currentPath === link.href ? "page" : undefined}>
+          {link.label}
+        </a>
+      ))
+    }
+  </nav>
+</header>

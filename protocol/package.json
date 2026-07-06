@@ -1,5 +1,5 @@
 {
-  "name": "canix402",
+  "name": "protocol",
   "version": "0.1.0",
   "private": true,
   "description": "x402-gated Algorand DeFi opportunities data API",
@@ -20,7 +20,8 @@
     "build:caddy-x402": "mkdir -p .bin && xcaddy build --output .bin/caddy-x402 --with github.com/algorandecosystem/caddy-x402avm=./caddy/plugin",
     "dev:caddy": ".bin/caddy-x402 run --config caddy/Caddyfile --adapter caddyfile",
     "test:x402-e2e": "tsx --test tests/e2e/*.test.ts",
-    "test:ci": "npm run test && npm run test:x402-e2e"
+    "test:ci": "npm run test && npm run test:x402-e2e",
+    "snapshot:discovery": "tsx scripts/export-discovery-snapshot.ts"
   },
   "dependencies": {
     "@compx/sdk": "^2.0.3",

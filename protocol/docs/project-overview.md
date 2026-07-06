@@ -185,7 +185,7 @@ Discovery guarantees:
 
 ## Agent Onboarding Website
 
-Machine-readable discovery (`/discovery`, `/openapi.json`) is the source of truth for agents. A simple human-facing website is planned so developers and operators can set up an agent without reading repo docs first.
+Machine-readable discovery (`/discovery`, `/openapi.json`) is the source of truth for agents. A human-facing Astro website lives in the monorepo at `website/` so developers and operators can set up an agent without reading repo docs first.
 
 Intent:
 
@@ -194,9 +194,14 @@ Intent:
 - Be linked from the main [compx.io](https://compx.io) site.
 - Likely hosted as a subdomain on the compx.io domain (e.g. `canix402.compx.io`; exact subdomain TBD).
 
+Monorepo layout:
+
+- `protocol/` — API, Caddy gateway, adapters, tests, and protocol docs
+- `website/` — Astro static onboarding site with CANIX402 branding
+
 The site is documentation and onboarding only. Paid data access remains API-only via x402; the website does not expose unauthenticated opportunity browsing.
 
-Execution status: tracked in `docs/development-checklist.md` section 11.
+Execution status: tracked in `docs/development-checklist.md` section 11. Local build/deploy notes: `website/README.md`.
 
 ## Operational Expectations
 
@@ -224,3 +229,4 @@ Use this section to record major decisions as the project evolves.
 - 2026-06-18: Caddy runtime configuration moved to project-owned `caddy/`; `infra/caddy` retired and the Caddy x402 Go plugin source consolidated under `caddy/plugin`.
 - 2026-06-22: Added wallet-personalized opportunities route (`/opportunities/personalized`, 0.05 USDC); opportunities enriched with optional on-chain `assetIds` and matched against algod-reported wallet holdings (balance greater than 0, including native ALGO).
 - 2026-07-06: Planned agent onboarding website on compx.io subdomain; human-facing docs site for agent setup, linked from main compx.io property.
+- 2026-07-06: Restructured repo into monorepo workspaces (`protocol/`, `website/`) and implemented Astro onboarding site with CANIX402 branding.

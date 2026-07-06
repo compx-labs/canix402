@@ -107,25 +107,25 @@ Status legend:
 
 - [x] Validate paid flow end-to-end in a production-like environment.
 - [~] Run protocol accuracy checks against source systems (live smoke tests for Tinyman/Pact; CompX/Dork.fi/Folks pending).
-- [ ] Confirm API consumer onboarding documentation is complete (see section 11).
+- [~] Confirm API consumer onboarding documentation is complete (website built; production deploy pending).
 - [ ] Publish versioned API contract for first release.
 - [ ] Complete launch checklist sign-off.
 
 ## 11) Agent Onboarding Website
 
-Simple human-facing site so developers and operators can quickly set up an agent to use canix402. Linked from the main [compx.io](https://compx.io) site; likely hosted as a subdomain on that domain.
+Simple human-facing site so developers and operators can quickly set up an agent to use canix402. Implemented in the monorepo `website/` workspace (Astro static site). Linked from the main [compx.io](https://compx.io) site; likely hosted as a subdomain on that domain.
 
-- [ ] Confirm subdomain and hosting approach (e.g. `canix402.compx.io`).
-- [ ] Define site content outline:
-  - [ ] What canix402 provides and supported protocols
-  - [ ] Discovery flow (`/discovery`, `/openapi.json`)
-  - [ ] x402 payment setup (network, asset, payTo, per-endpoint pricing)
-  - [ ] Agent onboarding sequence (preflight → `PAYMENT-SIGNATURE` → retry)
-  - [ ] Endpoint catalog with free vs paid routes
-  - [ ] Example requests and sample responses
-- [ ] Build simple static or lightweight site in-repo.
-- [ ] Link live discovery/OpenAPI URLs from the site.
-- [ ] Add copy-paste setup examples (curl or SDK snippets for first paid call).
+- [~] Confirm subdomain and hosting approach (e.g. `canix402.compx.io`; deployment settings documented in `website/README.md`).
+- [x] Define site content outline:
+  - [x] What canix402 provides and supported protocols
+  - [x] Discovery flow (`/discovery`, `/openapi.json`)
+  - [x] x402 payment setup (network, asset, payTo, per-endpoint pricing)
+  - [x] Agent onboarding sequence (preflight → `PAYMENT-SIGNATURE` → retry)
+  - [x] Endpoint catalog with free vs paid routes
+  - [x] Example requests and sample responses
+- [x] Build simple static or lightweight site in-repo (`website/`).
+- [x] Link live discovery/OpenAPI URLs from the site.
+- [x] Add copy-paste setup examples (curl snippets for first paid call).
 - [ ] Add navigation/link from main compx.io website.
 - [ ] Deploy site to production subdomain.
 
