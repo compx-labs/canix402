@@ -197,6 +197,33 @@ Configuration source for the live suite:
 These live suites are intentionally excluded from default PR CI because they are
 environment-sensitive and can incur paid request cost.
 
+## Production x402 Paid Test
+
+To verify the deployed gateway path (Cloudflare → DO Caddy → protocol API) with
+real facilitator settlement:
+
+```sh
+X402_PRODUCTION_PAID_TEST=1 \
+X402_PRODUCTION_BASE_URL=https://canix402-api.compx.io \
+X402_CLIENT_MNEMONIC=... \
+npm run test:x402-production -w protocol
+```
+
+Behavior:
+
+- Without `X402_PRODUCTION_PAID_TEST=1`, the paid settlement test is skipped.
+- The free preflight test still runs and checks production `402` + `PAYMENT-REQUIRED`.
+- With opt-in, the suite signs and retries against `/opportunities` on production.
+
+Wallet requirements:
+
+- ALGO balance for transaction fees
+- USDC ASA opt-in
+- enough USDC for the `/opportunities` price (default 0.01 USDC)
+- never commit `X402_CLIENT_MNEMONIC` to the repository
+
+This suite is not part of `test`, `test:ci`, or default GitHub Actions.
+
 ## Troubleshooting
 
 - `Caddy binary not found`:

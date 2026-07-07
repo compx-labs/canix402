@@ -1,0 +1,32 @@
+# CANIX402
+
+> x402-gated Algorand DeFi opportunities data API for autonomous agents. Pay in USDC micropayments at the gateway edge, then fetch normalized APY/TVL data from Tinyman, Pact, Folks Finance, CompX, and Dork.fi.
+
+Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. Discovery and OpenAPI are free; opportunity data routes require x402 payment. This API returns market data only — it does not build or submit transactions. For the full integration guide in one file, see [llms-full.txt](https://canix402.compx.io/llms-full.txt).
+
+## API (machine-readable)
+
+- [Discovery](https://canix402-api.compx.io/discovery): endpoint catalog, x402 prices, error codes, facilitator metadata
+- [OpenAPI](https://canix402-api.compx.io/openapi.json): schemas, query parameters, response examples
+- [x402 manifest](https://canix402-api.compx.io/.well-known/x402.json): directory indexing surface for Bazaar and agent tooling
+
+## Integration guides
+
+- [Quickstart](https://canix402.compx.io/quickstart): four-step agent onboarding
+- [x402 payment flow](https://canix402.compx.io/x402): preflight 402, sign USDC transfer, retry with PAYMENT-SIGNATURE
+- [Examples](https://canix402.compx.io/examples): copy-paste curl and sample payloads
+- [Endpoint catalog](https://canix402.compx.io/endpoints): human-readable route table sourced from discovery
+
+## Paid data routes
+
+- [GET /opportunities](https://canix402-api.compx.io/opportunities): 0.01 USDC — Top 10 aggregated DeFi opportunities ranked by APY
+- [GET /protocols/:protocol/opportunities](https://canix402-api.compx.io/protocols/{protocol}/opportunities): 0.01 USDC — Top 25 DeFi opportunities for a single protocol ranked by APY
+- [GET /opportunities/search](https://canix402-api.compx.io/opportunities/search): 0.01 USDC — Caller-filtered opportunities across supported platforms
+- [GET /opportunities/personalized](https://canix402-api.compx.io/opportunities/personalized): 0.05 USDC — Top opportunities tuned to a wallet's held assets
+
+## Optional
+
+- [Full LLM guide](https://canix402.compx.io/llms-full.txt): self-contained integration reference without following links
+- [FAQ](https://canix402.compx.io/faq): gateway vs upstream, 402 behavior, USDC asset id
+- [Terms and disclaimer](https://canix402.compx.io/terms): informational-only use, no financial advice
+- [Support](mailto:kieran@neonforge.ltd): kieran@neonforge.ltd (Neon Forge Ltd)

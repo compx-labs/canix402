@@ -1,14 +1,33 @@
 ---
 import Header from "../components/Header.astro";
+import { site } from "../lib/config.js";
 import "../styles/global.css";
 
 interface Props {
   title: string;
   description?: string;
+  keywords?: string;
+  image?: string;
+  ogType?: "website" | "article";
 }
 
-const { title, description = "Agent onboarding for the canix402 x402-gated Algorand DeFi opportunities API." } =
-  Astro.props;
+const siteName = "CANIX402";
+const defaultDescription =
+  "Canix402 is an x402-paid Algorand DeFi opportunity API for autonomous agents. Discover endpoints, pay in USDC, and fetch normalized APY data — including wallet-personalized yield recommendations.";
+const defaultKeywords =
+  "Canix402, x402, Algorand DeFi, APY, APR, autonomous agents, OpenAPI, USDC payments, yield opportunities, Tinyman, Pact, Folks Finance";
+const defaultImage = "/brand/canix402-banner.png";
+
+const {
+  title,
+  description = defaultDescription,
+  keywords = defaultKeywords,
+  image = defaultImage,
+  ogType = "website"
+} = Astro.props;
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+const imageUrl = new URL(image, Astro.site).href;
 ---
 
 <!doctype html>
@@ -17,9 +36,25 @@ const { title, description = "Agent onboarding for the canix402 x402-gated Algor
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    <meta name="keywords" content={keywords} />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM documentation index" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>{title}</title>
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={imageUrl} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
   </head>
   <body>
     <Header currentPath={Astro.url.pathname} />
@@ -28,10 +63,20 @@ const { title, description = "Agent onboarding for the canix402 x402-gated Algor
     </main>
     <footer class="site-footer">
       <p><strong>canix402</strong> — x402 paid Algorand DeFi opportunities data API.</p>
-      <p>
-        Machine-readable contracts:
-        <a href="/endpoints">Endpoints</a> ·
-        Discovery and OpenAPI links are shown on each docs page.
+      <p class="footer-links">
+        <a href="/endpoints">Endpoints</a>
+        <span aria-hidden="true">·</span>
+        <a href="/faq">FAQ</a>
+        <span aria-hidden="true">·</span>
+        <a href="/terms">Terms &amp; disclaimer</a>
+        <span aria-hidden="true">·</span>
+        <a href="/llms.txt">llms.txt</a>
+        <span aria-hidden="true">·</span>
+        <a href={`mailto:${site.supportEmail}`}>Support</a>
+      </p>
+      <p class="footer-meta">
+        Operated by {site.operator}. Documentation only — opportunity data is API-only
+        behind x402 payment gates.
       </p>
     </footer>
   </body>

@@ -33,6 +33,27 @@ npm run preview
 
 Static output is written to `dist/`.
 
+## LLM discoverability (`llms.txt`)
+
+Build and dev runs generate two plain-text files into `public/` (copied to `dist/`):
+
+- `/llms.txt` — curated index per [llmstxt.org](https://llmstxt.org)
+- `/llms-full.txt` — self-contained integration guide with endpoint table and trimmed samples
+
+Regenerate manually:
+
+```sh
+npm run generate:llms
+```
+
+Source data: `src/data/discovery.snapshot.json` and sample payloads under `src/data/`. Refresh discovery first when endpoints or prices change:
+
+```sh
+npm run snapshot:discovery
+```
+
+The API x402 manifest exposes `llmsTxtUrl` pointing at the live docs site file.
+
 ## Discovery snapshot fallback
 
 `/endpoints` tries live discovery at build/dev time. If unavailable, it falls back to
@@ -72,9 +93,9 @@ Recommended static hosting: Cloudflare Pages, Vercel, or existing CompX static h
 - **Build command:** `npm run build:website` (from repo root)
 - **Publish directory:** `website/dist`
 - **Production env vars:**
-  - `PUBLIC_GATEWAY_BASE_URL=https://api.canix402.compx.io` (live Caddy gateway URL)
-  - `PUBLIC_DISCOVERY_URL=https://api.canix402.compx.io/discovery`
-  - `PUBLIC_OPENAPI_URL=https://api.canix402.compx.io/openapi.json`
+  - `PUBLIC_GATEWAY_BASE_URL=https://canix402-api.compx.io` (live Caddy gateway URL)
+  - `PUBLIC_DISCOVERY_URL=https://canix402-api.compx.io/discovery`
+  - `PUBLIC_OPENAPI_URL=https://canix402-api.compx.io/openapi.json`
 
 After deploy:
 

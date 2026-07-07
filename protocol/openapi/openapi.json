@@ -13,7 +13,7 @@
   },
   "servers": [
     {
-      "url": "https://api.canix402.compx.io"
+      "url": "https://canix402-api.compx.io"
     }
   ],
   "paths": {
@@ -108,6 +108,7 @@
                     "description",
                     "x402Version",
                     "docsUrl",
+                    "llmsTxtUrl",
                     "openapiUrl",
                     "discoveryUrl",
                     "facilitator",
@@ -121,6 +122,7 @@
                     "description": { "type": "string" },
                     "x402Version": { "type": "integer", "const": 2 },
                     "docsUrl": { "type": "string", "format": "uri" },
+                    "llmsTxtUrl": { "type": "string", "format": "uri" },
                     "openapiUrl": { "type": "string", "format": "uri" },
                     "discoveryUrl": { "type": "string", "format": "uri" },
                     "facilitator": { "type": "string", "format": "uri" },
@@ -735,8 +737,9 @@
           "description": "x402-gated Algorand DeFi opportunities data API with USDC payment support.",
           "x402Version": 2,
           "docsUrl": "https://canix402.compx.io/x402",
-          "openapiUrl": "https://api.canix402.compx.io/openapi.json",
-          "discoveryUrl": "https://api.canix402.compx.io/discovery",
+          "llmsTxtUrl": "https://canix402.compx.io/llms.txt",
+          "openapiUrl": "https://canix402-api.compx.io/openapi.json",
+          "discoveryUrl": "https://canix402-api.compx.io/discovery",
           "facilitator": "https://facilitator.goplausible.xyz",
           "chains": [
             {
@@ -756,7 +759,7 @@
               "id": "opportunities",
               "method": "GET",
               "path": "/opportunities",
-              "url": "https://api.canix402.compx.io/opportunities",
+              "url": "https://canix402-api.compx.io/opportunities",
               "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, and Haystack. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
               "tags": ["defi", "opportunities"],
               "price": {
