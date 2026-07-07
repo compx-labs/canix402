@@ -1,27 +1,11 @@
 ---
-import type { DiscoveryEndpoint } from "../lib/discovery";
+import { formatEndpointPrice, type DiscoveryEndpoint } from "../lib/discovery";
 
 interface Props {
   endpoints: DiscoveryEndpoint[];
 }
 
 const { endpoints } = Astro.props;
-
-function formatPrice(endpoint: DiscoveryEndpoint): string {
-  const amount = endpoint.x402?.requirementTemplate.maxAmountRequired;
-  if (!amount) {
-    return endpoint.access === "paid" ? "Paid" : "Free";
-  }
-
-  // Discovery metadata publishes USDC-denominated string values (e.g. "0.01", "0.05").
-  const parsed = Number(amount);
-  if (!Number.isFinite(parsed)) {
-    return `${amount} USDC`;
-  }
-
-  // Keep compact, human-readable pricing labels.
-  return `${parsed.toString()} USDC`;
-}
 ---
 
 <div class="panel">
@@ -47,7 +31,7 @@ function formatPrice(endpoint: DiscoveryEndpoint): string {
               </span>
             </td>
             <td>{endpoint.summary}</td>
-            <td>{formatPrice(endpoint)}</td>
+            <td>{formatEndpointPrice(endpoint)}</td>
           </tr>
         ))
       }

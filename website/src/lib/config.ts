@@ -17,3 +17,6 @@ export const supportedProtocols = [
   "CompX",
   "Dork.fi"
 ] as const;
+
+export const defaultPaidPriceUsdc = "0.01";
+export const personalizedPriceUsdc = "0.05";

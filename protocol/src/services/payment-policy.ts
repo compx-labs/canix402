@@ -130,6 +130,17 @@ export interface X402EndpointMetadata {
   requirementTemplate: X402RequirementTemplate;
 }
 
+function resolveUsdcAmount(...candidates: Array<string | undefined>): string {
+  for (const candidate of candidates) {
+    const trimmed = candidate?.trim();
+    if (trimmed) {
+      return trimmed;
+    }
+  }
+
+  return "0.01";
+}
+
 export function getX402EndpointMetadata(amountUsdc?: string): X402EndpointMetadata {
   return {
     protocolVersion: 2,
@@ -145,8 +156,10 @@ export function getX402EndpointMetadata(amountUsdc?: string): X402EndpointMetada
       network: process.env.X402_PAYMENT_NETWORK ?? "algorand-mainnet",
       asset: process.env.X402_USDC_ASSET_ID ?? "31566704",
       payTo: process.env.X402_PAYMENT_RECEIVER_ADDRESS ?? "REPLACE_WITH_PAYTO_ADDRESS",
-      maxAmountRequired:
-        amountUsdc ?? process.env.X402_PAYMENT_AMOUNT_USDC ?? "0.01"
+      maxAmountRequired: resolveUsdcAmount(
+        amountUsdc,
+        process.env.X402_PAYMENT_AMOUNT_USDC
+      )
     }
   };
 }
