@@ -47,6 +47,22 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     tags: ["discovery", "openapi"]
   },
   {
+    id: "faviconIco",
+    method: "GET",
+    pathPattern: "/favicon.ico",
+    access: "free",
+    summary: "API favicon for directory indexing",
+    tags: ["system", "discovery"]
+  },
+  {
+    id: "faviconPng",
+    method: "GET",
+    pathPattern: "/favicon.png",
+    access: "free",
+    summary: "API favicon image",
+    tags: ["system", "discovery"]
+  },
+  {
     id: "x402WellKnown",
     method: "GET",
     pathPattern: "/.well-known/x402",
@@ -184,6 +200,8 @@ const freePathMatchers = [
   /^\/metadata$/,
   /^\/discovery$/,
   /^\/openapi\.json$/,
+  /^\/favicon\.ico$/,
+  /^\/favicon\.png$/,
   /^\/\.well-known\/x402$/,
   /^\/\.well-known\/x402\.json$/
 ];
