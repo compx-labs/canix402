@@ -130,8 +130,8 @@ Simple human-facing site so developers and operators can quickly set up an agent
 - [x] Add copy-paste setup examples (curl snippets for first paid call).
 - [~] Add navigation/link from main compx.io website.
   - [x] Create CompX site handoff brief (`docs/compx-canix-link-page-brief.md`).
-  - [ ] Publish/link the Canix402 page from the main CompX site.
-- [~] Deploy site to production subdomain (live at `canix402.compx.io`; redeploy after doc/trust/llms changes).
+  - [x] Publish/link the Canix402 page from the main CompX site.
+- [x] Deploy site to production subdomain (live at `canix402.compx.io`; redeploy after doc/trust/llms changes).
 
 ## Ongoing Maintenance
 
