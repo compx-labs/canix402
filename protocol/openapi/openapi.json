@@ -252,7 +252,7 @@
           "500": { "$ref": "#/components/responses/InternalError" }
         },
         "x-payment-info": {
-          "protocols": ["x402"],
+          "protocols": [{ "x402": {} }],
           "price": { "mode": "fixed", "currency": "USD", "amount": "0.01" }
         },
         "x-x402": {
@@ -317,7 +317,7 @@
           "500": { "$ref": "#/components/responses/InternalError" }
         },
         "x-payment-info": {
-          "protocols": ["x402"],
+          "protocols": [{ "x402": {} }],
           "price": { "mode": "fixed", "currency": "USD", "amount": "0.01" }
         },
         "x-x402": {
@@ -367,7 +367,7 @@
           "500": { "$ref": "#/components/responses/InternalError" }
         },
         "x-payment-info": {
-          "protocols": ["x402"],
+          "protocols": [{ "x402": {} }],
           "price": { "mode": "fixed", "currency": "USD", "amount": "0.05" }
         },
         "x-x402": {
@@ -418,7 +418,7 @@
           "500": { "$ref": "#/components/responses/InternalError" }
         },
         "x-payment-info": {
-          "protocols": ["x402"],
+          "protocols": [{ "x402": {} }],
           "price": { "mode": "fixed", "currency": "USD", "amount": "0.01" }
         },
         "x-x402": {
