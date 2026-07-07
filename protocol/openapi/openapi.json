@@ -104,6 +104,46 @@
         }
       }
     },
+    "/favicon.ico": {
+      "get": {
+        "summary": "API favicon for directory indexing",
+        "tags": ["system", "discovery"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Favicon image",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/favicon.png": {
+      "get": {
+        "summary": "API favicon image",
+        "tags": ["system", "discovery"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Favicon image",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/.well-known/x402.json": {
       "get": {
         "summary": "x402 discovery manifest for agent and directory indexing",

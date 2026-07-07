@@ -21,7 +21,11 @@ test("paid endpoint returns 402 and PAYMENT-REQUIRED without signature", async (
   try {
     const response = await fetch(`${context.baseUrl}/opportunities`);
     assert.equal(response.status, 402);
-    assert.ok(response.headers.get("payment-required"));
+    const paymentRequired = response.headers.get("payment-required");
+    assert.ok(paymentRequired);
+    const decoded = decodePaymentRequired(paymentRequired);
+    assert.ok(decoded.extensions?.bazaar?.schema?.properties?.input);
+    assert.ok(decoded.extensions?.bazaar?.schema?.properties?.output);
     assert.equal(context.facilitator.calls.length, 0);
   } finally {
     await context.teardown();
@@ -181,11 +185,7 @@ function readFixtures(): { valid: X402PaymentSignaturePayload } {
 }
 
 function buildSignatureFromPaymentRequired(headerValue: string): string {
-  const decoded = JSON.parse(
-    Buffer.from(headerValue, "base64").toString("utf-8")
-  ) as {
-    accepts: Array<Record<string, unknown>>;
-  };
+  const decoded = decodePaymentRequired(headerValue);
 
   const accepted = decoded.accepts[0] ?? {};
   const payload = {
@@ -209,4 +209,32 @@ function buildSignatureFromPaymentRequired(headerValue: string): string {
   };
 
   return Buffer.from(JSON.stringify(payload), "utf-8").toString("base64");
+}
+
+function decodePaymentRequired(headerValue: string): {
+  accepts: Array<Record<string, unknown>>;
+  extensions?: {
+    bazaar?: {
+      schema?: {
+        properties?: {
+          input?: unknown;
+          output?: unknown;
+        };
+      };
+    };
+  };
+} {
+  return JSON.parse(Buffer.from(headerValue, "base64").toString("utf-8")) as {
+    accepts: Array<Record<string, unknown>>;
+    extensions?: {
+      bazaar?: {
+        schema?: {
+          properties?: {
+            input?: unknown;
+            output?: unknown;
+          };
+        };
+      };
+    };
+  };
 }

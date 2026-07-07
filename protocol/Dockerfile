@@ -11,6 +11,7 @@ RUN npm install --include=dev
 COPY tsconfig.json ./
 COPY src ./src/
 COPY openapi ./openapi/
+COPY public ./public/
 
 RUN npm run build
 
@@ -26,6 +27,7 @@ RUN npm install --omit=dev
 
 COPY --from=build /app/dist ./dist
 COPY openapi ./openapi/
+COPY public ./public/
 
 EXPOSE 3000
 
