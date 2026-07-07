@@ -4,7 +4,8 @@
 FROM caddy:builder AS builder
 
 WORKDIR /src
-COPY plugin/ .
+COPY go.mod go.sum ./
+COPY *.go ./
 
 RUN go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest && \
     xcaddy build \

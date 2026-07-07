@@ -3,9 +3,9 @@
 This folder contains the canix402-owned Caddy edge configuration used to gate
 paid API endpoints with x402.
 
-The runtime Caddy config lives at `caddy/Caddyfile`. The Go plugin source lives
-under `caddy/plugin` so the gateway implementation and deployment policy stay in
-one Caddy area while remaining separately owned.
+The runtime Caddy config lives at `caddy/Caddyfile`. The x402 Go module source
+also lives directly in `caddy/` so App Platform can build the gateway from a
+single source directory.
 
 ## Route Access Policy
 
@@ -62,12 +62,13 @@ mnemonic/private key.
 
 ## Production Docker (App Platform)
 
-Build the gateway from **`protocol/caddy`**, not `protocol/caddy/plugin`:
+Build the gateway from **`protocol/caddy`**:
 
 ```sh
 docker build -t canix402-caddy protocol/caddy
 ```
 
-The plugin subdirectory contains only the Go source for the x402 Caddy module.
-Production uses `protocol/caddy/Caddyfile` with `UPSTREAM_API`.
+The same directory contains the x402 Caddy module source and the production
+`Caddyfile`, so deployment does not depend on files outside the App Platform
+source directory.
 

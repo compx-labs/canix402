@@ -17,9 +17,8 @@
 | Dockerfile path | `Dockerfile` |
 | HTTP port | `8080` (or your configured public port) |
 
-**Important:** Do not point App Platform at `protocol/caddy/plugin/`. That
-directory is only the Go source for the x402 Caddy module. The production
-gateway image and runtime config live one level up in `protocol/caddy/`.
+The Caddy component is intentionally self-contained: the x402 Go module source,
+production Dockerfile, and production `Caddyfile` all live in `protocol/caddy/`.
 
 ### Caddy environment variables
 

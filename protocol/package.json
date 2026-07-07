@@ -17,7 +17,7 @@
     "test:live": "tsx --test tests/live/*.test.ts",
     "test:x402-live": "tsx --test tests/live/x402-live.test.ts",
     "test:tinyman-live": "npm run test:live",
-    "build:caddy-x402": "mkdir -p .bin && xcaddy build --output .bin/caddy-x402 --with github.com/algorandecosystem/caddy-x402avm=./caddy/plugin",
+    "build:caddy-x402": "mkdir -p .bin && xcaddy build --output .bin/caddy-x402 --with github.com/algorandecosystem/caddy-x402avm=./caddy",
     "dev:caddy": ".bin/caddy-x402 run --config caddy/Caddyfile --adapter caddyfile",
     "test:x402-e2e": "tsx --test tests/e2e/*.test.ts",
     "test:ci": "npm run test && npm run test:x402-e2e",

@@ -1,3 +1,7 @@
-plugin/.git
-plugin/.env
-plugin/.env.*
+.env
+.env.*
+!.env.example
+bin
+*.test
+*.out
+testscenario

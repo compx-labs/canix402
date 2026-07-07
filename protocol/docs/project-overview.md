@@ -41,7 +41,8 @@ Gateway configuration ownership:
 
 - Each x402 integration keeps its own project-specific Caddyfile and run wiring.
 - In this repo, runtime gateway config lives under `caddy/`.
-- The Caddy x402 Go plugin source lives under `caddy/plugin`.
+- The Caddy x402 Go module source lives directly under `caddy/` alongside the
+  production Caddyfile and Dockerfile.
 
 This allows standard HTTP API usage while ensuring requests are authorized only after successful x402 payment flow.
 
@@ -226,7 +227,8 @@ Use this section to record major decisions as the project evolves.
 - 2026-06-17: Initial strategy set to on-demand fetching without persistent storage for v1.
 - 2026-06-17: Redis chosen as the preferred first cache implementation path for v2.
 - 2026-06-17: Discovery strategy set to dual-surface (`/discovery` and `/openapi.json`) with shared endpoint policy source-of-truth.
-- 2026-06-18: Caddy runtime configuration moved to project-owned `caddy/`; `infra/caddy` retired and the Caddy x402 Go plugin source consolidated under `caddy/plugin`.
+- 2026-06-18: Caddy runtime configuration moved to project-owned `caddy/`; `infra/caddy` retired.
+- 2026-07-07: Caddy x402 Go module source flattened into `caddy/` so App Platform can build the gateway from one self-contained source directory.
 - 2026-06-22: Added wallet-personalized opportunities route (`/opportunities/personalized`, 0.05 USDC); opportunities enriched with optional on-chain `assetIds` and matched against algod-reported wallet holdings (balance greater than 0, including native ALGO).
 - 2026-07-06: Planned agent onboarding website on compx.io subdomain; human-facing docs site for agent setup, linked from main compx.io property.
 - 2026-07-06: Restructured repo into monorepo workspaces (`protocol/`, `website/`) and implemented Astro onboarding site with CANIX402 branding.

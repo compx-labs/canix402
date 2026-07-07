@@ -20,7 +20,7 @@ Raw CAIP-2 strings are also accepted (e.g. `eip155:8453`).
 ## Build
 
 ```sh
-xcaddy build --with github.com/algorandecosystem/caddy-x402avm=./caddy/plugin
+xcaddy build --with github.com/algorandecosystem/caddy-x402avm=./caddy
 ```
 
 ## Caddyfile syntax
