@@ -1,4 +1,5 @@
 import snapshot from "../data/discovery.snapshot.json";
+import { defaultPaidPriceUsdc, personalizedPriceUsdc } from "./config";
 
 export interface DiscoveryEndpoint {
   id: string;
@@ -57,6 +58,35 @@ function unwrapDiscoveryPayload(payload: unknown): DiscoveryDocument {
   }
 
   return payload as DiscoveryDocument;
+}
+
+function isPersonalizedEndpoint(endpoint: DiscoveryEndpoint): boolean {
+  return (
+    endpoint.id === "personalizedOpportunities" ||
+    endpoint.path.includes("/personalized")
+  );
+}
+
+export function formatEndpointPrice(endpoint: DiscoveryEndpoint): string {
+  if (endpoint.access !== "paid") {
+    return "Free";
+  }
+
+  const raw = endpoint.x402?.requirementTemplate.maxAmountRequired?.trim();
+  if (raw) {
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed)) {
+      return `${parsed.toString()} USDC`;
+    }
+
+    return `${raw} USDC`;
+  }
+
+  if (isPersonalizedEndpoint(endpoint)) {
+    return `${personalizedPriceUsdc} USDC`;
+  }
+
+  return `${defaultPaidPriceUsdc} USDC`;
 }
 
 export async function loadDiscovery(discoveryUrl: string): Promise<LoadedDiscovery> {
