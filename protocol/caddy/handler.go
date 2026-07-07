@@ -85,7 +85,7 @@ func (x *X402) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.
 		return next.ServeHTTP(w, r)
 
 	case x402http.ResultPaymentError:
-		x.writeSDKResponse(w, result.Response, r)
+		writeSDKResponse(w, result.Response)
 		return nil
 
 	case x402http.ResultPaymentVerified:
@@ -542,32 +542,13 @@ func (rc *responseCapture) flush(w http.ResponseWriter, extraHeaders map[string]
 // ─── SDK response writer ──────────────────────────────────────────────────────
 
 // writeSDKResponse translates an SDK HTTPResponseInstructions into a real HTTP response.
-func (x *X402) writeSDKResponse(w http.ResponseWriter, resp *x402http.HTTPResponseInstructions, r *http.Request) {
+func writeSDKResponse(w http.ResponseWriter, resp *x402http.HTTPResponseInstructions) {
 	if resp == nil {
 		http.Error(w, "payment required", http.StatusPaymentRequired)
 		return
 	}
-	body := x.augmentPaymentRequiredBody(resp, r)
 	for k, v := range resp.Headers {
 		w.Header().Set(k, v)
-	}
-	if resp.Status == http.StatusPaymentRequired && body != nil {
-		if paymentRequiredBody, ok := body.(map[string]any); ok {
-			w.Header().Del("Content-Length")
-			if encoded, err := encodePaymentRequiredHeader(paymentRequiredBody); err == nil {
-				w.Header().Set("PAYMENT-REQUIRED", encoded)
-			}
-		}
-	} else if resp.Status == http.StatusPaymentRequired {
-		if paymentRequiredBody, ok := decodePaymentRequiredHeader(resp.Headers); ok {
-			paymentRequiredBody["extensions"] = mergeBazaarExtension(
-				paymentRequiredBody["extensions"],
-				x.buildBazaarExtension(r),
-			)
-			if encoded, err := encodePaymentRequiredHeader(paymentRequiredBody); err == nil {
-				w.Header().Set("PAYMENT-REQUIRED", encoded)
-			}
-		}
 	}
 	if resp.IsHTML {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -577,7 +558,7 @@ func (x *X402) writeSDKResponse(w http.ResponseWriter, resp *x402http.HTTPRespon
 		}
 		return
 	}
-	if body == nil {
+	if resp.Body == nil {
 		w.WriteHeader(resp.Status)
 		return
 	}
@@ -586,7 +567,7 @@ func (x *X402) writeSDKResponse(w http.ResponseWriter, resp *x402http.HTTPRespon
 		w.Header().Set("Content-Type", "application/json")
 	}
 	w.WriteHeader(resp.Status)
-	switch body := body.(type) {
+	switch body := resp.Body.(type) {
 	case string:
 		_, _ = w.Write([]byte(body))
 	default:
@@ -594,178 +575,4 @@ func (x *X402) writeSDKResponse(w http.ResponseWriter, resp *x402http.HTTPRespon
 			_, _ = w.Write(encoded)
 		}
 	}
-}
-
-func (x *X402) augmentPaymentRequiredBody(resp *x402http.HTTPResponseInstructions, r *http.Request) any {
-	if resp == nil || resp.Status != http.StatusPaymentRequired || resp.Body == nil {
-		return nil
-	}
-
-	body, ok := cloneJSONMap(resp.Body)
-	if !ok {
-		return resp.Body
-	}
-
-	body["extensions"] = mergeBazaarExtension(body["extensions"], x.buildBazaarExtension(r))
-	return body
-}
-
-func decodePaymentRequiredHeader(headers map[string]string) (map[string]any, bool) {
-	for _, key := range []string{"PAYMENT-REQUIRED", "Payment-Required", "payment-required"} {
-		value := headers[key]
-		if value == "" {
-			continue
-		}
-		raw, err := base64.StdEncoding.DecodeString(value)
-		if err != nil {
-			return nil, false
-		}
-		var body map[string]any
-		if err := json.Unmarshal(raw, &body); err != nil {
-			return nil, false
-		}
-		return body, true
-	}
-	return nil, false
-}
-
-func cloneJSONMap(value any) (map[string]any, bool) {
-	if rawString, ok := value.(string); ok {
-		var body map[string]any
-		if err := json.Unmarshal([]byte(rawString), &body); err != nil {
-			return nil, false
-		}
-		return body, true
-	}
-
-	raw, err := json.Marshal(value)
-	if err != nil {
-		return nil, false
-	}
-	var body map[string]any
-	if err := json.Unmarshal(raw, &body); err != nil {
-		return nil, false
-	}
-	return body, true
-}
-
-func mergeBazaarExtension(existing any, bazaar map[string]any) map[string]any {
-	extensions, ok := existing.(map[string]any)
-	if !ok {
-		extensions = map[string]any{}
-	}
-	extensions["bazaar"] = bazaar
-	return extensions
-}
-
-func (x *X402) buildBazaarExtension(r *http.Request) map[string]any {
-	input := map[string]any{
-		"type":   "http",
-		"method": r.Method,
-	}
-	if query := r.URL.Query(); len(query) > 0 {
-		queryParams := map[string]string{}
-		for key, values := range query {
-			if len(values) > 0 {
-				queryParams[key] = values[0]
-			}
-		}
-		input["queryParams"] = queryParams
-	}
-
-	return map[string]any{
-		"info": map[string]any{
-			"input": input,
-			"output": map[string]any{
-				"type": "json",
-			},
-		},
-		"schema": map[string]any{
-			"$schema": "https://json-schema.org/draft/2020-12/schema",
-			"type":    "object",
-			"properties": map[string]any{
-				"input": map[string]any{
-					"type": "object",
-					"properties": map[string]any{
-						"queryParams": map[string]any{
-							"type":                 "object",
-							"additionalProperties": true,
-							"properties": map[string]any{
-								"protocol":        stringSchema("Optional protocol slug filter."),
-								"platform":        stringSchema("Optional comma-separated platform filters."),
-								"type":            stringSchema("Optional comma-separated opportunity type filters."),
-								"address":         stringSchema("Algorand account address for wallet-personalized opportunities."),
-								"limit":           integerSchema(1, 200),
-								"offset":          integerSchema(0, 0),
-								"includeInactive": booleanSchema(),
-								"minApy":          numberSchema(),
-								"maxApy":          numberSchema(),
-								"minTvlUsd":       numberSchema(),
-							},
-						},
-					},
-				},
-				"output": map[string]any{
-					"type": "object",
-					"properties": map[string]any{
-						"example": map[string]any{
-							"type": "object",
-							"properties": map[string]any{
-								"data": map[string]any{
-									"type": "array",
-									"items": map[string]any{
-										"type":                 "object",
-										"additionalProperties": true,
-									},
-								},
-								"meta": map[string]any{
-									"type":                 "object",
-									"additionalProperties": true,
-								},
-							},
-						},
-					},
-				},
-			},
-			"required": []string{"input", "output"},
-		},
-	}
-}
-
-func stringSchema(description string) map[string]any {
-	return map[string]any{
-		"type":        "string",
-		"description": description,
-	}
-}
-
-func integerSchema(min int, max int) map[string]any {
-	schema := map[string]any{
-		"type":    "integer",
-		"minimum": min,
-	}
-	if max > min {
-		schema["maximum"] = max
-	}
-	return schema
-}
-
-func numberSchema() map[string]any {
-	return map[string]any{
-		"type": "number",
-	}
-}
-
-func booleanSchema() map[string]any {
-	return map[string]any{
-		"type": "boolean",
-	}
-}
-
-func encodePaymentRequiredHeader(body map[string]any) (string, error) {
-	raw, err := json.Marshal(body)
-	if err != nil {
-		return "", err
-	}
-	return base64.StdEncoding.EncodeToString(raw), nil
 }
