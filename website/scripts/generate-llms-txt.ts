@@ -104,7 +104,7 @@ Use the **Caddy gateway** (\`${GATEWAY}\`) for all API calls. Discovery and Open
 
 - [Discovery](${GATEWAY}/discovery): endpoint catalog, x402 prices, error codes, facilitator metadata
 - [OpenAPI](${GATEWAY}/openapi.json): schemas, query parameters, response examples
-- [x402 manifest](${GATEWAY}/.well-known/x402.json): directory indexing surface for Bazaar and agent tooling
+- [x402 manifest](${GATEWAY}/.well-known/x402.json): directory indexing surface for agent tooling and x402 directories
 
 ## Integration guides
 

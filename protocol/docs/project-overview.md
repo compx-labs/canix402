@@ -164,7 +164,7 @@ A premium paid route (0.05 USDC) that tunes results to a specific wallet:
 
 The API publishes two free discovery surfaces:
 
-- `GET /discovery`: canonical machine-readable catalog for agent/bazaar indexing.
+- `GET /discovery`: canonical machine-readable catalog for agent and directory indexing.
 - `GET /openapi.json`: OpenAPI contract for client/tooling generation.
 
 Discovery guarantees:

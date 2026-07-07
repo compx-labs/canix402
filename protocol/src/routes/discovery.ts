@@ -73,6 +73,21 @@ export function registerDiscoveryRoutes(app: FastifyInstance) {
   );
 
   app.get(
+    "/.well-known/x402",
+    {
+      schema: {
+        response: {
+          200: Type.Object({
+            version: Type.Literal(1),
+            resources: Type.Array(Type.String())
+          })
+        }
+      }
+    },
+    async () => buildWellKnownX402FanOut()
+  );
+
+  app.get(
     "/.well-known/x402.json",
     {
       schema: {
@@ -186,6 +201,23 @@ interface X402DiscoveryManifest {
     };
     x402: ReturnType<typeof getX402EndpointMetadata>;
   }>;
+}
+
+function buildWellKnownX402FanOut(): { version: 1; resources: string[] } {
+  const publicBaseUrl = trimTrailingSlash(
+    process.env.X402_PUBLIC_BASE_URL
+      ?? process.env.PUBLIC_GATEWAY_BASE_URL
+      ?? DEFAULT_PUBLIC_BASE_URL
+  );
+  const paidEndpoints = endpointPolicyMatrix.filter((endpoint) => endpoint.access === "paid");
+
+  return {
+    version: 1,
+    resources: paidEndpoints.map((endpoint) => {
+      const path = endpoint.pathPattern.replace(":protocol", "{protocol}");
+      return `${publicBaseUrl}${path}`;
+    })
+  };
 }
 
 function buildX402Manifest(): X402DiscoveryManifest {

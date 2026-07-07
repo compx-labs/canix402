@@ -47,6 +47,14 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     tags: ["discovery", "openapi"]
   },
   {
+    id: "x402WellKnown",
+    method: "GET",
+    pathPattern: "/.well-known/x402",
+    access: "free",
+    summary: "x402scan-compatible discovery fan-out document",
+    tags: ["discovery", "agents", "x402"]
+  },
+  {
     id: "x402Manifest",
     method: "GET",
     pathPattern: "/.well-known/x402.json",
@@ -176,6 +184,7 @@ const freePathMatchers = [
   /^\/metadata$/,
   /^\/discovery$/,
   /^\/openapi\.json$/,
+  /^\/\.well-known\/x402$/,
   /^\/\.well-known\/x402\.json$/
 ];
 

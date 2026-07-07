@@ -109,7 +109,7 @@ Status legend:
 
 - [x] Validate paid flow end-to-end in a production-like environment.
 - [~] Run protocol accuracy checks against source systems (live smoke tests for Tinyman/Pact; CompX/Dork.fi/Folks pending).
-- [~] Confirm API consumer onboarding documentation is complete (website built; production deploy pending).
+- [~] Confirm API consumer onboarding documentation is complete (website live; compx.io cross-link pending).
 - [ ] Publish versioned API contract for first release.
 - [ ] Complete launch checklist sign-off.
 
@@ -117,7 +117,7 @@ Status legend:
 
 Simple human-facing site so developers and operators can quickly set up an agent to use canix402. Implemented in the monorepo `website/` workspace (Astro static site). Linked from the main [compx.io](https://compx.io) site; likely hosted as a subdomain on that domain.
 
-- [~] Confirm subdomain and hosting approach (e.g. `canix402.compx.io`; deployment settings documented in `website/README.md`).
+- [~] Confirm subdomain and hosting approach (`canix402.compx.io`; deployment settings in `website/README.md` and `docs/deployment-do-app-platform.md`).
 - [x] Define site content outline:
   - [x] What canix402 provides and supported protocols
   - [x] Discovery flow (`/discovery`, `/openapi.json`)
@@ -129,7 +129,7 @@ Simple human-facing site so developers and operators can quickly set up an agent
 - [x] Link live discovery/OpenAPI URLs from the site.
 - [x] Add copy-paste setup examples (curl snippets for first paid call).
 - [ ] Add navigation/link from main compx.io website.
-- [ ] Deploy site to production subdomain.
+- [~] Deploy site to production subdomain (live at `canix402.compx.io`; redeploy after doc/trust/llms changes).
 
 ## Ongoing Maintenance
 
@@ -153,16 +153,17 @@ Simple human-facing site so developers and operators can quickly set up an agent
 - [ ] Add MCP server.
   - [ ] Include tools for `discover_opportunities`, `build_strategy`, `get_transaction_group`, and `simulate_strategy`.
   - [ ] Link MCP server from docs and manifest.
-- [~] Enable Bazaar indexing.
+- [~] Enable GoPlausible facilitator catalog visibility (optional).
   - [x] Ensure endpoint uses supported x402 discovery metadata (`/discovery`, OpenAPI `x-x402`, and `.well-known/x402.json` exist).
-  - [~] Run at least one successful paid request via facilitator (`npm run test:x402-production -w protocol` with `X402_PRODUCTION_PAID_TEST=1`; record result for Bazaar evidence).
-  - [ ] Verify the API appears in Coinbase Bazaar.
+  - [x] Run at least one successful paid request via facilitator (`npm run test:x402-production -w protocol` with `X402_PRODUCTION_PAID_TEST=1`).
+  - [ ] Verify the API appears in GoPlausible facilitator discovery (`GET https://facilitator.goplausible.xyz/discovery/resources`, filter for `canix402-api.compx.io`).
+  - [x] Coinbase CDP Bazaar — out of scope (requires CDP facilitator; production uses GoPlausible).
 - [ ] Submit manually where needed.
-  - [ ] x402Scan "Add your API".
+  - [~] x402Scan "Add your API" (requires `info.contact.email` in `/openapi.json`; redeploy protocol after OpenAPI update).
   - [ ] Awesome x402 GitHub PR.
   - [ ] Any curated directories worth targeting.
 - [~] Add trust metadata.
-  - [ ] GitHub repo/docs link.
+  - [x] GitHub repo/docs link — N/A (private repo; public docs at `canix402.compx.io`).
   - [x] Contact/support email.
   - [x] Version number.
   - [x] Terms/risk disclaimer.
