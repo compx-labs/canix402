@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+  push:
+    branches:
+      - dev
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  protocol_checks:
+    name: Protocol checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.x"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck protocol
+        run: npm run typecheck:protocol
+
+      - name: Run protocol integration tests
+        run: npm run test -w protocol
+
+      - name: Install xcaddy
+        run: |
+          go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Build Caddy x402 binary
+        run: npm run build:caddy-x402 -w protocol
+
+      - name: Run x402 Caddy E2E tests
+        run: npm run test:x402-e2e -w protocol
+
+      - name: Run Caddy module tests
+        run: go test ./...
+        working-directory: protocol/caddy
+
+  website_checks:
+    name: Website checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck website
+        run: npm run typecheck:website
+
+      - name: Build website
+        run: npm run build:website
+
+  docker_smoke:
+    name: Docker build smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build protocol image
+        run: docker build -f protocol/Dockerfile protocol
+
+      - name: Build caddy image
+        run: docker build -f protocol/caddy/Dockerfile protocol/caddy

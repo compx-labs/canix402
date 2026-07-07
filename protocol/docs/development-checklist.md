@@ -92,8 +92,10 @@ Status legend:
 - [x] Integration tests for route behavior and payment gating.
 - [x] Contract tests for response schema stability (`/discovery`, `/openapi.json`).
 - [x] Caddy x402 end-to-end tests (`npm run test:x402-e2e`).
-- [ ] Add CI checks (typecheck, lint, tests).
-- [ ] Define minimum quality gate before deploy.
+- [x] Add CI checks (typecheck, tests, Docker build smoke) via GitHub Actions (`.github/workflows/ci.yml`).
+- [~] Define minimum quality gate before deploy.
+  - [x] Require deterministic CI checks for PR merges to `dev` and `main` (`Protocol checks`, `Website checks`, `Docker build smoke`).
+  - [x] Add production smoke workflow for live health/discovery/x402 preflight without paid settlement (`.github/workflows/production-smoke.yml`).
 
 ## 9) Deployment and Operations
 

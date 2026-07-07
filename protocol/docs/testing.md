@@ -85,6 +85,39 @@ This runs:
 1. integration tests
 2. x402 Caddy E2E tests
 
+## CI Lanes
+
+GitHub Actions now runs two different lanes:
+
+### Deterministic merge checks (`.github/workflows/ci.yml`)
+
+Triggered on PRs/pushes to `dev` and `main`.
+
+Includes:
+
+- protocol typecheck
+- protocol integration tests
+- Caddy x402 binary build + E2E tests
+- Caddy module `go test ./...`
+- website typecheck + build
+- protocol/caddy Docker build smoke
+
+These checks are intended to be required merge gates.
+
+### Production smoke (`.github/workflows/production-smoke.yml`)
+
+Triggered manually and on a daily schedule.
+
+Includes free live endpoint verification against the deployed API:
+
+- `/health`
+- `/discovery`
+- `/.well-known/x402.json`
+- `/openapi.json`
+- `/opportunities` preflight (`402` + `PAYMENT-REQUIRED`)
+
+No paid settlement is executed in this smoke workflow.
+
 ## Build and type checks
 
 Before merging, also run:
@@ -160,6 +193,9 @@ Configuration source for the live suite:
   - `X402_ALGOD_URL` (default: `https://mainnet-api.algonode.cloud`)
   - `X402_ALGOD_TOKEN` (default: empty string)
 - never commit mnemonic values to the repository
+
+These live suites are intentionally excluded from default PR CI because they are
+environment-sensitive and can incur paid request cost.
 
 ## Troubleshooting
 

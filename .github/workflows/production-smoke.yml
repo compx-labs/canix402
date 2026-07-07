@@ -1,0 +1,84 @@
+name: Production Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_base_url:
+        description: "Public API base URL (no trailing slash)"
+        required: false
+        default: "https://canix402-api.compx.io"
+  schedule:
+    - cron: "17 6 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-smoke-${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: Public API smoke checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      API_BASE_URL: ${{ github.event.inputs.api_base_url }}
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run smoke checks
+        run: |
+          node <<'EOF'
+          const baseUrl =
+            (process.env.API_BASE_URL || "https://canix402-api.compx.io").replace(/\/+$/, "");
+          if (!baseUrl) throw new Error("API_BASE_URL is required");
+
+          async function fetchJson(path, expectedStatus = 200) {
+            const response = await fetch(`${baseUrl}${path}`);
+            if (response.status !== expectedStatus) {
+              throw new Error(`${path}: expected ${expectedStatus}, got ${response.status}`);
+            }
+            const body = await response.json();
+            return { response, body };
+          }
+
+          const health = await fetchJson("/health");
+          if (health.body?.data?.service !== "canix402" || health.body?.data?.status !== "ok") {
+            throw new Error("/health response schema mismatch");
+          }
+
+          const discovery = await fetchJson("/discovery");
+          if (!Array.isArray(discovery.body?.data?.endpoints) || discovery.body.data.endpoints.length === 0) {
+            throw new Error("/discovery endpoints missing");
+          }
+
+          const manifest = await fetchJson("/.well-known/x402.json");
+          if (manifest.body?.openapiUrl !== `${baseUrl}/openapi.json`) {
+            throw new Error(`manifest openapiUrl mismatch: ${manifest.body?.openapiUrl}`);
+          }
+          if (manifest.body?.discoveryUrl !== `${baseUrl}/discovery`) {
+            throw new Error(`manifest discoveryUrl mismatch: ${manifest.body?.discoveryUrl}`);
+          }
+
+          const openapi = await fetchJson("/openapi.json");
+          const servers = Array.isArray(openapi.body?.servers) ? openapi.body.servers : [];
+          const hasBaseServer = servers.some((entry) => entry?.url === baseUrl);
+          if (!hasBaseServer) {
+            throw new Error(`/openapi.json missing server URL ${baseUrl}`);
+          }
+
+          const paidPreflight = await fetch(`${baseUrl}/opportunities`);
+          if (paidPreflight.status !== 402) {
+            throw new Error(`/opportunities: expected 402 preflight, got ${paidPreflight.status}`);
+          }
+          const paymentRequired = paidPreflight.headers.get("payment-required");
+          if (!paymentRequired) {
+            throw new Error("/opportunities missing payment-required header");
+          }
+
+          console.log("Production smoke checks passed.");
+          EOF
