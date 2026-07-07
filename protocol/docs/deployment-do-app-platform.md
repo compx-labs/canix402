@@ -25,7 +25,7 @@ production Dockerfile, and production `Caddyfile` all live in `protocol/caddy/`.
 See `protocol/caddy/.env.example`. Required for production:
 
 ```env
-CADDY_SITE_ADDRESS=canix402-api.compx.io
+CADDY_SITE_ADDRESS=:8080
 UPSTREAM_API=http://<protocol-component-name>:3000
 FACILITATOR_URL=https://facilitator.goplausible.xyz
 X402_PAY_TO=<your-address>
@@ -39,6 +39,10 @@ X402_SCHEME=exact
 
 `UPSTREAM_API` must use the protocol component's **internal** hostname on App
 Platform (for example `http://canix402-protocol:3000`), not `localhost`.
+
+`CADDY_SITE_ADDRESS` should bind to the container port (`:8080`) rather than the
+public domain. DigitalOcean and Cloudflare handle the external hostname and TLS
+before traffic reaches the container.
 
 ### DO routing
 

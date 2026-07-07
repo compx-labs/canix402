@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+
 :root {
   color-scheme: dark;
   --color-bg: #020202;
@@ -9,8 +11,10 @@
   --color-text: #f5f5f5;
   --color-muted: #a7a7a7;
   --color-success: #7dffb2;
-  --font-sans: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --font-body: "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --font-ui: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-body);
   --max-width: 1120px;
   --glow: 0 0 24px rgba(255, 16, 26, 0.18);
 }
@@ -28,8 +32,23 @@ body {
     radial-gradient(circle at top, rgba(255, 16, 26, 0.08), transparent 32%),
     var(--color-bg);
   color: var(--color-text);
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   line-height: 1.6;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.brand-link,
+.site-nav,
+.eyebrow,
+.button,
+.badge,
+.endpoint-table th {
+  font-family: var(--font-ui);
 }
 
 a {
