@@ -1,0 +1,275 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { config } from "../lib/config";
+---
+
+<BaseLayout
+  title="Live Transactions | CANIX402"
+  description="Live inbound USDC payments to the CANIX402 x402 pay-to wallet. Shows the latest 30 received payments under 1 USDC, refreshed every 2 minutes."
+  keywords="Canix402 transactions, x402 payments, USDC, Algorand, live payments, pay-to wallet"
+>
+  <h1 class="page-title">Live Transactions</h1>
+  <p class="muted page-lead">
+    Inbound USDC payments received by the CANIX402 x402 pay-to wallet. Only payments
+    under 1 USDC are shown. Data is sourced from the Algorand Indexer and refreshed
+    every 2 minutes.
+  </p>
+
+  <div class="transactions-meta panel">
+    <p>
+      <strong>Pay-to wallet:</strong>
+      <code id="pay-to-address" class="transactions-address" title={config.payToAddress}>
+        {config.payToAddress}
+      </code>
+    </p>
+    <p id="transactions-status" class="transactions-status muted" aria-live="polite">
+      Loading transactions…
+    </p>
+  </div>
+
+  <div class="transactions-table-wrap">
+    <table class="endpoint-table transactions-table" aria-label="Recent inbound USDC payments">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Amount</th>
+          <th>Sender</th>
+          <th>Round</th>
+          <th>Transaction</th>
+        </tr>
+      </thead>
+      <tbody id="transactions-body">
+        <tr>
+          <td colspan="5" class="muted">Loading…</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</BaseLayout>
+
+<script
+  is:inline
+  define:vars={{
+    txPageConfig: JSON.stringify({
+      payToAddress: config.payToAddress,
+      usdcAssetId: config.usdcAssetId,
+      indexerUrl: config.indexerBaseUrl,
+      txExplorerBase: config.alloTxBaseUrl,
+      pollMs: config.transactionsRefreshMs
+    })
+  }}
+>
+  const { payToAddress, usdcAssetId, indexerUrl, txExplorerBase, pollMs } =
+    JSON.parse(txPageConfig);
+  const ONE_USDC_MICRO = 1_000_000;
+  const MAX_ROWS = 30;
+  const PAGE_SIZE = 50;
+  const MAX_PAGES = 10;
+  /** @type {ReturnType<typeof setInterval> | null} */
+  let refreshTimer = null;
+
+  /**
+   * @param {string} address
+   */
+  function truncateAddress(address) {
+    if (address.length <= 16) return address;
+    return `${address.slice(0, 8)}…${address.slice(-8)}`;
+  }
+
+  /**
+   * @param {number} microUsdc
+   */
+  function formatUsdc(microUsdc) {
+    const value = microUsdc / ONE_USDC_MICRO;
+    return `${value.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 6
+    })} USDC`;
+  }
+
+  /**
+   * @param {number} unixSeconds
+   */
+  function formatTime(unixSeconds) {
+    return new Date(unixSeconds * 1000).toLocaleString(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short"
+    });
+  }
+
+  /**
+   * @param {string} txid
+   */
+  function alloTxUrl(txid) {
+    return `${txExplorerBase}/${txid}`;
+  }
+
+  /**
+   * @param {Record<string, unknown>} txn
+   */
+  function isValidInboundPayment(txn) {
+    if (txn["tx-type"] !== "axfer") return false;
+
+    const transfer = /** @type {Record<string, unknown> | undefined} */ (
+      txn["asset-transfer-transaction"]
+    );
+    if (!transfer) return false;
+
+    const receiver = transfer.receiver;
+    const assetId = String(transfer["asset-id"] ?? "");
+    const amount = Number(transfer.amount ?? 0);
+
+    if (!payToAddress || receiver !== payToAddress) return false;
+    if (!usdcAssetId || assetId !== usdcAssetId) return false;
+    if (amount <= 0 || amount >= ONE_USDC_MICRO) return false;
+
+    return true;
+  }
+
+  /**
+   * @param {Record<string, unknown>} txn
+   */
+  function toRow(txn) {
+    const transfer = /** @type {Record<string, unknown>} */ (
+      txn["asset-transfer-transaction"]
+    );
+    const txid = String(txn.id ?? "");
+    const sender = String(txn.sender ?? "");
+    const round = Number(txn["confirmed-round"] ?? 0);
+    const roundTime = Number(txn["round-time"] ?? 0);
+    const amount = Number(transfer.amount ?? 0);
+
+    return {
+      txid,
+      sender,
+      round,
+      roundTime,
+      amount,
+      url: alloTxUrl(txid)
+    };
+  }
+
+  /**
+   * @param {string} message
+   * @param {boolean} [isError]
+   */
+  function setStatus(message, isError = false) {
+    const statusEl = document.getElementById("transactions-status");
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.classList.toggle("transactions-status-error", isError);
+  }
+
+  /**
+   * @param {string} message
+   */
+  function renderEmpty(message) {
+    const tbody = document.getElementById("transactions-body");
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="5" class="muted">${message}</td></tr>`;
+  }
+
+  /**
+   * @param {Array<{ txid: string; sender: string; round: number; roundTime: number; amount: number; url: string }>} rows
+   */
+  function renderRows(rows) {
+    const tbody = document.getElementById("transactions-body");
+    if (!tbody) return;
+
+    if (rows.length === 0) {
+      renderEmpty("No inbound USDC payments under 1 USDC found.");
+      return;
+    }
+
+    tbody.innerHTML = rows
+      .map(
+        (row) => `<tr>
+          <td>${formatTime(row.roundTime)}</td>
+          <td>${formatUsdc(row.amount)}</td>
+          <td><code class="transactions-address" title="${row.sender}">${truncateAddress(row.sender)}</code></td>
+          <td>${row.round.toLocaleString()}</td>
+          <td><a href="${row.url}" target="_blank" rel="noopener noreferrer">${truncateAddress(row.txid)}</a></td>
+        </tr>`
+      )
+      .join("");
+  }
+
+  async function fetchTransactions() {
+    /** @type {Array<ReturnType<typeof toRow>>} */
+    const collected = [];
+    /** @type {string | undefined} */
+    let nextToken;
+
+    for (let page = 0; page < MAX_PAGES && collected.length < MAX_ROWS; page += 1) {
+      const params = new URLSearchParams({
+        "asset-id": usdcAssetId,
+        "tx-type": "axfer",
+        "address-role": "receiver",
+        "currency-greater-than": "0",
+        "currency-less-than": String(ONE_USDC_MICRO),
+        limit: String(PAGE_SIZE)
+      });
+
+      if (nextToken) {
+        params.set("next", nextToken);
+      }
+
+      const url = `${indexerUrl}/v2/accounts/${payToAddress}/transactions?${params.toString()}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Indexer request failed (${response.status})`);
+      }
+
+      const payload = await response.json();
+      const transactions = Array.isArray(payload.transactions) ? payload.transactions : [];
+
+      for (const txn of transactions) {
+        if (isValidInboundPayment(txn)) {
+          collected.push(toRow(txn));
+          if (collected.length >= MAX_ROWS) break;
+        }
+      }
+
+      nextToken = payload["next-token"];
+      if (!nextToken || transactions.length === 0) break;
+    }
+
+    return collected.slice(0, MAX_ROWS);
+  }
+
+  async function refreshTransactions() {
+    try {
+      setStatus("Fetching latest transactions…");
+      const rows = await fetchTransactions();
+      renderRows(rows);
+
+      const refreshedAt = new Date().toLocaleString(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short"
+      });
+      setStatus(
+        `Showing ${rows.length} payment${rows.length === 1 ? "" : "s"} under 1 USDC. Last refreshed ${refreshedAt}.`
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      setStatus(`Unable to load transactions: ${message}`, true);
+      renderEmpty("Unable to load transactions.");
+    }
+  }
+
+  function startAutoRefresh() {
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
+    }
+    refreshTimer = setInterval(refreshTransactions, pollMs);
+  }
+
+  refreshTransactions();
+  startAutoRefresh();
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      refreshTransactions();
+    }
+  });
+</script>

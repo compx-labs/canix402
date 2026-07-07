@@ -16,6 +16,7 @@ Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. D
 - [x402 payment flow](https://canix402.compx.io/x402): preflight 402, sign USDC transfer, retry with PAYMENT-SIGNATURE
 - [Examples](https://canix402.compx.io/examples): copy-paste curl and sample payloads
 - [Endpoint catalog](https://canix402.compx.io/endpoints): human-readable route table sourced from discovery
+- [Live transactions](https://canix402.compx.io/transactions): recent inbound USDC payments to the x402 pay-to wallet
 
 ## Paid data routes
 

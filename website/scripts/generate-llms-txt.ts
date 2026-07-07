@@ -112,6 +112,7 @@ Use the **Caddy gateway** (\`${GATEWAY}\`) for all API calls. Discovery and Open
 - [x402 payment flow](${docs}/x402): preflight 402, sign USDC transfer, retry with PAYMENT-SIGNATURE
 - [Examples](${docs}/examples): copy-paste curl and sample payloads
 - [Endpoint catalog](${docs}/endpoints): human-readable route table sourced from discovery
+- [Live transactions](${docs}/transactions): recent inbound USDC payments to the x402 pay-to wallet
 
 ## Paid data routes
 
