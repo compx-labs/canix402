@@ -4,6 +4,12 @@
     "title": "canix402 API",
     "version": "0.1.0",
     "description": "x402-gated Algorand DeFi opportunities data API. Numeric yield/USD fields (apy, apr, tvlUsd) are returned with a standard precision of 6 decimal places, extended up to 12 decimal places only when needed to represent small non-zero values. Asset decimals are always sourced on-chain from algod.",
+    "contact": {
+      "name": "Neon Forge Ltd",
+      "email": "kieran@neonforge.ltd",
+      "url": "https://canix402.compx.io"
+    },
+    "x-guidance": "Use the gateway base URL in servers[0]. Fetch /discovery and /openapi.json before integrating. Paid routes return HTTP 402 with PAYMENT-REQUIRED; sign a USDC ASA transfer client-side and retry with PAYMENT-SIGNATURE. Human and LLM docs: https://canix402.compx.io/llms.txt",
     "x-precision": {
       "fields": ["apy", "apr", "tvlUsd"],
       "defaultDecimalPlaces": 6,
@@ -16,11 +22,16 @@
       "url": "https://canix402-api.compx.io"
     }
   ],
+  "x-discovery": {
+    "docsUrl": "https://canix402.compx.io/x402",
+    "llmsTxtUrl": "https://canix402.compx.io/llms.txt"
+  },
   "paths": {
     "/health": {
       "get": {
         "summary": "Service health check",
         "tags": ["system"],
+        "security": [],
         "responses": {
           "200": {
             "description": "OK",
@@ -40,6 +51,7 @@
       "get": {
         "summary": "Service metadata and policy surface",
         "tags": ["system", "discovery"],
+        "security": [],
         "responses": {
           "200": {
             "description": "Metadata",
@@ -59,6 +71,7 @@
       "get": {
         "summary": "Machine-readable endpoint catalog for agents",
         "tags": ["discovery", "agents"],
+        "security": [],
         "responses": {
           "200": {
             "description": "Discovery document",
@@ -78,6 +91,7 @@
       "get": {
         "summary": "OpenAPI contract document",
         "tags": ["discovery", "openapi"],
+        "security": [],
         "responses": {
           "200": {
             "description": "OpenAPI JSON",
@@ -94,6 +108,7 @@
       "get": {
         "summary": "x402 discovery manifest for agent and directory indexing",
         "tags": ["discovery", "agents", "x402"],
+        "security": [],
         "responses": {
           "200": {
             "description": "x402 discovery manifest",
@@ -183,6 +198,33 @@
         }
       }
     },
+    "/.well-known/x402": {
+      "get": {
+        "summary": "x402scan-compatible discovery fan-out document",
+        "tags": ["discovery", "agents", "x402"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Paid resource URL list for directory registration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["version", "resources"],
+                  "properties": {
+                    "version": { "type": "integer", "const": 1 },
+                    "resources": {
+                      "type": "array",
+                      "items": { "type": "string", "format": "uri" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/opportunities": {
       "get": {
         "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
@@ -208,6 +250,10 @@
           },
           "402": { "$ref": "#/components/responses/PaymentRequired" },
           "500": { "$ref": "#/components/responses/InternalError" }
+        },
+        "x-payment-info": {
+          "protocols": ["x402"],
+          "price": { "mode": "fixed", "currency": "USD", "amount": "0.01" }
         },
         "x-x402": {
           "protocolVersion": 2,
@@ -270,6 +316,10 @@
           "402": { "$ref": "#/components/responses/PaymentRequired" },
           "500": { "$ref": "#/components/responses/InternalError" }
         },
+        "x-payment-info": {
+          "protocols": ["x402"],
+          "price": { "mode": "fixed", "currency": "USD", "amount": "0.01" }
+        },
         "x-x402": {
           "protocolVersion": 2,
           "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
@@ -315,6 +365,10 @@
           "400": { "$ref": "#/components/responses/InvalidAddress" },
           "402": { "$ref": "#/components/responses/PaymentRequired" },
           "500": { "$ref": "#/components/responses/InternalError" }
+        },
+        "x-payment-info": {
+          "protocols": ["x402"],
+          "price": { "mode": "fixed", "currency": "USD", "amount": "0.05" }
         },
         "x-x402": {
           "protocolVersion": 2,
@@ -362,6 +416,10 @@
           },
           "402": { "$ref": "#/components/responses/PaymentRequired" },
           "500": { "$ref": "#/components/responses/InternalError" }
+        },
+        "x-payment-info": {
+          "protocols": ["x402"],
+          "price": { "mode": "fixed", "currency": "USD", "amount": "0.01" }
         },
         "x-x402": {
           "protocolVersion": 2,

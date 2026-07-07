@@ -8,7 +8,7 @@ Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. D
 
 - [Discovery](https://canix402-api.compx.io/discovery): endpoint catalog, x402 prices, error codes, facilitator metadata
 - [OpenAPI](https://canix402-api.compx.io/openapi.json): schemas, query parameters, response examples
-- [x402 manifest](https://canix402-api.compx.io/.well-known/x402.json): directory indexing surface for Bazaar and agent tooling
+- [x402 manifest](https://canix402-api.compx.io/.well-known/x402.json): directory indexing surface for agent tooling and x402 directories
 
 ## Integration guides
 

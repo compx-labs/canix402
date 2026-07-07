@@ -6,6 +6,8 @@ import { endpointPolicyMatrix } from "../../src/services/payment-policy.js";
 
 interface OpenApiOperation {
   "x-x402"?: unknown;
+  "x-payment-info"?: unknown;
+  security?: unknown[];
 }
 
 interface OpenApiDocument {
@@ -55,7 +57,21 @@ test("paid operations expose x-x402 metadata", async () => {
     const operation = openapi.paths[openapiPath]?.get;
     assert.ok(operation);
     assert.ok(operation?.["x-x402"]);
+    assert.ok(operation?.["x-payment-info"]);
   }
+
+  const freePolicyEndpoints = endpointPolicyMatrix.filter(
+    (endpoint) => endpoint.access === "free"
+  );
+
+  for (const endpoint of freePolicyEndpoints) {
+    const openapiPath = endpoint.pathPattern.replace(":protocol", "{protocol}");
+    const operation = openapi.paths[openapiPath]?.get;
+    assert.ok(operation);
+    assert.deepEqual(operation?.security, []);
+  }
+
+  assert.equal(typeof (openapi as { info?: { contact?: { email?: string } } }).info?.contact?.email, "string");
 
   await app.close();
 });

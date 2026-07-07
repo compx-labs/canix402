@@ -124,3 +124,22 @@ test("paid discovery endpoints include complete x402 descriptors", async () => {
 
   await app.close();
 });
+
+test("well-known x402 fan-out lists paid resource URLs", async () => {
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "GET",
+    url: "/.well-known/x402"
+  });
+
+  assert.equal(response.statusCode, 200);
+
+  const payload = response.json() as { version: 1; resources: string[] };
+  assert.equal(payload.version, 1);
+  assert.equal(payload.resources.length, 4);
+  assert.equal(payload.resources.every((url) => url.startsWith("https://canix402-api.compx.io/")), true);
+
+  await app.close();
+});
