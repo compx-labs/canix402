@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "generate:llms": "tsx scripts/generate-llms-txt.ts",
+    "predev": "npm run generate:llms",
+    "prebuild": "npm run generate:llms",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
@@ -16,6 +19,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }
 }

@@ -1,0 +1,84 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../lib/config.js";
+---
+
+<BaseLayout
+  title="Terms & Disclaimer | CANIX402"
+  description="Terms of use and risk disclaimer for the Canix402 x402-gated Algorand DeFi opportunities data API."
+  keywords="Canix402 terms, disclaimer, risk, x402 API"
+>
+  <h1 class="page-title">Terms &amp; Disclaimer</h1>
+  <p class="page-lead">
+    Last updated: July 2026. These terms apply to use of the Canix402 API and this
+    documentation site.
+  </p>
+
+  <div class="prose-section">
+    <h2>Informational service only</h2>
+    <p>
+      Canix402 provides machine-readable DeFi opportunity data for developers and
+      autonomous agents. Nothing on this site or returned by the API constitutes
+      financial, investment, tax, or legal advice.
+    </p>
+
+    <h2>No guarantees on data</h2>
+    <p>
+      Yield figures (APY, APR), TVL, and related metrics are sourced from third-party
+      protocols and normalized for agent consumption. Data may be delayed, incomplete,
+      or inaccurate. We do not guarantee correctness, completeness, or timeliness of
+      any response.
+    </p>
+
+    <h2>Use at your own risk</h2>
+    <p>
+      You are solely responsible for evaluating data before acting on it, including
+      any on-chain transactions your agent or wallet performs. DeFi protocols carry
+      smart-contract, liquidity, oracle, and market risks that this API does not
+      assess or mitigate.
+    </p>
+
+    <h2>x402 payments</h2>
+    <p>
+      Paid endpoints require USDC micropayments via the x402 protocol. Payments are
+      processed through third-party facilitators and blockchain networks. Fees paid
+      for API access are generally non-refundable. Failed requests due to client
+      errors, invalid payment proofs, or upstream unavailability do not entitle you to
+      a refund unless required by applicable law.
+    </p>
+
+    <h2>Third-party services</h2>
+    <p>
+      The API aggregates data from independent Algorand DeFi protocols and relies on
+      external infrastructure (facilitators, RPC nodes, hosting providers). We are not
+      responsible for outages, policy changes, or actions of those third parties.
+    </p>
+
+    <h2>Availability</h2>
+    <p>
+      The API and this site are provided on an &ldquo;as is&rdquo; and &ldquo;as
+      available&rdquo; basis without warranties of any kind, express or implied,
+      including merchantability or fitness for a particular purpose.
+    </p>
+
+    <h2>Limitation of liability</h2>
+    <p>
+      To the fullest extent permitted by law, {site.operator} and its operators shall
+      not be liable for any indirect, incidental, special, or consequential damages
+      arising from use of the API or reliance on its data, including loss of funds
+      or missed opportunities.
+    </p>
+
+    <h2>Changes</h2>
+    <p>
+      We may update pricing, endpoints, data schemas, or these terms at any time.
+      Continued use after changes constitutes acceptance of the updated terms.
+    </p>
+
+    <h2>Contact</h2>
+    <p>
+      Questions about these terms or the service:
+      <a href={`mailto:${site.supportEmail}`}>{site.supportEmail}</a>
+    </p>
+  </div>
+</BaseLayout>

@@ -2,7 +2,11 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="FAQ | CANIX402" description="Frequently asked questions about canix402 agent onboarding.">
+<BaseLayout
+  title="FAQ | CANIX402"
+  description="Answers to common Canix402 questions: gateway vs upstream API, 402 preflight behavior, client-side payment signing, USDC asset metadata, and API-only data access."
+  keywords="Canix402 FAQ, x402 questions, agent integration, USDC asset id, gateway, payment signing"
+>
   <h1 class="page-title">FAQ</h1>
 
   <div class="faq-list">
@@ -52,7 +56,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       <p>
         Run the protocol API and Caddy gateway from the monorepo, then point website env vars to
         your local gateway URL during development. Production API references in this site use
-        <code>https://api.canix402.compx.io</code>.
+        <code>https://canix402-api.compx.io</code>.
       </p>
     </article>
   </div>

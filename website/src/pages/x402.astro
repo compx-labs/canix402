@@ -5,7 +5,11 @@ import CodeBlock from "../components/CodeBlock.astro";
 import { config } from "../lib/config";
 ---
 
-<BaseLayout title="x402 Payment Flow | CANIX402" description="How x402 payment works for canix402 paid routes.">
+<BaseLayout
+  title="x402 Payment Flow | CANIX402"
+  description="Learn how x402 USDC payment works for Canix402 paid routes: 402 preflight, PAYMENT-REQUIRED headers, wallet signing, gateway verification, and per-route pricing."
+  keywords="x402 payment flow, Canix402, USDC payments, PAYMENT-SIGNATURE, Algorand, gateway settlement"
+>
   <h1 class="page-title">x402 payment flow</h1>
   <p class="muted">
     Payment enforcement happens at the Caddy gateway. The API publishes payment requirements through

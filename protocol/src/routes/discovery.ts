@@ -12,8 +12,9 @@ import {
 import { ApiSuccess } from "../types/api.js";
 import { DiscoveryDocument, DiscoveryEndpointDescriptor } from "../types/discovery.js";
 
-const DEFAULT_PUBLIC_BASE_URL = "https://api.canix402.compx.io";
+const DEFAULT_PUBLIC_BASE_URL = "https://canix402-api.compx.io";
 const DEFAULT_DOCS_URL = "https://canix402.compx.io/x402";
+const DEFAULT_LLMS_TXT_URL = "https://canix402.compx.io/llms.txt";
 
 const discoveryReplySchema = Type.Object({
   data: Type.Object({
@@ -34,6 +35,7 @@ const x402ManifestReplySchema = Type.Object({
   description: Type.String(),
   x402Version: Type.Literal(2),
   docsUrl: Type.String(),
+  llmsTxtUrl: Type.String(),
   openapiUrl: Type.String(),
   discoveryUrl: Type.String(),
   facilitator: Type.String(),
@@ -156,6 +158,7 @@ interface X402DiscoveryManifest {
   description: string;
   x402Version: 2;
   docsUrl: string;
+  llmsTxtUrl: string;
   openapiUrl: string;
   discoveryUrl: string;
   facilitator: string;
@@ -193,6 +196,8 @@ function buildX402Manifest(): X402DiscoveryManifest {
   );
   const docsUrl =
     process.env.X402_DOCS_URL ?? process.env.PUBLIC_DOCS_URL ?? DEFAULT_DOCS_URL;
+  const llmsTxtUrl =
+    process.env.X402_LLMS_TXT_URL ?? process.env.PUBLIC_LLMS_TXT_URL ?? DEFAULT_LLMS_TXT_URL;
   const paidEndpoints = endpointPolicyMatrix.filter((endpoint) => endpoint.access === "paid");
   const defaultX402 = getX402EndpointMetadata();
 
@@ -204,6 +209,7 @@ function buildX402Manifest(): X402DiscoveryManifest {
       "x402-gated Algorand DeFi opportunities data API with USDC payment support.",
     x402Version: 2,
     docsUrl,
+    llmsTxtUrl,
     openapiUrl: `${publicBaseUrl}/openapi.json`,
     discoveryUrl: `${publicBaseUrl}/discovery`,
     facilitator: defaultX402.facilitator,

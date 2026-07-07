@@ -9,6 +9,7 @@ interface X402Manifest {
   service: "canix402";
   x402Version: 2;
   docsUrl: string;
+  llmsTxtUrl: string;
   openapiUrl: string;
   discoveryUrl: string;
   facilitator: string;
@@ -73,16 +74,17 @@ test("well-known x402 manifest lists paid resources and indexing links", async (
 
   assert.equal(manifest.service, "canix402");
   assert.equal(manifest.x402Version, 2);
-  assert.equal(manifest.openapiUrl, "https://api.canix402.compx.io/openapi.json");
-  assert.equal(manifest.discoveryUrl, "https://api.canix402.compx.io/discovery");
+  assert.equal(manifest.openapiUrl, "https://canix402-api.compx.io/openapi.json");
+  assert.equal(manifest.discoveryUrl, "https://canix402-api.compx.io/discovery");
   assert.equal(manifest.docsUrl, "https://canix402.compx.io/x402");
+  assert.equal(manifest.llmsTxtUrl, "https://canix402.compx.io/llms.txt");
   assert.equal(typeof manifest.facilitator, "string");
   assert.equal(manifest.chains[0]?.assets[0]?.symbol, "USDC");
   assert.deepEqual(manifestPaths, paidPolicyPaths);
 
   for (const resource of manifest.resources) {
     assert.equal(resource.method, "GET");
-    assert.equal(resource.url.startsWith("https://api.canix402.compx.io/"), true);
+    assert.equal(resource.url.startsWith("https://canix402-api.compx.io/"), true);
     assert.equal(resource.price.currency, "USDC");
     assert.equal(typeof resource.price.amount, "string");
     assert.ok(resource.x402);

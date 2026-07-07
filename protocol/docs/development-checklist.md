@@ -148,14 +148,14 @@ Simple human-facing site so developers and operators can quickly set up an agent
   - [x] Publish `.well-known` manifest with resources, prices, chains/assets, facilitator, OpenAPI URL, and docs URL.
 - [x] Add human agent docs at `/agents` or `/x402`.
   - [~] Explain use cases, pricing, curl examples, and agent examples (basic `/x402`, quickstart, and examples pages exist; fuller agent examples still needed).
-- [ ] Add LLM docs at `/llms.txt` and `/llms-full.txt`.
-  - [ ] Summarize endpoints, schemas, and usage examples.
+- [x] Add LLM docs at `/llms.txt` and `/llms-full.txt`.
+  - [x] Summarize endpoints, schemas, and usage examples (build-time generator from discovery snapshot).
 - [ ] Add MCP server.
   - [ ] Include tools for `discover_opportunities`, `build_strategy`, `get_transaction_group`, and `simulate_strategy`.
   - [ ] Link MCP server from docs and manifest.
 - [~] Enable Bazaar indexing.
   - [x] Ensure endpoint uses supported x402 discovery metadata (`/discovery`, OpenAPI `x-x402`, and `.well-known/x402.json` exist).
-  - [~] Run at least one successful paid request via facilitator (live test exists; needs an intentionally configured successful run recorded).
+  - [~] Run at least one successful paid request via facilitator (`npm run test:x402-production -w protocol` with `X402_PRODUCTION_PAID_TEST=1`; record result for Bazaar evidence).
   - [ ] Verify the API appears in Coinbase Bazaar.
 - [ ] Submit manually where needed.
   - [ ] x402Scan "Add your API".
@@ -163,9 +163,9 @@ Simple human-facing site so developers and operators can quickly set up an agent
   - [ ] Any curated directories worth targeting.
 - [~] Add trust metadata.
   - [ ] GitHub repo/docs link.
-  - [ ] Contact/support email.
+  - [x] Contact/support email.
   - [x] Version number.
-  - [ ] Terms/risk disclaimer.
+  - [x] Terms/risk disclaimer.
   - [x] Example successful responses.
 - [ ] Add monitoring.
   - [ ] Track x402 requests, failed payments, successful settlements, referrers, and user agents.
