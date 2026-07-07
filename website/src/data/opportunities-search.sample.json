@@ -7,6 +7,7 @@
       "assetPair": "ALGO/USDC",
       "apr": 10.512,
       "apy": 12.5,
+      "yieldBasis": "apy",
       "tvlUsd": 2450000.5,
       "sourceTimestamp": "2026-07-06T09:00:00.000Z",
       "fetchedAt": "2026-07-06T09:00:00.000Z"

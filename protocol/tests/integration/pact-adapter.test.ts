@@ -23,6 +23,7 @@ test("normalizePactPool maps APY and TVL USD fields", () => {
   assert.equal(record?.opportunityType, "lp");
   assert.equal(record?.opportunityId, "pact-pool-1:lp");
   assert.equal(record?.apy, 8.75);
+  assert.equal(record?.yieldBasis, "apr");
   assert.equal(record?.tvlUsd, 950000);
   assert.equal(record?.apr, 6.2);
   assert.equal(record?.assetPair, "ALGO/USDC");
@@ -102,7 +103,9 @@ test("fetchPactOpportunities maps API payload and emits LP + farm records", asyn
     assert.equal(lp?.opportunityId, "pool-good:lp");
     assert.equal(farm?.opportunityId, "farm-good:farm");
     assert.equal(lp?.protocol, "pact");
+    assert.equal(lp?.yieldBasis, "apr");
     assert.equal(farm?.protocol, "pact");
+    assert.equal(farm?.yieldBasis, "apr");
     assert.equal(farm?.apy, 0.14);
     assert.equal(farm?.apr, 0.12);
   } finally {

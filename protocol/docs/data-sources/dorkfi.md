@@ -29,6 +29,7 @@ Other emitted fields:
 - `opportunityId`
 - `assetPair`
 - `assetIds` (optional; emitted only when `assetId` is a valid integer)
+- `yieldBasis` (always `apy`)
 - `sourceTimestamp`
 - `fetchedAt`
 - `notes` (only when fallback identifiers are used)
@@ -40,6 +41,7 @@ Other emitted fields:
 | `type` | `opportunityType` | Supported values: `lp`, `farm`, `staking`, `lending` |
 | `assetName` | `assetPair` | Falls back to `unknown` when missing |
 | `apy` | `apy` | Required; row dropped when invalid |
+| (adapter policy) | `yieldBasis` | Always `apy` |
 | `tvl` | `tvlUsd` | Required; row dropped when invalid |
 | `assetId` | `assetIds[0]` | Emitted only when valid non-negative integer |
 | `appId` + `assetId` + `type` + network | `opportunityId` | Stable synthesized identifier |

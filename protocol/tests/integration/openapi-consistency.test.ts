@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { buildApp } from "../../src/app.js";
+import { SupportedProtocolValues } from "../../src/routes/schemas.js";
 import { endpointPolicyMatrix } from "../../src/services/payment-policy.js";
+import { OpportunityRecordSchema } from "../../src/types/opportunity-schema.js";
 
 interface OpenApiOperation {
   "x-x402"?: unknown;
@@ -11,6 +13,9 @@ interface OpenApiOperation {
 }
 
 interface OpenApiDocument {
+  components: {
+    schemas: Record<string, { required?: string[]; properties?: Record<string, unknown> }>;
+  };
   paths: Record<string, { get?: OpenApiOperation }>;
 }
 
@@ -72,6 +77,41 @@ test("paid operations expose x-x402 metadata", async () => {
   }
 
   assert.equal(typeof (openapi as { info?: { contact?: { email?: string } } }).info?.contact?.email, "string");
+
+  await app.close();
+});
+
+test("opportunity record schema stays aligned with TypeBox contract", async () => {
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "GET",
+    url: "/openapi.json"
+  });
+  assert.equal(response.statusCode, 200);
+
+  const openapi = response.json() as OpenApiDocument;
+  const openapiRecord = openapi.components.schemas.OpportunityRecord;
+  assert.ok(openapiRecord);
+
+  const openapiRequired = [...(openapiRecord.required ?? [])].sort();
+  const typeboxRequired = [
+    ...((OpportunityRecordSchema as unknown as { required?: string[] }).required ?? [])
+  ].sort();
+  assert.deepEqual(openapiRequired, typeboxRequired);
+
+  const openapiProperties = openapiRecord.properties ?? {};
+  const protocolProperty = openapiProperties.protocol as { enum?: string[] } | undefined;
+  const opportunityTypeProperty = openapiProperties.opportunityType as { enum?: string[] } | undefined;
+  const yieldBasisProperty = openapiProperties.yieldBasis as { enum?: string[] } | undefined;
+  const assetIdsProperty = openapiProperties.assetIds as { type?: string } | undefined;
+
+  assert.deepEqual(protocolProperty?.enum, [...SupportedProtocolValues]);
+  assert.equal(protocolProperty?.enum?.includes("haystack"), false);
+  assert.deepEqual(opportunityTypeProperty?.enum, ["lp", "farm", "staking", "lending"]);
+  assert.deepEqual(yieldBasisProperty?.enum, ["apy", "apr"]);
+  assert.equal(assetIdsProperty?.type, "array");
 
   await app.close();
 });

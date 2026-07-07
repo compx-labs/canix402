@@ -27,6 +27,7 @@ test("normalizeDorkFiOpportunity maps Algorand lending rows", () => {
   assert.equal(record?.opportunityType, "lending");
   assert.equal(record?.assetPair, "USDC");
   assert.equal(record?.apy, 6.06);
+  assert.equal(record?.yieldBasis, "apy");
   assert.equal(record?.tvlUsd, 29846.609471);
   assert.deepEqual(record?.assetIds, [31566704]);
   assert.equal(

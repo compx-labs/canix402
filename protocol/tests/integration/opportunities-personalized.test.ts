@@ -296,6 +296,7 @@ function opportunity(
     assetPair: "TEST",
     ...(assetIds ? { assetIds } : {}),
     apy,
+    yieldBasis: "apy",
     tvlUsd,
     sourceTimestamp: "2026-06-18T00:00:00.000Z",
     fetchedAt: "2026-06-18T00:00:00.000Z"

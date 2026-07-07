@@ -36,6 +36,7 @@ Other emitted fields:
 - `opportunityType`
 - `opportunityId`
 - `assetPair`
+- `yieldBasis` (`apy` for both LP and farm outputs)
 - `apr` (optional when upstream provides it)
 - `sourceTimestamp`
 - `fetchedAt`
@@ -54,6 +55,7 @@ opportunities:
 | `address` | `opportunityId` | Suffixes `:lp` or `:farm` for uniqueness |
 | `asset_1.unit_name` + `asset_2.unit_name` | `assetPair` | Falls back to `unknown/unknown` if missing |
 | `annual_percentage_yield` | `apy` (`lp`) | Required for LP output |
+| (adapter policy) | `yieldBasis` | Always `apy` |
 | `staking_total_annual_percentage_yield` | `apy` (`farm`) | Farm output emitted when > 0 |
 | `liquidity_in_usd` | `tvlUsd` | Required; record dropped when invalid |
 | `annual_percentage_rate` | `apr` (`lp`) | Optional |

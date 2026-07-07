@@ -35,6 +35,22 @@ on-chain Algorand asset ids:
 Asset ids are emitted only when present; opportunities without resolvable ids simply do
 not match any wallet holdings. Native ALGO is represented as asset id `0`.
 
+## Yield Basis Contract
+
+`OpportunityRecordV1` includes a required `yieldBasis` field so agents can
+interpret what the normalized `apy` value represents:
+
+- `apy`: the `apy` field represents a compound APY-style value from source.
+- `apr`: the `apy` field carries an APR-derived value for cross-protocol consistency.
+
+Current adapter policy:
+
+- Tinyman: `apy`
+- Pact: `apr`
+- Folks Finance: `apy`
+- CompX: `apr`
+- Dork.fi: `apy`
+
 ## Asset Decimals and Precision
 
 Decimals are treated as chain truth and never assumed:

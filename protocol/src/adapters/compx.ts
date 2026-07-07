@@ -187,6 +187,7 @@ export function normalizeCompxLendingOpportunity(
     assetPair: baseSymbol,
     assetIds: [market.baseTokenId, market.lstTokenId],
     apy,
+    yieldBasis: "apr",
     tvlUsd,
     ...(Number.isFinite(market.borrowApy) ? { apr: market.borrowApy } : {}),
     ...buildSourceMetadata({
@@ -253,6 +254,7 @@ export function normalizeCompxStakingOpportunity(
     assetPair,
     assetIds: [pool.stakedAssetId, pool.rewardAssetId],
     apy: apr,
+    yieldBasis: "apr",
     apr,
     tvlUsd,
     ...buildSourceMetadata({

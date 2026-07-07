@@ -60,7 +60,7 @@ Status legend:
 
 ## 5) Data Normalization and Contract Definition
 
-- [~] Finalize normalized opportunity schema (`protocol`, `opportunityType`, `apr`, `apy`, etc.).
+- [x] Finalize normalized opportunity schema (`protocol`, `opportunityType`, `apr`, `apy`, `yieldBasis`, etc.; see `docs/normalized-opportunity-schema.md`).
 - [x] Implement adapter-to-normalized model transformers (all supported protocols).
 - [x] Standardize decimals/precision rules across protocols.
   - [x] Resolve all asset decimals from chain via algod (`resolveAssetDecimals`); ALGO hardcoded to 6; no `?? 6` fallbacks.
@@ -110,7 +110,7 @@ Status legend:
 - [x] Validate paid flow end-to-end in a production-like environment.
 - [~] Run protocol accuracy checks against source systems (live smoke tests for Tinyman/Pact; CompX/Dork.fi/Folks pending).
 - [~] Confirm API consumer onboarding documentation is complete (website live; compx.io cross-link pending).
-- [ ] Publish versioned API contract for first release.
+- [x] Publish versioned API contract for first release (`1.0.0`).
 - [ ] Complete launch checklist sign-off.
 
 ## 11) Agent Onboarding Website
@@ -128,7 +128,9 @@ Simple human-facing site so developers and operators can quickly set up an agent
 - [x] Build simple static or lightweight site in-repo (`website/`).
 - [x] Link live discovery/OpenAPI URLs from the site.
 - [x] Add copy-paste setup examples (curl snippets for first paid call).
-- [ ] Add navigation/link from main compx.io website.
+- [~] Add navigation/link from main compx.io website.
+  - [x] Create CompX site handoff brief (`docs/compx-canix-link-page-brief.md`).
+  - [ ] Publish/link the Canix402 page from the main CompX site.
 - [~] Deploy site to production subdomain (live at `canix402.compx.io`; redeploy after doc/trust/llms changes).
 
 ## Ongoing Maintenance
@@ -156,11 +158,14 @@ Simple human-facing site so developers and operators can quickly set up an agent
 - [~] Enable GoPlausible facilitator catalog visibility (optional).
   - [x] Ensure endpoint uses supported x402 discovery metadata (`/discovery`, OpenAPI `x-x402`, and `.well-known/x402.json` exist).
   - [x] Run at least one successful paid request via facilitator (`npm run test:x402-production -w protocol` with `X402_PRODUCTION_PAID_TEST=1`).
-  - [ ] Verify the API appears in GoPlausible facilitator discovery (`GET https://facilitator.goplausible.xyz/discovery/resources`, filter for `canix402-api.compx.io`).
+  - [x] Verify live GoPlausible transaction visibility for `canix402-api.compx.io/opportunities`.
+  - [ ] Optional: verify the API appears in GoPlausible facilitator discovery (`GET https://facilitator.goplausible.xyz/discovery/resources`, filter for `canix402-api.compx.io`).
   - [x] Coinbase CDP Bazaar and x402Scan marketplace — out of scope (current listing support targets EVM/Solana/CDP-style resources; production uses Algorand via GoPlausible).
-- [ ] Submit manually where needed.
-  - [ ] Awesome x402 GitHub PR.
-  - [ ] Any curated directories worth targeting.
+- [x] Submit manually where currently supported.
+  - [x] Agent-tools.cloud listing live.
+  - [x] x402-list.com — out of scope (does not accept Algorand).
+  - [x] Awesome x402 GitHub PR — out of scope for now (current ecosystem list does not accept/feature Algorand services).
+  - [x] x402Scan — out of scope (current listing support targets EVM/Solana-style resources).
 - [~] Add trust metadata.
   - [x] GitHub repo/docs link — N/A (private repo; public docs at `canix402.compx.io`).
   - [x] Contact/support email.

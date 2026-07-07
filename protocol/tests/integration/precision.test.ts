@@ -55,6 +55,7 @@ test("formatOpportunityForAgent formats apy, apr, and tvlUsd only", () => {
     assetPair: "ALGO",
     assetIds: [0],
     apy: 0.05500000000001,
+    yieldBasis: "apy",
     apr: 0.04499999999998,
     tvlUsd: 275.0000000001,
     sourceTimestamp: "2026-07-01T12:00:00.000Z",
@@ -77,6 +78,7 @@ test("formatOpportunityForAgent omits apr when absent", () => {
     opportunityId: "x:lp",
     assetPair: "A/B",
     apy: 1.2345678,
+    yieldBasis: "apy",
     tvlUsd: 1000,
     sourceTimestamp: "2026-07-01T12:00:00.000Z",
     fetchedAt: "2026-07-01T12:00:00.000Z"

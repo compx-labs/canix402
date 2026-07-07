@@ -1,4 +1,3 @@
-import { Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 
 import {
@@ -17,6 +16,7 @@ import { rankOpportunitiesByApy } from "../services/opportunity-ranking.js";
 import { formatOpportunitiesForAgent } from "../services/precision.js";
 import { ApiSuccess } from "../types/index.js";
 import { OpportunityRecordV1 } from "../types/opportunity.js";
+import { OpportunitiesListResponseSchema } from "../types/opportunity-schema.js";
 import {
   PROTOCOL_OPPORTUNITIES_DEFAULT_LIMIT,
   ProtocolOpportunitiesParams,
@@ -24,31 +24,6 @@ import {
   ProtocolOpportunitiesQuery,
   ProtocolOpportunitiesQuerySchema
 } from "./schemas.js";
-
-const protocolOpportunitiesReplySchema = Type.Object({
-  data: Type.Array(
-    Type.Object({
-      protocol: Type.String(),
-      opportunityId: Type.String(),
-      opportunityType: Type.String(),
-      assetPair: Type.String(),
-      apr: Type.Optional(Type.Number()),
-      apy: Type.Number(),
-      tvlUsd: Type.Number(),
-      sourceTimestamp: Type.String(),
-      fetchedAt: Type.String(),
-      notes: Type.Optional(Type.String())
-    })
-  ),
-  meta: Type.Optional(
-    Type.Object({
-      limit: Type.Integer(),
-      offset: Type.Integer(),
-      includeInactive: Type.Boolean(),
-      paymentRequired: Type.Boolean()
-    })
-  )
-});
 
 export function registerProtocolRoutes(app: FastifyInstance) {
   app.get<{
@@ -62,7 +37,7 @@ export function registerProtocolRoutes(app: FastifyInstance) {
         params: ProtocolOpportunitiesParamsSchema,
         querystring: ProtocolOpportunitiesQuerySchema,
         response: {
-          200: protocolOpportunitiesReplySchema
+          200: OpportunitiesListResponseSchema
         }
       }
     },

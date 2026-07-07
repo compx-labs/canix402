@@ -104,6 +104,7 @@ test("normalizeFolksLendingOpportunity maps APY and TVL fields from SDK values",
   assert.equal(record?.protocol, "folks-finance");
   assert.equal(record?.opportunityType, "lending");
   assert.equal(record?.apy, 0.055);
+  assert.equal(record?.yieldBasis, "apy");
   assert.equal(record?.tvlUsd, 275);
   assert.equal(record?.apr, 0.045);
   assert.equal(record?.sourceTimestamp, record?.fetchedAt);
