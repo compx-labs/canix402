@@ -67,7 +67,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     method: "GET",
     pathPattern: "/.well-known/x402",
     access: "free",
-    summary: "x402scan-compatible discovery fan-out document",
+    summary: "x402 discovery fan-out document",
     tags: ["discovery", "agents", "x402"]
   },
   {

@@ -240,7 +240,7 @@
     },
     "/.well-known/x402": {
       "get": {
-        "summary": "x402scan-compatible discovery fan-out document",
+        "summary": "x402 discovery fan-out document",
         "tags": ["discovery", "agents", "x402"],
         "security": [],
         "responses": {

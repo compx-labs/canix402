@@ -157,9 +157,8 @@ Simple human-facing site so developers and operators can quickly set up an agent
   - [x] Ensure endpoint uses supported x402 discovery metadata (`/discovery`, OpenAPI `x-x402`, and `.well-known/x402.json` exist).
   - [x] Run at least one successful paid request via facilitator (`npm run test:x402-production -w protocol` with `X402_PRODUCTION_PAID_TEST=1`).
   - [ ] Verify the API appears in GoPlausible facilitator discovery (`GET https://facilitator.goplausible.xyz/discovery/resources`, filter for `canix402-api.compx.io`).
-  - [x] Coinbase CDP Bazaar — out of scope (requires CDP facilitator; production uses GoPlausible).
+  - [x] Coinbase CDP Bazaar and x402Scan marketplace — out of scope (current listing support targets EVM/Solana/CDP-style resources; production uses Algorand via GoPlausible).
 - [ ] Submit manually where needed.
-  - [~] x402Scan "Add your API" (requires `info.contact.email` in `/openapi.json`; redeploy protocol after OpenAPI update).
   - [ ] Awesome x402 GitHub PR.
   - [ ] Any curated directories worth targeting.
 - [~] Add trust metadata.
