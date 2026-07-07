@@ -73,27 +73,15 @@ Current adapter implementation status:
 - Supported at runtime: Tinyman, Pact, Folks Finance, CompX, Dork.fi
 - Protocol docs index: `docs/data-sources/README.md`
 
-## Normalized Opportunity Data Model (Initial)
+## Normalized Opportunity Data Model (V1)
 
-All protocol adapters should map into a shared structure with at least:
+The canonical normalized schema is documented in
+`docs/normalized-opportunity-schema.md`.
 
-- `protocol`: source platform name
-- `opportunityType`: lending, staking, LP farming, etc.
-- `market` or `assetPair`: protocol-specific market identifier
-- `apr` and/or `apy`: numeric yield value and calculation basis if available
-- `tvlOrLiquidity`: relevant depth metric when provided
-- `rewards`: reward token metadata where applicable
-- `sourceTimestamp`: timestamp from upstream source when available; equals `fetchedAt` when upstream does not expose a per-row update time
-- `fetchedAt`: timestamp of ingestion by this service
-- `notes`: standardized caveats (fetch-proxy timestamps, fallback identifiers) plus protocol-specific context
-
-Current implementation shape (`OpportunityRecordV1`) emphasizes:
-
-- `apy` (required)
-- `tvlUsd` (required)
-- `opportunityId`, `assetPair`, `sourceTimestamp`, `fetchedAt`
-- optional `apr` and `notes`
-- optional `assetIds` (on-chain asset ids backing the opportunity, used for wallet personalization)
+`OpportunityRecordV1` is now the stable contract surface for opportunities
+responses and OpenAPI publication. The contract includes required
+`yieldBasis` metadata and optional `assetIds`, and explicitly defers
+`rewards`/`market`/`tvlOrLiquidity` to future schema revisions.
 
 ### Decimals and Precision
 
@@ -232,3 +220,4 @@ Use this section to record major decisions as the project evolves.
 - 2026-06-22: Added wallet-personalized opportunities route (`/opportunities/personalized`, 0.05 USDC); opportunities enriched with optional on-chain `assetIds` and matched against algod-reported wallet holdings (balance greater than 0, including native ALGO).
 - 2026-07-06: Planned agent onboarding website on compx.io subdomain; human-facing docs site for agent setup, linked from main compx.io property.
 - 2026-07-06: Restructured repo into monorepo workspaces (`protocol/`, `website/`) and implemented Astro onboarding site with CANIX402 branding.
+- 2026-07-07: Finalized `OpportunityRecordV1` contract for API `1.0.0` with required `yieldBasis`, optional `assetIds`, and a canonical schema spec in `docs/normalized-opportunity-schema.md`.

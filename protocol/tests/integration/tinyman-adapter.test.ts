@@ -24,6 +24,7 @@ test("normalizeTinymanPool maps APY and TVL USD fields", () => {
   assert.equal(record?.opportunityType, "lp");
   assert.equal(record?.opportunityId, "pool-1:lp");
   assert.equal(record?.apy, 12.5);
+  assert.equal(record?.yieldBasis, "apy");
   assert.equal(record?.tvlUsd, 2000000);
   assert.equal(record?.apr, 10.1);
   assert.equal(record?.assetPair, "ALGO/USDC");
@@ -110,7 +111,9 @@ test("fetchTinymanOpportunities emits separate LP and farm opportunities", async
   assert.equal(lp?.opportunityId, "pool-with-farm:lp");
   assert.equal(farm?.opportunityId, "pool-with-farm:farm");
   assert.equal(lp?.apy, 5.2);
+  assert.equal(lp?.yieldBasis, "apy");
   assert.equal(farm?.apy, 8.1);
+  assert.equal(farm?.yieldBasis, "apy");
 });
 
 test("GET /protocols/tinyman/opportunities returns Tinyman normalized data", async () => {

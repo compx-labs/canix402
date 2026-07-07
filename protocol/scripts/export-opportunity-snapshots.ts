@@ -28,6 +28,7 @@ const tinymanLp: OpportunityRecordV1 = {
   assetPair: "ALGO/USDC",
   apr: 10.512,
   apy: 12.5,
+  yieldBasis: "apy",
   tvlUsd: 2450000.5,
   sourceTimestamp: "2026-07-06T09:00:00.000Z",
   fetchedAt: "2026-07-06T09:00:00.000Z",
@@ -40,6 +41,7 @@ const folksLendingUsdc: OpportunityRecordV1 = {
   opportunityId: "folks:lending:31566704",
   assetPair: "USDC",
   apy: 6.06,
+  yieldBasis: "apy",
   tvlUsd: 29846.609471,
   sourceTimestamp: "2026-07-06T08:55:00.000Z",
   fetchedAt: "2026-07-06T09:00:00.000Z"
@@ -52,6 +54,7 @@ const folksLendingAlgo: OpportunityRecordV1 = {
   assetPair: "ALGO",
   assetIds: [0],
   apy: 4.25,
+  yieldBasis: "apy",
   tvlUsd: 1875000.25,
   sourceTimestamp: "2026-07-06T08:55:00.000Z",
   fetchedAt: "2026-07-06T09:00:00.000Z"

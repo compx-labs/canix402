@@ -107,6 +107,7 @@ export function normalizeDorkFiOpportunity(
     assetPair,
     ...(assetId !== null ? { assetIds: [assetId] } : {}),
     apy,
+    yieldBasis: "apy",
     tvlUsd,
     ...buildSourceMetadata({
       fetchedAtIso,

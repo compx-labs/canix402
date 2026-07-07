@@ -3,8 +3,7 @@ export type AdapterName =
   | "pact"
   | "folks-finance"
   | "compx"
-  | "dorkfi"
-  | "haystack";
+  | "dorkfi";
 
 export { fetchTinymanOpportunities, normalizeTinymanPool, TinymanAdapterError } from "./tinyman.js";
 export { fetchPactOpportunities, normalizePactPool, PactAdapterError } from "./pact.js";

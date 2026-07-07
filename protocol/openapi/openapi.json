@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "canix402 API",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "description": "x402-gated Algorand DeFi opportunities data API. Numeric yield/USD fields (apy, apr, tvlUsd) are returned with a standard precision of 6 decimal places, extended up to 12 decimal places only when needed to represent small non-zero values. Asset decimals are always sourced on-chain from algod.",
     "contact": {
       "name": "Neon Forge Ltd",
@@ -268,7 +268,7 @@
     "/opportunities": {
       "get": {
         "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
-        "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, and Haystack. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
+        "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, and Dork.fi. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": ["defi", "opportunities"],
         "parameters": [
           { "name": "protocol", "in": "query", "schema": { "type": "string" } },
@@ -426,7 +426,7 @@
     "/protocols/{protocol}/opportunities": {
       "get": {
         "summary": "Top 25 DeFi opportunities for a single protocol ranked by APY",
-        "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, or haystack. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
+        "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, or dorkfi. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": ["defi", "opportunities", "protocol"],
         "parameters": [
           {
@@ -435,7 +435,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": ["tinyman", "pact", "folks-finance", "compx", "dorkfi", "haystack"]
+              "enum": ["tinyman", "pact", "folks-finance", "compx", "dorkfi"]
             }
           },
           { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 200, "default": 25 } },
@@ -513,6 +513,7 @@
           "opportunityId",
           "assetPair",
           "apy",
+          "yieldBasis",
           "tvlUsd",
           "sourceTimestamp",
           "fetchedAt"
@@ -521,7 +522,7 @@
           "protocol": {
             "type": "string",
             "description": "Source platform name.",
-            "enum": ["tinyman", "pact", "folks-finance", "compx", "dorkfi", "haystack"]
+            "enum": ["tinyman", "pact", "folks-finance", "compx", "dorkfi"]
           },
           "opportunityType": {
             "type": "string",
@@ -535,9 +536,19 @@
             "type": "string",
             "description": "Protocol-specific market identifier (e.g. ALGO/USDC or a single asset)."
           },
+          "assetIds": {
+            "type": "array",
+            "items": { "type": "integer" },
+            "description": "On-chain Algorand asset ids backing the opportunity. Native ALGO is asset id 0."
+          },
           "apy": {
             "type": "number",
             "description": "Yield as APY. Formatted to 6 decimal places (up to 12 for small non-zero values)."
+          },
+          "yieldBasis": {
+            "type": "string",
+            "enum": ["apy", "apr"],
+            "description": "Indicates whether the apy field reflects a compound APY or an APR-derived value."
           },
           "apr": {
             "type": "number",
@@ -564,19 +575,7 @@
         }
       },
       "PersonalizedOpportunityRecord": {
-        "allOf": [
-          { "$ref": "#/components/schemas/OpportunityRecord" },
-          {
-            "type": "object",
-            "properties": {
-              "assetIds": {
-                "type": "array",
-                "items": { "type": "integer" },
-                "description": "On-chain Algorand asset ids backing the opportunity. Native ALGO is asset id 0."
-              }
-            }
-          }
-        ]
+        "$ref": "#/components/schemas/OpportunityRecord"
       },
       "OpportunitiesListMeta": {
         "type": "object",
@@ -767,7 +766,7 @@
                 "pathPattern": "/opportunities",
                 "access": "paid",
                 "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
-                "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, and Haystack. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
+                "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, and Dork.fi. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
                 "tags": ["defi", "opportunities"],
                 "queryParams": ["protocol", "limit", "offset", "includeInactive"]
               }
@@ -780,7 +779,7 @@
         "value": {
           "data": {
             "service": "canix402",
-            "apiVersion": "0.1.0",
+            "apiVersion": "1.0.0",
             "discoveryVersion": "1.0.0",
             "capabilities": [
               "algorand-defi-opportunities",
@@ -797,7 +796,7 @@
                 "path": "/opportunities",
                 "access": "paid",
                 "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
-                "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, and Haystack. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
+                "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, and Dork.fi. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
                 "tags": ["defi", "opportunities"],
                 "pathParams": [],
                 "queryParams": ["protocol", "limit", "offset", "includeInactive"],
@@ -831,7 +830,7 @@
         "value": {
           "service": "canix402",
           "name": "canix402",
-          "version": "0.1.0",
+          "version": "1.0.0",
           "description": "x402-gated Algorand DeFi opportunities data API with USDC payment support.",
           "x402Version": 2,
           "docsUrl": "https://canix402.compx.io/x402",
@@ -858,7 +857,7 @@
               "method": "GET",
               "path": "/opportunities",
               "url": "https://canix402-api.compx.io/opportunities",
-              "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, and Haystack. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
+              "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, and Dork.fi. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
               "tags": ["defi", "opportunities"],
               "price": {
                 "amount": "0.01",
@@ -893,6 +892,7 @@
               "assetPair": "ALGO/USDC",
               "apr": 10.512,
               "apy": 12.5,
+              "yieldBasis": "apy",
               "tvlUsd": 2450000.5,
               "sourceTimestamp": "2026-07-06T09:00:00.000Z",
               "fetchedAt": "2026-07-06T09:00:00.000Z",
@@ -904,6 +904,7 @@
               "opportunityId": "folks:lending:31566704",
               "assetPair": "USDC",
               "apy": 6.06,
+              "yieldBasis": "apy",
               "tvlUsd": 29846.609471,
               "sourceTimestamp": "2026-07-06T08:55:00.000Z",
               "fetchedAt": "2026-07-06T09:00:00.000Z"
@@ -928,6 +929,7 @@
               "assetPair": "ALGO/USDC",
               "apr": 10.512,
               "apy": 12.5,
+              "yieldBasis": "apy",
               "tvlUsd": 2450000.5,
               "sourceTimestamp": "2026-07-06T09:00:00.000Z",
               "fetchedAt": "2026-07-06T09:00:00.000Z"
@@ -952,6 +954,7 @@
               "assetPair": "ALGO",
               "assetIds": [0],
               "apy": 4.25,
+              "yieldBasis": "apy",
               "tvlUsd": 1875000.25,
               "sourceTimestamp": "2026-07-06T08:55:00.000Z",
               "fetchedAt": "2026-07-06T09:00:00.000Z"
@@ -964,6 +967,7 @@
               "assetIds": [0, 31566704],
               "apr": 10.512,
               "apy": 12.5,
+              "yieldBasis": "apy",
               "tvlUsd": 2450000.5,
               "sourceTimestamp": "2026-07-06T09:00:00.000Z",
               "fetchedAt": "2026-07-06T09:00:00.000Z"
@@ -990,6 +994,7 @@
               "assetPair": "ALGO/USDC",
               "apr": 10.512,
               "apy": 12.5,
+              "yieldBasis": "apy",
               "tvlUsd": 2450000.5,
               "sourceTimestamp": "2026-07-06T09:00:00.000Z",
               "fetchedAt": "2026-07-06T09:00:00.000Z"

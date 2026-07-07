@@ -127,6 +127,7 @@ export function normalizePactPool(
     assetPair: pairName || "unknown/unknown",
     ...(assetIds.length > 0 ? { assetIds } : {}),
     apy,
+    yieldBasis: "apr",
     tvlUsd,
     ...(apr !== null ? { apr } : {}),
     ...buildSourceMetadata({
@@ -192,6 +193,7 @@ function normalizePactFarm(
     assetPair: pairName || "unknown/unknown",
     ...(assetIds.length > 0 ? { assetIds } : {}),
     apy,
+    yieldBasis: "apr",
     tvlUsd,
     ...(apr !== null ? { apr } : {}),
     ...buildSourceMetadata({

@@ -1,6 +1,6 @@
 # CANIX402 — full agent integration guide
 
-> x402-gated Algorand DeFi opportunities data API (version 0.1.0). Normalized yield data for autonomous agents; USDC micropayments at the gateway; no transaction building.
+> x402-gated Algorand DeFi opportunities data API (version 1.0.0). Normalized yield data for autonomous agents; USDC micropayments at the gateway; no transaction building.
 
 ## Overview
 
@@ -51,6 +51,9 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `GET /metadata` (Free) — Service metadata and policy surface.
 - `GET /discovery` (Free) — Machine-readable endpoint catalog for agents.
 - `GET /openapi.json` (Free) — OpenAPI contract document.
+- `GET /favicon.ico` (Free) — API favicon for directory indexing.
+- `GET /favicon.png` (Free) — API favicon image.
+- `GET /.well-known/x402` (Free) — x402 discovery fan-out document.
 - `GET /.well-known/x402.json` (Free) — x402 discovery manifest for agent and directory indexing.
 - `GET /opportunities` (0.01 USDC) — Top 10 aggregated DeFi opportunities ranked by APY. Params: protocol=, limit=, offset=, includeInactive=.
 - `GET /protocols/:protocol/opportunities` (0.01 USDC) — Top 25 DeFi opportunities for a single protocol ranked by APY. Params: :protocol, limit=, offset=, includeInactive=.
@@ -88,6 +91,7 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
       "assetPair": "ALGO/USDC",
       "apr": 10.512,
       "apy": 12.5,
+      "yieldBasis": "apy",
       "tvlUsd": 2450000.5,
       "sourceTimestamp": "2026-07-06T09:00:00.000Z",
       "fetchedAt": "2026-07-06T09:00:00.000Z",
@@ -99,6 +103,7 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
       "opportunityId": "folks:lending:31566704",
       "assetPair": "USDC",
       "apy": 6.06,
+      "yieldBasis": "apy",
       "tvlUsd": 29846.609471,
       "sourceTimestamp": "2026-07-06T08:55:00.000Z",
       "fetchedAt": "2026-07-06T09:00:00.000Z"
@@ -125,6 +130,7 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
       "assetPair": "ALGO/USDC",
       "apr": 10.512,
       "apy": 12.5,
+      "yieldBasis": "apy",
       "tvlUsd": 2450000.5,
       "sourceTimestamp": "2026-07-06T09:00:00.000Z",
       "fetchedAt": "2026-07-06T09:00:00.000Z"
@@ -153,6 +159,7 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
         0
       ],
       "apy": 4.25,
+      "yieldBasis": "apy",
       "tvlUsd": 1875000.25,
       "sourceTimestamp": "2026-07-06T08:55:00.000Z",
       "fetchedAt": "2026-07-06T09:00:00.000Z"
@@ -164,6 +171,7 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
       "assetPair": "ALGO/USDC",
       "apr": 10.512,
       "apy": 12.5,
+      "yieldBasis": "apy",
       "tvlUsd": 2450000.5,
       "sourceTimestamp": "2026-07-06T09:00:00.000Z",
       "fetchedAt": "2026-07-06T09:00:00.000Z",
@@ -196,6 +204,7 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
       "assetPair": "ALGO/USDC",
       "apr": 10.512,
       "apy": 12.5,
+      "yieldBasis": "apy",
       "tvlUsd": 2450000.5,
       "sourceTimestamp": "2026-07-06T09:00:00.000Z",
       "fetchedAt": "2026-07-06T09:00:00.000Z"

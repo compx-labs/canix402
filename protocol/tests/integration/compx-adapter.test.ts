@@ -80,6 +80,7 @@ test("normalizeCompxLendingOpportunity maps APY and TVL fields from SDK values",
   assert.equal(record?.assetPair, "USDC");
   assert.deepEqual(record?.assetIds, [31566704, 987654]);
   assert.equal(record?.apy, 4.25);
+  assert.equal(record?.yieldBasis, "apr");
   assert.equal(record?.apr, 8.5);
   assert.equal(record?.tvlUsd, 1_250_000);
   assert.equal(record?.sourceTimestamp, "2023-11-14T22:13:20.000Z");
@@ -188,6 +189,7 @@ test("normalizeCompxStakingOpportunity maps APR and computed TVL", () => {
   assert.equal(record?.opportunityId, "compx-staking-555");
   assert.equal(record?.assetPair, "ALGO/USDC");
   assert.equal(record?.apy, 12.5);
+  assert.equal(record?.yieldBasis, "apr");
   assert.equal(record?.apr, 12.5);
   assert.equal(record?.tvlUsd, 2000);
 });

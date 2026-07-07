@@ -37,6 +37,7 @@ Other emitted fields:
 - `opportunityId`
 - `assetPair`
 - `assetIds`
+- `yieldBasis` (always `apr`; CompX yields are APR-derived)
 - `apr` (optional)
 - `sourceTimestamp`
 - `fetchedAt`
@@ -52,6 +53,7 @@ Other emitted fields:
 | `market.baseTokenId` + asset metadata | `assetPair` | Base asset unit name |
 | `market.baseTokenId`, `market.lstTokenId` | `assetIds` | Used for wallet personalization |
 | `market.supplyApy` | `apy` | Depositor yield (APR-derived) |
+| (adapter policy) | `yieldBasis` | Always `apr` |
 | `market.borrowApy` | `apr` | Borrow-side APR |
 | `market.totalDepositsUSD` | `tvlUsd` | USD TVL from on-chain totals + oracle |
 | `market.lastUpdateTimestamp` | `sourceTimestamp` | On-chain accrual timestamp |
@@ -65,6 +67,7 @@ Other emitted fields:
 | staked/reward asset metadata | `assetPair` | `STAKED/REWARD` or single symbol when same asset |
 | `pool.stakedAssetId`, `pool.rewardAssetId` | `assetIds` | Used for wallet personalization |
 | `getPoolApr(...)` result | `apy`, `apr` | APR estimate (not compound APY) |
+| (adapter policy) | `yieldBasis` | Always `apr` |
 | `pool.totalStaked` + on-chain decimals + staked USD price | `tvlUsd` | Computed in adapter |
 | `pool.lastUpdateTime` | `sourceTimestamp` | On-chain pool update timestamp |
 | (adapter policy) | `opportunityType` | Always `staking` |

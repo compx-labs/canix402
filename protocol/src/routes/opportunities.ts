@@ -1,5 +1,4 @@
 import algosdk from "algosdk";
-import { Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 
 import {
@@ -21,6 +20,10 @@ import { selectPersonalizedOpportunities } from "../services/personalized-opport
 import { ApiError, ApiSuccess } from "../types/index.js";
 import { OpportunityRecordV1 } from "../types/opportunity.js";
 import {
+  OpportunitiesListResponseSchema,
+  PersonalizedOpportunitiesListResponseSchema
+} from "../types/opportunity-schema.js";
+import {
   AGGREGATE_OPPORTUNITIES_DEFAULT_LIMIT,
   FilteredOpportunitiesDefaultLimit,
   FilteredOpportunitiesQuery,
@@ -35,59 +38,6 @@ import {
   SupportedProtocolValues
 } from "./schemas.js";
 
-const opportunitiesReplySchema = Type.Object({
-  data: Type.Array(
-    Type.Object({
-      protocol: Type.String(),
-      opportunityId: Type.String(),
-      opportunityType: Type.String(),
-      assetPair: Type.String(),
-      apr: Type.Optional(Type.Number()),
-      apy: Type.Number(),
-      tvlUsd: Type.Number(),
-      sourceTimestamp: Type.String(),
-      fetchedAt: Type.String(),
-      notes: Type.Optional(Type.String())
-    })
-  ),
-  meta: Type.Optional(
-    Type.Object({
-      limit: Type.Integer(),
-      offset: Type.Integer(),
-      includeInactive: Type.Boolean(),
-      paymentRequired: Type.Boolean()
-    })
-  )
-});
-
-const personalizedOpportunitiesReplySchema = Type.Object({
-  data: Type.Array(
-    Type.Object({
-      protocol: Type.String(),
-      opportunityId: Type.String(),
-      opportunityType: Type.String(),
-      assetPair: Type.String(),
-      assetIds: Type.Optional(Type.Array(Type.Integer())),
-      apr: Type.Optional(Type.Number()),
-      apy: Type.Number(),
-      tvlUsd: Type.Number(),
-      sourceTimestamp: Type.String(),
-      fetchedAt: Type.String(),
-      notes: Type.Optional(Type.String())
-    })
-  ),
-  meta: Type.Optional(
-    Type.Object({
-      limit: Type.Integer(),
-      offset: Type.Integer(),
-      includeInactive: Type.Boolean(),
-      paymentRequired: Type.Boolean(),
-      address: Type.String(),
-      heldAssetCount: Type.Integer()
-    })
-  )
-});
-
 export function registerOpportunityRoutes(app: FastifyInstance) {
   app.get<{ Querystring: OpportunitiesQuery; Reply: ApiSuccess<OpportunityRecordV1[]> }>(
     "/opportunities",
@@ -95,7 +45,7 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
       schema: {
         querystring: OpportunitiesQuerySchema,
         response: {
-          200: opportunitiesReplySchema
+          200: OpportunitiesListResponseSchema
         }
       }
     },
@@ -134,7 +84,7 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
       schema: {
         querystring: FilteredOpportunitiesQuerySchema,
         response: {
-          200: opportunitiesReplySchema
+          200: OpportunitiesListResponseSchema
         }
       }
     },
@@ -192,7 +142,7 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
       schema: {
         querystring: PersonalizedOpportunitiesQuerySchema,
         response: {
-          200: personalizedOpportunitiesReplySchema
+          200: PersonalizedOpportunitiesListResponseSchema
         }
       }
     },
@@ -282,9 +232,6 @@ async function fetchOpportunitiesForProtocol(protocol: Protocol): Promise<Opport
     }
     if (protocol === "dorkfi") {
       return await fetchDorkFiOpportunities();
-    }
-    if (SupportedProtocolValues.includes(protocol)) {
-      return [];
     }
   } catch (error) {
     if (

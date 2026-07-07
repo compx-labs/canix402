@@ -33,6 +33,7 @@ Other emitted fields:
 - `opportunityType`
 - `opportunityId`
 - `assetPair`
+- `yieldBasis` (always `apr`; Pact APR metrics are normalized into `apy`)
 - `apr` (optional)
 - `sourceTimestamp`
 - `fetchedAt`
@@ -51,6 +52,7 @@ One pool can emit multiple opportunities:
 | `on_chain_id` (farm) | `opportunityId` (`:farm`) | Farm ids are suffixed `:farm` |
 | `primary_asset.unit_name` + `secondary_asset.unit_name` | `assetPair` | Falls back to `unknown/unknown` when missing |
 | `apr_7d_all` (or `apr_7d`) | `apy` (`lp`) | Required for LP output |
+| (adapter policy) | `yieldBasis` | Always `apr` |
 | `apr_7d` (or `apr_7d_all`) | `apr` (`lp`) | Optional |
 | `tvl_usd` (pool) | `tvlUsd` | Required for LP output |
 | `average_apr` (or `apr`) | `apy` (`farm`) | Farm output emitted when APR data indicates incentives |

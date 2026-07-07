@@ -1,7 +1,7 @@
 {
   "data": {
     "service": "canix402",
-    "apiVersion": "0.1.0",
+    "apiVersion": "1.0.0",
     "discoveryVersion": "1.0.0",
     "capabilities": [
       "algorand-defi-opportunities",
@@ -80,6 +80,58 @@
         ]
       },
       {
+        "id": "faviconIco",
+        "method": "GET",
+        "path": "/favicon.ico",
+        "access": "free",
+        "summary": "API favicon for directory indexing",
+        "tags": [
+          "system",
+          "discovery"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          500
+        ]
+      },
+      {
+        "id": "faviconPng",
+        "method": "GET",
+        "path": "/favicon.png",
+        "access": "free",
+        "summary": "API favicon image",
+        "tags": [
+          "system",
+          "discovery"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          500
+        ]
+      },
+      {
+        "id": "x402WellKnown",
+        "method": "GET",
+        "path": "/.well-known/x402",
+        "access": "free",
+        "summary": "x402 discovery fan-out document",
+        "tags": [
+          "discovery",
+          "agents",
+          "x402"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          500
+        ]
+      },
+      {
         "id": "x402Manifest",
         "method": "GET",
         "path": "/.well-known/x402.json",
@@ -103,6 +155,7 @@
         "path": "/opportunities",
         "access": "paid",
         "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
+        "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, and Dork.fi. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": [
           "defi",
           "opportunities"
@@ -142,6 +195,7 @@
         "path": "/protocols/:protocol/opportunities",
         "access": "paid",
         "summary": "Top 25 DeFi opportunities for a single protocol ranked by APY",
+        "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, or dorkfi. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": [
           "defi",
           "opportunities",
@@ -183,6 +237,7 @@
         "path": "/opportunities/search",
         "access": "paid",
         "summary": "Caller-filtered opportunities across supported platforms",
+        "description": "Returns Algorand DeFi opportunities filtered by platform, opportunity type, APY range, and TVL threshold across supported sources. Use when an agent needs targeted discovery such as high-yield liquidity pools, lending markets, protocol-specific yield, or minimum-liquidity opportunities on Algorand. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": [
           "defi",
           "opportunities",
@@ -227,6 +282,7 @@
         "path": "/opportunities/personalized",
         "access": "paid",
         "summary": "Top opportunities tuned to a wallet's held assets",
+        "description": "Returns Algorand DeFi opportunities whose underlying assets match a supplied wallet's holdings, including opted-in ASAs with positive balance and native ALGO when held. Use when an agent needs wallet-aware yield ideas based on assets the account already owns, with normalized APY/APR, TVL, asset ids, source freshness, and caveats. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": [
           "defi",
           "opportunities",

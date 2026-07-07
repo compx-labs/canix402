@@ -115,6 +115,7 @@ export function normalizeTinymanPool(
     assetPair: pairName || "unknown/unknown",
     ...(assetIds.length > 0 ? { assetIds } : {}),
     apy,
+    yieldBasis: "apy",
     tvlUsd,
     ...(apr !== null ? { apr } : {}),
     ...buildSourceMetadata({
@@ -172,6 +173,7 @@ function normalizeTinymanFarm(
     assetPair: pairName || "unknown/unknown",
     ...(assetIds.length > 0 ? { assetIds } : {}),
     apy: stakingApy ?? 0,
+    yieldBasis: "apy",
     tvlUsd,
     ...(stakingApr !== null ? { apr: stakingApr } : {}),
     ...buildSourceMetadata({

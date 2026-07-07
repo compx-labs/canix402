@@ -151,6 +151,7 @@ export function normalizeFolksLendingOpportunity(
     assetPair: symbol,
     assetIds: [Number(pool.assetId)],
     apy,
+    yieldBasis: "apy",
     tvlUsd,
     ...(apr !== null ? { apr } : {}),
     ...buildSourceMetadata({
