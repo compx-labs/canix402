@@ -17,9 +17,9 @@
 | Dockerfile path | `Dockerfile` |
 | HTTP port | `8080` (or your configured public port) |
 
-**Important:** Do not build Caddy from `protocol/caddy/plugin/`. That directory
-contains an AgentQuest example `Caddyfile` that proxies to `localhost:8787`
-(`WORLD_UPSTREAM`), not the canix402 API (`UPSTREAM_API`).
+**Important:** Do not point App Platform at `protocol/caddy/plugin/`. That
+directory is only the Go source for the x402 Caddy module. The production
+gateway image and runtime config live one level up in `protocol/caddy/`.
 
 ### Caddy environment variables
 

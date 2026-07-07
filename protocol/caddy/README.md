@@ -68,6 +68,6 @@ Build the gateway from **`protocol/caddy`**, not `protocol/caddy/plugin`:
 docker build -t canix402-caddy protocol/caddy
 ```
 
-The plugin subdirectory ships an AgentQuest example Caddyfile that proxies to
-`localhost:8787`. Production uses `protocol/caddy/Caddyfile` with `UPSTREAM_API`.
+The plugin subdirectory contains only the Go source for the x402 Caddy module.
+Production uses `protocol/caddy/Caddyfile` with `UPSTREAM_API`.
 
