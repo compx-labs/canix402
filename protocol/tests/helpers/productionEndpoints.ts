@@ -1,0 +1,58 @@
+import { endpointPolicyMatrix } from "../../src/services/payment-policy.js";
+
+export interface ProductionEndpoint {
+  id: string;
+  path: string;
+}
+
+const CANONICAL_PROTOCOL_SLUG = "tinyman";
+
+export function getProductionPersonalizedAddress(): string {
+  return (
+    process.env.X402_PRODUCTION_PERSONALIZED_ADDRESS
+    ?? process.env.X402_PAY_TO
+    ?? process.env.X402_PAYMENT_RECEIVER_ADDRESS
+    ?? "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ"
+  );
+}
+
+function resolveProductionPath(pathPattern: string): string {
+  if (pathPattern === "/protocols/:protocol/opportunities") {
+    return `/protocols/${CANONICAL_PROTOCOL_SLUG}/opportunities`;
+  }
+
+  if (pathPattern === "/opportunities/search") {
+    return "/opportunities/search?platform=tinyman&limit=1";
+  }
+
+  if (pathPattern === "/opportunities/personalized") {
+    const address = getProductionPersonalizedAddress();
+    return `/opportunities/personalized?address=${encodeURIComponent(address)}&limit=1`;
+  }
+
+  return pathPattern;
+}
+
+function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): ProductionEndpoint {
+  return {
+    id: entry.id,
+    path: resolveProductionPath(entry.pathPattern)
+  };
+}
+
+export const productionFreeEndpoints: ProductionEndpoint[] = endpointPolicyMatrix
+  .filter((entry) => entry.access === "free")
+  .map(toProductionEndpoint);
+
+export const productionPaidEndpoints: ProductionEndpoint[] = endpointPolicyMatrix
+  .filter((entry) => entry.access === "paid")
+  .map(toProductionEndpoint)
+  .sort((left, right) => {
+    if (left.id === "personalizedOpportunities") return 1;
+    if (right.id === "personalizedOpportunities") return -1;
+    return 0;
+  });
+
+export function buildProductionUrl(baseUrl: string, path: string): string {
+  return `${baseUrl.replace(/\/+$/, "")}${path}`;
+}

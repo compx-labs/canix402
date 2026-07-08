@@ -3,6 +3,8 @@ import { resolve } from "node:path";
 
 import algosdk from "algosdk";
 
+import { buildProductionUrl } from "./productionEndpoints.js";
+
 export interface PaymentRequestAccept {
   scheme: string;
   network: string;
@@ -75,9 +77,8 @@ export function getLiveEnv(): LiveEnv {
 }
 
 export function getProductionBaseUrl(): string {
-  return (
-    process.env.X402_PRODUCTION_BASE_URL ?? "https://canix402-api.compx.io"
-  ).replace(/\/+$/, "");
+  const configured = process.env.X402_PRODUCTION_BASE_URL?.trim();
+  return (configured || "https://canix402-api.compx.io").replace(/\/+$/, "");
 }
 
 export function requireClientMnemonic(context = "live x402 test"): string {
@@ -88,6 +89,160 @@ export function requireClientMnemonic(context = "live x402 test"): string {
     );
   }
   return mnemonic;
+}
+
+export interface ExecutePaidRequestInput {
+  baseUrl: string;
+  path: string;
+  clientMnemonic: string;
+  algodUrl: string;
+}
+
+export interface PaidRequestResult {
+  status: number;
+  body: string;
+  paymentResponseHeader: string | null;
+}
+
+export async function assertFreeEndpoint(baseUrl: string, path: string): Promise<void> {
+  const requestUrl = buildProductionUrl(baseUrl, path);
+  const response = await fetch(requestUrl);
+
+  if (response.status !== 200) {
+    throw new Error(`${path}: expected 200, got ${response.status}`);
+  }
+
+  if (path === "/favicon.ico" || path === "/favicon.png") {
+    const body = Buffer.from(await response.arrayBuffer());
+    if (body.length === 0) {
+      throw new Error(`${path}: expected non-empty favicon body`);
+    }
+    return;
+  }
+
+  const body = (await response.json()) as Record<string, unknown>;
+
+  if (path === "/health") {
+    const data = body.data as Record<string, unknown> | undefined;
+    if (data?.service !== "canix402" || data?.status !== "ok") {
+      throw new Error(`${path}: unexpected health payload`);
+    }
+    return;
+  }
+
+  if (path === "/metadata") {
+    const data = body.data as Record<string, unknown> | undefined;
+    if (data?.service !== "canix402") {
+      throw new Error(`${path}: unexpected metadata payload`);
+    }
+    return;
+  }
+
+  if (path === "/discovery") {
+    const data = body.data as { endpoints?: unknown[] } | undefined;
+    if (!Array.isArray(data?.endpoints) || data.endpoints.length === 0) {
+      throw new Error(`${path}: discovery endpoints missing`);
+    }
+    return;
+  }
+
+  if (path === "/openapi.json") {
+    const servers = Array.isArray(body.servers) ? body.servers : [];
+    const hasBaseServer = servers.some(
+      (entry) => typeof entry === "object" && entry !== null && (entry as { url?: string }).url === baseUrl
+    );
+    if (!hasBaseServer) {
+      throw new Error(`${path}: missing server URL ${baseUrl}`);
+    }
+    return;
+  }
+
+  if (path === "/.well-known/x402.json") {
+    if (body.openapiUrl !== `${baseUrl}/openapi.json`) {
+      throw new Error(`${path}: openapiUrl mismatch`);
+    }
+    if (body.discoveryUrl !== `${baseUrl}/discovery`) {
+      throw new Error(`${path}: discoveryUrl mismatch`);
+    }
+    return;
+  }
+
+  if (path === "/.well-known/x402") {
+    const resources = body.resources;
+    if (!Array.isArray(resources) || resources.length === 0) {
+      throw new Error(`${path}: resources missing`);
+    }
+  }
+}
+
+export async function assertPaidPreflight(baseUrl: string, path: string): Promise<PaymentRequest> {
+  const requestUrl = buildProductionUrl(baseUrl, path);
+  const response = await fetch(requestUrl);
+
+  if (response.status !== 402) {
+    throw new Error(`${path}: expected 402 preflight, got ${response.status}`);
+  }
+
+  const paymentRequiredHeader = response.headers.get("payment-required");
+  if (!paymentRequiredHeader) {
+    throw new Error(`${path}: missing payment-required header`);
+  }
+
+  return decodePaymentRequiredHeader(paymentRequiredHeader);
+}
+
+export async function executePaidRequest(
+  input: ExecutePaidRequestInput
+): Promise<PaidRequestResult> {
+  const requestUrl = buildProductionUrl(input.baseUrl, input.path);
+  const preflight = await fetch(requestUrl);
+
+  if (preflight.status !== 402) {
+    throw new Error(
+      `${input.path}: expected 402 preflight before payment, got ${preflight.status}`
+    );
+  }
+
+  const paymentRequiredHeader = preflight.headers.get("payment-required");
+  if (!paymentRequiredHeader) {
+    throw new Error(`${input.path}: missing payment-required header`);
+  }
+
+  const paymentRequest = decodePaymentRequiredHeader(paymentRequiredHeader);
+  const paymentSignature = await buildLivePaymentSignature({
+    paymentRequest,
+    requestUrl,
+    clientMnemonic: input.clientMnemonic,
+    algodUrl: input.algodUrl
+  });
+
+  const paidResponse = await fetch(requestUrl, {
+    headers: {
+      "PAYMENT-SIGNATURE": paymentSignature
+    }
+  });
+  const paidBody = await paidResponse.text();
+
+  if (paidResponse.status !== 200) {
+    throw new Error(
+      `${input.path}: expected paid response status 200; got ${paidResponse.status}. Body: ${paidBody.slice(0, 400)}`
+    );
+  }
+
+  if (!paidResponse.headers.get("payment-response")) {
+    throw new Error(`${input.path}: missing payment-response header`);
+  }
+
+  const parsed = JSON.parse(paidBody) as { data?: unknown[] };
+  if (!Array.isArray(parsed.data)) {
+    throw new Error(`${input.path}: paid response missing data array`);
+  }
+
+  return {
+    status: paidResponse.status,
+    body: paidBody,
+    paymentResponseHeader: paidResponse.headers.get("payment-response")
+  };
 }
 
 export function decodePaymentRequiredHeader(headerValue: string): PaymentRequest {

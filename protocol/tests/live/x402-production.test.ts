@@ -2,8 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-  buildLivePaymentSignature,
-  decodePaymentRequiredHeader,
+  productionFreeEndpoints,
+  productionPaidEndpoints
+} from "../helpers/productionEndpoints.js";
+import {
+  assertFreeEndpoint,
+  assertPaidPreflight,
+  executePaidRequest,
   getLiveEnv,
   getProductionBaseUrl,
   loadLiveEnvFiles,
@@ -12,64 +17,48 @@ import {
 
 loadLiveEnvFiles();
 
-test("production x402 preflight returns 402 + payment requirements", async () => {
+test("production free endpoints return 200", async () => {
   const baseUrl = getProductionBaseUrl();
-  const response = await fetch(`${baseUrl}/opportunities`);
-  assert.equal(response.status, 402);
 
-  const paymentRequiredHeader = response.headers.get("payment-required");
-  assert.ok(paymentRequiredHeader);
+  for (const endpoint of productionFreeEndpoints) {
+    await assertFreeEndpoint(baseUrl, endpoint.path);
+  }
+});
 
-  const paymentRequest = decodePaymentRequiredHeader(paymentRequiredHeader);
-  assert.ok(Array.isArray(paymentRequest.accepts) && paymentRequest.accepts.length > 0);
+test("production paid endpoints return 402 preflight", async () => {
+  const baseUrl = getProductionBaseUrl();
+
+  for (const endpoint of productionPaidEndpoints) {
+    const paymentRequest = await assertPaidPreflight(baseUrl, endpoint.path);
+    assert.ok(
+      Array.isArray(paymentRequest.accepts) && paymentRequest.accepts.length > 0,
+      `${endpoint.path}: PAYMENT-REQUIRED missing accepts`
+    );
+  }
 });
 
 test(
-  "production x402 paid request settles via deployed gateway and returns data",
+  "production paid endpoints settle via deployed gateway when opted in",
   async (t) => {
     if (process.env.X402_PRODUCTION_PAID_TEST !== "1") {
-      t.skip("Set X402_PRODUCTION_PAID_TEST=1 to run a real paid production request.");
+      t.skip("Set X402_PRODUCTION_PAID_TEST=1 to run real paid production requests.");
       return;
     }
 
     const env = getLiveEnv();
     const clientMnemonic = requireClientMnemonic("npm run test:x402-production");
     const baseUrl = getProductionBaseUrl();
-    const paidPath = "/opportunities";
-    const requestUrl = `${baseUrl}${paidPath}`;
 
-    const preflight = await fetch(requestUrl);
-    assert.equal(preflight.status, 402);
+    for (const endpoint of productionPaidEndpoints) {
+      const result = await executePaidRequest({
+        baseUrl,
+        path: endpoint.path,
+        clientMnemonic,
+        algodUrl: env.algodUrl
+      });
 
-    const paymentRequiredHeader = preflight.headers.get("payment-required");
-    assert.ok(paymentRequiredHeader);
-
-    const paymentRequest = decodePaymentRequiredHeader(paymentRequiredHeader);
-    const paymentSignature = await buildLivePaymentSignature({
-      paymentRequest,
-      requestUrl,
-      clientMnemonic,
-      algodUrl: env.algodUrl
-    });
-
-    const paidResponse = await fetch(requestUrl, {
-      headers: {
-        "PAYMENT-SIGNATURE": paymentSignature
-      }
-    });
-    const paidBody = await paidResponse.text();
-
-    assert.equal(
-      paidResponse.status,
-      200,
-      `Expected paid response status 200; got ${paidResponse.status}. Body: ${paidBody.slice(0, 400)}`
-    );
-    assert.ok(paidResponse.headers.get("payment-response"));
-
-    const parsed = JSON.parse(paidBody) as {
-      data?: unknown[];
-    };
-    assert.ok(Array.isArray(parsed.data));
-    assert.ok(parsed.data.length > 0);
+      assert.equal(result.status, 200);
+      assert.ok(result.paymentResponseHeader);
+    }
   }
 );
