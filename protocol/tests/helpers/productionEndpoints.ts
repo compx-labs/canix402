@@ -3,6 +3,8 @@ import { endpointPolicyMatrix } from "../../src/services/payment-policy.js";
 export interface ProductionEndpoint {
   id: string;
   path: string;
+  method?: "GET" | "POST";
+  body?: unknown;
 }
 
 const CANONICAL_PROTOCOL_SLUG = "tinyman";
@@ -30,14 +32,38 @@ function resolveProductionPath(pathPattern: string): string {
     return `/opportunities/personalized?address=${encodeURIComponent(address)}&limit=1`;
   }
 
+  if (pathPattern === "/execution/quotes") {
+    return "/execution/quotes";
+  }
+
   return pathPattern;
 }
 
 function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): ProductionEndpoint {
-  return {
+  const base: ProductionEndpoint = {
     id: entry.id,
     path: resolveProductionPath(entry.pathPattern)
   };
+
+  if (entry.pathPattern === "/execution/quotes") {
+    return {
+      ...base,
+      method: "POST",
+      body: {
+        shapeKey: "mainnet:tinyman:v2:addLiquidity:flexible",
+        input: {
+          userAddress: getProductionPersonalizedAddress(),
+          assetAId: 31566704,
+          assetAAmount: "1000000",
+          assetBId: 0,
+          assetBAmount: "1000000",
+          maxSlippageBps: 50
+        }
+      }
+    };
+  }
+
+  return base;
 }
 
 export const productionFreeEndpoints: ProductionEndpoint[] = endpointPolicyMatrix

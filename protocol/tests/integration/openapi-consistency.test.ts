@@ -12,11 +12,26 @@ interface OpenApiOperation {
   security?: unknown[];
 }
 
+interface OpenApiPathItem {
+  get?: OpenApiOperation;
+  post?: OpenApiOperation;
+}
+
 interface OpenApiDocument {
   components: {
     schemas: Record<string, { required?: string[]; properties?: Record<string, unknown> }>;
   };
-  paths: Record<string, { get?: OpenApiOperation }>;
+  paths: Record<string, OpenApiPathItem>;
+}
+
+function resolveOpenApiOperation(
+  pathItem: OpenApiPathItem | undefined,
+  method: "GET" | "POST"
+): OpenApiOperation | undefined {
+  if (!pathItem) {
+    return undefined;
+  }
+  return method === "POST" ? pathItem.post : pathItem.get;
 }
 
 test("openapi paths match policy matrix routes", async () => {
@@ -59,8 +74,8 @@ test("paid operations expose x-x402 metadata", async () => {
 
   for (const endpoint of paidPolicyEndpoints) {
     const openapiPath = endpoint.pathPattern.replace(":protocol", "{protocol}");
-    const operation = openapi.paths[openapiPath]?.get;
-    assert.ok(operation);
+    const operation = resolveOpenApiOperation(openapi.paths[openapiPath], endpoint.method);
+    assert.ok(operation, `${endpoint.method} ${openapiPath}`);
     assert.ok(operation?.["x-x402"]);
     assert.ok(operation?.["x-payment-info"]);
   }
@@ -71,8 +86,8 @@ test("paid operations expose x-x402 metadata", async () => {
 
   for (const endpoint of freePolicyEndpoints) {
     const openapiPath = endpoint.pathPattern.replace(":protocol", "{protocol}");
-    const operation = openapi.paths[openapiPath]?.get;
-    assert.ok(operation);
+    const operation = resolveOpenApiOperation(openapi.paths[openapiPath], endpoint.method);
+    assert.ok(operation, `${endpoint.method} ${openapiPath}`);
     assert.deepEqual(operation?.security, []);
   }
 

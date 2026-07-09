@@ -64,6 +64,11 @@ Status legend:
 
 Canix should become the validation, discovery, transaction-generation, execution, fee-sharing, and performance-tracking layer for third-party strategies. External AI agents or human creators are responsible for creating strategies; Canix should not generate strategies itself.
 
+### Execution API
+
+- [x] Add paid x402 `POST /execution/quotes` endpoint (0.1 USDC) returning unsigned transaction groups for verified shapes.
+- [~] Expose Tinyman v2 flexible add-liquidity via execution quote endpoint (remove LP shape added; additional shapes still pending).
+
 ### Protocol Transaction Shape Mapping (Blocking Foundation)
 
 - [ ] Inventory executable actions for each integrated DeFi protocol (Tinyman, Pact, Folks Finance, CompX, Dork.fi).

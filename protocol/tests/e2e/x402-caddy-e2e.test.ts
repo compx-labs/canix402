@@ -130,6 +130,33 @@ test("invalid verify response from facilitator returns payment error", async () 
   }
 });
 
+test("execution quote endpoint returns 402 and PAYMENT-REQUIRED without signature", async () => {
+  const context = await setup();
+  try {
+    const response = await fetch(`${context.baseUrl}/execution/quotes`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        shapeKey: "mainnet:tinyman:v2:addLiquidity:flexible",
+        input: {
+          userAddress: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+          assetAId: 31566704,
+          assetAAmount: "1000000",
+          assetBId: 0,
+          assetBAmount: "2000000",
+          maxSlippageBps: 50
+        }
+      })
+    });
+    assert.equal(response.status, 402);
+    const paymentRequired = response.headers.get("payment-required");
+    assert.ok(paymentRequired);
+    assert.equal(context.facilitator.calls.length, 0);
+  } finally {
+    await context.teardown();
+  }
+});
+
 test("free endpoints bypass validator and remain accessible", async () => {
   const context = await setup();
   try {

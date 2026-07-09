@@ -473,6 +473,57 @@
           }
         }
       }
+    },
+    "/execution/quotes": {
+      "post": {
+        "summary": "Compile a verified transaction shape into unsigned Algorand transactions",
+        "description": "Returns a fresh, validated, unsigned transaction group for a supported execution shape. Use when an agent has selected a DeFi action and needs deterministic transaction bytes to sign locally. Currently supports Tinyman v2 flexible add-liquidity (`mainnet:tinyman:v2:addLiquidity:flexible`) and Tinyman v2 remove-liquidity multiple-assets-out (`mainnet:tinyman:v2:removeLiquidity:multipleAssetsOut`). Canix does not sign or submit transactions in this endpoint.",
+        "tags": ["execution", "transactions", "x402", "agents"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ExecutionQuoteRequest" },
+              "examples": {
+                "tinymanAddLiquidity": { "$ref": "#/components/examples/ExecutionQuoteRequestSample" },
+                "tinymanRemoveLiquidity": { "$ref": "#/components/examples/ExecutionQuoteRemoveLiquidityRequestSample" }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Unsigned executable quote",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ExecutionQuoteResponse" },
+                "examples": {
+                  "default": { "$ref": "#/components/examples/ExecutionQuoteResponseSample" }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        },
+        "x-payment-info": {
+          "protocols": [{ "x402": {} }],
+          "price": { "mode": "fixed", "currency": "USD", "amount": "0.1" }
+        },
+        "x-x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet",
+            "asset": "31566704",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.1"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -628,6 +679,168 @@
           "meta": { "$ref": "#/components/schemas/PersonalizedOpportunitiesListMeta" }
         }
       },
+      "ExecutionQuoteInput": {
+        "type": "object",
+        "required": ["userAddress", "assetAId", "assetBId", "maxSlippageBps"],
+        "properties": {
+          "userAddress": {
+            "type": "string",
+            "description": "Algorand address that will sign the transaction group."
+          },
+          "assetAId": {
+            "description": "First asset id identifying the pool pair (integer or string)."
+          },
+          "assetAAmount": {
+            "type": "string",
+            "description": "Amount of asset A in base units for add-liquidity shapes (integer string recommended)."
+          },
+          "assetBId": {
+            "description": "Second asset id identifying the pool pair (integer or string). Use 0 for ALGO."
+          },
+          "assetBAmount": {
+            "type": "string",
+            "description": "Amount of asset B in base units for add-liquidity shapes (integer string recommended)."
+          },
+          "poolTokenAmount": {
+            "type": "string",
+            "description": "Pool token amount in base units for remove-liquidity shapes (integer string recommended)."
+          },
+          "maxSlippageBps": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000,
+            "description": "Maximum tolerated slippage in basis points."
+          },
+          "poolId": {
+            "type": "string",
+            "description": "Optional discovery/opportunity id for traceability."
+          }
+        }
+      },
+      "ExecutionQuoteRequest": {
+        "type": "object",
+        "required": ["shapeKey", "input"],
+        "properties": {
+          "shapeKey": {
+            "type": "string",
+            "description": "Registered transaction shape key.",
+            "example": "mainnet:tinyman:v2:addLiquidity:flexible"
+          },
+          "input": { "$ref": "#/components/schemas/ExecutionQuoteInput" }
+        }
+      },
+      "SerializedTransaction": {
+        "type": "object",
+        "required": ["type", "sender", "fee", "groupPresent"],
+        "properties": {
+          "type": { "type": "string" },
+          "sender": { "type": "string" },
+          "fee": { "type": "string" },
+          "groupPresent": { "type": "boolean" },
+          "payment": {
+            "type": "object",
+            "properties": {
+              "receiver": { "type": "string" },
+              "amount": { "type": "string" },
+              "closeRemainderTo": { "type": "string" }
+            }
+          },
+          "assetTransfer": {
+            "type": "object",
+            "properties": {
+              "assetIndex": { "type": "string" },
+              "amount": { "type": "string" },
+              "receiver": { "type": "string" },
+              "assetSender": { "type": "string" },
+              "closeRemainderTo": { "type": "string" }
+            }
+          },
+          "applicationCall": {
+            "type": "object",
+            "properties": {
+              "appIndex": { "type": "string" },
+              "onComplete": { "type": "integer" },
+              "appArgsBase64": { "type": "array", "items": { "type": "string" } },
+              "appArgsText": {
+                "type": "array",
+                "items": { "type": ["string", "null"] }
+              },
+              "accounts": { "type": "array", "items": { "type": "string" } },
+              "foreignApps": { "type": "array", "items": { "type": "string" } },
+              "foreignAssets": { "type": "array", "items": { "type": "string" } },
+              "boxes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "appIndex": { "type": "string" },
+                    "nameBase64": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ExecutableQuote": {
+        "type": "object",
+        "required": [
+          "shapeKey",
+          "shapeVersion",
+          "identity",
+          "createdAt",
+          "expiresAt",
+          "transactions",
+          "encodedTransactions",
+          "warnings",
+          "metadata"
+        ],
+        "properties": {
+          "shapeKey": { "type": "string" },
+          "shapeVersion": { "type": "string" },
+          "identity": {
+            "type": "object",
+            "required": ["network", "protocol", "protocolVersion", "action", "variant"],
+            "properties": {
+              "network": { "type": "string", "enum": ["mainnet", "testnet"] },
+              "protocol": { "type": "string" },
+              "protocolVersion": { "type": "string" },
+              "action": { "type": "string" },
+              "variant": { "type": "string" }
+            }
+          },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "expiresAt": { "type": "string", "format": "date-time" },
+          "transactions": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SerializedTransaction" }
+          },
+          "encodedTransactions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Base64-encoded unsigned Algorand transaction (msgpack)."
+            }
+          },
+          "warnings": { "type": "array", "items": { "type": "string" } },
+          "metadata": { "type": "object", "additionalProperties": true }
+        }
+      },
+      "ExecutionQuoteResponse": {
+        "type": "object",
+        "required": ["data", "meta"],
+        "properties": {
+          "data": { "$ref": "#/components/schemas/ExecutableQuote" },
+          "meta": {
+            "type": "object",
+            "required": ["paymentRequired", "executionSubmitted"],
+            "properties": {
+              "paymentRequired": { "type": "boolean", "enum": [true] },
+              "executionSubmitted": { "type": "boolean", "enum": [false] }
+            }
+          }
+        }
+      },
       "HealthResponse": {
         "type": "object",
         "required": ["data"],
@@ -647,7 +860,7 @@
         "required": ["id", "method", "pathPattern", "access", "summary", "tags"],
         "properties": {
           "id": { "type": "string" },
-          "method": { "type": "string", "enum": ["GET"] },
+          "method": { "type": "string", "enum": ["GET", "POST"] },
           "pathPattern": { "type": "string" },
           "access": { "type": "string", "enum": ["free", "paid"] },
           "summary": { "type": "string" },
@@ -731,6 +944,28 @@
             "schema": { "$ref": "#/components/schemas/ApiError" },
             "examples": {
               "invalidAddress": { "$ref": "#/components/examples/InvalidAddressError" }
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Request validation failed.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ApiError" },
+            "examples": {
+              "validationError": { "$ref": "#/components/examples/ValidationErrorSample" }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Requested resource or shape was not found.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ApiError" },
+            "examples": {
+              "shapeNotFound": { "$ref": "#/components/examples/ShapeNotFoundError" }
             }
           }
         }
@@ -1041,6 +1276,93 @@
           "error": {
             "code": "VALIDATION_ERROR",
             "message": "Query parameter 'address' is not a valid Algorand address."
+          }
+        }
+      },
+      "ValidationErrorSample": {
+        "summary": "Invalid execution quote input",
+        "value": {
+          "error": {
+            "code": "VALIDATION_ERROR",
+            "message": "maxSlippageBps must be an integer between 0 and 10000."
+          }
+        }
+      },
+      "ShapeNotFoundError": {
+        "summary": "Unknown transaction shape key",
+        "value": {
+          "error": {
+            "code": "NOT_FOUND",
+            "message": "No transaction shape registered for key \"mainnet:tinyman:v2:addLiquidity:initial\"."
+          }
+        }
+      },
+      "ExecutionQuoteRequestSample": {
+        "summary": "Tinyman v2 flexible add-liquidity quote request",
+        "value": {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+          "input": {
+            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+            "assetAId": 31566704,
+            "assetAAmount": "1000000",
+            "assetBId": 0,
+            "assetBAmount": "2000000",
+            "maxSlippageBps": 50
+          }
+        }
+      },
+      "ExecutionQuoteRemoveLiquidityRequestSample": {
+        "summary": "Tinyman v2 remove-liquidity (multiple assets out) quote request",
+        "value": {
+          "shapeKey": "mainnet:tinyman:v2:removeLiquidity:multipleAssetsOut",
+          "input": {
+            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+            "assetAId": 31566704,
+            "assetBId": 0,
+            "poolTokenAmount": "500000",
+            "maxSlippageBps": 50
+          }
+        }
+      },
+      "ExecutionQuoteResponseSample": {
+        "summary": "Unsigned executable quote (transactions trimmed)",
+        "value": {
+          "data": {
+            "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+            "shapeVersion": "1.0.0",
+            "identity": {
+              "network": "mainnet",
+              "protocol": "tinyman",
+              "protocolVersion": "v2",
+              "action": "addLiquidity",
+              "variant": "flexible"
+            },
+            "createdAt": "2026-07-08T20:00:00.000Z",
+            "expiresAt": "2026-07-08T20:00:30.000Z",
+            "transactions": [
+              {
+                "type": "axfer",
+                "sender": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "fee": "1000",
+                "groupPresent": true,
+                "assetTransfer": {
+                  "assetIndex": "31566704",
+                  "amount": "1000000",
+                  "receiver": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+                }
+              }
+            ],
+            "encodedTransactions": ["base64-encoded-unsigned-txn"],
+            "warnings": [],
+            "metadata": {
+              "poolAddress": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+              "poolTokenId": 900001,
+              "minPoolTokenOut": "1407142"
+            }
+          },
+          "meta": {
+            "paymentRequired": true,
+            "executionSubmitted": false
           }
         }
       },

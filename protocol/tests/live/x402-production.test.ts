@@ -29,7 +29,10 @@ test("production paid endpoints return 402 preflight", async () => {
   const baseUrl = getProductionBaseUrl();
 
   for (const endpoint of productionPaidEndpoints) {
-    const paymentRequest = await assertPaidPreflight(baseUrl, endpoint.path);
+    const paymentRequest = await assertPaidPreflight(baseUrl, endpoint.path, {
+      method: endpoint.method,
+      body: endpoint.body
+    });
     assert.ok(
       Array.isArray(paymentRequest.accepts) && paymentRequest.accepts.length > 0,
       `${endpoint.path}: PAYMENT-REQUIRED missing accepts`

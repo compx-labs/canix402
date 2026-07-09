@@ -80,6 +80,24 @@
 		reverse_proxy {$UPSTREAM_API}
 	}
 
+	@paid_execution_quote path /execution/quotes
+	handle @paid_execution_quote {
+		x402 {
+			description "canix402 paid execution quote endpoint"
+			mime_type application/json
+			facilitator_url {$FACILITATOR_URL}
+
+			accept {
+				pay_to {$X402_PAY_TO}
+				price {$X402_PRICE_EXECUTION_QUOTE_USDC}
+				network {$X402_NETWORK}
+				scheme {$X402_SCHEME}
+			}
+		}
+
+		reverse_proxy {$UPSTREAM_API}
+	}
+
 	handle {
 		respond "not found" 404
 	}

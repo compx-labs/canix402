@@ -117,6 +117,32 @@ test("expired payment proof returns 402", async () => {
   await app.close();
 });
 
+test("execution quote route requires payment signature", async () => {
+  const app = await buildEdgeGatedApp();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: "mainnet:tinyman:v2:addLiquidity:flexible",
+      input: {
+        userAddress: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+        assetAId: 31566704,
+        assetAAmount: "1000000",
+        assetBId: 0,
+        assetBAmount: "2000000",
+        maxSlippageBps: 50
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 402);
+  assert.equal(response.headers["payment-required"] !== undefined, true);
+  assert.equal(response.json().error.code, "MISSING_PAYMENT_SIGNATURE");
+
+  await app.close();
+});
+
 test("free routes remain accessible without payment signature", async () => {
   const app = await buildEdgeGatedApp();
 

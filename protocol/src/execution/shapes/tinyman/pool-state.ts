@@ -1,6 +1,6 @@
 import algosdk, { Algodv2 } from "algosdk";
 import { CONTRACT_VERSION, getValidatorAppID, poolUtils } from "@tinymanorg/tinyman-js-sdk";
-import type { V2PoolInfo } from "@tinymanorg/tinyman-js-sdk";
+import type { PoolReserves, V2PoolInfo } from "@tinymanorg/tinyman-js-sdk";
 
 import { resolveAssetDecimals } from "../../../services/asset-decimals.js";
 import { ShapeStateError } from "../../errors.js";
@@ -35,6 +35,7 @@ export interface TinymanPoolStateDependencies {
     asset1ID: number;
     asset2ID: number;
   }) => Promise<V2PoolInfo>;
+  getPoolReserves: (client: Algodv2, pool: V2PoolInfo) => Promise<PoolReserves>;
   resolveAssetDecimals: (
     assetIds: readonly number[],
     algodClient?: Algodv2
@@ -141,10 +142,26 @@ export async function resolveTinymanV2PoolState(params: {
   };
 }
 
+/** Resolve current pool reserves required for remove-liquidity quote math. */
+export async function resolveTinymanV2PoolReserves(params: {
+  algod: Algodv2;
+  poolInfo: V2PoolInfo;
+}): Promise<PoolReserves> {
+  const dependencies = resolveDependencies();
+  try {
+    return await dependencies.getPoolReserves(params.algod, params.poolInfo);
+  } catch (error) {
+    throw new ShapeStateError("Failed to fetch Tinyman v2 pool reserves.", {
+      cause: error
+    });
+  }
+}
+
 function resolveDependencies(): TinymanPoolStateDependencies {
   return {
     createAlgodClient: createExecutionAlgodClient,
     getPoolInfo: defaultGetPoolInfo,
+    getPoolReserves: defaultGetPoolReserves,
     resolveAssetDecimals,
     getValidatorAppId: defaultGetValidatorAppId,
     ...dependencyOverrides
@@ -158,6 +175,13 @@ async function defaultGetPoolInfo(params: {
   asset2ID: number;
 }): Promise<V2PoolInfo> {
   return poolUtils.v2.getPoolInfo(params);
+}
+
+async function defaultGetPoolReserves(
+  client: Algodv2,
+  pool: V2PoolInfo
+): Promise<PoolReserves> {
+  return poolUtils.v2.getPoolReserves(client, pool);
 }
 
 function defaultGetValidatorAppId(network: ExecutionNetwork): number {

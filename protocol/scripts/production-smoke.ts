@@ -19,7 +19,10 @@ async function main(): Promise<void> {
   }
 
   for (const endpoint of productionPaidEndpoints) {
-    await assertPaidPreflight(baseUrl, endpoint.path);
+    await assertPaidPreflight(baseUrl, endpoint.path, {
+      method: endpoint.method,
+      body: endpoint.body
+    });
   }
 
   console.log(

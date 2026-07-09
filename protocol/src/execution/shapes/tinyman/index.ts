@@ -1,5 +1,6 @@
 import type { TransactionShapeSpec } from "../../types.js";
 import { tinymanAddLiquidityFlexibleShape } from "./add-liquidity-flexible.js";
+import { tinymanRemoveLiquidityMultipleAssetsOutShape } from "./remove-liquidity-multiple-assets-out.js";
 
 export {
   tinymanAddLiquidityFlexibleShape,
@@ -10,7 +11,16 @@ export type {
   TinymanFlexibleAddLiquidityDependencies
 } from "./add-liquidity-flexible.js";
 export {
+  tinymanRemoveLiquidityMultipleAssetsOutShape,
+  setTinymanRemoveLiquidityDependenciesForTests
+} from "./remove-liquidity-multiple-assets-out.js";
+export type {
+  TinymanRemoveLiquidityMultipleAssetsOutInput,
+  TinymanRemoveLiquidityMultipleAssetsOutDependencies
+} from "./remove-liquidity-multiple-assets-out.js";
+export {
   resolveTinymanV2PoolState,
+  resolveTinymanV2PoolReserves,
   orderTinymanAssets,
   setTinymanPoolStateDependenciesForTests,
   createExecutionAlgodClient
@@ -22,5 +32,6 @@ export type {
 
 /** All verified Tinyman transaction shapes. */
 export const tinymanShapes: readonly TransactionShapeSpec[] = [
-  tinymanAddLiquidityFlexibleShape
+  tinymanAddLiquidityFlexibleShape,
+  tinymanRemoveLiquidityMultipleAssetsOutShape
 ];

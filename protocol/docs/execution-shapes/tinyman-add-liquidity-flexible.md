@@ -8,6 +8,38 @@ with flexible amounts.
 - Shape version: `1.0.0`
 - Source module: `src/execution/shapes/tinyman/add-liquidity-flexible.ts`
 - Supported opportunity types: `lp`
+- Paid API endpoint: `POST /execution/quotes` (0.1 USDC via x402)
+
+## Calling the x402 execution quote endpoint
+
+Agents can request an unsigned transaction group through the paid execution
+API rather than calling the shape module directly.
+
+1. Preflight `POST /execution/quotes` without `PAYMENT-SIGNATURE` to receive
+   `402` and `PAYMENT-REQUIRED`.
+2. Sign the USDC payment and retry with `PAYMENT-SIGNATURE`.
+3. Parse `data.encodedTransactions` from the `200` response and sign those
+   unsigned Algorand transactions locally. Canix does not submit them.
+
+Example request body:
+
+```json
+{
+  "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+  "input": {
+    "userAddress": "YOUR_ALGORAND_ADDRESS",
+    "assetAId": 31566704,
+    "assetAAmount": "1000000",
+    "assetBId": 0,
+    "assetBAmount": "2000000",
+    "maxSlippageBps": 50
+  }
+}
+```
+
+The response includes `data.transactions` (fixture-friendly metadata),
+`data.encodedTransactions` (base64 msgpack for signing), `data.expiresAt`, and
+`meta.executionSubmitted: false`.
 
 ## What this shape does
 

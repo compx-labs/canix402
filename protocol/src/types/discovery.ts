@@ -8,7 +8,7 @@ export interface DiscoveryErrorDescriptor {
 
 export interface DiscoveryEndpointDescriptor {
   id: string;
-  method: "GET";
+  method: "GET" | "POST";
   path: string;
   access: Exclude<EndpointAccess, "unknown">;
   summary: string;
