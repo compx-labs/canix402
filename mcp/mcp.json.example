@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "canix402": {
+      "command": "npx",
+      "args": ["tsx", "mcp/src/index.ts"],
+      "cwd": "/absolute/path/to/canix402",
+      "env": {
+        "CANIX402_API_URL": "https://canix402-api.compx.io",
+        "CANIX402_NETWORK": "algorand-mainnet"
+      }
+    }
+  }
+}

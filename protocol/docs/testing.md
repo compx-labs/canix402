@@ -5,21 +5,55 @@ suite validates for canix402.
 
 The protocol package lives in `protocol/` within the monorepo. From repo root, prefer workspace scripts such as `npm run test:protocol`.
 
+## Test Lanes
+
+canix402 uses intentional test lanes. They are separate packages and access patterns — standard API tests do **not** invoke the MCP server.
+
+| Lane | Location | Access pattern | Default CI |
+|------|----------|----------------|------------|
+| **API** | `protocol/tests/integration` | In-process Fastify (`buildApp` + `inject`) | Yes |
+| **Gateway** | `protocol/tests/e2e` | Local Caddy + facilitator mock + `fetch` | Yes |
+| **MCP (Local stdio)** | `mcp/tests/unit`, `mcp/tests/integration` | MCP tool handlers + mocked `fetch` | Yes |
+| **MCP (Remote worker)** | `mcp-worker/tests` | Worker MCP server + mocked gateway `fetch` | Yes |
+| **Live / production** | `protocol/tests/live`, `mcp/tests/live` | Real HTTP / mainnet (opt-in) | No |
+
+### Quick commands (repo root)
+
+```sh
+# API + gateway (CI gate)
+npm run test:protocol
+
+# Lanes individually
+npm run test:api
+npm run test:gateway
+npm run test:mcp
+npm run test:mcp-worker
+
+# Live / production (opt-in, may spend USDC)
+npm run test:live:local
+npm run test:live:production
+npm run test:live:execution
+CANIX402_LIVE_TESTS=1 npm run test:live:mcp
+
+# Full local pre-merge check
+npm run check
+```
+
 ## Test Suites
 
-### Integration tests (`protocol/tests/integration`)
+### API tests (`protocol/tests/integration`)
 
 Run with:
 
 ```sh
-npm run test -w protocol
-# or from repo root
-npm run test:protocol
+npm run test:api -w protocol
+# or
+npm run test:api
 ```
 
 Coverage:
 
-- Discovery contract coverage (`/discovery`)
+- Discovery contract coverage (`/discovery`) including MCP **advertisement metadata** (not MCP runtime)
 - OpenAPI consistency coverage (`/openapi.json`)
 - App-level x402 behavior simulation for paid/free routes
 - Adapter and protocol-route coverage for:
@@ -42,13 +76,15 @@ Files:
 - `tests/integration/pact-adapter.test.ts`
 - `tests/integration/folks-finance-adapter.test.ts`
 
-### x402 E2E tests through Caddy (`protocol/tests/e2e`)
+### Gateway tests through Caddy (`protocol/tests/e2e`)
 
 Run with:
 
 ```sh
 npm run build:caddy-x402 -w protocol
-npm run test:x402-e2e -w protocol
+npm run test:gateway -w protocol
+# or
+npm run test:gateway
 ```
 
 Coverage:
@@ -67,7 +103,51 @@ File:
 
 - `tests/e2e/x402-caddy-e2e.test.ts`
 
-## Prerequisites for x402 E2E
+### MCP tests (`mcp/tests`)
+
+Run with:
+
+```sh
+npm run test:mcp
+```
+
+Coverage (local stdio package):
+
+- MCP server tool/resource registration against the canonical tool manifest (`@canix402/x402-client`)
+- Free and paid tool handler behavior with mocked gateway `fetch`
+- x402 client payment preflight and retry-signature forwarding (mocked)
+- Discovery `/discovery` tool list parity (protocol API contract test)
+
+Live MCP tests (production gateway, opt-in):
+
+```sh
+CANIX402_LIVE_TESTS=1 npm run test:live:mcp
+```
+
+Files:
+
+- `mcp/tests/unit/x402-client.test.ts`
+- `mcp/tests/integration/mcp-server.test.ts`
+- `mcp/tests/live/mcp-live.test.ts`
+
+MCP always calls the **Caddy gateway** (`CANIX402_API_URL`), never the raw Fastify upstream.
+
+### Remote MCP Worker tests (`mcp-worker/tests`)
+
+Run with:
+
+```sh
+npm run test:mcp-worker
+```
+
+Coverage:
+
+- Worker config and endpoint metadata defaults
+- Gateway paid preflight (`402 + PAYMENT-REQUIRED`) parsing
+- Retry forwarding with caller-supplied `PAYMENT-SIGNATURE`
+- MCP tool registration parity with canonical tool manifest
+
+## Prerequisites for gateway tests
 
 The E2E suite requires a project-local Caddy binary with the x402 plugin.
 
@@ -89,24 +169,39 @@ npm run test:ci
 
 This runs:
 
-1. integration tests
-2. x402 Caddy E2E tests
+1. API tests (`test:api`)
+2. Gateway tests (`test:gateway`)
+
+MCP tests run in a separate CI job (`mcp_checks`).
 
 ## CI Lanes
 
-GitHub Actions now runs two different lanes:
+GitHub Actions runs these lanes:
 
 ### Deterministic merge checks (`.github/workflows/ci.yml`)
 
 Triggered on PRs/pushes to `dev` and `main`.
 
-Includes:
+**Protocol checks** (`protocol_checks`):
 
 - protocol typecheck
-- protocol integration tests
-- Caddy x402 binary build + E2E tests
+- API integration tests
+- Caddy x402 binary build + gateway E2E tests
 - Caddy module `go test ./...`
+
+**MCP checks** (`mcp_checks`):
+
+- `@canix402/x402-client` typecheck
+- MCP typecheck
+- MCP unit + integration tests (mocked fetch, no network)
+- MCP worker typecheck + tests
+
+**Website checks** (`website_checks`):
+
 - website typecheck + build
+
+**Docker smoke** (`docker_smoke`):
+
 - protocol/caddy Docker build smoke
 
 These checks are intended to be required merge gates.
@@ -175,12 +270,26 @@ This suite currently checks:
 - Pact live records are returned with numeric `apy` and `tvlUsd`, including LP
   and farm opportunity type coverage when available.
 
+## Environment variable alignment
+
+Protocol live tests and MCP use different prefixes but share aliases:
+
+| Purpose | Protocol | MCP |
+|---------|----------|-----|
+| Gateway base URL | `X402_PRODUCTION_BASE_URL` | `CANIX402_API_URL` |
+| Live test gate | `X402_PRODUCTION_PAID_TEST`, `X402_TINYMAN_EXECUTION_LIVE`, etc. | `CANIX402_LIVE_TESTS=1` |
+
+Shared x402 parsing + signing utilities live in `packages/x402-client`.
+Server-side MCP layers (local and remote) are walletless and do not hold mnemonics.
+
 ## Live x402 Integration Tests
 
 To verify live Caddy + facilitator compatibility and live paid settlement:
 
 ```sh
-npm run test:x402-live
+npm run test:live:local -w protocol
+# or
+npm run test:live:local
 ```
 
 This performs a real local stack run:
@@ -213,13 +322,13 @@ real facilitator settlement:
 X402_PRODUCTION_PAID_TEST=1 \
 X402_PRODUCTION_BASE_URL=https://canix402-api.compx.io \
 X402_CLIENT_MNEMONIC=... \
-npm run test:x402-production -w protocol
+npm run test:live:production -w protocol
 ```
 
 Preflight-only run (no wallet, no spend):
 
 ```sh
-npm run test:x402-production -w protocol
+npm run test:live:production -w protocol
 ```
 
 Scheduled production smoke (same preflight coverage, no wallet):
@@ -257,20 +366,20 @@ To verify the full agent execution path against the **deployed production gatewa
 **on-chain submission** on mainnet:
 
 ```sh
-X402_TINYMAN_EXECUTION_LIVE=1 npm run test:tinyman-execution-live -w protocol
+X402_TINYMAN_EXECUTION_LIVE=1 npm run test:live:execution -w protocol
 ```
 
 Scenario selector (default: `roundtrip`):
 
 ```sh
 # Add only: 0.1 USDC + proportional ALGO via paid execution quote
-X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=add npm run test:tinyman-execution-live -w protocol
+X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=add npm run test:live:execution -w protocol
 
 # Remove only: burns current LP balance (skip if wallet has no LP tokens)
-X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=remove npm run test:tinyman-execution-live -w protocol
+X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=remove npm run test:live:execution -w protocol
 
 # Roundtrip: add then remove full LP balance from the add
-X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=roundtrip npm run test:tinyman-execution-live -w protocol
+X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=roundtrip npm run test:live:execution -w protocol
 ```
 
 Optional partial remove amount (base units):
@@ -288,7 +397,7 @@ Flow per scenario:
 
 Configuration:
 
-- `X402_PRODUCTION_BASE_URL` — production API base (same as `test:x402-production`)
+- `X402_PRODUCTION_BASE_URL` — production API base (same as `test:live:production`)
 - `X402_CLIENT_MNEMONIC` in `.env` (never commit)
 - `X402_FACILITATOR_BASE_URL`, pay-to, and Algod vars from `.env` / `caddy/.env`
 

@@ -84,6 +84,38 @@ jobs:
       - name: Build website
         run: npm run build:website
 
+  mcp_checks:
+    name: MCP checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck shared x402 client
+        run: npm run typecheck:x402-client
+
+      - name: Typecheck MCP server
+        run: npm run typecheck:mcp
+
+      - name: Run MCP unit and integration tests
+        run: npm run test:mcp
+
+      - name: Typecheck MCP worker
+        run: npm run typecheck:mcp-worker
+
+      - name: Run MCP worker tests
+        run: npm run test:mcp-worker
+
   docker_smoke:
     name: Docker build smoke
     runs-on: ubuntu-latest

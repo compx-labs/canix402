@@ -47,6 +47,33 @@ import { config } from "../lib/config";
     </p>
   </section>
 
+  <section class="panel" id="mcp">
+    <h2>MCP server (agent tools)</h2>
+    <p>
+      Agents can connect to the remote canix402 MCP endpoint instead of calling HTTP endpoints
+      directly. The MCP layer is walletless: paid tools return payment requirements first, then
+      accept a caller-supplied <code>paymentSignature</code> on retry.
+    </p>
+    <ul>
+      <li>Transport: <code>streamable-http</code></li>
+      <li>Remote URL: <code>https://mcp.canix402.com/mcp</code></li>
+      <li>No server-side wallet or mnemonic storage in MCP</li>
+      <li>
+        Tools include <code>canix_list_opportunities</code>,
+        <code>canix_get_execution_quote</code>, and free discovery helpers
+      </li>
+    </ul>
+    <CodeBlock
+      code={`{
+  "mcpServers": {
+    "canix402": {
+      "url": "https://mcp.canix402.com/mcp"
+    }
+  }
+}`}
+    />
+  </section>
+
   <section class="panel">
     <h2>Common failure modes</h2>
     <ul>

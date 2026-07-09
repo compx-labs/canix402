@@ -50,9 +50,9 @@ Status legend:
 ## 7) Discoverability and Agent Indexing
 
 - [~] Expand human agent docs with fuller agent examples (`/x402`, quickstart, and examples pages exist).
-- [ ] Add MCP server.
-  - [ ] Include tools for `discover_opportunities`, `build_strategy`, `get_transaction_group`, and `simulate_strategy`.
-  - [ ] Link MCP server from docs and manifest.
+- [x] Add MCP server (`mcp/` workspace, stdio transport, free + paid tools wrapping gateway endpoints).
+  - [x] Include tools for opportunity discovery and execution quotes (`canix_list_opportunities`, `canix_get_execution_quote`, etc.). Strategy marketplace tools (`build_strategy`, `simulate_strategy`) remain deferred until those APIs exist.
+  - [x] Link MCP server from docs and manifest.
 - [~] Enable GoPlausible facilitator catalog visibility (optional).
   - [ ] Optional: verify the API appears in GoPlausible facilitator discovery (`GET https://facilitator.goplausible.xyz/discovery/resources`, filter for `canix402-api.compx.io`).
 - [~] Confirm trust metadata is complete and current.
