@@ -13,6 +13,11 @@ export const ExecutionQuoteInputSchema = Type.Object({
   poolTokenAmount: Type.Optional(
     Type.Union([Type.Integer({ minimum: 1 }), Type.String({ minLength: 1 })])
   ),
+  depositAssetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
+  depositAmount: Type.Optional(
+    Type.Union([Type.Integer({ minimum: 1 }), Type.String({ minLength: 1 })])
+  ),
+  outputAssetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
   maxSlippageBps: Type.Union([Type.Integer({ minimum: 0, maximum: 10_000 }), Type.String()]),
   poolId: Type.Optional(Type.String({ minLength: 1 }))
 });

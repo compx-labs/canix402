@@ -480,7 +480,7 @@
     "/execution/quotes": {
       "post": {
         "summary": "Compile a verified transaction shape into unsigned Algorand transactions",
-        "description": "Returns a fresh, validated, unsigned transaction group for a supported execution shape. Use when an agent has selected a DeFi action and needs deterministic transaction bytes to sign locally. Currently supports Tinyman v2 flexible add-liquidity (`mainnet:tinyman:v2:addLiquidity:flexible`) and Tinyman v2 remove-liquidity multiple-assets-out (`mainnet:tinyman:v2:removeLiquidity:multipleAssetsOut`). Canix does not sign or submit transactions in this endpoint.",
+        "description": "Returns a fresh, validated, unsigned transaction group for a supported execution shape. Use when an agent has selected a DeFi action and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes: flexible add (`mainnet:tinyman:v2:addLiquidity:flexible`), initial add (`mainnet:tinyman:v2:addLiquidity:initial`), single-asset add (`mainnet:tinyman:v2:addLiquidity:singleAsset`), multiple-assets-out remove (`mainnet:tinyman:v2:removeLiquidity:multipleAssetsOut`), and single-asset-out remove (`mainnet:tinyman:v2:removeLiquidity:singleAssetOut`). Canix does not sign or submit transactions in this endpoint.",
         "tags": ["execution", "transactions", "x402", "agents"],
         "requestBody": {
           "required": true,
@@ -489,7 +489,10 @@
               "schema": { "$ref": "#/components/schemas/ExecutionQuoteRequest" },
               "examples": {
                 "tinymanAddLiquidity": { "$ref": "#/components/examples/ExecutionQuoteRequestSample" },
-                "tinymanRemoveLiquidity": { "$ref": "#/components/examples/ExecutionQuoteRemoveLiquidityRequestSample" }
+                "tinymanAddLiquidityInitial": { "$ref": "#/components/examples/ExecutionQuoteInitialAddLiquidityRequestSample" },
+                "tinymanAddLiquiditySingleAsset": { "$ref": "#/components/examples/ExecutionQuoteSingleAssetAddLiquidityRequestSample" },
+                "tinymanRemoveLiquidity": { "$ref": "#/components/examples/ExecutionQuoteRemoveLiquidityRequestSample" },
+                "tinymanRemoveLiquiditySingleAssetOut": { "$ref": "#/components/examples/ExecutionQuoteSingleAssetOutRemoveLiquidityRequestSample" }
               }
             }
           }
@@ -707,6 +710,16 @@
           "poolTokenAmount": {
             "type": "string",
             "description": "Pool token amount in base units for remove-liquidity shapes (integer string recommended)."
+          },
+          "depositAssetId": {
+            "description": "Asset id to deposit for single-asset add-liquidity (must match assetAId or assetBId)."
+          },
+          "depositAmount": {
+            "type": "string",
+            "description": "Deposit amount in base units for single-asset add-liquidity (integer string recommended)."
+          },
+          "outputAssetId": {
+            "description": "Asset id to receive for single-asset-out remove-liquidity (must match assetAId or assetBId)."
           },
           "maxSlippageBps": {
             "type": "integer",
@@ -1296,7 +1309,7 @@
         "value": {
           "error": {
             "code": "NOT_FOUND",
-            "message": "No transaction shape registered for key \"mainnet:tinyman:v2:addLiquidity:initial\"."
+            "message": "No transaction shape registered for key \"mainnet:tinyman:v2:swap:fixedInput\"."
           }
         }
       },
@@ -1322,6 +1335,48 @@
             "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
             "assetAId": 31566704,
             "assetBId": 0,
+            "poolTokenAmount": "500000",
+            "maxSlippageBps": 50
+          }
+        }
+      },
+      "ExecutionQuoteInitialAddLiquidityRequestSample": {
+        "summary": "Tinyman v2 initial add-liquidity quote request",
+        "value": {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:initial",
+          "input": {
+            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+            "assetAId": 31566704,
+            "assetAAmount": "1000000",
+            "assetBId": 0,
+            "assetBAmount": "2000000",
+            "maxSlippageBps": 50
+          }
+        }
+      },
+      "ExecutionQuoteSingleAssetAddLiquidityRequestSample": {
+        "summary": "Tinyman v2 single-asset add-liquidity quote request",
+        "value": {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:singleAsset",
+          "input": {
+            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+            "assetAId": 31566704,
+            "assetBId": 0,
+            "depositAssetId": 31566704,
+            "depositAmount": "1000000",
+            "maxSlippageBps": 50
+          }
+        }
+      },
+      "ExecutionQuoteSingleAssetOutRemoveLiquidityRequestSample": {
+        "summary": "Tinyman v2 remove-liquidity (single asset out) quote request",
+        "value": {
+          "shapeKey": "mainnet:tinyman:v2:removeLiquidity:singleAssetOut",
+          "input": {
+            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+            "assetAId": 31566704,
+            "assetBId": 0,
+            "outputAssetId": 31566704,
             "poolTokenAmount": "500000",
             "maxSlippageBps": 50
           }

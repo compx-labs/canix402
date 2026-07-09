@@ -67,7 +67,7 @@ Canix should become the validation, discovery, transaction-generation, execution
 ### Execution API
 
 - [x] Add paid x402 `POST /execution/quotes` endpoint (0.1 USDC) returning unsigned transaction groups for verified shapes.
-- [~] Expose Tinyman v2 flexible add-liquidity via execution quote endpoint (remove LP shape added; additional shapes still pending).
+- [x] Expose all five Tinyman v2 LP execution shapes via execution quote endpoint (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove).
 
 ### Protocol Transaction Shape Mapping (Blocking Foundation)
 

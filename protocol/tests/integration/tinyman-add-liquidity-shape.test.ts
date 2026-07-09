@@ -9,6 +9,7 @@ import {
   ShapeStateError,
   TransactionShapeRegistry,
   compileExecutableQuote,
+  createExecutionRegistry,
   serializeTransaction
 } from "../../src/execution/index.js";
 import type {
@@ -408,10 +409,9 @@ test("validate rejects an unsupported add-liquidity variant", () => {
   assert.equal(result.valid, false);
   assert.ok(result.errors.some((message) => message.includes("flexible")));
 
-  // The single-asset variant is not a registered, executable shape yet.
-  const registry = new TransactionShapeRegistry();
-  registry.register(tinymanAddLiquidityFlexibleShape);
-  assert.equal(registry.has("mainnet:tinyman:v2:addLiquidity:singleAsset"), false);
+  // The single-asset variant is a separate registered shape in the default registry.
+  const registry = createExecutionRegistry();
+  assert.equal(registry.has("mainnet:tinyman:v2:addLiquidity:singleAsset"), true);
 });
 
 test("validate rejects wrong group size, low fee, and missing group id", () => {

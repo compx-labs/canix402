@@ -140,7 +140,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     access: "paid",
     summary: "Compile a verified transaction shape into unsigned Algorand transactions",
     description:
-      "Returns a fresh, validated, unsigned transaction group for a supported execution shape. Use when an agent has selected a DeFi action and needs deterministic transaction bytes to sign locally. Currently supports Tinyman v2 flexible add-liquidity (`mainnet:tinyman:v2:addLiquidity:flexible`) and Tinyman v2 remove-liquidity multiple-assets-out (`mainnet:tinyman:v2:removeLiquidity:multipleAssetsOut`). Canix does not sign or submit transactions in this endpoint.",
+      "Returns a fresh, validated, unsigned transaction group for a supported execution shape. Use when an agent has selected a DeFi action and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes: flexible add (`mainnet:tinyman:v2:addLiquidity:flexible`), initial add (`mainnet:tinyman:v2:addLiquidity:initial`), single-asset add (`mainnet:tinyman:v2:addLiquidity:singleAsset`), multiple-assets-out remove (`mainnet:tinyman:v2:removeLiquidity:multipleAssetsOut`), and single-asset-out remove (`mainnet:tinyman:v2:removeLiquidity:singleAssetOut`). Canix does not sign or submit transactions in this endpoint.",
     tags: ["execution", "transactions", "x402", "agents"],
     priceUsdc: process.env.X402_PRICE_EXECUTION_QUOTE_USDC ?? "0.1"
   }

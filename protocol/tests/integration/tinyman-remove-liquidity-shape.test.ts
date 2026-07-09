@@ -8,6 +8,7 @@ import {
   InvalidShapeInputError,
   TransactionShapeRegistry,
   compileExecutableQuote,
+  createExecutionRegistry,
   serializeTransaction
 } from "../../src/execution/index.js";
 import type {
@@ -383,8 +384,7 @@ test("validate rejects wrong group size, low fee, and missing group id", () => {
   assert.ok(ungroupedResult.errors.some((message) => message.includes("atomic group")));
 });
 
-test("single-asset-out variant is not registered yet", () => {
-  const registry = new TransactionShapeRegistry();
-  registry.register(tinymanRemoveLiquidityMultipleAssetsOutShape);
-  assert.equal(registry.has("mainnet:tinyman:v2:removeLiquidity:singleAssetOut"), false);
+test("single-asset-out variant is registered", () => {
+  const registry = createExecutionRegistry();
+  assert.equal(registry.has("mainnet:tinyman:v2:removeLiquidity:singleAssetOut"), true);
 });

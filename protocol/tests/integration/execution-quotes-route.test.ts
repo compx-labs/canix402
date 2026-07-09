@@ -7,9 +7,15 @@ import type { SignerTransaction, V2PoolInfo } from "@tinymanorg/tinyman-js-sdk";
 import { buildApp } from "../../src/app.js";
 import {
   setTinymanFlexibleAddLiquidityDependenciesForTests,
+  setTinymanInitialAddLiquidityDependenciesForTests,
   setTinymanRemoveLiquidityDependenciesForTests,
+  setTinymanRemoveLiquiditySingleAssetOutDependenciesForTests,
+  setTinymanSingleAssetAddLiquidityDependenciesForTests,
   tinymanAddLiquidityFlexibleShape,
-  tinymanRemoveLiquidityMultipleAssetsOutShape
+  tinymanAddLiquidityInitialShape,
+  tinymanAddLiquiditySingleAssetShape,
+  tinymanRemoveLiquidityMultipleAssetsOutShape,
+  tinymanRemoveLiquiditySingleAssetOutShape
 } from "../../src/execution/shapes/tinyman/index.js";
 import type { TinymanV2PoolState } from "../../src/execution/shapes/tinyman/pool-state.js";
 
@@ -63,6 +69,86 @@ function buildFlexibleGroup(): algosdk.Transaction[] {
     suggestedParams: suggestedParams(3000)
   });
   const group = [asset1Txn, asset2Txn, appTxn];
+  algosdk.assignGroupID(group);
+  return group;
+}
+
+function buildSingleAssetAddGroup(): algosdk.Transaction[] {
+  const assetInTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+    sender: USER.addr,
+    receiver: POOL.addr,
+    amount: 1_000_000n,
+    assetIndex: USDC_ID,
+    suggestedParams: suggestedParams(1000)
+  });
+  const appTxn = algosdk.makeApplicationCallTxnFromObject({
+    sender: USER.addr,
+    appIndex: BigInt(VALIDATOR_APP_ID),
+    onComplete: algosdk.OnApplicationComplete.NoOpOC,
+    appArgs: [
+      new TextEncoder().encode("add_liquidity"),
+      new TextEncoder().encode("single"),
+      algosdk.encodeUint64(895_500n)
+    ],
+    foreignAssets: [POOL_TOKEN_ID],
+    accounts: [POOL.addr],
+    suggestedParams: suggestedParams(3000)
+  });
+  const group = [assetInTxn, appTxn];
+  algosdk.assignGroupID(group);
+  return group;
+}
+
+function buildInitialAddGroup(): algosdk.Transaction[] {
+  const asset1Txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+    sender: USER.addr,
+    receiver: POOL.addr,
+    amount: 1_000_000n,
+    assetIndex: USDC_ID,
+    suggestedParams: suggestedParams(1000)
+  });
+  const asset2Txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+    sender: USER.addr,
+    receiver: POOL.addr,
+    amount: 2_000_000n,
+    suggestedParams: suggestedParams(1000)
+  });
+  const appTxn = algosdk.makeApplicationCallTxnFromObject({
+    sender: USER.addr,
+    appIndex: BigInt(VALIDATOR_APP_ID),
+    onComplete: algosdk.OnApplicationComplete.NoOpOC,
+    appArgs: [new TextEncoder().encode("add_initial_liquidity")],
+    foreignAssets: [POOL_TOKEN_ID],
+    accounts: [POOL.addr],
+    suggestedParams: suggestedParams(2000)
+  });
+  const group = [asset1Txn, asset2Txn, appTxn];
+  algosdk.assignGroupID(group);
+  return group;
+}
+
+function buildSingleAssetOutRemoveGroup(): algosdk.Transaction[] {
+  const poolTokenTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+    sender: USER.addr,
+    receiver: POOL.addr,
+    amount: 500_000n,
+    assetIndex: POOL_TOKEN_ID,
+    suggestedParams: suggestedParams(1000)
+  });
+  const appTxn = algosdk.makeApplicationCallTxnFromObject({
+    sender: USER.addr,
+    appIndex: BigInt(VALIDATOR_APP_ID),
+    onComplete: algosdk.OnApplicationComplete.NoOpOC,
+    appArgs: [
+      new TextEncoder().encode("remove_liquidity"),
+      algosdk.encodeUint64(398_000n),
+      algosdk.encodeUint64(0n)
+    ],
+    foreignAssets: [USDC_ID],
+    accounts: [POOL.addr],
+    suggestedParams: suggestedParams(3000)
+  });
+  const group = [poolTokenTxn, appTxn];
   algosdk.assignGroupID(group);
   return group;
 }
@@ -149,6 +235,66 @@ function installRemoveLiquidityMocks(): void {
   });
 }
 
+function installSingleAssetAddMocks(): void {
+  setTinymanSingleAssetAddLiquidityDependenciesForTests({
+    resolvePoolState: async () => poolState(),
+    getSingleAssetQuote: () => ({
+      assetIn: { id: USDC_ID, amount: 1_000_000n },
+      poolTokenOut: { id: POOL_TOKEN_ID, amount: 900_000n },
+      share: 0.01,
+      slippage: 0.005,
+      internalSwapQuote: {
+        assetIn: { id: USDC_ID, amount: 100_000n, decimals: 6 },
+        assetOut: { id: ALGO_ID, amount: 50_000n, decimals: 6 },
+        swapFees: 500n,
+        priceImpact: 0.001
+      },
+      minPoolTokenAssetAmountWithSlippage: 895_500n
+    }),
+    generateSingleAssetTxns: async (): Promise<SignerTransaction[]> =>
+      buildSingleAssetAddGroup().map((txn) => ({ txn }))
+  });
+}
+
+function installInitialAddMocks(): void {
+  setTinymanInitialAddLiquidityDependenciesForTests({
+    resolvePoolState: async () => poolState(),
+    getInitialQuote: () => ({
+      asset1In: { id: USDC_ID, amount: 1_000_000n },
+      asset2In: { id: ALGO_ID, amount: 2_000_000n },
+      poolTokenOut: { id: POOL_TOKEN_ID, amount: 1_414_213n },
+      slippage: 0.005
+    }),
+    generateInitialTxns: async (): Promise<SignerTransaction[]> =>
+      buildInitialAddGroup().map((txn) => ({ txn }))
+  });
+}
+
+function installSingleAssetOutRemoveMocks(): void {
+  setTinymanRemoveLiquiditySingleAssetOutDependenciesForTests({
+    resolvePoolState: async () => poolState(),
+    resolvePoolReserves: async () => ({
+      asset1: 10_000_000_000n,
+      asset2: 20_000_000_000n,
+      issuedLiquidity: 1_000_000_000n,
+      round: 50_000_000n
+    }),
+    getSingleAssetRemoveLiquidityQuote: () => ({
+      round: 50_000_000,
+      assetOut: { assetId: USDC_ID, amount: 400_000n },
+      poolTokenIn: { assetId: POOL_TOKEN_ID, amount: 500_000n },
+      internalSwapQuote: {
+        amountIn: { assetId: ALGO_ID, amount: 100_000n },
+        amountOut: { assetId: USDC_ID, amount: 50_000n },
+        swapFees: { assetId: ALGO_ID, amount: 500n },
+        priceImpact: 0.001
+      }
+    }),
+    generateSingleAssetOutTxns: async (): Promise<SignerTransaction[]> =>
+      buildSingleAssetOutRemoveGroup().map((txn) => ({ txn }))
+  });
+}
+
 const quoteRequestBody = {
   shapeKey: tinymanAddLiquidityFlexibleShape.key,
   input: {
@@ -175,6 +321,9 @@ const removeQuoteRequestBody = {
 test.afterEach(() => {
   setTinymanFlexibleAddLiquidityDependenciesForTests(undefined);
   setTinymanRemoveLiquidityDependenciesForTests(undefined);
+  setTinymanSingleAssetAddLiquidityDependenciesForTests(undefined);
+  setTinymanInitialAddLiquidityDependenciesForTests(undefined);
+  setTinymanRemoveLiquiditySingleAssetOutDependenciesForTests(undefined);
 });
 
 test("POST /execution/quotes returns unsigned executable quote", async () => {
@@ -268,6 +417,92 @@ test("POST /execution/quotes returns 400 when remove-liquidity poolTokenAmount i
   await app.close();
 });
 
+test("POST /execution/quotes returns initial add-liquidity executable quote", async () => {
+  installInitialAddMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: tinymanAddLiquidityInitialShape.key,
+      input: quoteRequestBody.input
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: { shapeKey: string; transactions: Array<{ type: string }> };
+  };
+  assert.equal(body.data.shapeKey, tinymanAddLiquidityInitialShape.key);
+  assert.equal(body.data.transactions.length, 3);
+
+  await app.close();
+});
+
+test("POST /execution/quotes returns single-asset add-liquidity executable quote", async () => {
+  installSingleAssetAddMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: tinymanAddLiquiditySingleAssetShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        assetAId: USDC_ID,
+        assetBId: ALGO_ID,
+        depositAssetId: USDC_ID,
+        depositAmount: "1000000",
+        maxSlippageBps: 50
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: { shapeKey: string; transactions: Array<{ type: string }> };
+  };
+  assert.equal(body.data.shapeKey, tinymanAddLiquiditySingleAssetShape.key);
+  assert.equal(body.data.transactions.length, 2);
+
+  await app.close();
+});
+
+test("POST /execution/quotes returns single-asset-out remove-liquidity executable quote", async () => {
+  installSingleAssetOutRemoveMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: tinymanRemoveLiquiditySingleAssetOutShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        assetAId: USDC_ID,
+        assetBId: ALGO_ID,
+        outputAssetId: USDC_ID,
+        poolTokenAmount: "500000",
+        maxSlippageBps: 50
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: { shapeKey: string; transactions: Array<{ type: string }> };
+  };
+  assert.equal(body.data.shapeKey, tinymanRemoveLiquiditySingleAssetOutShape.key);
+  assert.equal(body.data.transactions.length, 2);
+
+  await app.close();
+});
+
 test("POST /execution/quotes returns 404 for unknown shape key", async () => {
   const app = buildApp();
   await app.ready();
@@ -276,7 +511,7 @@ test("POST /execution/quotes returns 404 for unknown shape key", async () => {
     method: "POST",
     url: "/execution/quotes",
     payload: {
-      shapeKey: "mainnet:tinyman:v2:addLiquidity:initial",
+      shapeKey: "mainnet:tinyman:v2:swap:fixedInput",
       input: quoteRequestBody.input
     }
   });
