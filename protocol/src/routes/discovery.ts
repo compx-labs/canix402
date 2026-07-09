@@ -132,7 +132,8 @@ function buildDiscoveryDocument(): DiscoveryDocument {
       "x402-paid-data",
       "wallet-personalization",
       "agent-discovery",
-      "openapi"
+      "openapi",
+      "execution-quotes"
     ],
     x402ProtocolVersion: 2,
     endpoints,
@@ -188,7 +189,7 @@ interface X402DiscoveryManifest {
   }>;
   resources: Array<{
     id: string;
-    method: "GET";
+    method: "GET" | "POST";
     path: string;
     url: string;
     description: string;

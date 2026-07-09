@@ -83,7 +83,7 @@ test("well-known x402 manifest lists paid resources and indexing links", async (
   assert.deepEqual(manifestPaths, paidPolicyPaths);
 
   for (const resource of manifest.resources) {
-    assert.equal(resource.method, "GET");
+    assert.equal(resource.method === "GET" || resource.method === "POST", true);
     assert.equal(resource.url.startsWith("https://canix402-api.compx.io/"), true);
     assert.equal(resource.price.currency, "USDC");
     assert.equal(typeof resource.price.amount, "string");
@@ -138,7 +138,7 @@ test("well-known x402 fan-out lists paid resource URLs", async () => {
 
   const payload = response.json() as { version: 1; resources: string[] };
   assert.equal(payload.version, 1);
-  assert.equal(payload.resources.length, 4);
+  assert.equal(payload.resources.length, 5);
   assert.equal(payload.resources.every((url) => url.startsWith("https://canix402-api.compx.io/")), true);
 
   await app.close();

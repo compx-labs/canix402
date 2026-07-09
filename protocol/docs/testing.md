@@ -26,12 +26,18 @@ Coverage:
   - Tinyman
   - Pact
   - Folks Finance
+- Execution quote route coverage (`POST /execution/quotes`)
+- Transaction-shape registry and Tinyman add-liquidity / remove-liquidity shape fixtures
 
 Files:
 
 - `tests/integration/discovery-contract.test.ts`
 - `tests/integration/openapi-consistency.test.ts`
 - `tests/integration/x402-gating.test.ts`
+- `tests/integration/execution-quotes-route.test.ts`
+- `tests/integration/execution-registry.test.ts`
+- `tests/integration/tinyman-add-liquidity-shape.test.ts`
+- `tests/integration/tinyman-remove-liquidity-shape.test.ts`
 - `tests/integration/tinyman-adapter.test.ts`
 - `tests/integration/pact-adapter.test.ts`
 - `tests/integration/folks-finance-adapter.test.ts`
@@ -54,6 +60,7 @@ Coverage:
   - valid signature -> `200`
   - malformed signature -> payment error response
   - invalid verification -> payment error response
+- `POST /execution/quotes` preflight with JSON request body
 - Free endpoint bypass (`/health`, `/metadata`) without facilitator calls
 
 File:
@@ -209,20 +216,90 @@ X402_CLIENT_MNEMONIC=... \
 npm run test:x402-production -w protocol
 ```
 
+Preflight-only run (no wallet, no spend):
+
+```sh
+npm run test:x402-production -w protocol
+```
+
+Scheduled production smoke (same preflight coverage, no wallet):
+
+```sh
+npm run test:production-smoke -w protocol
+```
+
+Coverage on every production test run:
+
+- **Free (expect 200):** `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/favicon.ico`, `/favicon.png`, `/.well-known/x402`, `/.well-known/x402.json`
+- **Paid preflight (expect 402 + `PAYMENT-REQUIRED`):** `/opportunities`, `/opportunities/search`, `/opportunities/personalized`, `/protocols/tinyman/opportunities`
+
 Behavior:
 
 - Without `X402_PRODUCTION_PAID_TEST=1`, the paid settlement test is skipped.
-- The free preflight test still runs and checks production `402` + `PAYMENT-REQUIRED`.
-- With opt-in, the suite signs and retries against `/opportunities` on production.
+- Free and paid preflight tests always run against production.
+- With opt-in, the suite signs and retries against all four paid routes sequentially.
+- Personalized preflight/settlement uses `X402_PRODUCTION_PERSONALIZED_ADDRESS`, falling back to the configured pay-to address.
 
-Wallet requirements:
+Wallet requirements for paid settlement:
 
 - ALGO balance for transaction fees
 - USDC ASA opt-in
-- enough USDC for the `/opportunities` price (default 0.01 USDC)
+- enough USDC for all paid routes in one run (~0.08 USDC: 3×0.01 + 1×0.05)
 - never commit `X402_CLIENT_MNEMONIC` to the repository
 
-This suite is not part of `test`, `test:ci`, or default GitHub Actions.
+This suite is not part of `test`, `test:ci`, or default GitHub Actions. The daily
+`Production Smoke` workflow runs `test:production-smoke` (preflight only).
+
+## Live Tinyman Execution (production x402 + on-chain)
+
+To verify the full agent execution path against the **deployed production gateway**
+(`X402_PRODUCTION_BASE_URL`, default `https://canix402-api.compx.io`) with
+**on-chain submission** on mainnet:
+
+```sh
+X402_TINYMAN_EXECUTION_LIVE=1 npm run test:tinyman-execution-live -w protocol
+```
+
+Scenario selector (default: `roundtrip`):
+
+```sh
+# Add only: 0.1 USDC + proportional ALGO via paid execution quote
+X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=add npm run test:tinyman-execution-live -w protocol
+
+# Remove only: burns current LP balance (skip if wallet has no LP tokens)
+X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=remove npm run test:tinyman-execution-live -w protocol
+
+# Roundtrip: add then remove full LP balance from the add
+X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=roundtrip npm run test:tinyman-execution-live -w protocol
+```
+
+Optional partial remove amount (base units):
+
+```sh
+X402_TINYMAN_REMOVE_POOL_TOKEN_AMOUNT=500000
+```
+
+Flow per scenario:
+
+1. Call deployed `POST /execution/quotes` through production Caddy x402
+2. Pay for the quote with USDC (0.1 USDC per quote)
+3. Sign `data.encodedTransactions` with `X402_CLIENT_MNEMONIC`
+4. Submit and confirm on mainnet via Algod
+
+Configuration:
+
+- `X402_PRODUCTION_BASE_URL` — production API base (same as `test:x402-production`)
+- `X402_CLIENT_MNEMONIC` in `.env` (never commit)
+- `X402_FACILITATOR_BASE_URL`, pay-to, and Algod vars from `.env` / `caddy/.env`
+
+Wallet requirements:
+
+- USDC ASA opted in
+- ALGO for txn fees and proportional deposit
+- For roundtrip: enough USDC for two execution quotes (~0.2 USDC) plus 0.1 USDC liquidity
+- For remove-only: wallet must already hold Tinyman LP tokens
+
+This suite is excluded from `test:ci` and incurs real mainnet + x402 costs.
 
 ## Troubleshooting
 
