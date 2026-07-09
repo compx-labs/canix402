@@ -12,6 +12,13 @@ const GATEWAY = (process.env.PUBLIC_GATEWAY_BASE_URL ?? "https://canix402-api.co
   /\/+$/,
   ""
 );
+const MCP_URL = (process.env.PUBLIC_MCP_URL ?? "https://canix402-mcp.compx.io/mcp").replace(
+  /\/+$/,
+  ""
+);
+const MCP_WELL_KNOWN = (
+  process.env.PUBLIC_MCP_WELL_KNOWN_URL ?? `${MCP_URL.replace(/\/mcp$/, "")}/.well-known/mcp`
+).replace(/\/+$/, "");
 const SUPPORT_EMAIL = "kieran@neonforge.ltd";
 const OPERATOR = "Neon Forge Ltd";
 const PROTOCOLS = ["Tinyman", "Pact", "Folks Finance", "CompX", "Dork.fi"] as const;
@@ -40,7 +47,14 @@ interface DiscoveryEndpoint {
 
 interface DiscoveryDocument {
   apiVersion: string;
+  capabilities?: string[];
   endpoints: DiscoveryEndpoint[];
+  mcpServer?: {
+    name: string;
+    transport: string;
+    url?: string;
+    tools?: string[];
+  };
   errorCatalog: Array<{
     code: string;
     httpStatus: number;
@@ -105,10 +119,12 @@ Use the **Caddy gateway** (\`${GATEWAY}\`) for all API calls. Discovery and Open
 - [Discovery](${GATEWAY}/discovery): endpoint catalog, x402 prices, error codes, facilitator metadata
 - [OpenAPI](${GATEWAY}/openapi.json): schemas, query parameters, response examples
 - [x402 manifest](${GATEWAY}/.well-known/x402.json): directory indexing surface for agent tooling and x402 directories
+- [MCP server](${docs}/mcp): remote Streamable HTTP MCP at \`${MCP_URL}\` (walletless pass-through)
 
 ## Integration guides
 
-- [Quickstart](${docs}/quickstart): four-step agent onboarding
+- [Quickstart](${docs}/quickstart): agent onboarding (MCP or direct HTTP)
+- [MCP setup](${docs}/mcp): connect to \`${MCP_URL}\`, paid-tool paymentSignature retry
 - [x402 payment flow](${docs}/x402): preflight 402, sign USDC transfer, retry with PAYMENT-SIGNATURE
 - [Examples](${docs}/examples): copy-paste curl and sample payloads
 - [Endpoint catalog](${docs}/endpoints): human-readable route table sourced from discovery
@@ -163,9 +179,14 @@ Opportunity responses are normalized records with fields such as \`protocol\`, \
 | Discovery | ${GATEWAY}/discovery |
 | OpenAPI | ${GATEWAY}/openapi.json |
 | x402 manifest | ${GATEWAY}/.well-known/x402.json |
+| MCP server | ${DOCS_SITE}/mcp (remote \`${MCP_URL}\`, streamable-http) |
 | LLM index | ${DOCS_SITE}/llms.txt |
 
 Always call the **gateway**, not an internal upstream API. x402 enforcement, \`PAYMENT-REQUIRED\`, and settlement happen at the gateway edge.
+
+### MCP server
+
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${MCP_URL}\` (streamable-http). Metadata: \`${MCP_WELL_KNOWN}\`. Walletless: paid tool preflight returns payment requirements; retry with \`paymentSignature\`. Tools include \`canix_list_opportunities\`, \`canix_get_execution_quote\`, and free discovery helpers. See ${DOCS_SITE}/mcp.
 
 ## x402 payment flow
 

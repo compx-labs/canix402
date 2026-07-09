@@ -8,7 +8,9 @@
       "x402-paid-data",
       "wallet-personalization",
       "agent-discovery",
-      "openapi"
+      "openapi",
+      "execution-quotes",
+      "mcp-server"
     ],
     "x402ProtocolVersion": 2,
     "endpoints": [
@@ -345,6 +347,25 @@
         "httpStatus": 500,
         "description": "Internal server error."
       }
-    ]
+    ],
+    "mcpServer": {
+      "name": "canix402",
+      "transport": "streamable-http",
+      "url": "https://canix402-mcp.compx.io/mcp",
+      "install": "Connect your MCP client to the remote canix402 endpoint at /mcp (walletless pass-through).",
+      "docsUrl": "https://canix402.compx.io/mcp",
+      "tools": [
+        "canix_health",
+        "canix_get_metadata",
+        "canix_get_discovery",
+        "canix_get_openapi",
+        "canix_list_execution_shapes",
+        "canix_list_opportunities",
+        "canix_search_opportunities",
+        "canix_get_personalized_opportunities",
+        "canix_get_protocol_opportunities",
+        "canix_get_execution_quote"
+      ]
+    }
   }
 }

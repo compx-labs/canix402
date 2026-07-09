@@ -5,6 +5,7 @@ import { config, supportedProtocols } from "../lib/config";
 
 const productSignals = [
   "x402 payments",
+  "Remote MCP",
   "OpenAPI / discovery",
   "Wallet-personalized APYs",
   "Algorand USDC"
@@ -21,7 +22,7 @@ const withCanix = [
   "One normalized API across all supported Algorand DeFi protocols.",
   "Stable schemas, ranked APY data, and consistent field semantics every call.",
   "Discover endpoints and pricing through /discovery and /openapi.json.",
-  "Pay per request with x402 at the gateway — then get data your agent can act on."
+  "Connect via remote MCP tools or direct HTTP with x402 at the gateway."
 ];
 
 const agentCapabilities = [
@@ -39,6 +40,11 @@ const agentCapabilities = [
     title: "Personalize by wallet",
     description:
       "Pass an Algorand address to /opportunities/personalized and get yield options matched to the assets the wallet actually holds."
+  },
+  {
+    title: "Use MCP tools",
+    description:
+      "Connect to the remote Streamable HTTP MCP endpoint for typed tools — walletless paid-tool preflight and client-side paymentSignature retry."
   },
   {
     title: "Pay and proceed",
@@ -112,6 +118,7 @@ const caseStudyResults = [
         </p>
         <div class="cta-row">
           <a class="button button-primary" href="/quickstart">Start quickstart</a>
+          <a class="button" href="/mcp">Connect MCP</a>
           <a class="button" href="/endpoints">Explore endpoints</a>
         </div>
         <ul class="signal-strip" aria-label="Product highlights">
@@ -319,6 +326,7 @@ const caseStudyResults = [
       </p>
       <div class="cta-row">
         <a class="button button-primary" href="/quickstart">Start quickstart</a>
+        <a class="button" href="/mcp">Connect MCP</a>
         <a class="button" href="/endpoints">View endpoints</a>
         <a class="button" href="/examples">See examples</a>
       </div>

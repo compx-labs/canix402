@@ -1,4 +1,5 @@
 const defaultGateway = "https://canix402-api.compx.io";
+const defaultMcpBaseUrl = "https://canix402-mcp.compx.io";
 
 export const site = {
   supportEmail: "kieran@neonforge.ltd",
@@ -6,6 +7,9 @@ export const site = {
 } as const;
 
 const gatewayBaseUrl = import.meta.env.PUBLIC_GATEWAY_BASE_URL ?? defaultGateway;
+const mcpBaseUrl = (
+  import.meta.env.PUBLIC_MCP_URL ?? `${defaultMcpBaseUrl}/mcp`
+).replace(/\/mcp\/?$/, "");
 
 export const config = {
   gatewayBaseUrl,
@@ -13,6 +17,10 @@ export const config = {
     import.meta.env.PUBLIC_DISCOVERY_URL ?? `${gatewayBaseUrl}/discovery`,
   openApiUrl:
     import.meta.env.PUBLIC_OPENAPI_URL ?? `${gatewayBaseUrl}/openapi.json`,
+  mcpUrl: import.meta.env.PUBLIC_MCP_URL ?? `${mcpBaseUrl}/mcp`,
+  mcpWellKnownUrl:
+    import.meta.env.PUBLIC_MCP_WELL_KNOWN_URL ?? `${mcpBaseUrl}/.well-known/mcp`,
+  mcpTransport: "streamable-http" as const,
   payToAddress:
     import.meta.env.PUBLIC_PAY_TO_ADDRESS ??
     "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
@@ -35,3 +43,17 @@ export const supportedProtocols = [
 
 export const defaultPaidPriceUsdc = "0.01";
 export const personalizedPriceUsdc = "0.05";
+
+/** Canonical MCP tool names — aligned with API discovery metadata. */
+export const mcpToolNames = [
+  "canix_health",
+  "canix_get_metadata",
+  "canix_get_discovery",
+  "canix_get_openapi",
+  "canix_list_execution_shapes",
+  "canix_list_opportunities",
+  "canix_search_opportunities",
+  "canix_get_personalized_opportunities",
+  "canix_get_protocol_opportunities",
+  "canix_get_execution_quote"
+] as const;

@@ -17,6 +17,32 @@ import { config } from "../lib/config";
   </p>
 
   <section class="panel">
+    <h2>Option A: Use MCP (recommended for agent hosts)</h2>
+    <p>
+      Connect your MCP client to <a href="/mcp">{config.mcpUrl}</a> (Streamable HTTP). Free tools
+      wrap discovery and health; paid tools return payment requirements, then accept
+      <code>paymentSignature</code> on retry. No mnemonic on the MCP server.
+    </p>
+    <CodeBlock
+      code={`{
+  "mcpServers": {
+    "canix402": {
+      "url": "${config.mcpUrl}"
+    }
+  }
+}`}
+    />
+    <p class="muted">
+      See <a href="/mcp">MCP documentation</a> for the full tool list and paid-tool flow.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>Option B: Direct HTTP</h2>
+    <p>Read discovery and OpenAPI, then call paid routes with x402 headers as below.</p>
+  </section>
+
+  <section class="panel">
     <h2>1. Read discovery</h2>
     <p>Fetch the machine-readable endpoint catalog and payment policy.</p>
     <CodeBlock code={`curl -s ${config.discoveryUrl} | jq`} />

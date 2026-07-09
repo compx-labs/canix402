@@ -19,7 +19,18 @@ const format = (value: unknown): string => JSON.stringify(value, null, 2);
   <p class="muted">All examples use the public Caddy gateway URL. Replace placeholders before running paid retries.</p>
 
   <section class="panel">
-    <h2>Discovery fetch</h2>
+    <h2>MCP discovery tool</h2>
+    <p>
+      After connecting to <a href="/mcp">{config.mcpUrl}</a>, call <code>canix_get_discovery</code> for
+      the same endpoint catalog as HTTP <code>/discovery</code> (free tool).
+    </p>
+    <CodeBlock
+      code={`# Example: MCP client invokes canix_get_discovery (no payment required)\n# Paid tools: first call returns PAYMENT_REQUIRED; retry with paymentSignature`}
+    />
+  </section>
+
+  <section class="panel">
+    <h2>Discovery fetch (HTTP)</h2>
     <CodeBlock code={`curl -s ${config.discoveryUrl} | jq '.data.endpoints[] | {path, access, summary}'`} />
   </section>
 
@@ -29,7 +40,18 @@ const format = (value: unknown): string => JSON.stringify(value, null, 2);
   </section>
 
   <section class="panel">
-    <h2>Signed retry shape</h2>
+    <h2>MCP paid tool retry shape</h2>
+    <p>
+      Paid MCP tools mirror the HTTP x402 flow. First invocation returns payment metadata; retry
+      passes the signed payload as <code>paymentSignature</code> (tool argument, not an HTTP header).
+    </p>
+    <CodeBlock
+      code={`// 1) canix_list_opportunities({ limit: 10 })\n//    -> PAYMENT_REQUIRED + paymentRequiredHeader metadata\n\n// 2) canix_list_opportunities({\n//      limit: 10,\n//      paymentSignature: "<base64-json-payload>"\n//    })\n//    -> opportunity data`}
+    />
+  </section>
+
+  <section class="panel">
+    <h2>Signed retry shape (HTTP)</h2>
     <p>The website does not sign payments. Your agent/client wallet must build this payload.</p>
     <CodeBlock
       code={`{\n  "x402Version": 2,\n  "scheme": "exact",\n  "network": "algorand-mainnet",\n  "accepted": { /* selected accept option from PAYMENT-REQUIRED */ },\n  "payload": {\n    "paymentGroup": ["<base64-signed-txn>"],\n    "paymentIndex": 0\n  },\n  "paymentRequired": { /* decoded PAYMENT-REQUIRED */ }\n}`}

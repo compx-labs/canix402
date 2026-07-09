@@ -22,6 +22,8 @@ Copy `.env.example` to `.env` and set public gateway URLs:
 PUBLIC_GATEWAY_BASE_URL=http://localhost:8081
 PUBLIC_DISCOVERY_URL=http://localhost:8081/discovery
 PUBLIC_OPENAPI_URL=http://localhost:8081/openapi.json
+PUBLIC_MCP_URL=https://canix402-mcp.compx.io/mcp
+PUBLIC_MCP_WELL_KNOWN_URL=https://canix402-mcp.compx.io/.well-known/mcp
 ```
 
 ## Build
@@ -96,6 +98,8 @@ Recommended static hosting: Cloudflare Pages, Vercel, or existing CompX static h
   - `PUBLIC_GATEWAY_BASE_URL=https://canix402-api.compx.io` (live Caddy gateway URL)
   - `PUBLIC_DISCOVERY_URL=https://canix402-api.compx.io/discovery`
   - `PUBLIC_OPENAPI_URL=https://canix402-api.compx.io/openapi.json`
+  - `PUBLIC_MCP_URL=https://canix402-mcp.compx.io/mcp` (remote MCP endpoint)
+  - `PUBLIC_MCP_WELL_KNOWN_URL=https://canix402-mcp.compx.io/.well-known/mcp`
 
 After deploy:
 
