@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { config } from "../lib/config";
 ---
 
 <BaseLayout
@@ -48,6 +49,33 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       <p>
         No. This site is onboarding documentation only. Opportunity data remains API-only behind
         x402 payment gates.
+      </p>
+    </article>
+
+    <article class="faq-item">
+      <h2>Which MCP URL should I use?</h2>
+      <p>
+        Production remote MCP: <code>{config.mcpUrl}</code> (Streamable HTTP).
+        Verify with <code>{config.mcpWellKnownUrl}</code>. Discovery and the API x402
+        manifest advertise this URL in <code>mcpServer.url</code> / <code>mcpUrl</code>.
+      </p>
+    </article>
+
+    <article class="faq-item">
+      <h2>Do I need a wallet mnemonic in the MCP server?</h2>
+      <p>
+        No. The remote MCP is walletless. Your agent or client wallet signs USDC payments and passes
+        <code>paymentSignature</code> when retrying paid MCP tools. Never put mnemonics in MCP
+        server configuration.
+      </p>
+    </article>
+
+    <article class="faq-item">
+      <h2>Should I use MCP or direct HTTP?</h2>
+      <p>
+        Use <a href="/mcp">MCP</a> when your agent host supports MCP tools (Cursor, Claude Desktop).
+        Use direct HTTP when building a custom client against the Caddy gateway. Both hit the same
+        public gateway for paid data; MCP is a typed pass-through wrapper.
       </p>
     </article>
 

@@ -1,0 +1,124 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import CodeBlock from "../components/CodeBlock.astro";
+import { config, mcpToolNames } from "../lib/config";
+---
+
+<BaseLayout
+  title="MCP Server | CANIX402"
+  description="Connect agents to the remote canix402 MCP server over Streamable HTTP. Walletless pass-through to the public Caddy gateway — paid tools return payment requirements, then accept paymentSignature on retry."
+  keywords="Canix402 MCP, Model Context Protocol, streamable-http, agent tools, x402, walletless, Cloudflare Worker"
+>
+  <h1 class="page-title">MCP server</h1>
+  <p class="muted">
+    The canix402 MCP is a remote, walletless wrapper over the public Caddy gateway. Agents connect
+    over Streamable HTTP, call typed tools for discovery and opportunity data, and handle x402
+    payment signing on the client side.
+  </p>
+
+  <section class="panel">
+    <h2>Endpoint</h2>
+    <ul>
+      <li>Transport: <code>{config.mcpTransport}</code></li>
+      <li>MCP URL: <code>{config.mcpUrl}</code></li>
+      <li>Metadata: <code>{config.mcpWellKnownUrl}</code></li>
+      <li>Health: <code>{config.mcpUrl.replace(/\/mcp$/, "")}/health</code></li>
+    </ul>
+    <p>
+      The MCP never stores mnemonics or private keys. Paid tools return structured payment
+      requirements on the first call; your agent signs USDC client-side and retries with
+      <code>paymentSignature</code>.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>Verify the deployment</h2>
+    <CodeBlock
+      code={`curl -s ${config.mcpUrl.replace(/\/mcp$/, "")}/health | jq\n\ncurl -s ${config.mcpWellKnownUrl} | jq`}
+    />
+    <p class="muted">
+      <code>/.well-known/mcp</code> should return <code>transport: "streamable-http"</code> and
+      <code>url</code> pointing at <code>{config.mcpUrl}</code>.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>Client setup</h2>
+    <p>
+      Point your MCP client at the remote endpoint. No local npm package or stdio process is
+      required for production use.
+    </p>
+    <h3>Cursor / Claude Desktop (URL transport)</h3>
+    <CodeBlock
+      code={`{
+  "mcpServers": {
+    "canix402": {
+      "url": "${config.mcpUrl}"
+    }
+  }
+}`}
+    />
+    <p class="muted">
+      See also the <a href="/x402#mcp">x402 page</a> for payment context when using paid tools.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>Paid tool flow</h2>
+    <ol>
+      <li>
+        Call a paid tool (e.g. <code>canix_list_opportunities</code>) without
+        <code>paymentSignature</code>.
+      </li>
+      <li>
+        The tool returns <code>PAYMENT_REQUIRED</code> metadata with gateway payment requirements
+        (same x402 policy as direct HTTP).
+      </li>
+      <li>
+        Your agent builds a <code>PAYMENT-SIGNATURE</code> payload client-side and retries the same
+        tool with <code>paymentSignature</code> set.
+      </li>
+      <li>On success, the tool returns normalized API data.</li>
+    </ol>
+    <p>
+      This mirrors the direct HTTP flow documented on <a href="/x402">x402 payment flow</a> and
+      <a href="/quickstart">quickstart</a>.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>Available tools</h2>
+    <p>Tool names match <a href={config.discoveryUrl}>discovery</a> <code>mcpServer.tools</code>.</p>
+    <ul>
+      {
+        mcpToolNames.map((tool) => (
+          <li>
+            <code>{tool}</code>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="muted">
+      Free tools: health, metadata, discovery, OpenAPI, execution shapes. Paid tools: opportunities,
+      search, personalized, protocol-specific, and execution quotes.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>MCP vs direct HTTP</h2>
+    <ul>
+      <li>
+        <strong>MCP</strong> — best for agent hosts (Cursor, Claude Desktop) that speak MCP; typed
+        tools and structured payment-retry hints.
+      </li>
+      <li>
+        <strong>Direct HTTP</strong> — best for custom integrations; use the
+        <a href={config.gatewayBaseUrl}>gateway</a> with discovery/OpenAPI and manual x402 headers.
+      </li>
+    </ul>
+    <p>
+      Both paths hit the same public Caddy gateway for paid data. The MCP Worker is a thin
+      pass-through and does not call a private upstream API.
+    </p>
+  </section>
+</BaseLayout>
