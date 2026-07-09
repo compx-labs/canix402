@@ -1,0 +1,8 @@
+name = "canix402-mcp"
+main = "src/index.ts"
+compatibility_date = "2026-07-09"
+workers_dev = true
+
+[vars]
+CANIX402_GATEWAY_URL = "https://canix402-api.compx.io"
+CANIX402_MCP_PUBLIC_URL = "https://mcp.canix402.com/mcp"

@@ -1,37 +1,14 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-
 import algosdk from "algosdk";
 
 import { buildProductionUrl } from "./productionEndpoints.js";
 import type { ExecutableQuote } from "../../src/execution/types.js";
 
-export interface PaymentRequestAccept {
-  scheme: string;
-  network: string;
-  asset: string;
-  payTo: string;
-  amount?: string;
-  maxAmountRequired?: string;
-  extra?: unknown;
-  [key: string]: unknown;
-}
-
-export interface PaymentRequest {
-  x402Version?: number;
-  accepts: PaymentRequestAccept[];
-  resource?: {
-    url?: string;
-    [key: string]: unknown;
-  };
-  [key: string]: unknown;
-}
-
-export interface BuildPaymentSignatureInput {
-  paymentRequest: PaymentRequest;
-  requestUrl: string;
-  clientMnemonic: string;
-  algodUrl: string;
+export async function buildLivePaymentSignature(
+  input: BuildPaymentSignatureInput
+): Promise<string> {
+  return buildPaymentSignature(input);
 }
 
 export interface LiveEnv {
@@ -80,15 +57,19 @@ export function getLiveEnv(): LiveEnv {
 }
 
 export function getProductionBaseUrl(): string {
-  const configured = process.env.X402_PRODUCTION_BASE_URL?.trim();
+  const configured =
+    process.env.X402_PRODUCTION_BASE_URL?.trim()
+    ?? process.env.CANIX402_API_URL?.trim();
   return (configured || "https://canix402-api.compx.io").replace(/\/+$/, "");
 }
 
 export function requireClientMnemonic(context = "live x402 test"): string {
-  const mnemonic = process.env.X402_CLIENT_MNEMONIC;
+  const mnemonic =
+    process.env.X402_CLIENT_MNEMONIC?.trim()
+    ?? process.env.CANIX402_WALLET_MNEMONIC?.trim();
   if (!mnemonic) {
     throw new Error(
-      `X402_CLIENT_MNEMONIC is required for ${context}. Add it to .env or export it before running.`
+      `X402_CLIENT_MNEMONIC (or CANIX402_WALLET_MNEMONIC) is required for ${context}. Add it to .env or export it before running.`
     );
   }
   return mnemonic;
@@ -263,7 +244,7 @@ export async function executePaidRequest(
   }
 
   const paymentRequest = decodePaymentRequiredHeader(paymentRequiredHeader);
-  const paymentSignature = await buildLivePaymentSignature({
+  const paymentSignature = await buildPaymentSignature({
     paymentRequest,
     requestUrl,
     clientMnemonic: input.clientMnemonic,
@@ -328,7 +309,7 @@ export async function executePaidJsonRequest(
   }
 
   const paymentRequest = decodePaymentRequiredHeader(paymentRequiredHeader);
-  const paymentSignature = await buildLivePaymentSignature({
+  const paymentSignature = await buildPaymentSignature({
     paymentRequest,
     requestUrl,
     clientMnemonic: input.clientMnemonic,
@@ -388,6 +369,69 @@ export async function fetchPaidExecutionQuote(
   return parsed as ExecutionQuoteResponse;
 }
 
+function loadEnvFileIfPresent(filePath: string): void {
+  if (!existsSync(filePath)) {
+    return;
+  }
+
+  const contents = readFileSync(filePath, "utf-8");
+  for (const rawLine of contents.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) {
+      continue;
+    }
+
+    const separatorIndex = line.indexOf("=");
+    if (separatorIndex <= 0) {
+      continue;
+    }
+
+    const key = line.slice(0, separatorIndex).trim().replace(/^export\s+/, "");
+    const value = stripOptionalQuotes(line.slice(separatorIndex + 1).trim());
+    process.env[key] ??= value;
+  }
+}
+
+function stripOptionalQuotes(value: string): string {
+  if (
+    value.length >= 2 &&
+    ((value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'")))
+  ) {
+    return value.slice(1, -1);
+  }
+
+  return value;
+}
+
+export interface PaymentRequestAccept {
+  scheme: string;
+  network: string;
+  asset: string;
+  payTo: string;
+  amount?: string;
+  maxAmountRequired?: string;
+  extra?: unknown;
+  [key: string]: unknown;
+}
+
+export interface PaymentRequest {
+  x402Version?: number;
+  accepts: PaymentRequestAccept[];
+  resource?: {
+    url?: string;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+export interface BuildPaymentSignatureInput {
+  paymentRequest: PaymentRequest;
+  requestUrl: string;
+  clientMnemonic: string;
+  algodUrl: string;
+}
+
 export function decodePaymentRequiredHeader(headerValue: string): PaymentRequest {
   const decoded = Buffer.from(headerValue, "base64").toString("utf-8");
   const parsed = JSON.parse(decoded) as unknown;
@@ -408,7 +452,6 @@ export function getAlgorandAccept(paymentRequest: PaymentRequest): PaymentReques
     const network = accept.network.toLowerCase();
     return network === "algorand-mainnet" || network.startsWith("algorand:");
   });
-
   if (!accepted) {
     throw new Error(
       `PAYMENT-REQUIRED does not contain an Algorand accept option. Networks: ${paymentRequest.accepts
@@ -416,11 +459,10 @@ export function getAlgorandAccept(paymentRequest: PaymentRequest): PaymentReques
         .join(", ")}`
     );
   }
-
   return accepted;
 }
 
-export async function buildLivePaymentSignature(
+export async function buildPaymentSignature(
   input: BuildPaymentSignatureInput
 ): Promise<string> {
   const accepted = getAlgorandAccept(input.paymentRequest);
@@ -429,8 +471,7 @@ export async function buildLivePaymentSignature(
     throw new Error("Accepted payment option is missing amount/maxAmountRequired.");
   }
 
-  const amountMicroUsdc = BigInt(rawAmount);
-
+  const amountMicroUsdc = BigInt(rawAmount.includes(".") ? usdcToMicro(rawAmount) : rawAmount);
   const account = algosdk.mnemonicToSecretKey(input.clientMnemonic);
   const algod = new algosdk.Algodv2("", input.algodUrl, "");
   const suggested = await algod.getTransactionParams().do();
@@ -451,6 +492,8 @@ export async function buildLivePaymentSignature(
         suggested
       });
 
+  const normalizedAmount = rawAmount.includes(".") ? usdcToMicro(rawAmount) : rawAmount;
+
   const paymentSignaturePayload = {
     x402Version: input.paymentRequest.x402Version ?? 2,
     scheme: accepted.scheme ?? "exact",
@@ -458,7 +501,7 @@ export async function buildLivePaymentSignature(
     resource: input.paymentRequest.resource ?? { url: input.requestUrl },
     accepted: {
       ...accepted,
-      amount: rawAmount
+      amount: normalizedAmount
     },
     extensions: {},
     outputSchema: null,
@@ -469,9 +512,13 @@ export async function buildLivePaymentSignature(
     paymentRequired: input.paymentRequest
   };
 
-  return Buffer.from(JSON.stringify(paymentSignaturePayload), "utf-8").toString(
-    "base64"
-  );
+  return Buffer.from(JSON.stringify(paymentSignaturePayload), "utf-8").toString("base64");
+}
+
+function usdcToMicro(usdcAmount: string): string {
+  const [wholePart = "0", fractionPart = ""] = usdcAmount.split(".");
+  const paddedFraction = `${fractionPart}000000`.slice(0, 6);
+  return `${BigInt(wholePart) * 1_000_000n + BigInt(paddedFraction)}`;
 }
 
 interface PaymentBuildInput {
@@ -560,39 +607,4 @@ function getFeePayer(accepted: PaymentRequestAccept): string | undefined {
 
   const feePayer = (extra as { feePayer?: unknown }).feePayer;
   return typeof feePayer === "string" && feePayer.length > 0 ? feePayer : undefined;
-}
-
-function loadEnvFileIfPresent(filePath: string): void {
-  if (!existsSync(filePath)) {
-    return;
-  }
-
-  const contents = readFileSync(filePath, "utf-8");
-  for (const rawLine of contents.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (!line || line.startsWith("#")) {
-      continue;
-    }
-
-    const separatorIndex = line.indexOf("=");
-    if (separatorIndex <= 0) {
-      continue;
-    }
-
-    const key = line.slice(0, separatorIndex).trim().replace(/^export\s+/, "");
-    const value = stripOptionalQuotes(line.slice(separatorIndex + 1).trim());
-    process.env[key] ??= value;
-  }
-}
-
-function stripOptionalQuotes(value: string): string {
-  if (
-    value.length >= 2 &&
-    ((value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'")))
-  ) {
-    return value.slice(1, -1);
-  }
-
-  return value;
 }

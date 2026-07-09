@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import {
+  MCP_SERVER_REMOTE_URL,
+  MCP_SERVER_TRANSPORT,
+  MCP_TOOL_NAMES
+} from "../../src/constants/mcp.js";
+
 import { buildApp } from "../../src/app.js";
 import { endpointPolicyMatrix } from "../../src/services/payment-policy.js";
 import { DiscoveryDocument } from "../../src/types/discovery.js";
@@ -48,6 +54,14 @@ test("discovery includes every endpoint in policy matrix", async () => {
   const policyPaths = endpointPolicyMatrix.map((endpoint) => endpoint.pathPattern).sort();
 
   assert.deepEqual(discoveryPaths, policyPaths);
+  // Agent discovery metadata: advertises MCP tooling without invoking the MCP server.
+  assert.ok(payload.data.capabilities.includes("mcp-server"));
+  assert.equal(payload.data.mcpServer?.transport, MCP_SERVER_TRANSPORT);
+  assert.equal(payload.data.mcpServer?.url, MCP_SERVER_REMOTE_URL);
+  assert.deepEqual(
+    [...(payload.data.mcpServer?.tools ?? [])].sort(),
+    [...MCP_TOOL_NAMES].sort()
+  );
 
   await app.close();
 });
@@ -78,6 +92,12 @@ test("well-known x402 manifest lists paid resources and indexing links", async (
   assert.equal(manifest.discoveryUrl, "https://canix402-api.compx.io/discovery");
   assert.equal(manifest.docsUrl, "https://canix402.compx.io/x402");
   assert.equal(manifest.llmsTxtUrl, "https://canix402.compx.io/llms.txt");
+  assert.equal((manifest as { mcpTransport?: string }).mcpTransport, MCP_SERVER_TRANSPORT);
+  assert.equal((manifest as { mcpUrl?: string }).mcpUrl, MCP_SERVER_REMOTE_URL);
+  assert.equal(
+    (manifest as { mcpInstall?: string }).mcpInstall,
+    "https://canix402.compx.io/x402#mcp"
+  );
   assert.equal(typeof manifest.facilitator, "string");
   assert.equal(manifest.chains[0]?.assets[0]?.symbol, "USDC");
   assert.deepEqual(manifestPaths, paidPolicyPaths);
