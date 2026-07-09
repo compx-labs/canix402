@@ -9,13 +9,13 @@ Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. D
 - [Discovery](https://canix402-api.compx.io/discovery): endpoint catalog, x402 prices, error codes, facilitator metadata
 - [OpenAPI](https://canix402-api.compx.io/openapi.json): schemas, query parameters, response examples
 - [x402 manifest](https://canix402-api.compx.io/.well-known/x402.json): directory indexing surface for agent tooling and x402 directories
-- [MCP server](https://canix402.compx.io/x402#mcp): stdio MCP tools (`@canix402/mcp`) wrapping free and paid gateway endpoints with automatic x402 payment handling
+- [MCP server](https://canix402.compx.io/x402#mcp): remote Streamable HTTP MCP endpoint (`https://mcp.canix402.com/mcp`) exposing free and paid gateway tools as a walletless pass-through
 
 ## Integration guides
 
 - [Quickstart](https://canix402.compx.io/quickstart): four-step agent onboarding
 - [x402 payment flow](https://canix402.compx.io/x402): preflight 402, sign USDC transfer, retry with PAYMENT-SIGNATURE
-- [MCP setup](https://canix402.compx.io/x402#mcp): Cursor/Claude Desktop config for `@canix402/mcp`
+- [MCP setup](https://canix402.compx.io/x402#mcp): Cursor/Claude Desktop config for the remote endpoint (`https://mcp.canix402.com/mcp`)
 - [Examples](https://canix402.compx.io/examples): copy-paste curl and sample payloads
 - [Endpoint catalog](https://canix402.compx.io/endpoints): human-readable route table sourced from discovery
 - [Live transactions](https://canix402.compx.io/transactions): recent inbound USDC payments to the x402 pay-to wallet

@@ -33,7 +33,6 @@
     "snapshot:responses": "tsx scripts/export-opportunity-snapshots.ts"
   },
   "dependencies": {
-    "@canix402/x402-client": "*",
     "@compx/sdk": "^2.0.3",
     "@fastify/type-provider-typebox": "^6.1.0",
     "@folks-finance/algorand-sdk": "^0.2.6",

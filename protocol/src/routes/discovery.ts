@@ -7,11 +7,10 @@ import { FastifyInstance } from "fastify";
 
 import {
   MCP_SERVER_INSTALL_URL,
-  MCP_SERVER_PACKAGE,
   MCP_SERVER_REMOTE_URL,
   MCP_SERVER_TRANSPORT,
   MCP_TOOL_NAMES
-} from "@canix402/x402-client";
+} from "../constants/mcp.js";
 import {
   endpointPolicyMatrix,
   getX402EndpointMetadata
@@ -35,7 +34,6 @@ const discoveryReplySchema = Type.Object({
         name: Type.String(),
         transport: Type.Union([Type.Literal("streamable-http"), Type.Literal("stdio")]),
         url: Type.Optional(Type.String()),
-        package: Type.Optional(Type.String()),
         install: Type.Optional(Type.String()),
         docsUrl: Type.String(),
         tools: Type.Array(Type.String())
@@ -57,7 +55,6 @@ const x402ManifestReplySchema = Type.Object({
   openapiUrl: Type.String(),
   discoveryUrl: Type.String(),
   mcpInstall: Type.Optional(Type.String()),
-  mcpPackage: Type.Optional(Type.String()),
   mcpUrl: Type.Optional(Type.String()),
   mcpTransport: Type.Optional(Type.String()),
   facilitator: Type.String(),
@@ -168,7 +165,6 @@ function buildDiscoveryDocument(): DiscoveryDocument {
       name: "canix402",
       transport: MCP_SERVER_TRANSPORT,
       url: mcpUrl,
-      package: MCP_SERVER_PACKAGE,
       install:
         "Connect your MCP client to the remote canix402 endpoint at /mcp (walletless pass-through).",
       docsUrl: MCP_SERVER_INSTALL_URL,
@@ -216,7 +212,6 @@ interface X402DiscoveryManifest {
   openapiUrl: string;
   discoveryUrl: string;
   mcpInstall: string;
-  mcpPackage: string;
   mcpUrl: string;
   mcpTransport: string;
   facilitator: string;
@@ -292,7 +287,6 @@ function buildX402Manifest(): X402DiscoveryManifest {
     openapiUrl: `${publicBaseUrl}/openapi.json`,
     discoveryUrl: `${publicBaseUrl}/discovery`,
     mcpInstall: MCP_SERVER_INSTALL_URL,
-    mcpPackage: MCP_SERVER_PACKAGE,
     mcpUrl,
     mcpTransport: MCP_SERVER_TRANSPORT,
     facilitator: defaultX402.facilitator,

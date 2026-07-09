@@ -50,14 +50,14 @@ import { config } from "../lib/config";
   <section class="panel" id="mcp">
     <h2>MCP server (agent tools)</h2>
     <p>
-      Agents can use the <code>@canix402/mcp</code> stdio MCP server instead of calling HTTP
-      endpoints directly. Free tools wrap discovery/OpenAPI; paid tools auto-handle the x402
-      402 → sign → retry flow when <code>CANIX402_WALLET_MNEMONIC</code> is configured.
+      Agents can connect to the remote canix402 MCP endpoint instead of calling HTTP endpoints
+      directly. The MCP layer is walletless: paid tools return payment requirements first, then
+      accept a caller-supplied <code>paymentSignature</code> on retry.
     </p>
     <ul>
-      <li>Package: monorepo <code>mcp/</code> workspace (<code>@canix402/mcp</code>)</li>
-      <li>Example Cursor config: <code>mcp/mcp.json.example</code></li>
-      <li>Env: <code>CANIX402_API_URL</code>, optional <code>CANIX402_WALLET_MNEMONIC</code></li>
+      <li>Transport: <code>streamable-http</code></li>
+      <li>Remote URL: <code>https://mcp.canix402.com/mcp</code></li>
+      <li>No server-side wallet or mnemonic storage in MCP</li>
       <li>
         Tools include <code>canix_list_opportunities</code>,
         <code>canix_get_execution_quote</code>, and free discovery helpers
@@ -67,13 +67,7 @@ import { config } from "../lib/config";
       code={`{
   "mcpServers": {
     "canix402": {
-      "command": "npx",
-      "args": ["tsx", "mcp/src/index.ts"],
-      "cwd": "/absolute/path/to/canix402",
-      "env": {
-        "CANIX402_API_URL": "${config.gatewayBaseUrl}",
-        "CANIX402_WALLET_MNEMONIC": "<your-wallet-mnemonic>"
-      }
+      "url": "https://mcp.canix402.com/mcp"
     }
   }
 }`}

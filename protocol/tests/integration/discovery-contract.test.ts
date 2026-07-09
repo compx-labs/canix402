@@ -2,11 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-  MCP_SERVER_PACKAGE,
   MCP_SERVER_REMOTE_URL,
   MCP_SERVER_TRANSPORT,
   MCP_TOOL_NAMES
-} from "@canix402/x402-client";
+} from "../../src/constants/mcp.js";
 
 import { buildApp } from "../../src/app.js";
 import { endpointPolicyMatrix } from "../../src/services/payment-policy.js";
@@ -59,7 +58,6 @@ test("discovery includes every endpoint in policy matrix", async () => {
   assert.ok(payload.data.capabilities.includes("mcp-server"));
   assert.equal(payload.data.mcpServer?.transport, MCP_SERVER_TRANSPORT);
   assert.equal(payload.data.mcpServer?.url, MCP_SERVER_REMOTE_URL);
-  assert.equal(payload.data.mcpServer?.package, MCP_SERVER_PACKAGE);
   assert.deepEqual(
     [...(payload.data.mcpServer?.tools ?? [])].sort(),
     [...MCP_TOOL_NAMES].sort()
@@ -94,7 +92,6 @@ test("well-known x402 manifest lists paid resources and indexing links", async (
   assert.equal(manifest.discoveryUrl, "https://canix402-api.compx.io/discovery");
   assert.equal(manifest.docsUrl, "https://canix402.compx.io/x402");
   assert.equal(manifest.llmsTxtUrl, "https://canix402.compx.io/llms.txt");
-  assert.equal((manifest as { mcpPackage?: string }).mcpPackage, MCP_SERVER_PACKAGE);
   assert.equal((manifest as { mcpTransport?: string }).mcpTransport, MCP_SERVER_TRANSPORT);
   assert.equal((manifest as { mcpUrl?: string }).mcpUrl, MCP_SERVER_REMOTE_URL);
   assert.equal(
