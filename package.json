@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "protocol",
-    "website"
+    "website",
+    "mcp"
   ],
   "scripts": {
     "dev:protocol": "npm run dev -w protocol",
@@ -14,6 +15,11 @@
     "dev:website": "npm run dev -w website",
     "build:website": "npm run build -w website",
     "typecheck:website": "npm run typecheck -w website",
-    "check": "npm run typecheck:protocol && npm run build:caddy-x402 && npm run test:protocol && npm run typecheck:website && npm run build:website"
+    "dev:mcp": "npm run dev -w @canix402/mcp",
+    "build:mcp": "npm run build -w @canix402/mcp",
+    "typecheck:mcp": "npm run typecheck -w @canix402/mcp",
+    "test:mcp": "npm run test -w @canix402/mcp",
+    "start:mcp": "npm run start -w @canix402/mcp",
+    "check": "npm run typecheck:protocol && npm run build:caddy-x402 && npm run test:protocol && npm run typecheck:mcp && npm run test:mcp && npm run typecheck:website && npm run build:website"
   }
 }

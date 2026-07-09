@@ -20,9 +20,14 @@ Opportunity responses are normalized records with fields such as `protocol`, `op
 | Discovery | https://canix402-api.compx.io/discovery |
 | OpenAPI | https://canix402-api.compx.io/openapi.json |
 | x402 manifest | https://canix402-api.compx.io/.well-known/x402.json |
+| MCP server | https://canix402.compx.io/x402#mcp (`@canix402/mcp` stdio package in monorepo `mcp/`) |
 | LLM index | https://canix402.compx.io/llms.txt |
 
 Always call the **gateway**, not an internal upstream API. x402 enforcement, `PAYMENT-REQUIRED`, and settlement happen at the gateway edge.
+
+### MCP server
+
+Prefer the canix402 MCP server for agent hosts (Cursor, Claude Desktop). It exposes tools such as `canix_list_opportunities` and `canix_get_execution_quote`, and auto-pays x402 when `CANIX402_WALLET_MNEMONIC` is set. See `mcp/mcp.json.example` and https://canix402.compx.io/x402#mcp.
 
 ## x402 payment flow
 

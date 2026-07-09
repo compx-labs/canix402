@@ -23,6 +23,16 @@ const discoveryReplySchema = Type.Object({
     discoveryVersion: Type.Literal("1.0.0"),
     capabilities: Type.Array(Type.String()),
     x402ProtocolVersion: Type.Literal(2),
+    mcpServer: Type.Optional(
+      Type.Object({
+        name: Type.String(),
+        transport: Type.Literal("stdio"),
+        package: Type.String(),
+        install: Type.String(),
+        docsUrl: Type.String(),
+        tools: Type.Array(Type.String())
+      })
+    ),
     endpoints: Type.Array(Type.Any()),
     errorCatalog: Type.Array(Type.Any())
   })
@@ -38,6 +48,8 @@ const x402ManifestReplySchema = Type.Object({
   llmsTxtUrl: Type.String(),
   openapiUrl: Type.String(),
   discoveryUrl: Type.String(),
+  mcpInstall: Type.Optional(Type.String()),
+  mcpPackage: Type.Optional(Type.String()),
   facilitator: Type.String(),
   chains: Type.Array(Type.Any()),
   resources: Type.Array(Type.Any())
@@ -133,9 +145,30 @@ function buildDiscoveryDocument(): DiscoveryDocument {
       "wallet-personalization",
       "agent-discovery",
       "openapi",
-      "execution-quotes"
+      "execution-quotes",
+      "mcp-server"
     ],
     x402ProtocolVersion: 2,
+    mcpServer: {
+      name: "canix402",
+      transport: "stdio",
+      package: "@canix402/mcp",
+      install:
+        "Add the canix402 MCP server from the monorepo mcp/ package to your MCP host (see https://canix402.compx.io/x402#mcp).",
+      docsUrl: "https://canix402.compx.io/x402#mcp",
+      tools: [
+        "canix_health",
+        "canix_get_metadata",
+        "canix_get_discovery",
+        "canix_get_openapi",
+        "canix_list_execution_shapes",
+        "canix_list_opportunities",
+        "canix_search_opportunities",
+        "canix_get_personalized_opportunities",
+        "canix_get_protocol_opportunities",
+        "canix_get_execution_quote"
+      ]
+    },
     endpoints,
     errorCatalog: [
       {
@@ -177,6 +210,8 @@ interface X402DiscoveryManifest {
   llmsTxtUrl: string;
   openapiUrl: string;
   discoveryUrl: string;
+  mcpInstall: string;
+  mcpPackage: string;
   facilitator: string;
   chains: Array<{
     namespace: "algorand";
@@ -245,6 +280,8 @@ function buildX402Manifest(): X402DiscoveryManifest {
     llmsTxtUrl,
     openapiUrl: `${publicBaseUrl}/openapi.json`,
     discoveryUrl: `${publicBaseUrl}/discovery`,
+    mcpInstall: "https://canix402.compx.io/x402#mcp",
+    mcpPackage: "@canix402/mcp",
     facilitator: defaultX402.facilitator,
     chains: [
       {

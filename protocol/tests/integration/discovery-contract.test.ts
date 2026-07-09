@@ -48,6 +48,9 @@ test("discovery includes every endpoint in policy matrix", async () => {
   const policyPaths = endpointPolicyMatrix.map((endpoint) => endpoint.pathPattern).sort();
 
   assert.deepEqual(discoveryPaths, policyPaths);
+  assert.ok(payload.data.capabilities.includes("mcp-server"));
+  assert.equal(payload.data.mcpServer?.package, "@canix402/mcp");
+  assert.ok((payload.data.mcpServer?.tools.length ?? 0) > 0);
 
   await app.close();
 });
@@ -78,6 +81,11 @@ test("well-known x402 manifest lists paid resources and indexing links", async (
   assert.equal(manifest.discoveryUrl, "https://canix402-api.compx.io/discovery");
   assert.equal(manifest.docsUrl, "https://canix402.compx.io/x402");
   assert.equal(manifest.llmsTxtUrl, "https://canix402.compx.io/llms.txt");
+  assert.equal((manifest as { mcpPackage?: string }).mcpPackage, "@canix402/mcp");
+  assert.equal(
+    (manifest as { mcpInstall?: string }).mcpInstall,
+    "https://canix402.compx.io/x402#mcp"
+  );
   assert.equal(typeof manifest.facilitator, "string");
   assert.equal(manifest.chains[0]?.assets[0]?.symbol, "USDC");
   assert.deepEqual(manifestPaths, paidPolicyPaths);

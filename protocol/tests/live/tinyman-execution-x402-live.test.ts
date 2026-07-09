@@ -160,7 +160,7 @@ async function runRemoveLiquidity(poolTokenAmount?: bigint): Promise<void> {
     input: {
       userAddress,
       assetAId: USDC_ASSET_ID,
-      assetBId: ALGO_ASSET_ID,
+      assetBId: 0,
       poolTokenAmount: serializeAmount(removeAmount),
       maxSlippageBps: MAX_SLIPPAGE_BPS
     },

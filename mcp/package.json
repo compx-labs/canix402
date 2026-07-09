@@ -1,0 +1,32 @@
+{
+  "name": "@canix402/mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MCP server for canix402 x402-gated Algorand DeFi API",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "canix402-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "tsx --test tests/unit/*.test.ts tests/integration/*.test.ts",
+    "test:live": "CANIX402_LIVE_TESTS=1 tsx --test tests/live/*.test.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.0.0-beta.3",
+    "algosdk": "^3.6.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.10",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  }
+}

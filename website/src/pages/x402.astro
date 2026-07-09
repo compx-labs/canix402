@@ -47,6 +47,39 @@ import { config } from "../lib/config";
     </p>
   </section>
 
+  <section class="panel" id="mcp">
+    <h2>MCP server (agent tools)</h2>
+    <p>
+      Agents can use the <code>@canix402/mcp</code> stdio MCP server instead of calling HTTP
+      endpoints directly. Free tools wrap discovery/OpenAPI; paid tools auto-handle the x402
+      402 → sign → retry flow when <code>CANIX402_WALLET_MNEMONIC</code> is configured.
+    </p>
+    <ul>
+      <li>Package: monorepo <code>mcp/</code> workspace (<code>@canix402/mcp</code>)</li>
+      <li>Example Cursor config: <code>mcp/mcp.json.example</code></li>
+      <li>Env: <code>CANIX402_API_URL</code>, optional <code>CANIX402_WALLET_MNEMONIC</code></li>
+      <li>
+        Tools include <code>canix_list_opportunities</code>,
+        <code>canix_get_execution_quote</code>, and free discovery helpers
+      </li>
+    </ul>
+    <CodeBlock
+      code={`{
+  "mcpServers": {
+    "canix402": {
+      "command": "npx",
+      "args": ["tsx", "mcp/src/index.ts"],
+      "cwd": "/absolute/path/to/canix402",
+      "env": {
+        "CANIX402_API_URL": "${config.gatewayBaseUrl}",
+        "CANIX402_WALLET_MNEMONIC": "<your-wallet-mnemonic>"
+      }
+    }
+  }
+}`}
+    />
+  </section>
+
   <section class="panel">
     <h2>Common failure modes</h2>
     <ul>
