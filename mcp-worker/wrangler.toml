@@ -5,4 +5,4 @@ workers_dev = true
 
 [vars]
 CANIX402_GATEWAY_URL = "https://canix402-api.compx.io"
-CANIX402_MCP_PUBLIC_URL = "https://mcp.canix402.com/mcp"
+CANIX402_MCP_PUBLIC_URL = "https://canix402-mcp.compx.io/mcp"
