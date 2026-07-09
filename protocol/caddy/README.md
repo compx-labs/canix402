@@ -10,7 +10,12 @@ single source directory.
 ## Route Access Policy
 
 - Free routes: `GET /health`, `GET /metadata`, `GET /discovery`, `GET /openapi.json`
-- Paid routes: `GET /opportunities`, `GET /protocols/:protocol/opportunities`
+- Paid routes:
+  - `GET /opportunities`
+  - `GET /opportunities/search`
+  - `GET /opportunities/personalized`
+  - `GET /protocols/:protocol/opportunities`
+  - `POST /execution/quotes` (price: `X402_PRICE_EXECUTION_QUOTE_USDC`, default `0.1`)
 
 ## Local Usage
 
