@@ -28,9 +28,10 @@ export interface DiscoveryDocument {
   x402ProtocolVersion: 2;
   mcpServer?: {
     name: string;
-    transport: "stdio";
-    package: string;
-    install: string;
+    transport: "stdio" | "streamable-http";
+    url?: string;
+    package?: string;
+    install?: string;
     docsUrl: string;
     tools: string[];
   };

@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/server";
 
-import { hasWallet, loadConfig, type McpConfig } from "./lib/config.js";
+import { loadConfig, type McpConfig } from "./lib/config.js";
 import { X402Client, type FetchFn } from "./lib/x402-client.js";
 import { registerPrompts } from "./prompts.js";
 import { registerResources } from "./resources.js";
@@ -31,8 +31,7 @@ export function createCanixMcpServer(options: CreateServerOptions = {}): McpServ
         "canix402 MCP server for Algorand DeFi opportunity data and execution quotes.",
         "Always use the Caddy gateway URL configured via CANIX402_API_URL.",
         "Free tools: health, metadata, discovery, openapi, list_execution_shapes.",
-        "Paid tools auto-pay with CANIX402_WALLET_MNEMONIC when set; otherwise they return WALLET_REQUIRED instructions.",
-        `Wallet configured: ${hasWallet(config) ? "yes" : "no"}.`,
+        "Paid tools are walletless passthrough wrappers: initial call returns PAYMENT-REQUIRED metadata, retry with paymentSignature.",
         `API URL: ${config.apiUrl}.`
       ].join(" ")
     }

@@ -6,6 +6,13 @@ import { Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 
 import {
+  MCP_SERVER_INSTALL_URL,
+  MCP_SERVER_PACKAGE,
+  MCP_SERVER_REMOTE_URL,
+  MCP_SERVER_TRANSPORT,
+  MCP_TOOL_NAMES
+} from "@canix402/x402-client";
+import {
   endpointPolicyMatrix,
   getX402EndpointMetadata
 } from "../services/payment-policy.js";
@@ -26,9 +33,10 @@ const discoveryReplySchema = Type.Object({
     mcpServer: Type.Optional(
       Type.Object({
         name: Type.String(),
-        transport: Type.Literal("stdio"),
-        package: Type.String(),
-        install: Type.String(),
+        transport: Type.Union([Type.Literal("streamable-http"), Type.Literal("stdio")]),
+        url: Type.Optional(Type.String()),
+        package: Type.Optional(Type.String()),
+        install: Type.Optional(Type.String()),
         docsUrl: Type.String(),
         tools: Type.Array(Type.String())
       })
@@ -50,6 +58,8 @@ const x402ManifestReplySchema = Type.Object({
   discoveryUrl: Type.String(),
   mcpInstall: Type.Optional(Type.String()),
   mcpPackage: Type.Optional(Type.String()),
+  mcpUrl: Type.Optional(Type.String()),
+  mcpTransport: Type.Optional(Type.String()),
   facilitator: Type.String(),
   chains: Type.Array(Type.Any()),
   resources: Type.Array(Type.Any())
@@ -113,6 +123,11 @@ export function registerDiscoveryRoutes(app: FastifyInstance) {
 }
 
 function buildDiscoveryDocument(): DiscoveryDocument {
+  const mcpUrl =
+    process.env.X402_MCP_SERVER_URL
+    ?? process.env.MCP_SERVER_URL
+    ?? MCP_SERVER_REMOTE_URL;
+
   const endpoints: DiscoveryEndpointDescriptor[] = endpointPolicyMatrix.map((endpoint) => {
     const baseDescriptor: DiscoveryEndpointDescriptor = {
       id: endpoint.id,
@@ -151,23 +166,13 @@ function buildDiscoveryDocument(): DiscoveryDocument {
     x402ProtocolVersion: 2,
     mcpServer: {
       name: "canix402",
-      transport: "stdio",
-      package: "@canix402/mcp",
+      transport: MCP_SERVER_TRANSPORT,
+      url: mcpUrl,
+      package: MCP_SERVER_PACKAGE,
       install:
-        "Add the canix402 MCP server from the monorepo mcp/ package to your MCP host (see https://canix402.compx.io/x402#mcp).",
-      docsUrl: "https://canix402.compx.io/x402#mcp",
-      tools: [
-        "canix_health",
-        "canix_get_metadata",
-        "canix_get_discovery",
-        "canix_get_openapi",
-        "canix_list_execution_shapes",
-        "canix_list_opportunities",
-        "canix_search_opportunities",
-        "canix_get_personalized_opportunities",
-        "canix_get_protocol_opportunities",
-        "canix_get_execution_quote"
-      ]
+        "Connect your MCP client to the remote canix402 endpoint at /mcp (walletless pass-through).",
+      docsUrl: MCP_SERVER_INSTALL_URL,
+      tools: [...MCP_TOOL_NAMES]
     },
     endpoints,
     errorCatalog: [
@@ -212,6 +217,8 @@ interface X402DiscoveryManifest {
   discoveryUrl: string;
   mcpInstall: string;
   mcpPackage: string;
+  mcpUrl: string;
+  mcpTransport: string;
   facilitator: string;
   chains: Array<{
     namespace: "algorand";
@@ -268,6 +275,10 @@ function buildX402Manifest(): X402DiscoveryManifest {
     process.env.X402_LLMS_TXT_URL ?? process.env.PUBLIC_LLMS_TXT_URL ?? DEFAULT_LLMS_TXT_URL;
   const paidEndpoints = endpointPolicyMatrix.filter((endpoint) => endpoint.access === "paid");
   const defaultX402 = getX402EndpointMetadata();
+  const mcpUrl =
+    process.env.X402_MCP_SERVER_URL
+    ?? process.env.MCP_SERVER_URL
+    ?? MCP_SERVER_REMOTE_URL;
 
   return {
     service: "canix402",
@@ -280,8 +291,10 @@ function buildX402Manifest(): X402DiscoveryManifest {
     llmsTxtUrl,
     openapiUrl: `${publicBaseUrl}/openapi.json`,
     discoveryUrl: `${publicBaseUrl}/discovery`,
-    mcpInstall: "https://canix402.compx.io/x402#mcp",
-    mcpPackage: "@canix402/mcp",
+    mcpInstall: MCP_SERVER_INSTALL_URL,
+    mcpPackage: MCP_SERVER_PACKAGE,
+    mcpUrl,
+    mcpTransport: MCP_SERVER_TRANSPORT,
     facilitator: defaultX402.facilitator,
     chains: [
       {

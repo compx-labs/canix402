@@ -6,11 +6,13 @@ MCP server that exposes canix402 free and paid gateway endpoints as agent tools.
 
 - Free tools: health, metadata, discovery, OpenAPI, execution shape catalog
 - Paid tools: opportunities (list/search/personalized/protocol) and execution quotes
-- Automatic x402 payment when `CANIX402_WALLET_MNEMONIC` is set
+- Walletless x402 passthrough: paid tool preflight returns `PAYMENT-REQUIRED`, retry with `paymentSignature`
 - Resources: `canix://discovery`, `canix://openapi`, `canix://execution-shapes`
 - Prompt: `analyze-opportunity`
 
 Always call the **Caddy gateway** (`CANIX402_API_URL`), never the raw Fastify upstream.
+
+For hosted/remote agent usage, use the Cloudflare Worker remote endpoint in `mcp-worker/`.
 
 ## Setup
 
@@ -26,8 +28,7 @@ Always call the **Caddy gateway** (`CANIX402_API_URL`), never the raw Fastify up
       "args": ["tsx", "mcp/src/index.ts"],
       "cwd": "/absolute/path/to/canix402",
       "env": {
-        "CANIX402_API_URL": "https://canix402-api.compx.io",
-        "CANIX402_WALLET_MNEMONIC": "<your-wallet-mnemonic>"
+        "CANIX402_API_URL": "https://canix402-api.compx.io"
       }
     }
   }
@@ -38,18 +39,20 @@ Always call the **Caddy gateway** (`CANIX402_API_URL`), never the raw Fastify up
 
 ```bash
 npm run typecheck:mcp
-npm run test:mcp
+npm run test:mcp          # unit + integration (mocked)
 npm run dev:mcp
 ```
+
+From repo root, see `protocol/docs/testing.md` for the full test lane matrix (API, gateway, MCP, live).
 
 Live paid tests (spends USDC):
 
 ```bash
-CANIX402_LIVE_TESTS=1 CANIX402_WALLET_MNEMONIC=... npm run test:live -w @canix402/mcp
+CANIX402_LIVE_TESTS=1 npm run test:live -w @canix402/mcp
 ```
 
 ## Security
 
-- Use a dedicated agent wallet with limited funds
-- Wallet needs ALGO for fees and USDC opt-in (ASA `31566704` on mainnet)
-- Never put mnemonics in tool arguments or commit them to git
+- Do not put wallet mnemonics in MCP server environment
+- Server-side MCP remains walletless and forwards `PAYMENT-SIGNATURE` on retry
+- Keep payer keys client-side/agent-side only

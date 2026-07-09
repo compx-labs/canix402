@@ -4,14 +4,22 @@
   "workspaces": [
     "protocol",
     "website",
-    "mcp"
+    "mcp",
+    "mcp-worker",
+    "packages/x402-client"
   ],
   "scripts": {
     "dev:protocol": "npm run dev -w protocol",
     "build:protocol": "npm run build -w protocol",
     "typecheck:protocol": "npm run typecheck -w protocol",
     "build:caddy-x402": "npm run build:caddy-x402 -w protocol",
+    "test:api": "npm run test:api -w protocol",
+    "test:gateway": "npm run test:gateway -w protocol",
     "test:protocol": "npm run test:ci -w protocol",
+    "test:live:local": "npm run test:live:local -w protocol",
+    "test:live:production": "npm run test:live:production -w protocol",
+    "test:live:execution": "npm run test:live:execution -w protocol",
+    "test:live:mcp": "npm run test:live -w @canix402/mcp",
     "dev:website": "npm run dev -w website",
     "build:website": "npm run build -w website",
     "typecheck:website": "npm run typecheck -w website",
@@ -19,7 +27,11 @@
     "build:mcp": "npm run build -w @canix402/mcp",
     "typecheck:mcp": "npm run typecheck -w @canix402/mcp",
     "test:mcp": "npm run test -w @canix402/mcp",
+    "dev:mcp-worker": "npm run dev -w @canix402/mcp-worker",
+    "typecheck:mcp-worker": "npm run typecheck -w @canix402/mcp-worker",
+    "test:mcp-worker": "npm run test -w @canix402/mcp-worker",
+    "typecheck:x402-client": "npm run typecheck -w @canix402/x402-client",
     "start:mcp": "npm run start -w @canix402/mcp",
-    "check": "npm run typecheck:protocol && npm run build:caddy-x402 && npm run test:protocol && npm run typecheck:mcp && npm run test:mcp && npm run typecheck:website && npm run build:website"
+    "check": "npm run typecheck:x402-client && npm run typecheck:protocol && npm run build:caddy-x402 && npm run test:protocol && npm run typecheck:mcp && npm run test:mcp && npm run typecheck:mcp-worker && npm run test:mcp-worker && npm run typecheck:website && npm run build:website"
   }
 }

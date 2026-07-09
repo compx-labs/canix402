@@ -2,28 +2,75 @@ import type { McpServer } from "@modelcontextprotocol/server";
 import * as z from "zod";
 
 import { errorResult, jsonResult } from "../lib/tool-result.js";
-import type { X402Client } from "../lib/x402-client.js";
+import type { PaidCallResult, X402Client } from "../lib/x402-client.js";
 import { microUsdcToUsdc } from "../lib/x402-client.js";
 
 const ProtocolSchema = z.enum(["tinyman", "pact", "folks-finance", "compx", "dorkfi"]);
 
-function paidMeta(
-  result: {
-    paymentResponseHeader: string | null;
-    paymentRequired: {
-      accepts?: Array<{ maxAmountRequired?: string; amount?: string }>;
-    } | null;
-  },
-  fallbackPriceUsdc: string
-) {
+interface PaidRequestContext {
+  path: string;
+  method: "GET" | "POST";
+  query?: Record<string, unknown>;
+  body?: unknown;
+}
+
+function paidMeta(result: PaidCallResult, fallbackPriceUsdc: string) {
   const accepted = result.paymentRequired?.accepts?.[0];
   const priceUsdc =
     microUsdcToUsdc(accepted?.maxAmountRequired ?? accepted?.amount) ?? fallbackPriceUsdc;
 
   return {
     priceUsdc,
-    paymentResponsePresent: Boolean(result.paymentResponseHeader)
+    required: result.status === 402,
+    paymentRequiredHeader: result.paymentRequiredHeader,
+    paymentRequired: result.paymentRequired,
+    paymentResponsePresent: Boolean(result.paymentResponseHeader),
+    paymentResponseHeader: result.paymentResponseHeader
   };
+}
+
+function paymentSignatureArgSchema() {
+  return z
+    .string()
+    .min(1)
+    .describe(
+      "Optional PAYMENT-SIGNATURE base64 payload. Omit on first call to receive PAYMENT-REQUIRED details."
+    )
+    .optional();
+}
+
+function formatPaidToolResult(
+  result: PaidCallResult,
+  fallbackPriceUsdc: string,
+  request: PaidRequestContext
+) {
+  const payment = paidMeta(result, fallbackPriceUsdc);
+
+  if (result.status === 402) {
+    return jsonResult({
+      error: "PAYMENT_REQUIRED",
+      message: "Paid endpoint requires x402 payment. Sign PAYMENT-REQUIRED and retry with paymentSignature.",
+      mcpPayment: payment,
+      request,
+      retry: {
+        arg: "paymentSignature",
+        header: "PAYMENT-SIGNATURE"
+      },
+      gatewayResponse: result.body
+    });
+  }
+
+  if (result.body && typeof result.body === "object" && !Array.isArray(result.body)) {
+    return jsonResult({
+      ...(result.body as Record<string, unknown>),
+      mcpPayment: payment
+    });
+  }
+
+  return jsonResult({
+    data: result.body,
+    mcpPayment: payment
+  });
 }
 
 export function registerPaidTools(server: McpServer, client: X402Client): void {
@@ -31,29 +78,32 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
     "canix_list_opportunities",
     {
       description:
-        "List top aggregated Algorand DeFi opportunities ranked by APY (GET /opportunities). Paid: ~0.01 USDC via x402. Requires CANIX402_WALLET_MNEMONIC for auto-pay.",
+        "List top aggregated Algorand DeFi opportunities ranked by APY (GET /opportunities). Paid: ~0.01 USDC via x402. First call returns PAYMENT-REQUIRED metadata; retry with paymentSignature.",
       inputSchema: {
         limit: z.number().int().min(1).max(200).optional(),
         offset: z.number().int().min(0).optional(),
         includeInactive: z.boolean().optional(),
-        protocol: ProtocolSchema.optional()
+        protocol: ProtocolSchema.optional(),
+        paymentSignature: paymentSignatureArgSchema()
       }
     },
     async (args) => {
       try {
+        const query = {
+          limit: args.limit,
+          offset: args.offset,
+          includeInactive: args.includeInactive,
+          protocol: args.protocol
+        };
         const result = await client.fetchPaid("/opportunities", {
           method: "GET",
-          query: {
-            limit: args.limit,
-            offset: args.offset,
-            includeInactive: args.includeInactive,
-            protocol: args.protocol
-          },
-          estimatedPriceUsdc: "0.01"
+          query,
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
         });
-        return jsonResult({
-          ...((result.body as object) ?? {}),
-          mcpPayment: paidMeta(result, "0.01")
+        return formatPaidToolResult(result, "0.01", {
+          path: "/opportunities",
+          method: "GET",
+          query
         });
       } catch (error) {
         return errorResult(error);
@@ -74,28 +124,31 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         minTvlUsd: z.number().min(0).optional(),
         limit: z.number().int().min(1).max(200).optional(),
         offset: z.number().int().min(0).optional(),
-        includeInactive: z.boolean().optional()
+        includeInactive: z.boolean().optional(),
+        paymentSignature: paymentSignatureArgSchema()
       }
     },
     async (args) => {
       try {
+        const query = {
+          platform: args.platform,
+          type: args.type,
+          minApy: args.minApy,
+          maxApy: args.maxApy,
+          minTvlUsd: args.minTvlUsd,
+          limit: args.limit,
+          offset: args.offset,
+          includeInactive: args.includeInactive
+        };
         const result = await client.fetchPaid("/opportunities/search", {
           method: "GET",
-          query: {
-            platform: args.platform,
-            type: args.type,
-            minApy: args.minApy,
-            maxApy: args.maxApy,
-            minTvlUsd: args.minTvlUsd,
-            limit: args.limit,
-            offset: args.offset,
-            includeInactive: args.includeInactive
-          },
-          estimatedPriceUsdc: "0.01"
+          query,
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
         });
-        return jsonResult({
-          ...((result.body as object) ?? {}),
-          mcpPayment: paidMeta(result, "0.01")
+        return formatPaidToolResult(result, "0.01", {
+          path: "/opportunities/search",
+          method: "GET",
+          query
         });
       } catch (error) {
         return errorResult(error);
@@ -112,24 +165,27 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         address: z.string().min(1),
         limit: z.number().int().min(1).max(200).optional(),
         offset: z.number().int().min(0).optional(),
-        includeInactive: z.boolean().optional()
+        includeInactive: z.boolean().optional(),
+        paymentSignature: paymentSignatureArgSchema()
       }
     },
     async (args) => {
       try {
+        const query = {
+          address: args.address,
+          limit: args.limit,
+          offset: args.offset,
+          includeInactive: args.includeInactive
+        };
         const result = await client.fetchPaid("/opportunities/personalized", {
           method: "GET",
-          query: {
-            address: args.address,
-            limit: args.limit,
-            offset: args.offset,
-            includeInactive: args.includeInactive
-          },
-          estimatedPriceUsdc: "0.05"
+          query,
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
         });
-        return jsonResult({
-          ...((result.body as object) ?? {}),
-          mcpPayment: paidMeta(result, "0.05")
+        return formatPaidToolResult(result, "0.05", {
+          path: "/opportunities/personalized",
+          method: "GET",
+          query
         });
       } catch (error) {
         return errorResult(error);
@@ -146,26 +202,30 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         protocol: ProtocolSchema,
         limit: z.number().int().min(1).max(200).optional(),
         offset: z.number().int().min(0).optional(),
-        includeInactive: z.boolean().optional()
+        includeInactive: z.boolean().optional(),
+        paymentSignature: paymentSignatureArgSchema()
       }
     },
     async (args) => {
       try {
+        const path = `/protocols/${encodeURIComponent(args.protocol)}/opportunities`;
+        const query = {
+          limit: args.limit,
+          offset: args.offset,
+          includeInactive: args.includeInactive
+        };
         const result = await client.fetchPaid(
-          `/protocols/${encodeURIComponent(args.protocol)}/opportunities`,
+          path,
           {
             method: "GET",
-            query: {
-              limit: args.limit,
-              offset: args.offset,
-              includeInactive: args.includeInactive
-            },
-            estimatedPriceUsdc: "0.01"
+            query,
+            ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
           }
         );
-        return jsonResult({
-          ...((result.body as object) ?? {}),
-          mcpPayment: paidMeta(result, "0.01")
+        return formatPaidToolResult(result, "0.01", {
+          path,
+          method: "GET",
+          query
         });
       } catch (error) {
         return errorResult(error);
@@ -189,22 +249,25 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
           poolTokenAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
           maxSlippageBps: z.union([z.number().int().min(0).max(10_000), z.string()]),
           poolId: z.string().min(1).optional()
-        })
+        }),
+        paymentSignature: paymentSignatureArgSchema()
       }
     },
     async (args) => {
       try {
+        const body = {
+          shapeKey: args.shapeKey,
+          input: args.input
+        };
         const result = await client.fetchPaid("/execution/quotes", {
           method: "POST",
-          body: {
-            shapeKey: args.shapeKey,
-            input: args.input
-          },
-          estimatedPriceUsdc: "0.10"
+          body,
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
         });
-        return jsonResult({
-          ...((result.body as object) ?? {}),
-          mcpPayment: paidMeta(result, "0.10")
+        return formatPaidToolResult(result, "0.10", {
+          path: "/execution/quotes",
+          method: "POST",
+          body
         });
       } catch (error) {
         return errorResult(error);

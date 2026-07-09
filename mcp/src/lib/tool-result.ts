@@ -23,40 +23,9 @@ export function errorResult(error: unknown): ToolResult {
     const named = error as {
       name: string;
       message: string;
-      estimatedPriceUsdc?: string;
-      paymentRequired?: unknown;
       status?: number;
       bodySnippet?: string;
     };
-
-    if (named.name === "WalletRequiredError") {
-      return {
-        isError: true,
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(
-              {
-                error: "WALLET_REQUIRED",
-                message: named.message,
-                estimatedPriceUsdc: named.estimatedPriceUsdc,
-                paymentRequired: named.paymentRequired,
-                setup: {
-                  envVar: "CANIX402_WALLET_MNEMONIC",
-                  notes: [
-                    "Use a dedicated agent wallet with limited funds.",
-                    "Wallet must hold ALGO for fees.",
-                    "Wallet must be opted into USDC (ASA 31566704 on Algorand mainnet)."
-                  ]
-                }
-              },
-              null,
-              2
-            )
-          }
-        ]
-      };
-    }
 
     if (named.name === "X402ClientError") {
       return {

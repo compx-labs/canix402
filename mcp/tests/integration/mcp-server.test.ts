@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { MCP_TOOL_NAMES } from "@canix402/x402-client";
 import type { McpServer } from "@modelcontextprotocol/server";
 
 import { createCanixMcpServer } from "../../src/server.js";
@@ -46,26 +47,13 @@ test("MCP server registers expected free and paid tools", async () => {
   const server = createCanixMcpServer({
     config: {
       apiUrl: "https://example.test",
-      algodUrl: "https://algod.test",
-      network: "algorand-mainnet",
-      walletMnemonic: undefined
+      network: "algorand-mainnet"
     },
     fetchImpl: async () => new Response("{}", { status: 200 })
   });
 
   const names = Object.keys(registeredTools(server)).sort();
-  assert.deepEqual(names, [
-    "canix_get_discovery",
-    "canix_get_execution_quote",
-    "canix_get_metadata",
-    "canix_get_openapi",
-    "canix_get_personalized_opportunities",
-    "canix_get_protocol_opportunities",
-    "canix_health",
-    "canix_list_execution_shapes",
-    "canix_list_opportunities",
-    "canix_search_opportunities"
-  ]);
+  assert.deepEqual(names, [...MCP_TOOL_NAMES].sort());
 
   await server.close();
 });
@@ -74,9 +62,7 @@ test("canix_health tool returns gateway payload", async () => {
   const server = createCanixMcpServer({
     config: {
       apiUrl: "https://example.test",
-      algodUrl: "https://algod.test",
-      network: "algorand-mainnet",
-      walletMnemonic: undefined
+      network: "algorand-mainnet"
     },
     fetchImpl: async (input) => {
       assert.match(String(input), /\/health$/);
@@ -101,9 +87,7 @@ test("canix_list_execution_shapes does not call network", async () => {
   const server = createCanixMcpServer({
     config: {
       apiUrl: "https://example.test",
-      algodUrl: "https://algod.test",
-      network: "algorand-mainnet",
-      walletMnemonic: undefined
+      network: "algorand-mainnet"
     },
     fetchImpl: async () => {
       fetchCalls += 1;
@@ -124,13 +108,11 @@ test("canix_list_execution_shapes does not call network", async () => {
   await server.close();
 });
 
-test("paid tool without wallet returns WALLET_REQUIRED", async () => {
+test("paid tool preflight returns PAYMENT_REQUIRED metadata", async () => {
   const server = createCanixMcpServer({
     config: {
       apiUrl: "https://example.test",
-      algodUrl: "https://algod.test",
-      network: "algorand-mainnet",
-      walletMnemonic: undefined
+      network: "algorand-mainnet"
     },
     fetchImpl: async () =>
       new Response("payment required", {
@@ -144,11 +126,11 @@ test("paid tool without wallet returns WALLET_REQUIRED", async () => {
     {}
   );
 
-  assert.equal(result.isError, true);
+  assert.equal(result.isError, undefined);
   const text = result.content.find((part) => part.type === "text");
   assert.ok(text?.text);
-  assert.match(text.text, /WALLET_REQUIRED/);
-  assert.match(text.text, /0\.01/);
+  assert.match(text.text, /PAYMENT_REQUIRED/);
+  assert.match(text.text, /paymentRequiredHeader/);
 
   await server.close();
 });
@@ -157,9 +139,7 @@ test("MCP resources include discovery openapi and shapes", async () => {
   const server = createCanixMcpServer({
     config: {
       apiUrl: "https://example.test",
-      algodUrl: "https://algod.test",
-      network: "algorand-mainnet",
-      walletMnemonic: undefined
+      network: "algorand-mainnet"
     },
     fetchImpl: async () =>
       new Response(JSON.stringify({ data: { ok: true } }), {

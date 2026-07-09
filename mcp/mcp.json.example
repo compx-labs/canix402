@@ -6,9 +6,7 @@
       "cwd": "/absolute/path/to/canix402",
       "env": {
         "CANIX402_API_URL": "https://canix402-api.compx.io",
-        "CANIX402_ALGOD_URL": "https://mainnet-api.algonode.cloud",
-        "CANIX402_NETWORK": "algorand-mainnet",
-        "CANIX402_WALLET_MNEMONIC": "<your-mainnet-wallet-mnemonic>"
+        "CANIX402_NETWORK": "algorand-mainnet"
       }
     }
   }

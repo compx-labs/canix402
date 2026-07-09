@@ -4,7 +4,6 @@ import test from "node:test";
 import type { McpServer } from "@modelcontextprotocol/server";
 
 import { loadConfig } from "../../src/lib/config.js";
-import { X402Client } from "../../src/lib/x402-client.js";
 import { createCanixMcpServer } from "../../src/server.js";
 
 const liveEnabled = process.env.CANIX402_LIVE_TESTS === "1";
@@ -39,22 +38,22 @@ test(
 );
 
 test(
-  "live: paid opportunities tool with wallet",
-  { skip: !liveEnabled || !loadConfig().walletMnemonic },
+  "live: paid opportunities tool returns payment requirement",
+  { skip: !liveEnabled },
   async () => {
     const config = loadConfig();
-    assert.ok(config.walletMnemonic, "CANIX402_WALLET_MNEMONIC required for live paid test");
 
-    const client = new X402Client(config);
-    const result = await client.fetchPaid("/opportunities", {
-      method: "GET",
-      query: { limit: 1 },
-      estimatedPriceUsdc: "0.01"
-    });
+    const server = createCanixMcpServer({ config });
+    const result = await registeredTools(server).canix_list_opportunities!.handler(
+      { limit: 1 },
+      {}
+    );
 
-    assert.equal(result.status, 200);
-    assert.ok(result.paymentResponseHeader);
-    const body = result.body as { data?: unknown[] };
-    assert.ok(Array.isArray(body.data));
+    assert.equal(result.isError, undefined);
+    const text = result.content.find((part) => part.type === "text");
+    assert.ok(text?.text);
+    assert.match(text.text, /PAYMENT_REQUIRED|mcpPayment/);
+
+    await server.close();
   }
 );

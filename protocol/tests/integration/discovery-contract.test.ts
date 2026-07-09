@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import {
+  MCP_SERVER_PACKAGE,
+  MCP_SERVER_REMOTE_URL,
+  MCP_SERVER_TRANSPORT,
+  MCP_TOOL_NAMES
+} from "@canix402/x402-client";
+
 import { buildApp } from "../../src/app.js";
 import { endpointPolicyMatrix } from "../../src/services/payment-policy.js";
 import { DiscoveryDocument } from "../../src/types/discovery.js";
@@ -48,9 +55,15 @@ test("discovery includes every endpoint in policy matrix", async () => {
   const policyPaths = endpointPolicyMatrix.map((endpoint) => endpoint.pathPattern).sort();
 
   assert.deepEqual(discoveryPaths, policyPaths);
+  // Agent discovery metadata: advertises MCP tooling without invoking the MCP server.
   assert.ok(payload.data.capabilities.includes("mcp-server"));
-  assert.equal(payload.data.mcpServer?.package, "@canix402/mcp");
-  assert.ok((payload.data.mcpServer?.tools.length ?? 0) > 0);
+  assert.equal(payload.data.mcpServer?.transport, MCP_SERVER_TRANSPORT);
+  assert.equal(payload.data.mcpServer?.url, MCP_SERVER_REMOTE_URL);
+  assert.equal(payload.data.mcpServer?.package, MCP_SERVER_PACKAGE);
+  assert.deepEqual(
+    [...(payload.data.mcpServer?.tools ?? [])].sort(),
+    [...MCP_TOOL_NAMES].sort()
+  );
 
   await app.close();
 });
@@ -81,7 +94,9 @@ test("well-known x402 manifest lists paid resources and indexing links", async (
   assert.equal(manifest.discoveryUrl, "https://canix402-api.compx.io/discovery");
   assert.equal(manifest.docsUrl, "https://canix402.compx.io/x402");
   assert.equal(manifest.llmsTxtUrl, "https://canix402.compx.io/llms.txt");
-  assert.equal((manifest as { mcpPackage?: string }).mcpPackage, "@canix402/mcp");
+  assert.equal((manifest as { mcpPackage?: string }).mcpPackage, MCP_SERVER_PACKAGE);
+  assert.equal((manifest as { mcpTransport?: string }).mcpTransport, MCP_SERVER_TRANSPORT);
+  assert.equal((manifest as { mcpUrl?: string }).mcpUrl, MCP_SERVER_REMOTE_URL);
   assert.equal(
     (manifest as { mcpInstall?: string }).mcpInstall,
     "https://canix402.compx.io/x402#mcp"
