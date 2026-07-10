@@ -33,6 +33,7 @@ npm run test:mcp-worker
 npm run test:live:local
 npm run test:live:production
 npm run test:tinyman-production
+npm run test:folks-production
 CANIX402_LIVE_TESTS=1 npm run test:live:mcp
 
 # Full local pre-merge check
@@ -70,7 +71,7 @@ Files:
 - `tests/integration/x402-gating.test.ts`
 - `tests/integration/execution-quotes-route.test.ts`
 - `tests/integration/execution-registry.test.ts`
-- `tests/integration/tinyman-add-liquidity-shape.test.ts`
+- `tests/integration/folks-finance-escrow-shapes.test.ts`
 - `tests/integration/tinyman-remove-liquidity-shape.test.ts`
 - `tests/integration/tinyman-adapter.test.ts`
 - `tests/integration/pact-adapter.test.ts`
@@ -436,6 +437,66 @@ Wallet requirements:
 
 `test:live:execution` is an alias for `test:tinyman-production`. This suite is
 excluded from `test:ci` and incurs real mainnet + x402 costs.
+
+### Folks Finance production lending tests
+
+Opt-in suite that pays production x402 fees, builds execution quotes via
+`POST /execution/quotes`, signs locally, and submits on mainnet. Uses the same
+wallet as Tinyman (`X402_CLIENT_MNEMONIC`).
+
+**0.1 USDC (100,000 micro)** deposit and withdraw in roundtrip scenarios.
+Each `POST /execution/quotes` costs **0.1 USDC** x402.
+
+| Scenario | Shape(s) | Notes |
+|---|---|---|
+| `deposit` | setup (if needed) → opt (if needed) → deposit:escrow | Deposits 0.1 USDC via escrow |
+| `withdraw` | withdraw:escrow | Withdraws 0.1 USDC; skips if escrow has no fAssets |
+| `roundtrip` | setup (if needed) → opt (if needed) → deposit → withdraw | ~0.1 USDC net liquidity |
+
+```sh
+X402_FOLKS_EXECUTION_LIVE=1 npm run test:folks-production -w protocol
+```
+
+Scenario selector (default: `roundtrip`):
+
+```sh
+# Deposit only (auto-runs escrow setup/opt when missing)
+X402_FOLKS_EXECUTION_LIVE=1 X402_FOLKS_EXECUTION_SCENARIO=deposit npm run test:folks-production -w protocol
+
+# Withdraw only (skip if escrow has no fAsset balance)
+X402_FOLKS_EXECUTION_LIVE=1 X402_FOLKS_EXECUTION_SCENARIO=withdraw npm run test:folks-production -w protocol
+
+# Roundtrip: deposit 0.1 USDC then withdraw 0.1 USDC
+X402_FOLKS_EXECUTION_LIVE=1 X402_FOLKS_EXECUTION_SCENARIO=roundtrip npm run test:folks-production -w protocol
+```
+
+Optional configuration:
+
+```sh
+# Pin a specific deposit escrow when the wallet has multiple
+X402_FOLKS_ESCROW_ADDRESS=YOUR_ESCROW_ADDRESS
+
+# Override underlying asset (default: mainnet USDC 31566704)
+X402_FOLKS_ASSET_ID=31566704
+```
+
+Flow per scenario:
+
+1. Call deployed `POST /execution/quotes` through production Caddy x402
+2. Pay for each quote with USDC (0.1 USDC per quote)
+3. Sign `data.encodedTransactions` with `X402_CLIENT_MNEMONIC` (and generated
+   escrow key for `setup:depositEscrow`)
+4. Submit and confirm on mainnet via Algod
+
+Wallet requirements:
+
+- USDC ASA opted in
+- ALGO for txn fees
+- Enough USDC for x402 quote fees (up to ~0.4 USDC on first roundtrip if escrow
+  setup and opt-in are required, plus 0.1 USDC deposit liquidity)
+
+`test:folks-execution-live` and `test:live:folks-execution` are aliases for
+`test:folks-production`. Excluded from `test:ci`.
 
 ## Troubleshooting
 

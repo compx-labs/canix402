@@ -18,10 +18,26 @@ import {
   tinymanRemoveLiquiditySingleAssetOutShape
 } from "../../src/execution/shapes/tinyman/index.js";
 import type { TinymanV2PoolState } from "../../src/execution/shapes/tinyman/pool-state.js";
+import {
+  folksFinanceDepositEscrowShape,
+  folksFinanceWithdrawEscrowShape,
+  setFolksDepositEscrowDependenciesForTests,
+  setFolksWithdrawEscrowDependenciesForTests
+} from "../../src/execution/shapes/folks-finance/index.js";
+import type { FolksPoolState } from "../../src/execution/shapes/folks-finance/pool-state.js";
+
+import { MainnetDepositsAppId, MainnetOpUp } from "@folks-finance/algorand-sdk";
+
+const FOLKS_USDC_POOL_APP_ID = 971372237;
+const FOLKS_FUSDC_ASSET_ID = 971384592;
+const FOLKS_DEPOSITS_APP_ID = MainnetDepositsAppId;
+const FOLKS_DEPOSIT_INTEREST_INDEX = 1_050_000_000_000_000n;
 
 const USER = algosdk.generateAccount();
+const ESCROW = algosdk.generateAccount();
 const POOL = algosdk.generateAccount();
 const USER_ADDRESS = USER.addr.toString();
+const ESCROW_ADDRESS = ESCROW.addr.toString();
 const POOL_ADDRESS = POOL.addr.toString();
 const VALIDATOR_APP_ID = 1002541853;
 const USDC_ID = 31566704;
@@ -295,6 +311,135 @@ function installSingleAssetOutRemoveMocks(): void {
   });
 }
 
+function folksPoolState(): FolksPoolState {
+  return {
+    network: "mainnet",
+    symbol: "USDC",
+    pool: {
+      appId: FOLKS_USDC_POOL_APP_ID,
+      assetId: USDC_ID,
+      fAssetId: FOLKS_FUSDC_ASSET_ID,
+      frAssetId: 971384593,
+      assetDecimals: 6,
+      poolManagerIndex: 2,
+      loans: {}
+    },
+    poolInfo: {
+      currentRound: 50_000_000,
+      poolManagerAppId: 971350278,
+      poolAdminAddress: USER_ADDRESS,
+      paramsAdminAddress: USER_ADDRESS,
+      configAdminAddress: USER_ADDRESS,
+      loansAdminAddress: USER_ADDRESS,
+      variableBorrow: {
+        vr0: 0n,
+        vr1: 0n,
+        vr2: 0n,
+        totalVariableBorrowAmount: 0n,
+        variableBorrowInterestRate: 0n,
+        variableBorrowInterestYield: 0n,
+        variableBorrowInterestIndex: 0n
+      },
+      stableBorrow: {
+        sr0: 0n,
+        sr1: 0n,
+        sr2: 0n,
+        sr3: 0n,
+        optimalStableToTotalDebtRatio: 0n,
+        rebalanceUpUtilisationRatio: 0n,
+        rebalanceUpDepositInterestRate: 0n,
+        rebalanceDownDelta: 0n,
+        totalStableBorrowAmount: 0n,
+        stableBorrowInterestRate: 0n,
+        stableBorrowInterestYield: 0n,
+        overallStableBorrowInterestAmount: 0n
+      },
+      interest: {
+        retentionRate: 0n,
+        flashLoanFee: 0n,
+        optimalUtilisationRatio: 0n,
+        totalDeposits: 1_000_000_000_000n,
+        depositInterestRate: 0n,
+        depositInterestYield: 0n,
+        depositInterestIndex: FOLKS_DEPOSIT_INTEREST_INDEX,
+        latestUpdate: 1_700_000_000n
+      },
+      caps: { borrowCap: 0n, stableBorrowPercentageCap: 0n },
+      config: {
+        depreciated: false,
+        rewardsPaused: false,
+        stableBorrowSupported: true,
+        flashLoanSupported: true
+      }
+    } as FolksPoolState["poolInfo"],
+    poolManagerInfo: { currentRound: 1, adminAddress: USER_ADDRESS, pools: {} } as FolksPoolState["poolManagerInfo"],
+    depositInterestIndex: FOLKS_DEPOSIT_INTEREST_INDEX,
+    poolAppAddress: POOL_ADDRESS
+  };
+}
+
+function buildFolksDepositGroup(): algosdk.Transaction[] {
+  const opUp = algosdk.makeApplicationNoOpTxnFromObject({
+    sender: USER.addr,
+    appIndex: BigInt(MainnetOpUp.callerAppId),
+    foreignApps: [BigInt(MainnetOpUp.baseAppId)],
+    appArgs: [algosdk.encodeUint64(0)],
+    suggestedParams: suggestedParams(1000)
+  });
+  const assetTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+    sender: USER.addr,
+    receiver: POOL.addr,
+    amount: 1_000_000n,
+    assetIndex: USDC_ID,
+    suggestedParams: suggestedParams(0)
+  });
+  const appTxn = algosdk.makeApplicationNoOpTxnFromObject({
+    sender: USER.addr,
+    appIndex: BigInt(FOLKS_USDC_POOL_APP_ID),
+    suggestedParams: suggestedParams(4000)
+  });
+  const group = [opUp, assetTxn, appTxn];
+  algosdk.assignGroupID(group);
+  return group;
+}
+
+function buildFolksWithdrawEscrowGroup(): algosdk.Transaction[] {
+  const appTxn = algosdk.makeApplicationNoOpTxnFromObject({
+    sender: USER.addr,
+    appIndex: BigInt(FOLKS_DEPOSITS_APP_ID),
+    suggestedParams: suggestedParams(6000)
+  });
+  return [appTxn];
+}
+
+function installFolksDepositMocks(): void {
+  setFolksDepositEscrowDependenciesForTests({
+    resolvePoolState: async () => folksPoolState(),
+    resolveEscrowContext: async () => ({
+      escrowAddress: ESCROW_ADDRESS,
+      optedIntoFAsset: true,
+      fAssetBalance: 2_000_000n
+    }),
+    getSuggestedParams: async () => suggestedParams(1000),
+    prepareDepositIntoPool: () => buildFolksDepositGroup().slice(1),
+    prefixWithOpUp: () => buildFolksDepositGroup(),
+    getAccountAssetBalance: async () => 5_000_000n
+  });
+}
+
+function installFolksWithdrawMocks(): void {
+  setFolksWithdrawEscrowDependenciesForTests({
+    resolvePoolState: async () => folksPoolState(),
+    resolveEscrowContext: async () => ({
+      escrowAddress: ESCROW_ADDRESS,
+      optedIntoFAsset: true,
+      fAssetBalance: 2_000_000n
+    }),
+    getSuggestedParams: async () => suggestedParams(1000),
+    prepareWithdrawFromDepositEscrowInDeposits: () => buildFolksWithdrawEscrowGroup()[0]!
+  });
+}
+
 const quoteRequestBody = {
   shapeKey: tinymanAddLiquidityFlexibleShape.key,
   input: {
@@ -324,6 +469,8 @@ test.afterEach(() => {
   setTinymanSingleAssetAddLiquidityDependenciesForTests(undefined);
   setTinymanInitialAddLiquidityDependenciesForTests(undefined);
   setTinymanRemoveLiquiditySingleAssetOutDependenciesForTests(undefined);
+  setFolksDepositEscrowDependenciesForTests(undefined);
+  setFolksWithdrawEscrowDependenciesForTests(undefined);
 });
 
 test("POST /execution/quotes returns unsigned executable quote", async () => {
@@ -499,6 +646,67 @@ test("POST /execution/quotes returns single-asset-out remove-liquidity executabl
   };
   assert.equal(body.data.shapeKey, tinymanRemoveLiquiditySingleAssetOutShape.key);
   assert.equal(body.data.transactions.length, 2);
+
+  await app.close();
+});
+
+test("POST /execution/quotes returns Folks escrow deposit executable quote", async () => {
+  installFolksDepositMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: folksFinanceDepositEscrowShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        poolAppId: FOLKS_USDC_POOL_APP_ID,
+        escrowAddress: ESCROW_ADDRESS,
+        assetAmount: "1000000"
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: { shapeKey: string; transactions: Array<{ type: string }> };
+    meta: { executionSubmitted: boolean };
+  };
+  assert.equal(body.data.shapeKey, folksFinanceDepositEscrowShape.key);
+  assert.equal(body.data.transactions.length, 3);
+  assert.equal(body.meta.executionSubmitted, false);
+
+  await app.close();
+});
+
+test("POST /execution/quotes returns Folks escrow withdraw executable quote", async () => {
+  installFolksWithdrawMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: folksFinanceWithdrawEscrowShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        poolAppId: FOLKS_USDC_POOL_APP_ID,
+        escrowAddress: ESCROW_ADDRESS,
+        amount: "500000",
+        amountDenomination: "fAsset"
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: { shapeKey: string; transactions: Array<{ type: string }> };
+  };
+  assert.equal(body.data.shapeKey, folksFinanceWithdrawEscrowShape.key);
+  assert.equal(body.data.transactions.length, 1);
 
   await app.close();
 });

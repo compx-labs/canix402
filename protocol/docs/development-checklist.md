@@ -68,14 +68,15 @@ Canix should become the validation, discovery, transaction-generation, execution
 
 - [x] Add paid x402 `POST /execution/quotes` endpoint (0.1 USDC) returning unsigned transaction groups for verified shapes.
 - [x] Expose all five Tinyman v2 LP execution shapes via execution quote endpoint (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove).
+- [x] Expose Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow).
 
 ### Protocol Transaction Shape Mapping (Blocking Foundation)
 
-- [ ] Inventory executable actions for each integrated DeFi protocol (Tinyman, Pact, Folks Finance, CompX, Dork.fi).
-- [ ] Map the exact transaction shape/group required for each supported action (for example: Tinyman add LP, remove LP, swap; lending deposit/withdraw; staking/farm enter/exit where supported).
+- [~] Inventory executable actions for each integrated DeFi protocol (Tinyman, Pact, Folks Finance, CompX, Dork.fi). Tinyman LP + Folks lending deposit/withdraw mapped.
+- [~] Map the exact transaction shape/group required for each supported action (for example: Tinyman add LP, remove LP, swap; lending deposit/withdraw; staking/farm enter/exit where supported). Folks wallet deposit/withdraw documented.
 - [ ] Verify every transaction shape against protocol SDKs, docs, on-chain app specs, and successful dry-run/localnet or testnet executions.
-- [ ] Define typed transaction-shape specs with required inputs, derived values, app/asset IDs, foreign arrays, boxes, fees, group ordering, signer roles, and validation rules.
-- [ ] Build golden fixtures for each supported protocol/action so generated groups can be compared deterministically.
+- [~] Define typed transaction-shape specs with required inputs, derived values, app/asset IDs, foreign arrays, boxes, fees, group ordering, signer roles, and validation rules. Tinyman LP + Folks lending wallet deposit/withdraw implemented.
+- [~] Build golden fixtures for each supported protocol/action so generated groups can be compared deterministically. Tinyman + Folks integration fixtures in CI.
 - [ ] Treat unsupported or unverified protocol actions as non-executable until a verified transaction-shape spec exists.
 - [ ] Document protocol-specific caveats that can affect transaction construction (pool discovery, opt-ins, minimum balance, slippage math, liquidity limits, app upgrades).
 

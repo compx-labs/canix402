@@ -20,6 +20,8 @@
     "test:x402-live": "tsx --test tests/live/x402-live.test.ts",
     "test:tinyman-production": "tsx --test tests/live/tinyman-production-test.test.ts",
     "test:tinyman-execution-live": "npm run test:tinyman-production",
+    "test:folks-production": "tsx --test tests/live/folks-finance-production-test.test.ts",
+    "test:folks-execution-live": "npm run test:folks-production",
     "test:x402-production": "tsx --test tests/live/x402-production.test.ts",
     "test:production-smoke": "tsx scripts/production-smoke.ts",
     "test:tinyman-live": "npm run test:live",
@@ -30,6 +32,7 @@
     "test:live:local": "tsx --test tests/live/x402-live.test.ts",
     "test:live:production": "tsx --test tests/live/x402-production.test.ts",
     "test:live:execution": "tsx --test tests/live/tinyman-production-test.test.ts",
+    "test:live:folks-execution": "tsx --test tests/live/folks-finance-production-test.test.ts",
     "snapshot:discovery": "tsx scripts/export-discovery-snapshot.ts",
     "snapshot:responses": "tsx scripts/export-opportunity-snapshots.ts"
   },
