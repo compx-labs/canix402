@@ -54,6 +54,9 @@ the requested output asset.
 ## Evidence and tests
 
 - Integration: `tests/integration/tinyman-remove-liquidity-single-asset-out-shape.test.ts`
+- Production live (x402 + on-chain): `tests/live/tinyman-production-test.test.ts`
+  scenarios `singleAssetOutRemove` / `singleAssetRoundtrip` (USDC output only,
+  gated by `X402_TINYMAN_EXECUTION_LIVE=1`)
 - SDK: `@tinymanorg/tinyman-js-sdk` `RemoveLiquidity.v2.generateSingleAssetOutTxns`
 - Docs: <https://docs.tinyman.org/v2-integration/protocol-methods/remove-liquidity>
 

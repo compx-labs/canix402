@@ -32,7 +32,7 @@ npm run test:mcp-worker
 # Live / production (opt-in, may spend USDC)
 npm run test:live:local
 npm run test:live:production
-npm run test:live:execution
+npm run test:tinyman-production
 CANIX402_LIVE_TESTS=1 npm run test:live:mcp
 
 # Full local pre-merge check
@@ -359,27 +359,53 @@ Wallet requirements for paid settlement:
 This suite is not part of `test`, `test:ci`, or default GitHub Actions. The daily
 `Production Smoke` workflow runs `test:production-smoke` (preflight only).
 
-## Live Tinyman Execution (production x402 + on-chain)
+## Tinyman production liquidity tests
 
-To verify the full agent execution path against the **deployed production gateway**
+Production on-chain tests live in [`tests/live/tinyman-production-test.test.ts`](../tests/live/tinyman-production-test.test.ts).
+They verify the full agent execution path against the **deployed production gateway**
 (`X402_PRODUCTION_BASE_URL`, default `https://canix402-api.compx.io`) with
-**on-chain submission** on mainnet:
+**on-chain submission** on mainnet.
+
+Pool pair: **ALGO / USDC** (USDC `31566704`, ALGO `0`). Liquidity add legs use
+**0.1 USDC (100,000 micro)** unless noted. Each `POST /execution/quotes` costs
+**0.1 USDC** x402.
+
+| Scenario | Shape(s) | Liquidity moved |
+|---|---|---|
+| `add` | flexible add | 0.1 USDC + proportional ALGO |
+| `remove` | multipleAssetsOut remove | burns LP (both assets out) |
+| `roundtrip` | flexible add → multipleAssetsOut remove | ~0.1 USDC net |
+| `singleAssetAdd` | singleAsset add | 0.1 USDC only (no ALGO deposit) |
+| `singleAssetOutRemove` | singleAssetOut remove | USDC out only |
+| `singleAssetRoundtrip` | singleAsset add → singleAssetOut remove | ~0.1 USDC net |
+
+`addLiquidity:initial` is **not** production-tested on ALGO/USDC — the pool
+already has liquidity.
 
 ```sh
-X402_TINYMAN_EXECUTION_LIVE=1 npm run test:live:execution -w protocol
+X402_TINYMAN_EXECUTION_LIVE=1 npm run test:tinyman-production -w protocol
 ```
 
 Scenario selector (default: `roundtrip`):
 
 ```sh
-# Add only: 0.1 USDC + proportional ALGO via paid execution quote
-X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=add npm run test:live:execution -w protocol
+# Flexible add: 0.1 USDC + proportional ALGO
+X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=add npm run test:tinyman-production -w protocol
 
-# Remove only: burns current LP balance (skip if wallet has no LP tokens)
-X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=remove npm run test:live:execution -w protocol
+# Multiple-assets-out remove (skip if wallet has no LP tokens)
+X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=remove npm run test:tinyman-production -w protocol
 
-# Roundtrip: add then remove full LP balance from the add
-X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=roundtrip npm run test:live:execution -w protocol
+# Flexible roundtrip
+X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=roundtrip npm run test:tinyman-production -w protocol
+
+# Single-asset add: 0.1 USDC only
+X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=singleAssetAdd npm run test:tinyman-production -w protocol
+
+# Single-asset-out remove as USDC (skip if wallet has no LP tokens)
+X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=singleAssetOutRemove npm run test:tinyman-production -w protocol
+
+# Single-asset roundtrip: 0.1 USDC add, then remove all LP as USDC
+X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=singleAssetRoundtrip npm run test:tinyman-production -w protocol
 ```
 
 Optional partial remove amount (base units):
@@ -404,11 +430,12 @@ Configuration:
 Wallet requirements:
 
 - USDC ASA opted in
-- ALGO for txn fees and proportional deposit
-- For roundtrip: enough USDC for two execution quotes (~0.2 USDC) plus 0.1 USDC liquidity
-- For remove-only: wallet must already hold Tinyman LP tokens
+- ALGO for txn fees; proportional ALGO deposit only for flexible add scenarios
+- For roundtrip scenarios: enough USDC for two execution quotes (~0.2 USDC) plus 0.1 USDC liquidity
+- For remove-only scenarios: wallet must already hold Tinyman LP tokens
 
-This suite is excluded from `test:ci` and incurs real mainnet + x402 costs.
+`test:live:execution` is an alias for `test:tinyman-production`. This suite is
+excluded from `test:ci` and incurs real mainnet + x402 costs.
 
 ## Troubleshooting
 

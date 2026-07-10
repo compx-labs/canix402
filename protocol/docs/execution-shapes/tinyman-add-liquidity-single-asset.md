@@ -54,6 +54,9 @@ existing, ready pool with liquidity.
 ## Evidence and tests
 
 - Integration: `tests/integration/tinyman-add-liquidity-single-asset-shape.test.ts`
+- Production live (x402 + on-chain): `tests/live/tinyman-production-test.test.ts`
+  scenarios `singleAssetAdd` / `singleAssetRoundtrip` (0.1 USDC deposit, gated by
+  `X402_TINYMAN_EXECUTION_LIVE=1`)
 - SDK: `@tinymanorg/tinyman-js-sdk` `AddLiquidity.v2.withSingleAsset`
 - Docs: <https://docs.tinyman.org/v2-integration/protocol-methods/add-subsequent-liquidity>
 

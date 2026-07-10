@@ -62,6 +62,8 @@ have liquidity, use `addLiquidity:flexible` or `addLiquidity:singleAsset`.
 ## Evidence and tests
 
 - Integration: `tests/integration/tinyman-add-liquidity-initial-shape.test.ts`
+- Not production-tested on mainnet ALGO/USDC (pool already has liquidity); see
+  `tests/live/tinyman-production-test.test.ts` for testable LP shapes on this pair
 - SDK: `@tinymanorg/tinyman-js-sdk` `AddLiquidity.v2.initial`
 - Docs: <https://docs.tinyman.org/v2-integration/protocol-methods/add-initial-liquidity>
 
