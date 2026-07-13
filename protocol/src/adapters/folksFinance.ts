@@ -136,8 +136,11 @@ export function normalizeFolksLendingOpportunity(
     return null;
   }
 
-  const apy = fromScaledValue(poolManagerState.depositInterestYield, 16);
-  const apr = fromScaledValue(poolManagerState.depositInterestRate, 16);
+  // The Folks SDK exposes yields as decimal fractions (0.051646 = 5.1646%).
+  // OpportunityRecordV1 uses percentage points, consistent with the Tinyman,
+  // Pact, and Dork.fi source values.
+  const apy = toPercentagePoints(fromScaledValue(poolManagerState.depositInterestYield, 16));
+  const apr = toPercentagePoints(fromScaledValue(poolManagerState.depositInterestRate, 16));
   const tvlUsd = calcTvlUsd(poolInfo.interest.totalDeposits, assetDecimals, oraclePrice);
 
   if (!Number.isFinite(apy) || !Number.isFinite(tvlUsd)) {
@@ -198,6 +201,10 @@ function fromScaledValue(value: bigint, scale: number): number {
     asString.length > scale ? asString.slice(asString.length - scale) : asString.padStart(scale, "0");
   const normalized = Number(`${wholePart}.${fractionalPart}`);
   return sign * normalized;
+}
+
+function toPercentagePoints(value: number): number {
+  return value * 100;
 }
 
 function calcTvlUsd(totalDeposits: bigint, assetDecimals: number, oraclePrice: bigint): number {

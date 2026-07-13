@@ -104,17 +104,21 @@ export function normalizePactPool(
   record: PactPoolApiRecord,
   fetchedAtIso: string = new Date().toISOString()
 ): OpportunityRecordV1 | null {
-  const apy =
+  const sourceApy =
     toNumber(record.apr_7d_all) ??
     toNumber(record.apr_7d);
   const tvlUsd = toNumber(record.tvl_usd);
-  if (apy === null || tvlUsd === null) {
+  if (sourceApy === null || tvlUsd === null) {
     return null;
   }
 
-  const apr =
+  const sourceApr =
     toNumber(record.apr_7d) ??
     toNumber(record.apr_7d_all);
+  // Pact's API exposes APR metrics as decimal fractions (2.955135 = 295.5135%).
+  // OpportunityRecordV1 uses percentage points, matching the Pact UI.
+  const apy = toPercentagePoints(sourceApy);
+  const apr = sourceApr === null ? null : toPercentagePoints(sourceApr);
   const id = getPoolId(record);
   const pairName = buildPairName(record);
   const assetIds = buildAssetIds(record);
@@ -163,16 +167,17 @@ function normalizePactFarm(
   farm: PactFarmApiRecord,
   fetchedAtIso: string
 ): OpportunityRecordV1 | null {
-  const apr = toNumber(farm.apr);
-  const averageApr = toNumber(farm.average_apr);
+  const sourceApr = toNumber(farm.apr);
+  const sourceAverageApr = toNumber(farm.average_apr);
   const hasFarmIncentives =
-    (apr !== null && apr > 0) ||
-    (averageApr !== null && averageApr > 0);
+    (sourceApr !== null && sourceApr > 0) ||
+    (sourceAverageApr !== null && sourceAverageApr > 0);
   if (!hasFarmIncentives) {
     return null;
   }
 
-  const apy = averageApr ?? apr ?? 0;
+  const apy = toPercentagePoints(sourceAverageApr ?? sourceApr ?? 0);
+  const apr = sourceApr === null ? null : toPercentagePoints(sourceApr);
   const tvlUsd = toNumber(pool.tvl_usd) ?? toNumber(farm.tvl_usd);
   if (tvlUsd === null) {
     return null;
@@ -212,6 +217,10 @@ function toNumber(value: number | string | null | undefined): number | null {
     return Number.isFinite(parsed) ? parsed : null;
   }
   return null;
+}
+
+function toPercentagePoints(value: number): number {
+  return value * 100;
 }
 
 function trimTrailingSlash(value: string): string {

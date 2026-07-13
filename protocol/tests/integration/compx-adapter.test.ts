@@ -266,6 +266,7 @@ test("normalizeCompxStakingOpportunity uses on-chain decimals for TVL math", () 
 
 test("fetchCompXOpportunities maps SDK responses and filters invalid rows", async () => {
   mockOnChainAssetDecimals();
+  const pricingRequestedAssetIds: number[] = [];
   setCompXSdkDependenciesForTests({
     createAlgodClient: () => ({}) as never,
     createSdk: () => ({ lending: {}, staking: {} }) as never,
@@ -389,10 +390,11 @@ test("fetchCompXOpportunities maps SDK responses and filters invalid rows", asyn
       }
     ],
     getPoolAprFn: async (_appId) => 9.5,
-    getOraclePricesFn: async (_oracleAppId, assetIds) => {
-      const prices = new Map<number, { price: number }>();
+    getTokenPricesFn: async (assetIds) => {
+      pricingRequestedAssetIds.push(...assetIds);
+      const prices: Record<string, number> = {};
       for (const assetId of assetIds) {
-        prices.set(assetId, { price: assetId === 0 ? 0.2 : 1 });
+        prices[String(assetId)] = assetId === 0 ? 0.2 : 1;
       }
       return prices;
     }
@@ -412,6 +414,11 @@ test("fetchCompXOpportunities maps SDK responses and filters invalid rows", asyn
     assert.equal(
       opportunities.some((row) => row.opportunityId === "compx-staking-300"),
       true
+    );
+    assert.deepEqual(
+      pricingRequestedAssetIds,
+      [0],
+      "only the staking pool's underlying ALGO assets are priced"
     );
   } finally {
     setCompXSdkDependenciesForTests(undefined);
@@ -476,7 +483,7 @@ test("GET /protocols/compx/opportunities returns CompX normalized data", async (
       }
     ],
     getPoolAprFn: async () => null,
-    getOraclePricesFn: async () => new Map()
+    getTokenPricesFn: async () => ({})
   });
 
   const app = buildApp();

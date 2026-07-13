@@ -103,10 +103,10 @@ test("normalizeFolksLendingOpportunity maps APY and TVL fields from SDK values",
   assert.ok(record);
   assert.equal(record?.protocol, "folks-finance");
   assert.equal(record?.opportunityType, "lending");
-  assert.equal(record?.apy, 0.055);
+  assert.equal(record?.apy, 5.5);
   assert.equal(record?.yieldBasis, "apy");
   assert.equal(record?.tvlUsd, 275);
-  assert.equal(record?.apr, 0.045);
+  assert.equal(record?.apr, 4.5);
   assert.equal(record?.sourceTimestamp, record?.fetchedAt);
   assert.match(record?.notes ?? "", /sourceTimestamp equals fetchedAt/);
   assert.match(record?.notes ?? "", /Folks mainnet lending pool 42/);
@@ -491,7 +491,7 @@ test("GET /protocols/folks-finance/opportunities returns Folks normalized data",
     assert.equal(body.data.length, 1);
     assert.equal(body.data[0]?.protocol, "folks-finance");
     assert.equal(body.data[0]?.opportunityId, "folks-lending-42");
-    assert.equal(body.data[0]?.apy, 0.051);
+    assert.equal(body.data[0]?.apy, 5.1);
   } finally {
     await app.close();
     setFolksFinanceSdkDependenciesForTests(undefined);

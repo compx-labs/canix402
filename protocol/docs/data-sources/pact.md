@@ -51,12 +51,12 @@ One pool can emit multiple opportunities:
 | `on_chain_id` (pool) | `opportunityId` (`:lp`) | LP ids are suffixed `:lp` |
 | `on_chain_id` (farm) | `opportunityId` (`:farm`) | Farm ids are suffixed `:farm` |
 | `primary_asset.unit_name` + `secondary_asset.unit_name` | `assetPair` | Falls back to `unknown/unknown` when missing |
-| `apr_7d_all` (or `apr_7d`) | `apy` (`lp`) | Required for LP output |
+| `apr_7d_all` (or `apr_7d`) | `apy` (`lp`) | Decimal fraction -> percentage points; required for LP output |
 | (adapter policy) | `yieldBasis` | Always `apr` |
-| `apr_7d` (or `apr_7d_all`) | `apr` (`lp`) | Optional |
+| `apr_7d` (or `apr_7d_all`) | `apr` (`lp`) | Decimal fraction -> percentage points; optional |
 | `tvl_usd` (pool) | `tvlUsd` | Required for LP output |
-| `average_apr` (or `apr`) | `apy` (`farm`) | Farm output emitted when APR data indicates incentives |
-| `apr` (farm) | `apr` (`farm`) | Optional; can be `0` while `average_apr` remains informative |
+| `average_apr` (or `apr`) | `apy` (`farm`) | Decimal fraction -> percentage points; farm output emitted when APR data indicates incentives |
+| `apr` (farm) | `apr` (`farm`) | Decimal fraction -> percentage points; can be `0` while `average_apr` remains informative |
 | `tvl_usd` (pool, fallback farm) | `tvlUsd` (`farm`) | Shared liquidity basis for pair-level opportunity |
 | fetch timestamp | `sourceTimestamp` | Source rows do not expose per-row update timestamps in this adapter |
 

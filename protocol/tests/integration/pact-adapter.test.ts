@@ -9,8 +9,8 @@ test("normalizePactPool maps APY and TVL USD fields", () => {
   const record = normalizePactPool(
     {
       on_chain_id: "pact-pool-1",
-      apr_7d_all: "8.75",
-      apr_7d: "6.2",
+      apr_7d_all: "0.0875",
+      apr_7d: "0.062",
       tvl_usd: "950000",
       primary_asset: { unit_name: "ALGO" },
       secondary_asset: { unit_name: "USDC" }
@@ -62,8 +62,8 @@ test("fetchPactOpportunities maps API payload and emits LP + farm records", asyn
             {
               on_chain_id: "pool-good",
               is_verified: true,
-              apr_7d_all: 7.2,
-              apr_7d: 6.8,
+              apr_7d_all: 0.072,
+              apr_7d: 0.068,
               tvl_usd: 320000,
               primary_asset: { unit_name: "ALGO" },
               secondary_asset: { unit_name: "USDC" }
@@ -71,8 +71,8 @@ test("fetchPactOpportunities maps API payload and emits LP + farm records", asyn
             {
               on_chain_id: "pool-unverified",
               is_verified: false,
-              apr_7d_all: 11.1,
-              apr_7d: 10.7,
+              apr_7d_all: 0.111,
+              apr_7d: 0.107,
               tvl_usd: 111,
               primary_asset: { unit_name: "BAD" },
               secondary_asset: { unit_name: "USDC" }
@@ -106,8 +106,8 @@ test("fetchPactOpportunities maps API payload and emits LP + farm records", asyn
     assert.equal(lp?.yieldBasis, "apr");
     assert.equal(farm?.protocol, "pact");
     assert.equal(farm?.yieldBasis, "apr");
-    assert.equal(farm?.apy, 0.14);
-    assert.equal(farm?.apr, 0.12);
+    assert.ok(Math.abs((farm?.apy ?? 0) - 14) < Number.EPSILON * 10);
+    assert.equal(farm?.apr, 12);
   } finally {
     delete process.env.PACT_API_BASE_URL;
   }
