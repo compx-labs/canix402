@@ -82,10 +82,11 @@ export async function fetchCompXOpportunities(): Promise<OpportunityRecordV1[]> 
     const assetById = new Map(assets.map((asset) => [asset.id, asset]));
 
     const oracleAppIds = buildOracleAppIdMap(markets, dependencies.fallbackOracleAppId);
+    const oraclePriceableAssetIds = collectOraclePriceableAssetIds(markets, pools);
     const priceByAssetId = await resolveAssetPrices(
       dependencies.getOraclePricesFn.bind(sdk.lending),
       oracleAppIds,
-      assetIds
+      oraclePriceableAssetIds
     );
 
     const lendingOpportunities = markets
@@ -364,6 +365,30 @@ function collectUniqueAssetIds(
     ids.add(pool.stakedAssetId);
     ids.add(pool.rewardAssetId);
   }
+  return [...ids];
+}
+
+/**
+ * Oracle prices are only needed for staking APR/TVL calculations. Lending
+ * opportunities already receive USD totals from the SDK. In particular, an
+ * LST/cAsset has no oracle entry and must never be queried as a priced asset.
+ */
+function collectOraclePriceableAssetIds(
+  markets: MarketData[],
+  pools: StakingPoolState[]
+): number[] {
+  const cAssetIds = new Set(markets.map((market) => market.lstTokenId));
+  const ids = new Set<number>();
+
+  for (const pool of pools) {
+    if (!cAssetIds.has(pool.stakedAssetId)) {
+      ids.add(pool.stakedAssetId);
+    }
+    if (!cAssetIds.has(pool.rewardAssetId)) {
+      ids.add(pool.rewardAssetId);
+    }
+  }
+
   return [...ids];
 }
 
