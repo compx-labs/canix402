@@ -35,10 +35,7 @@ type GetPoolAprFn = (
     nowTimestamp?: number;
   }
 ) => Promise<number | null>;
-type GetOraclePricesFn = (
-  oracleAppId: number,
-  assetIds: number[]
-) => Promise<Map<number, { price: number }>>;
+type GetTokenPricesFn = (assetIds: number[]) => Promise<Record<string, number>>;
 
 interface CompXSdkDependencies {
   createAlgodClient: () => Algodv2;
@@ -48,8 +45,7 @@ interface CompXSdkDependencies {
   getAllPoolsFn: GetAllPoolsFn;
   getAssetsInfoFn: GetAssetsInfoFn;
   getPoolAprFn: GetPoolAprFn;
-  getOraclePricesFn: GetOraclePricesFn;
-  fallbackOracleAppId: number;
+  getTokenPricesFn: GetTokenPricesFn;
   onlyActive: boolean;
 }
 
@@ -81,12 +77,10 @@ export async function fetchCompXOpportunities(): Promise<OpportunityRecordV1[]> 
     ]);
     const assetById = new Map(assets.map((asset) => [asset.id, asset]));
 
-    const oracleAppIds = buildOracleAppIdMap(markets, dependencies.fallbackOracleAppId);
-    const oraclePriceableAssetIds = collectOraclePriceableAssetIds(markets, pools);
+    const priceableStakingAssetIds = collectOraclePriceableAssetIds(markets, pools);
     const priceByAssetId = await resolveAssetPrices(
-      dependencies.getOraclePricesFn.bind(sdk.lending),
-      oracleAppIds,
-      oraclePriceableAssetIds
+      dependencies.getTokenPricesFn.bind(sdk.pricing),
+      priceableStakingAssetIds
     );
 
     const lendingOpportunities = markets
@@ -270,7 +264,6 @@ export function normalizeCompxStakingOpportunity(
 
 function resolveDependencies(): CompXSdkDependencies {
   const network = resolveNetwork();
-  const fallbackOracleAppId = resolveFallbackOracleAppId(network);
 
   return {
     createAlgodClient: createCompXAlgodClient,
@@ -299,15 +292,9 @@ function resolveDependencies(): CompXSdkDependencies {
     ) {
       return this.getPoolApr(appId, options);
     },
-    getOraclePricesFn: async function (this: CompXSDK["lending"], oracleAppId, assetIds) {
-      const prices = await this.getOraclePrices(oracleAppId, assetIds);
-      const mapped = new Map<number, { price: number }>();
-      for (const [assetId, oraclePrice] of prices.entries()) {
-        mapped.set(assetId, { price: oraclePrice.price });
-      }
-      return mapped;
+    getTokenPricesFn: async function (this: CompXSDK["pricing"], assetIds) {
+      return this.getTokenPrices(assetIds);
     },
-    fallbackOracleAppId,
     onlyActive: parseBoolean(process.env.COMPX_ONLY_ACTIVE, true),
     ...compxSdkDependencyOverrides
   };
@@ -340,18 +327,6 @@ function resolveMasterRepoAppId(network: Network): number | undefined {
   return network === "testnet" ? 757005603 : undefined;
 }
 
-function resolveFallbackOracleAppId(network: Network): number {
-  const configured = process.env.COMPX_ORACLE_APP_ID;
-  if (configured !== undefined && configured.length > 0) {
-    const parsed = Number(configured);
-    if (Number.isInteger(parsed) && parsed > 0) {
-      return parsed;
-    }
-  }
-
-  return network === "testnet" ? 755669660 : 3307588794;
-}
-
 function collectUniqueAssetIds(
   markets: MarketData[],
   pools: StakingPoolState[]
@@ -369,9 +344,9 @@ function collectUniqueAssetIds(
 }
 
 /**
- * Oracle prices are only needed for staking APR/TVL calculations. Lending
+ * Prices are only needed for staking APR/TVL calculations. Lending
  * opportunities already receive USD totals from the SDK. In particular, an
- * LST/cAsset has no oracle entry and must never be queried as a priced asset.
+ * LST/cAsset has no CompX pricing entry and must never be price-queried.
  */
 function collectOraclePriceableAssetIds(
   markets: MarketData[],
@@ -392,59 +367,30 @@ function collectOraclePriceableAssetIds(
   return [...ids];
 }
 
-function buildOracleAppIdMap(
-  markets: MarketData[],
-  fallbackOracleAppId: number
-): Map<number, number> {
-  const map = new Map<number, number>();
-  for (const market of markets) {
-    if (market.oracleAppId > 0) {
-      map.set(market.baseTokenId, market.oracleAppId);
-    }
-  }
-
-  if (fallbackOracleAppId > 0) {
-    map.set(-1, fallbackOracleAppId);
-  }
-
-  return map;
-}
-
 async function resolveAssetPrices(
-  getOraclePricesFn: GetOraclePricesFn,
-  oracleAppIds: Map<number, number>,
+  getTokenPricesFn: GetTokenPricesFn,
   assetIds: number[]
 ): Promise<Map<number, number>> {
   const priceByAssetId = new Map<number, number>();
-  const grouped = new Map<number, number[]>();
-
-  for (const assetId of assetIds) {
-    const oracleAppId = oracleAppIds.get(assetId) ?? oracleAppIds.get(-1);
-    if (!oracleAppId) {
-      continue;
-    }
-    const existing = grouped.get(oracleAppId);
-    if (existing) {
-      existing.push(assetId);
-      continue;
-    }
-    grouped.set(oracleAppId, [assetId]);
+  if (assetIds.length === 0) {
+    return priceByAssetId;
   }
 
-  await Promise.all(
-    [...grouped.entries()].map(async ([oracleAppId, ids]) => {
-      try {
-        const prices = await getOraclePricesFn(oracleAppId, ids);
-        for (const [assetId, price] of prices.entries()) {
-          if (Number.isFinite(price.price) && price.price > 0) {
-            priceByAssetId.set(assetId, price.price);
-          }
-        }
-      } catch {
-        // Missing oracle prices are handled by downstream filters.
+  try {
+    const prices = await getTokenPricesFn(assetIds);
+    for (const [assetId, price] of Object.entries(prices)) {
+      const numericAssetId = Number(assetId);
+      if (
+        Number.isInteger(numericAssetId) &&
+        Number.isFinite(price) &&
+        price > 0
+      ) {
+        priceByAssetId.set(numericAssetId, price);
       }
-    })
-  );
+    }
+  } catch {
+    // Missing pricing data is handled by downstream filters.
+  }
 
   return priceByAssetId;
 }

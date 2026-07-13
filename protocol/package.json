@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@algorandfoundation/algokit-utils": "^9.2.0",
-    "@compx/sdk": "^2.0.3",
+    "@compx/sdk": "^2.1.1",
     "@fastify/type-provider-typebox": "^6.1.0",
     "@folks-finance/algorand-sdk": "^0.2.6",
     "@pactfi/pactsdk": "^0.8.1",

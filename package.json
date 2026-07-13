@@ -34,5 +34,8 @@
     "typecheck:x402-client": "npm run typecheck -w @canix402/x402-client",
     "start:mcp": "npm run start -w @canix402/mcp",
     "check": "npm run typecheck:x402-client && npm run typecheck:protocol && npm run build:caddy-x402 && npm run test:protocol && npm run typecheck:mcp && npm run test:mcp && npm run typecheck:mcp-worker && npm run test:mcp-worker && npm run typecheck:website && npm run build:website"
+  },
+  "dependencies": {
+    "@compx/sdk": "^2.1.3"
   }
 }
