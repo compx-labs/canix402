@@ -91,18 +91,23 @@ export function normalizeTinymanPool(
   record: TinymanPoolApiRecord,
   fetchedAtIso: string = new Date().toISOString()
 ): OpportunityRecordV1 | null {
-  const apy =
+  const sourceApy =
     toNumber(record.annual_percentage_yield) ??
     toNumber(record.total_annual_percentage_yield);
   const tvlUsd = toNumber(record.liquidity_in_usd);
 
-  if (apy === null || tvlUsd === null) {
+  if (sourceApy === null || tvlUsd === null) {
     return null;
   }
 
-  const apr =
+  const sourceApr =
     toNumber(record.annual_percentage_rate) ??
     toNumber(record.total_annual_percentage_rate);
+  // Tinyman's analytics API expresses annual yield/rate fields as decimal
+  // fractions (0.280425 = 28.0425%). OpportunityRecordV1 uses percentage
+  // points, consistent with the values displayed in Tinyman's UI.
+  const apy = toPercentagePoints(sourceApy);
+  const apr = sourceApr === null ? null : toPercentagePoints(sourceApr);
   const id = record.address ?? "";
   const pairName = buildPairName(record);
   const assetIds = buildAssetIds(record);
@@ -147,19 +152,23 @@ function normalizeTinymanFarm(
   record: TinymanPoolApiRecord,
   fetchedAtIso: string
 ): OpportunityRecordV1 | null {
-  const stakingApy = toNumber(record.staking_total_annual_percentage_yield);
-  const stakingApr = toNumber(record.staking_total_annual_percentage_rate);
+  const sourceStakingApy = toNumber(record.staking_total_annual_percentage_yield);
+  const sourceStakingApr = toNumber(record.staking_total_annual_percentage_rate);
   const tvlUsd = toNumber(record.liquidity_in_usd);
   if (tvlUsd === null) {
     return null;
   }
 
   const hasFarmData =
-    (stakingApy !== null && stakingApy > 0) ||
-    (stakingApr !== null && stakingApr > 0);
+    (sourceStakingApy !== null && sourceStakingApy > 0) ||
+    (sourceStakingApr !== null && sourceStakingApr > 0);
   if (!hasFarmData) {
     return null;
   }
+  const stakingApy =
+    sourceStakingApy === null ? null : toPercentagePoints(sourceStakingApy);
+  const stakingApr =
+    sourceStakingApr === null ? null : toPercentagePoints(sourceStakingApr);
 
   const id = record.address ?? "";
   const pairName = buildPairName(record);
@@ -225,6 +234,10 @@ function toNumber(value: number | string | null | undefined): number | null {
   }
 
   return null;
+}
+
+function toPercentagePoints(value: number): number {
+  return value * 100;
 }
 
 function trimTrailingSlash(value: string): string {

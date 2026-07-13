@@ -9,8 +9,8 @@ test("normalizeTinymanPool maps APY and TVL USD fields", () => {
   const record = normalizeTinymanPool(
     {
       address: "pool-1",
-      annual_percentage_rate: "10.1",
-      annual_percentage_yield: "12.5",
+      annual_percentage_rate: "0.101",
+      annual_percentage_yield: "0.125",
       liquidity_in_usd: "2000000",
       is_verified: true,
       asset_1: { unit_name: "ALGO" },
@@ -26,7 +26,7 @@ test("normalizeTinymanPool maps APY and TVL USD fields", () => {
   assert.equal(record?.apy, 12.5);
   assert.equal(record?.yieldBasis, "apy");
   assert.equal(record?.tvlUsd, 2000000);
-  assert.equal(record?.apr, 10.1);
+  assert.ok(Math.abs((record?.apr ?? 0) - 10.1) < Number.EPSILON * 10);
   assert.equal(record?.assetPair, "ALGO/USDC");
 });
 
@@ -53,7 +53,7 @@ test("fetchTinymanOpportunities maps API payload and ignores invalid rows", asyn
           {
             address: "pool-1",
             is_verified: true,
-            annual_percentage_yield: 9.2,
+            annual_percentage_yield: 0.092,
             liquidity_in_usd: 1000,
             asset_1: { unit_name: "ALGO" },
             asset_2: { unit_name: "USDC" }
@@ -67,7 +67,7 @@ test("fetchTinymanOpportunities maps API payload and ignores invalid rows", asyn
           {
             address: "unverified-pool",
             is_verified: false,
-            annual_percentage_yield: 5.1,
+            annual_percentage_yield: 0.051,
             liquidity_in_usd: 2000
           }
         ]
@@ -90,10 +90,10 @@ test("fetchTinymanOpportunities emits separate LP and farm opportunities", async
           {
             address: "pool-with-farm",
             is_verified: true,
-            annual_percentage_rate: "4.1",
-            annual_percentage_yield: "5.2",
-            staking_total_annual_percentage_rate: "7.9",
-            staking_total_annual_percentage_yield: "8.1",
+            annual_percentage_rate: "0.041",
+            annual_percentage_yield: "0.052",
+            staking_total_annual_percentage_rate: "0.079",
+            staking_total_annual_percentage_yield: "0.081",
             liquidity_in_usd: "15000",
             asset_1: { unit_name: "ALGO" },
             asset_2: { unit_name: "xALGO" }

@@ -54,12 +54,12 @@ opportunities:
 |---|---|---|
 | `address` | `opportunityId` | Suffixes `:lp` or `:farm` for uniqueness |
 | `asset_1.unit_name` + `asset_2.unit_name` | `assetPair` | Falls back to `unknown/unknown` if missing |
-| `annual_percentage_yield` | `apy` (`lp`) | Required for LP output |
+| `annual_percentage_yield` | `apy` (`lp`) | Decimal fraction -> percentage points; required for LP output |
 | (adapter policy) | `yieldBasis` | Always `apy` |
-| `staking_total_annual_percentage_yield` | `apy` (`farm`) | Farm output emitted when > 0 |
+| `staking_total_annual_percentage_yield` | `apy` (`farm`) | Decimal fraction -> percentage points; farm output emitted when > 0 |
 | `liquidity_in_usd` | `tvlUsd` | Required; record dropped when invalid |
-| `annual_percentage_rate` | `apr` (`lp`) | Optional |
-| `staking_total_annual_percentage_rate` | `apr` (`farm`) | Optional |
+| `annual_percentage_rate` | `apr` (`lp`) | Decimal fraction -> percentage points; optional |
+| `staking_total_annual_percentage_rate` | `apr` (`farm`) | Decimal fraction -> percentage points; optional |
 | fetch timestamp | `sourceTimestamp` | Source currently does not expose per-row update timestamp |
 | incentive presence (`staking_total_annual_percentage_*`) | `opportunityType` | Emits `farm` in addition to `lp` |
 
