@@ -166,7 +166,7 @@ test("opportunities search applies platform, type, APY, and TVL filters", async 
   try {
     const response = await app.inject({
       method: "GET",
-      url: "/opportunities/search?platform=folks-finance&type=lending&minApy=0.05&maxApy=0.1&minTvlUsd=100000&limit=10&offset=0"
+      url: "/opportunities/search?platform=folks-finance&type=lending&minApy=5&maxApy=10&minTvlUsd=100000&limit=10&offset=0"
     });
 
     assert.equal(response.statusCode, 200);
@@ -184,7 +184,7 @@ test("opportunities search applies platform, type, APY, and TVL filters", async 
     );
     assert.equal(body.data[0]?.protocol, "folks-finance");
     assert.equal(body.data[0]?.opportunityType, "lending");
-    assert.equal(body.data[0]?.apy, 0.085);
+    assert.equal(body.data[0]?.apy, 8.5);
   } finally {
     await app.close();
     setFolksFinanceSdkDependenciesForTests(undefined);

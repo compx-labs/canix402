@@ -269,10 +269,14 @@ function resolveDependencies(): CompXSdkDependencies {
     createAlgodClient: createCompXAlgodClient,
     createSdk: (algodClient) => {
       const masterRepoAppId = resolveMasterRepoAppId(network);
+      const pricingApiUrl = resolvePricingApiUrl();
       return new CompXSDK(
-        masterRepoAppId === undefined
-          ? { algodClient, network }
-          : { algodClient, network, masterRepoAppId }
+        {
+          algodClient,
+          network,
+          ...(masterRepoAppId === undefined ? {} : { masterRepoAppId }),
+          ...(pricingApiUrl === undefined ? {} : { pricing: { apiUrl: pricingApiUrl } })
+        }
       );
     },
     network,
@@ -325,6 +329,11 @@ function resolveMasterRepoAppId(network: Network): number | undefined {
   }
 
   return network === "testnet" ? 757005603 : undefined;
+}
+
+function resolvePricingApiUrl(): string | undefined {
+  const configured = process.env.COMPX_PRICING_API_URL?.trim();
+  return configured && configured.length > 0 ? configured : undefined;
 }
 
 function collectUniqueAssetIds(

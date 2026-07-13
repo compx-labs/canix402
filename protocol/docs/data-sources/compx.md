@@ -16,11 +16,11 @@ This document defines the CompX adapter contract used by canix402.
 - `X402_ALGOD_TOKEN` (shared across integrations; defaults to empty string)
 - `COMPX_NETWORK` (optional; `mainnet` or `testnet`, defaults to `mainnet`)
 - `COMPX_MASTER_REPO_APP_ID` (optional override for on-chain registry discovery)
-- `COMPX_ORACLE_APP_ID` (optional fallback oracle for staking price resolution)
+- `COMPX_PRICING_API_URL` (optional override for the CompX SDK pricing API)
 - `COMPX_ONLY_ACTIVE` (optional; defaults to `true`)
 
-`COMPX_API_BASE_URL` / `COMPX_API_KEY` are not used by this adapter because CompX
-opportunity ingestion is on-chain via the SDK.
+Pricing is resolved through `sdk.pricing.getTokenPrices`; direct lending-oracle
+calls are not used by this adapter.
 
 ## Normalized Output Fields
 
@@ -68,7 +68,7 @@ Other emitted fields:
 | `pool.stakedAssetId`, `pool.rewardAssetId` | `assetIds` | Used for wallet personalization |
 | `getPoolApr(...)` result | `apy`, `apr` | APR estimate (not compound APY) |
 | (adapter policy) | `yieldBasis` | Always `apr` |
-| `pool.totalStaked` + on-chain decimals + staked USD price | `tvlUsd` | Computed in adapter |
+| `pool.totalStaked` + on-chain decimals + SDK pricing API | `tvlUsd` | Computed in adapter |
 | `pool.lastUpdateTime` | `sourceTimestamp` | On-chain pool update timestamp |
 | (adapter policy) | `opportunityType` | Always `staking` |
 
@@ -87,7 +87,7 @@ Other emitted fields:
 - Lending rows with non-finite APY or non-positive TVL are filtered out.
 - Staking rows with null/non-positive APR or non-computable TVL USD are filtered out.
 - Staking rows whose staked or reward asset decimals cannot be resolved from algod are filtered out.
-- Cross-asset staking pools without resolvable USD prices are skipped.
+- Cross-asset staking pools without resolvable SDK pricing API USD prices are skipped.
 - If all rows are filtered out, adapter throws `CompXAdapterError`.
 
 ## Rate-Limit and Reliability Notes
@@ -102,5 +102,5 @@ Other emitted fields:
 ## Known Caveats
 
 - CompX lending `supplyApy`/`borrowApy` are APR-derived values, not compound APY.
-- Staking yield is reported as APR; cross-asset pools require oracle USD pricing.
+- Staking yield is reported as APR; cross-asset pools require CompX SDK USD pricing.
 - `COMPX_ONLY_ACTIVE=true` skips inactive/migrating lending markets and inactive/expired staking pools.
