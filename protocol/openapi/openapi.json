@@ -480,7 +480,7 @@
     "/execution/quotes": {
       "post": {
         "summary": "Compile a verified transaction shape into unsigned Algorand transactions",
-        "description": "Returns a fresh, validated, unsigned transaction group for a supported execution shape. Use when an agent has selected a DeFi action and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove) and Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow). Canix does not sign or submit transactions in this endpoint.",
+        "description": "Returns a fresh, validated, unsigned transaction group for a supported execution shape. Use when an agent has selected a DeFi action and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Pact v1 LP add/remove shapes, CompX v1 lending/staking shapes, and Dork.fi v1 ASA lending deposit/withdraw shapes. Canix does not sign or submit transactions in this endpoint.",
         "tags": ["execution", "transactions", "x402", "agents"],
         "requestBody": {
           "required": true,
@@ -496,7 +496,13 @@
                 "folksSetupDepositEscrow": { "$ref": "#/components/examples/ExecutionQuoteFolksSetupDepositEscrowRequestSample" },
                 "folksSetupOptEscrowAsset": { "$ref": "#/components/examples/ExecutionQuoteFolksSetupOptEscrowAssetRequestSample" },
                 "folksDepositEscrow": { "$ref": "#/components/examples/ExecutionQuoteFolksDepositEscrowRequestSample" },
-                "folksWithdrawEscrow": { "$ref": "#/components/examples/ExecutionQuoteFolksWithdrawEscrowRequestSample" }
+                "folksWithdrawEscrow": { "$ref": "#/components/examples/ExecutionQuoteFolksWithdrawEscrowRequestSample" },
+                "pactAddLiquidity": { "$ref": "#/components/examples/ExecutionQuotePactAddLiquidityRequestSample" },
+                "pactRemoveLiquidity": { "$ref": "#/components/examples/ExecutionQuotePactRemoveLiquidityRequestSample" },
+                "compxDepositAsa": { "$ref": "#/components/examples/ExecutionQuoteCompxDepositAsaRequestSample" },
+                "compxWithdrawAsa": { "$ref": "#/components/examples/ExecutionQuoteCompxWithdrawAsaRequestSample" },
+                "dorkfiDepositAsa": { "$ref": "#/components/examples/ExecutionQuoteDorkfiDepositAsaRequestSample" },
+                "dorkfiWithdrawAsa": { "$ref": "#/components/examples/ExecutionQuoteDorkfiWithdrawAsaRequestSample" }
               }
             }
           }
@@ -1456,6 +1462,112 @@
             "poolAppId": 971372237,
             "amount": "500000",
             "amountDenomination": "fAsset"
+          }
+        }
+      },
+      "ExecutionQuotePactAddLiquidityRequestSample": {
+        "summary": "Pact v1 two-sided add-liquidity quote request",
+        "value": {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "input": {
+            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+            "poolAppId": 1072843805,
+            "assetAId": 31566704,
+            "assetAAmount": "100000",
+            "assetBId": 0,
+            "assetBAmount": "50000",
+            "maxSlippageBps": 50
+          }
+        }
+      },
+      "ExecutionQuotePactRemoveLiquidityRequestSample": {
+        "summary": "Pact v1 proportional remove-liquidity quote request",
+        "value": {
+          "shapeKey": "mainnet:pact:v1:removeLiquidity:proportional",
+          "input": {
+            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+            "poolAppId": 1072843805,
+            "poolTokenAmount": "50000"
+          }
+        }
+      },
+      "ExecutionQuoteCompxDepositAsaRequestSample": {
+        "summary": "CompX v1 ASA lending deposit quote request",
+        "value": {
+          "shapeKey": "mainnet:compx:v1:deposit:asa",
+          "input": {
+            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+            "marketAppId": 3475099935,
+            "amount": "100000"
+          }
+        }
+      },
+      "ExecutionQuoteCompxWithdrawAsaRequestSample": {
+        "summary": "CompX v1 ASA lending withdraw quote request",
+        "value": {
+          "shapeKey": "mainnet:compx:v1:withdraw:asa",
+          "input": {
+            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+            "marketAppId": 3475099935,
+            "amount": "100000"
+          }
+        }
+      },
+      "ExecutionQuoteCompxStakeAsaRequestSample": {
+        "summary": "CompX v1 ASA staking deposit quote request",
+        "value": {
+          "shapeKey": "mainnet:compx:v1:stake:asa",
+          "input": {
+            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+            "poolAppId": 3500000001,
+            "amount": "100000"
+          }
+        }
+      },
+      "ExecutionQuoteCompxUnstakeAsaRequestSample": {
+        "summary": "CompX v1 ASA staking withdraw quote request",
+        "value": {
+          "shapeKey": "mainnet:compx:v1:unstake:asa",
+          "input": {
+            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+            "poolAppId": 3500000001,
+            "amount": "100000"
+          }
+        }
+      },
+      "ExecutionQuoteCompxClaimRewardsRequestSample": {
+        "summary": "CompX v1 staking reward claim quote request",
+        "value": {
+          "shapeKey": "mainnet:compx:v1:claim:rewards",
+          "input": {
+            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+            "poolAppId": 3500000001
+          }
+        }
+      },
+      "ExecutionQuoteDorkfiDepositAsaRequestSample": {
+        "summary": "Dork.fi v1 ASA lending deposit quote request",
+        "value": {
+          "shapeKey": "mainnet:dorkfi:v1:deposit:asa",
+          "input": {
+            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+            "poolAppId": 3333688282,
+            "marketAppId": 3210682240,
+            "assetId": 31566704,
+            "amount": "100000"
+          }
+        }
+      },
+      "ExecutionQuoteDorkfiWithdrawAsaRequestSample": {
+        "summary": "Dork.fi v1 ASA lending withdraw quote request",
+        "value": {
+          "shapeKey": "mainnet:dorkfi:v1:withdraw:asa",
+          "input": {
+            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+            "poolAppId": 3333688282,
+            "marketAppId": 3210682240,
+            "assetId": 31566704,
+            "amount": "100000"
           }
         }
       },

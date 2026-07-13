@@ -20,8 +20,14 @@
     "test:x402-live": "tsx --test tests/live/x402-live.test.ts",
     "test:tinyman-production": "tsx --test tests/live/tinyman-production-test.test.ts",
     "test:tinyman-execution-live": "npm run test:tinyman-production",
+    "test:pact-production": "tsx --test tests/live/pact-production-test.test.ts",
+    "test:pact-execution-live": "npm run test:pact-production",
     "test:folks-production": "tsx --test tests/live/folks-finance-production-test.test.ts",
     "test:folks-execution-live": "npm run test:folks-production",
+    "test:compx-production": "tsx --test tests/live/compx-production-test.test.ts",
+    "test:compx-execution-live": "npm run test:compx-production",
+    "test:dorkfi-production": "tsx --test tests/live/dorkfi-production-test.test.ts",
+    "test:dorkfi-execution-live": "npm run test:dorkfi-production",
     "test:x402-production": "tsx --test tests/live/x402-production.test.ts",
     "test:production-smoke": "tsx scripts/production-smoke.ts",
     "test:tinyman-live": "npm run test:live",
@@ -37,13 +43,16 @@
     "snapshot:responses": "tsx scripts/export-opportunity-snapshots.ts"
   },
   "dependencies": {
+    "@algorandfoundation/algokit-utils": "^9.2.0",
     "@compx/sdk": "^2.0.3",
     "@fastify/type-provider-typebox": "^6.1.0",
     "@folks-finance/algorand-sdk": "^0.2.6",
+    "@pactfi/pactsdk": "^0.8.1",
     "@sinclair/typebox": "^0.34.49",
     "@tinymanorg/tinyman-js-sdk": "^5.1.4",
     "algosdk": "^3.6.0",
-    "fastify": "^5.8.5"
+    "fastify": "^5.8.5",
+    "ulujs": "^3.0.2"
   },
   "devDependencies": {
     "@types/node": "^24.0.10",

@@ -38,7 +38,7 @@ Status legend:
 
 ## 5) Go-Live Readiness
 
-- [~] Run protocol accuracy checks against source systems (live smoke tests for Tinyman/Pact; CompX/Dork.fi/Folks pending).
+- [~] Run protocol accuracy checks against source systems (live smoke tests for Tinyman/Pact/Dork.fi; CompX/Folks pending broader coverage).
 - [~] Confirm API consumer onboarding documentation is complete.
 - [ ] Complete launch checklist sign-off.
 
@@ -69,14 +69,18 @@ Canix should become the validation, discovery, transaction-generation, execution
 - [x] Add paid x402 `POST /execution/quotes` endpoint (0.1 USDC) returning unsigned transaction groups for verified shapes.
 - [x] Expose all five Tinyman v2 LP execution shapes via execution quote endpoint (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove).
 - [x] Expose Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow).
+- [x] Expose Pact v1 LP execution shapes (two-sided add; proportional remove).
+- [x] Expose CompX v1 lending and staking execution shapes (deposit/withdraw ASA; stake/unstake/claim rewards).
+- [x] Expose Dork.fi v1 ASA lending execution shapes (deposit/withdraw ASA).
+- [~] Dork.fi production lending live verification via gated `test:dorkfi-production` (`X402_DORKFI_EXECUTION_LIVE=1`; excluded from `test:ci`).
 
 ### Protocol Transaction Shape Mapping (Blocking Foundation)
 
-- [~] Inventory executable actions for each integrated DeFi protocol (Tinyman, Pact, Folks Finance, CompX, Dork.fi). Tinyman LP + Folks lending deposit/withdraw mapped.
-- [~] Map the exact transaction shape/group required for each supported action (for example: Tinyman add LP, remove LP, swap; lending deposit/withdraw; staking/farm enter/exit where supported). Folks wallet deposit/withdraw documented.
+- [~] Inventory executable actions for each integrated DeFi protocol (Tinyman, Pact, Folks Finance, CompX, Dork.fi). Tinyman LP + Folks lending deposit/withdraw + Pact LP add/remove + CompX lending/staking + Dork.fi lending deposit/withdraw mapped.
+- [~] Map the exact transaction shape/group required for each supported action (for example: Tinyman add LP, remove LP, swap; Pact add/remove LP; lending deposit/withdraw; staking/farm enter/exit where supported). Folks wallet deposit/withdraw + Pact LP + CompX lending/staking + Dork.fi lending deposit/withdraw documented.
 - [ ] Verify every transaction shape against protocol SDKs, docs, on-chain app specs, and successful dry-run/localnet or testnet executions.
-- [~] Define typed transaction-shape specs with required inputs, derived values, app/asset IDs, foreign arrays, boxes, fees, group ordering, signer roles, and validation rules. Tinyman LP + Folks lending wallet deposit/withdraw implemented.
-- [~] Build golden fixtures for each supported protocol/action so generated groups can be compared deterministically. Tinyman + Folks integration fixtures in CI.
+- [~] Define typed transaction-shape specs with required inputs, derived values, app/asset IDs, foreign arrays, boxes, fees, group ordering, signer roles, and validation rules. Tinyman LP + Folks lending wallet deposit/withdraw + Pact LP + CompX lending/staking + Dork.fi lending deposit/withdraw implemented.
+- [~] Build golden fixtures for each supported protocol/action so generated groups can be compared deterministically. Tinyman + Folks + Pact + CompX + Dork.fi integration fixtures in CI.
 - [ ] Treat unsupported or unverified protocol actions as non-executable until a verified transaction-shape spec exists.
 - [ ] Document protocol-specific caveats that can affect transaction construction (pool discovery, opt-ins, minimum balance, slippage math, liquidity limits, app upgrades).
 

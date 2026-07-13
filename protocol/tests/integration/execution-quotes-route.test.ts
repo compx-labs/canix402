@@ -25,8 +25,43 @@ import {
   setFolksWithdrawEscrowDependenciesForTests
 } from "../../src/execution/shapes/folks-finance/index.js";
 import type { FolksPoolState } from "../../src/execution/shapes/folks-finance/pool-state.js";
+import {
+  pactAddLiquidityTwoSidedShape,
+  pactRemoveLiquidityProportionalShape,
+  setPactAddLiquidityTwoSidedDependenciesForTests,
+  setPactRemoveLiquidityProportionalDependenciesForTests,
+  type PactPoolState
+} from "../../src/execution/shapes/pact/index.js";
+import type { LiquidityAddition, Pool } from "@pactfi/pactsdk";
+import type { MarketData } from "@compx/sdk";
 
 import { MainnetDepositsAppId, MainnetOpUp } from "@folks-finance/algorand-sdk";
+import {
+  buildMockDepositGroup,
+  buildMockStakeGroup,
+  compxDepositAsaShape,
+  compxStakeAsaShape,
+  createStakerBoxName,
+  setCompXDepositAsaDependenciesForTests,
+  setCompXStakeAsaDependenciesForTests,
+  setCompXLendingMarketStateDependenciesForTests,
+  setCompXStakingPoolStateDependenciesForTests,
+  type CompXLendingMarketState,
+  type CompXStakingPoolState
+} from "../../src/execution/shapes/compx/index.js";
+import {
+  buildMockDorkFiDepositGroup,
+  buildMockDorkFiWithdrawGroup,
+  dorkfiDepositAsaShape,
+  dorkfiWithdrawAsaShape,
+  DORKFI_MAINNET_USDC_ASA_ID,
+  DORKFI_MAINNET_USDC_MARKET_APP_ID,
+  DORKFI_MAINNET_USDC_POOL_APP_ID,
+  setDorkFiDepositAsaDependenciesForTests,
+  setDorkFiLendingMarketStateDependenciesForTests,
+  setDorkFiWithdrawAsaDependenciesForTests,
+  type DorkFiLendingMarketState
+} from "../../src/execution/shapes/dorkfi/index.js";
 
 const FOLKS_USDC_POOL_APP_ID = 971372237;
 const FOLKS_FUSDC_ASSET_ID = 971384592;
@@ -43,6 +78,13 @@ const VALIDATOR_APP_ID = 1002541853;
 const USDC_ID = 31566704;
 const ALGO_ID = 0;
 const POOL_TOKEN_ID = 900001;
+const PACT_POOL_APP_ID = 1072843805;
+const PACT_LP_TOKEN_ID = 900002;
+const COMPX_MARKET_APP_ID = 3475099935;
+const COMPX_LST_ID = 3475100201;
+const COMPX_STAKING_POOL_APP_ID = 3500000001;
+const COMPX_STAKED_ID = 1058926737;
+const COMPX_REWARD_ID = 793124631;
 const GENESIS_HASH = new Uint8Array(32).fill(9);
 
 function suggestedParams(fee: number): algosdk.SuggestedParams {
@@ -440,6 +482,279 @@ function installFolksWithdrawMocks(): void {
   });
 }
 
+function pactPoolState(): PactPoolState {
+  const pool = {
+    appId: PACT_POOL_APP_ID,
+    primaryAsset: { index: ALGO_ID },
+    secondaryAsset: { index: USDC_ID },
+    liquidityAsset: { index: PACT_LP_TOKEN_ID },
+    poolType: "CONSTANT_PRODUCT",
+    version: 1,
+    feeBps: 30,
+    state: {
+      totalLiquidity: 1_000_000,
+      totalPrimary: 5_000_000,
+      totalSecondary: 2_500_000,
+      primaryAssetPrice: 1,
+      secondaryAssetPrice: 1
+    },
+    getEscrowAddress: () => ESCROW_ADDRESS
+  } as unknown as Pool;
+
+  return {
+    network: "mainnet",
+    poolAppId: PACT_POOL_APP_ID,
+    escrowAddress: ESCROW_ADDRESS,
+    primaryAssetId: ALGO_ID,
+    secondaryAssetId: USDC_ID,
+    liquidityAssetId: PACT_LP_TOKEN_ID,
+    poolType: "CONSTANT_PRODUCT",
+    contractVersion: 1,
+    feeBps: 30,
+    reserves: pool.state,
+    pool
+  };
+}
+
+function buildPactAddLiquidityGroup(): algosdk.Transaction[] {
+  const primaryTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+    sender: USER.addr,
+    receiver: ESCROW.addr,
+    amount: 50_000n,
+    suggestedParams: suggestedParams(1000)
+  });
+  const secondaryTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+    sender: USER.addr,
+    receiver: ESCROW.addr,
+    amount: 100_000n,
+    assetIndex: USDC_ID,
+    suggestedParams: suggestedParams(1000)
+  });
+  const appTxn = algosdk.makeApplicationCallTxnFromObject({
+    sender: USER.addr,
+    appIndex: BigInt(PACT_POOL_APP_ID),
+    onComplete: algosdk.OnApplicationComplete.NoOpOC,
+    appArgs: [new TextEncoder().encode("ADDLIQ"), algosdk.encodeUint64(69_650n)],
+    foreignAssets: [ALGO_ID, USDC_ID, PACT_LP_TOKEN_ID],
+    suggestedParams: suggestedParams(3000)
+  });
+  const group = [primaryTxn, secondaryTxn, appTxn];
+  algosdk.assignGroupID(group);
+  return group;
+}
+
+function buildPactRemoveLiquidityGroup(): algosdk.Transaction[] {
+  const lpTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+    sender: USER.addr,
+    receiver: ESCROW.addr,
+    amount: 25_000n,
+    assetIndex: PACT_LP_TOKEN_ID,
+    suggestedParams: suggestedParams(1000)
+  });
+  const appTxn = algosdk.makeApplicationCallTxnFromObject({
+    sender: USER.addr,
+    appIndex: BigInt(PACT_POOL_APP_ID),
+    onComplete: algosdk.OnApplicationComplete.NoOpOC,
+    appArgs: [
+      new TextEncoder().encode("REMLIQ"),
+      algosdk.encodeUint64(0),
+      algosdk.encodeUint64(0)
+    ],
+    foreignAssets: [ALGO_ID, USDC_ID],
+    suggestedParams: suggestedParams(3000)
+  });
+  const group = [lpTxn, appTxn];
+  algosdk.assignGroupID(group);
+  return group;
+}
+
+function installPactAddMocks(): void {
+  const liquidityAddition = {
+    primaryAssetAmount: 50_000,
+    secondaryAssetAmount: 100_000,
+    slippagePct: 0.5,
+    effect: {
+      mintedLiquidityTokens: 70_000,
+      minimumMintedLiquidityTokens: 69_650,
+      amplifier: 0,
+      bonusPct: 0,
+      txFee: 3000
+    }
+  } as LiquidityAddition;
+
+  setPactAddLiquidityTwoSidedDependenciesForTests({
+    resolvePoolState: async () => pactPoolState(),
+    prepareAddLiquidity: () => liquidityAddition,
+    buildAddLiquidityTxs: () => buildPactAddLiquidityGroup(),
+    getSuggestedParams: async () => suggestedParams(1000)
+  });
+}
+
+function installPactRemoveMocks(): void {
+  setPactRemoveLiquidityProportionalDependenciesForTests({
+    resolvePoolState: async () => pactPoolState(),
+    buildRemoveLiquidityTxs: () => buildPactRemoveLiquidityGroup(),
+    getSuggestedParams: async () => suggestedParams(1000)
+  });
+}
+
+function compxMarketState(): CompXLendingMarketState {
+  return {
+    network: "mainnet",
+    marketAppId: COMPX_MARKET_APP_ID,
+    marketAppAddress: POOL_ADDRESS,
+    baseTokenId: USDC_ID,
+    lstTokenId: COMPX_LST_ID,
+    contractState: 1,
+    market: { appId: COMPX_MARKET_APP_ID, baseTokenId: USDC_ID, lstTokenId: COMPX_LST_ID } as MarketData,
+    userBaseBalance: 5_000_000n,
+    userLstBalance: 1_000_000n,
+    userOptedIntoBase: true,
+    userOptedIntoLst: true
+  };
+}
+
+function compxStakingState(): CompXStakingPoolState {
+  return {
+    network: "mainnet",
+    poolAppId: COMPX_STAKING_POOL_APP_ID,
+    poolAppAddress: POOL_ADDRESS,
+    stakedAssetId: COMPX_STAKED_ID,
+    rewardAssetId: COMPX_REWARD_ID,
+    contractState: 1,
+    initialized: true,
+    rewardsFunded: true,
+    endTime: 1_900_000_000,
+    pool: {
+      appId: COMPX_STAKING_POOL_APP_ID,
+      stakedAssetId: COMPX_STAKED_ID,
+      rewardAssetId: COMPX_REWARD_ID,
+      totalStaked: 10_000_000n,
+      rewardsRemaining: 1_000_000n,
+      contractState: 1,
+      initialized: true,
+      rewardsFunded: true,
+      endTime: 1_900_000_000,
+      lastUpdateTime: 1_783_450_230
+    },
+    staker: { stake: 0n, rewardDebt: 0n, hasBox: false },
+    userStakedBalance: 5_000_000n,
+    userOptedIntoRewardAsset: true,
+    stakerBoxName: createStakerBoxName(USER_ADDRESS)
+  };
+}
+
+function installCompXDepositMocks(): void {
+  setCompXLendingMarketStateDependenciesForTests({
+    getMarket: async () => compxMarketState().market,
+    getAccountAssetBalance: async () => 5_000_000n,
+    isAssetOptedIn: async () => true,
+    getApplicationAddress: () => POOL_ADDRESS
+  });
+  setCompXDepositAsaDependenciesForTests({
+    resolveMarketState: async () => compxMarketState(),
+    buildDepositTransactions: async () => ({
+      transactions: buildMockDepositGroup({
+        user: USER,
+        marketAppId: COMPX_MARKET_APP_ID,
+        marketAppAddress: POOL_ADDRESS,
+        baseTokenId: USDC_ID,
+        lstTokenId: COMPX_LST_ID,
+        amount: 100_000n,
+        includeLstOptIn: false,
+        suggestedParams: suggestedParams(1000)
+      }),
+      signers: [{ address: USER_ADDRESS, transactionIndexes: [0, 1] }],
+      metadata: { optInsIncluded: [] }
+    })
+  });
+}
+
+function installCompXStakeMocks(): void {
+  setCompXStakingPoolStateDependenciesForTests({
+    getPool: async () => compxStakingState().pool,
+    getStakerInfo: async () => null,
+    getAccountAssetBalance: async () => 5_000_000n,
+    isAssetOptedIn: async () => true,
+    getApplicationAddress: () => POOL_ADDRESS,
+    nowSeconds: () => 1_800_000_000
+  });
+  setCompXStakeAsaDependenciesForTests({
+    resolvePoolState: async () => compxStakingState(),
+    getSuggestedParams: async () => suggestedParams(1000),
+    finalizeComposerGroup: async () =>
+      buildMockStakeGroup({
+        user: USER,
+        poolAppId: COMPX_STAKING_POOL_APP_ID,
+        poolAppAddress: POOL_ADDRESS,
+        stakedAssetId: COMPX_STAKED_ID,
+        rewardAssetId: COMPX_REWARD_ID,
+        amount: 100_000n,
+        mbrAmount: 22_500n,
+        stakerBoxName: createStakerBoxName(USER_ADDRESS),
+        suggestedParams: suggestedParams(1000)
+      })
+  });
+}
+
+function dorkfiMarketState(): DorkFiLendingMarketState {
+  return {
+    network: "mainnet",
+    poolAppId: DORKFI_MAINNET_USDC_POOL_APP_ID,
+    marketAppId: DORKFI_MAINNET_USDC_MARKET_APP_ID,
+    assetId: DORKFI_MAINNET_USDC_ASA_ID,
+    nTokenAppId: 3_333_764_003,
+    poolAppAddress: POOL_ADDRESS,
+    decimals: 6,
+    tokenStandard: "asa",
+    symbol: "USDC",
+    paused: false,
+    userAssetBalance: 5_000_000n,
+    userNTokenBalance: 1_000_000n,
+    userOptedIntoAsset: true,
+    catalogMarket: {
+      symbol: "USDC",
+      poolAppId: DORKFI_MAINNET_USDC_POOL_APP_ID,
+      marketAppId: DORKFI_MAINNET_USDC_MARKET_APP_ID,
+      nTokenAppId: 3_333_764_003,
+      assetId: DORKFI_MAINNET_USDC_ASA_ID,
+      decimals: 6,
+      tokenStandard: "asa"
+    }
+  };
+}
+
+function installDorkFiDepositMocks(): void {
+  setDorkFiDepositAsaDependenciesForTests({
+    resolveMarketState: async () => dorkfiMarketState(),
+    buildDepositTransactions: async () =>
+      buildMockDorkFiDepositGroup({
+        user: USER,
+        poolAppId: DORKFI_MAINNET_USDC_POOL_APP_ID,
+        marketAppId: DORKFI_MAINNET_USDC_MARKET_APP_ID,
+        assetId: DORKFI_MAINNET_USDC_ASA_ID,
+        amount: 100_000n,
+        suggestedParams: suggestedParams(20_000)
+      })
+  });
+}
+
+function installDorkFiWithdrawMocks(): void {
+  setDorkFiWithdrawAsaDependenciesForTests({
+    resolveMarketState: async () => dorkfiMarketState(),
+    buildWithdrawTransactions: async () =>
+      buildMockDorkFiWithdrawGroup({
+        user: USER,
+        poolAppId: DORKFI_MAINNET_USDC_POOL_APP_ID,
+        marketAppId: DORKFI_MAINNET_USDC_MARKET_APP_ID,
+        assetId: DORKFI_MAINNET_USDC_ASA_ID,
+        nTokenAmount: 100_000n,
+        suggestedParams: suggestedParams(20_000)
+      }),
+    simulateWithdrawUnderlyingAmount: async () => 99_500n
+  });
+}
+
 const quoteRequestBody = {
   shapeKey: tinymanAddLiquidityFlexibleShape.key,
   input: {
@@ -471,6 +786,15 @@ test.afterEach(() => {
   setTinymanRemoveLiquiditySingleAssetOutDependenciesForTests(undefined);
   setFolksDepositEscrowDependenciesForTests(undefined);
   setFolksWithdrawEscrowDependenciesForTests(undefined);
+  setPactAddLiquidityTwoSidedDependenciesForTests(undefined);
+  setPactRemoveLiquidityProportionalDependenciesForTests(undefined);
+  setCompXDepositAsaDependenciesForTests(undefined);
+  setCompXStakeAsaDependenciesForTests(undefined);
+  setCompXLendingMarketStateDependenciesForTests(undefined);
+  setCompXStakingPoolStateDependenciesForTests(undefined);
+  setDorkFiDepositAsaDependenciesForTests(undefined);
+  setDorkFiWithdrawAsaDependenciesForTests(undefined);
+  setDorkFiLendingMarketStateDependenciesForTests(undefined);
 });
 
 test("POST /execution/quotes returns unsigned executable quote", async () => {
@@ -707,6 +1031,182 @@ test("POST /execution/quotes returns Folks escrow withdraw executable quote", as
   };
   assert.equal(body.data.shapeKey, folksFinanceWithdrawEscrowShape.key);
   assert.equal(body.data.transactions.length, 1);
+
+  await app.close();
+});
+
+test("POST /execution/quotes returns Pact two-sided add-liquidity executable quote", async () => {
+  installPactAddMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: pactAddLiquidityTwoSidedShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        poolAppId: PACT_POOL_APP_ID,
+        assetAId: USDC_ID,
+        assetAAmount: "100000",
+        assetBId: ALGO_ID,
+        assetBAmount: "50000",
+        maxSlippageBps: 50
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: { shapeKey: string; transactions: Array<{ type: string }> };
+  };
+  assert.equal(body.data.shapeKey, pactAddLiquidityTwoSidedShape.key);
+  assert.equal(body.data.transactions.length, 3);
+
+  await app.close();
+});
+
+test("POST /execution/quotes returns Pact proportional remove-liquidity executable quote", async () => {
+  installPactRemoveMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: pactRemoveLiquidityProportionalShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        poolAppId: PACT_POOL_APP_ID,
+        poolTokenAmount: "25000"
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: { shapeKey: string; transactions: Array<{ type: string }> };
+  };
+  assert.equal(body.data.shapeKey, pactRemoveLiquidityProportionalShape.key);
+  assert.equal(body.data.transactions.length, 2);
+
+  await app.close();
+});
+
+test("POST /execution/quotes compiles CompX lending deposit shape", async () => {
+  installCompXDepositMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: compxDepositAsaShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        marketAppId: COMPX_MARKET_APP_ID,
+        amount: "100000"
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: { shapeKey: string; transactions: Array<{ type: string }> };
+  };
+  assert.equal(body.data.shapeKey, compxDepositAsaShape.key);
+  assert.equal(body.data.transactions.length, 2);
+
+  await app.close();
+});
+
+test("POST /execution/quotes compiles CompX staking stake shape", async () => {
+  installCompXStakeMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: compxStakeAsaShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        poolAppId: COMPX_STAKING_POOL_APP_ID,
+        amount: "100000"
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: { shapeKey: string; transactions: Array<{ type: string }> };
+  };
+  assert.equal(body.data.shapeKey, compxStakeAsaShape.key);
+  assert.equal(body.data.transactions.length, 3);
+
+  await app.close();
+});
+
+test("POST /execution/quotes compiles Dork.fi lending deposit shape", async () => {
+  installDorkFiDepositMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: dorkfiDepositAsaShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        poolAppId: DORKFI_MAINNET_USDC_POOL_APP_ID,
+        marketAppId: DORKFI_MAINNET_USDC_MARKET_APP_ID,
+        assetId: DORKFI_MAINNET_USDC_ASA_ID,
+        amount: "100000"
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: { shapeKey: string; transactions: Array<{ type: string }> };
+  };
+  assert.equal(body.data.shapeKey, dorkfiDepositAsaShape.key);
+  assert.equal(body.data.transactions.length, 2);
+
+  await app.close();
+});
+
+test("POST /execution/quotes compiles Dork.fi lending withdraw shape", async () => {
+  installDorkFiWithdrawMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: dorkfiWithdrawAsaShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        poolAppId: DORKFI_MAINNET_USDC_POOL_APP_ID,
+        marketAppId: DORKFI_MAINNET_USDC_MARKET_APP_ID,
+        assetId: DORKFI_MAINNET_USDC_ASA_ID,
+        amount: "100000"
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: { shapeKey: string; transactions: Array<{ type: string }> };
+  };
+  assert.equal(body.data.shapeKey, dorkfiWithdrawAsaShape.key);
+  assert.equal(body.data.transactions.length, 2);
 
   await app.close();
 });
