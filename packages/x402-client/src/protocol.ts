@@ -20,7 +20,11 @@ export interface PaymentRequest {
 }
 
 export function decodePaymentRequiredHeader(headerValue: string): PaymentRequest {
-  const decoded = Buffer.from(headerValue, "base64").toString("utf-8");
+  const normalized = headerValue.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+  const binary = atob(padded);
+  const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+  const decoded = new TextDecoder().decode(bytes);
   const parsed = JSON.parse(decoded) as unknown;
   if (typeof parsed !== "object" || parsed === null) {
     throw new Error("PAYMENT-REQUIRED payload is not a JSON object.");

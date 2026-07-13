@@ -41,6 +41,37 @@ test("default fetch preserves the Cloudflare runtime receiver", async () => {
   }
 });
 
+test("fetchPaid decodes payment requirements without Node Buffer", async () => {
+  const paymentHeader = encodePaymentRequired();
+  const bufferDescriptor = Object.getOwnPropertyDescriptor(globalThis, "Buffer");
+  assert.ok(bufferDescriptor);
+  Object.defineProperty(globalThis, "Buffer", {
+    value: undefined,
+    configurable: true,
+    writable: true
+  });
+
+  try {
+    const client = new GatewayClient(
+      { gatewayUrl: "https://gateway.example" },
+      async () =>
+        ({
+          status: 402,
+          text: async () => "payment required",
+          headers: {
+            get: (name: string) =>
+              name.toLowerCase() === "payment-required" ? paymentHeader : null
+          }
+        }) as Response
+    );
+
+    const result = await client.fetchPaid("/opportunities");
+    assert.equal(result.paymentRequired?.accepts[0]?.payTo, "PAYTO");
+  } finally {
+    Object.defineProperty(globalThis, "Buffer", bufferDescriptor);
+  }
+});
+
 test("fetchPaid returns 402 payment requirement details", async () => {
   const paymentHeader = encodePaymentRequired();
   const client = new GatewayClient(
