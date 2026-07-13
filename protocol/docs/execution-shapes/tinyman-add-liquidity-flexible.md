@@ -138,6 +138,9 @@ token id.
 - Optional live verification (generate, never submit):
   `tests/live/tinyman-add-liquidity-shape-live.test.ts`, gated behind
   `X402_TINYMAN_SHAPE_LIVE=1`.
+- Production live (x402 + on-chain): `tests/live/tinyman-production-test.test.ts`
+  scenarios `add` / `roundtrip` (0.1 USDC + proportional ALGO, gated by
+  `X402_TINYMAN_EXECUTION_LIVE=1`).
 
 Source references:
 

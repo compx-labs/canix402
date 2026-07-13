@@ -1,19 +1,34 @@
 import { Static, Type } from "@sinclair/typebox";
 
+const BaseUnitAmountSchema = Type.Union([
+  Type.Integer({ minimum: 1 }),
+  Type.String({ minLength: 1 })
+]);
+
 export const ExecutionQuoteInputSchema = Type.Object({
   userAddress: Type.String({ minLength: 1 }),
-  assetAId: Type.Union([Type.Integer({ minimum: 0 }), Type.String()]),
-  assetAAmount: Type.Optional(
-    Type.Union([Type.Integer({ minimum: 1 }), Type.String({ minLength: 1 })])
+  // Tinyman LP fields (validated per shape)
+  assetAId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
+  assetAAmount: Type.Optional(BaseUnitAmountSchema),
+  assetBId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
+  assetBAmount: Type.Optional(BaseUnitAmountSchema),
+  poolTokenAmount: Type.Optional(BaseUnitAmountSchema),
+  depositAssetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
+  depositAmount: Type.Optional(BaseUnitAmountSchema),
+  outputAssetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
+  maxSlippageBps: Type.Optional(
+    Type.Union([Type.Integer({ minimum: 0, maximum: 10_000 }), Type.String()])
   ),
-  assetBId: Type.Union([Type.Integer({ minimum: 0 }), Type.String()]),
-  assetBAmount: Type.Optional(
-    Type.Union([Type.Integer({ minimum: 1 }), Type.String({ minLength: 1 })])
+  // Folks Finance lending fields (validated per shape)
+  poolAppId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
+  assetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
+  assetAmount: Type.Optional(BaseUnitAmountSchema),
+  amount: Type.Optional(BaseUnitAmountSchema),
+  amountDenomination: Type.Optional(
+    Type.Union([Type.Literal("asset"), Type.Literal("fAsset")])
   ),
-  poolTokenAmount: Type.Optional(
-    Type.Union([Type.Integer({ minimum: 1 }), Type.String({ minLength: 1 })])
-  ),
-  maxSlippageBps: Type.Union([Type.Integer({ minimum: 0, maximum: 10_000 }), Type.String()]),
+  escrowAddress: Type.Optional(Type.String({ minLength: 58, maxLength: 58 })),
+  includeOpUp: Type.Optional(Type.Boolean()),
   poolId: Type.Optional(Type.String({ minLength: 1 }))
 });
 

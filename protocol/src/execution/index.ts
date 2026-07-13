@@ -1,4 +1,5 @@
 import { TransactionShapeRegistry } from "./registry.js";
+import { folksFinanceShapes } from "./shapes/folks-finance/index.js";
 import { tinymanShapes } from "./shapes/tinyman/index.js";
 
 export * from "./types.js";
@@ -7,7 +8,9 @@ export {
   TransactionShapeRegistry,
   compileExecutableQuote
 } from "./registry.js";
+export * from "./normalize-transaction.js";
 export * from "./shapes/tinyman/index.js";
+export * from "./shapes/folks-finance/index.js";
 
 /**
  * Build a registry pre-loaded with every verified transaction shape. Callers
@@ -16,7 +19,7 @@ export * from "./shapes/tinyman/index.js";
  */
 export function createExecutionRegistry(): TransactionShapeRegistry {
   const registry = new TransactionShapeRegistry();
-  for (const shape of tinymanShapes) {
+  for (const shape of [...tinymanShapes, ...folksFinanceShapes]) {
     registry.register(shape);
   }
   return registry;

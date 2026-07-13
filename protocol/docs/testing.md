@@ -32,7 +32,8 @@ npm run test:mcp-worker
 # Live / production (opt-in, may spend USDC)
 npm run test:live:local
 npm run test:live:production
-npm run test:live:execution
+npm run test:tinyman-production
+npm run test:folks-production
 CANIX402_LIVE_TESTS=1 npm run test:live:mcp
 
 # Full local pre-merge check
@@ -70,7 +71,7 @@ Files:
 - `tests/integration/x402-gating.test.ts`
 - `tests/integration/execution-quotes-route.test.ts`
 - `tests/integration/execution-registry.test.ts`
-- `tests/integration/tinyman-add-liquidity-shape.test.ts`
+- `tests/integration/folks-finance-escrow-shapes.test.ts`
 - `tests/integration/tinyman-remove-liquidity-shape.test.ts`
 - `tests/integration/tinyman-adapter.test.ts`
 - `tests/integration/pact-adapter.test.ts`
@@ -359,27 +360,53 @@ Wallet requirements for paid settlement:
 This suite is not part of `test`, `test:ci`, or default GitHub Actions. The daily
 `Production Smoke` workflow runs `test:production-smoke` (preflight only).
 
-## Live Tinyman Execution (production x402 + on-chain)
+## Tinyman production liquidity tests
 
-To verify the full agent execution path against the **deployed production gateway**
+Production on-chain tests live in [`tests/live/tinyman-production-test.test.ts`](../tests/live/tinyman-production-test.test.ts).
+They verify the full agent execution path against the **deployed production gateway**
 (`X402_PRODUCTION_BASE_URL`, default `https://canix402-api.compx.io`) with
-**on-chain submission** on mainnet:
+**on-chain submission** on mainnet.
+
+Pool pair: **ALGO / USDC** (USDC `31566704`, ALGO `0`). Liquidity add legs use
+**0.1 USDC (100,000 micro)** unless noted. Each `POST /execution/quotes` costs
+**0.1 USDC** x402.
+
+| Scenario | Shape(s) | Liquidity moved |
+|---|---|---|
+| `add` | flexible add | 0.1 USDC + proportional ALGO |
+| `remove` | multipleAssetsOut remove | burns LP (both assets out) |
+| `roundtrip` | flexible add → multipleAssetsOut remove | ~0.1 USDC net |
+| `singleAssetAdd` | singleAsset add | 0.1 USDC only (no ALGO deposit) |
+| `singleAssetOutRemove` | singleAssetOut remove | USDC out only |
+| `singleAssetRoundtrip` | singleAsset add → singleAssetOut remove | ~0.1 USDC net |
+
+`addLiquidity:initial` is **not** production-tested on ALGO/USDC — the pool
+already has liquidity.
 
 ```sh
-X402_TINYMAN_EXECUTION_LIVE=1 npm run test:live:execution -w protocol
+X402_TINYMAN_EXECUTION_LIVE=1 npm run test:tinyman-production -w protocol
 ```
 
 Scenario selector (default: `roundtrip`):
 
 ```sh
-# Add only: 0.1 USDC + proportional ALGO via paid execution quote
-X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=add npm run test:live:execution -w protocol
+# Flexible add: 0.1 USDC + proportional ALGO
+X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=add npm run test:tinyman-production -w protocol
 
-# Remove only: burns current LP balance (skip if wallet has no LP tokens)
-X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=remove npm run test:live:execution -w protocol
+# Multiple-assets-out remove (skip if wallet has no LP tokens)
+X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=remove npm run test:tinyman-production -w protocol
 
-# Roundtrip: add then remove full LP balance from the add
-X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=roundtrip npm run test:live:execution -w protocol
+# Flexible roundtrip
+X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=roundtrip npm run test:tinyman-production -w protocol
+
+# Single-asset add: 0.1 USDC only
+X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=singleAssetAdd npm run test:tinyman-production -w protocol
+
+# Single-asset-out remove as USDC (skip if wallet has no LP tokens)
+X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=singleAssetOutRemove npm run test:tinyman-production -w protocol
+
+# Single-asset roundtrip: 0.1 USDC add, then remove all LP as USDC
+X402_TINYMAN_EXECUTION_LIVE=1 X402_TINYMAN_EXECUTION_SCENARIO=singleAssetRoundtrip npm run test:tinyman-production -w protocol
 ```
 
 Optional partial remove amount (base units):
@@ -404,11 +431,72 @@ Configuration:
 Wallet requirements:
 
 - USDC ASA opted in
-- ALGO for txn fees and proportional deposit
-- For roundtrip: enough USDC for two execution quotes (~0.2 USDC) plus 0.1 USDC liquidity
-- For remove-only: wallet must already hold Tinyman LP tokens
+- ALGO for txn fees; proportional ALGO deposit only for flexible add scenarios
+- For roundtrip scenarios: enough USDC for two execution quotes (~0.2 USDC) plus 0.1 USDC liquidity
+- For remove-only scenarios: wallet must already hold Tinyman LP tokens
 
-This suite is excluded from `test:ci` and incurs real mainnet + x402 costs.
+`test:live:execution` is an alias for `test:tinyman-production`. This suite is
+excluded from `test:ci` and incurs real mainnet + x402 costs.
+
+### Folks Finance production lending tests
+
+Opt-in suite that pays production x402 fees, builds execution quotes via
+`POST /execution/quotes`, signs locally, and submits on mainnet. Uses the same
+wallet as Tinyman (`X402_CLIENT_MNEMONIC`).
+
+**0.1 USDC (100,000 micro)** deposit and withdraw in roundtrip scenarios.
+Each `POST /execution/quotes` costs **0.1 USDC** x402.
+
+| Scenario | Shape(s) | Notes |
+|---|---|---|
+| `deposit` | setup (if needed) → opt (if needed) → deposit:escrow | Deposits 0.1 USDC via escrow |
+| `withdraw` | withdraw:escrow | Withdraws 0.1 USDC; skips if escrow has no fAssets |
+| `roundtrip` | setup (if needed) → opt (if needed) → deposit → withdraw | ~0.1 USDC net liquidity |
+
+```sh
+X402_FOLKS_EXECUTION_LIVE=1 npm run test:folks-production -w protocol
+```
+
+Scenario selector (default: `roundtrip`):
+
+```sh
+# Deposit only (auto-runs escrow setup/opt when missing)
+X402_FOLKS_EXECUTION_LIVE=1 X402_FOLKS_EXECUTION_SCENARIO=deposit npm run test:folks-production -w protocol
+
+# Withdraw only (skip if escrow has no fAsset balance)
+X402_FOLKS_EXECUTION_LIVE=1 X402_FOLKS_EXECUTION_SCENARIO=withdraw npm run test:folks-production -w protocol
+
+# Roundtrip: deposit 0.1 USDC then withdraw 0.1 USDC
+X402_FOLKS_EXECUTION_LIVE=1 X402_FOLKS_EXECUTION_SCENARIO=roundtrip npm run test:folks-production -w protocol
+```
+
+Optional configuration:
+
+```sh
+# Pin a specific deposit escrow when the wallet has multiple
+X402_FOLKS_ESCROW_ADDRESS=YOUR_ESCROW_ADDRESS
+
+# Override underlying asset (default: mainnet USDC 31566704)
+X402_FOLKS_ASSET_ID=31566704
+```
+
+Flow per scenario:
+
+1. Call deployed `POST /execution/quotes` through production Caddy x402
+2. Pay for each quote with USDC (0.1 USDC per quote)
+3. Sign `data.encodedTransactions` with `X402_CLIENT_MNEMONIC` (and generated
+   escrow key for `setup:depositEscrow`)
+4. Submit and confirm on mainnet via Algod
+
+Wallet requirements:
+
+- USDC ASA opted in
+- ALGO for txn fees
+- Enough USDC for x402 quote fees (up to ~0.4 USDC on first roundtrip if escrow
+  setup and opt-in are required, plus 0.1 USDC deposit liquidity)
+
+`test:folks-execution-live` and `test:live:folks-execution` are aliases for
+`test:folks-production`. Excluded from `test:ci`.
 
 ## Troubleshooting
 

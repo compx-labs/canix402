@@ -123,6 +123,8 @@ token id.
 - Optional live verification (generate, never submit):
   `tests/live/tinyman-remove-liquidity-shape-live.test.ts`, gated behind
   `X402_TINYMAN_SHAPE_LIVE=1`.
+- Production live (x402 + on-chain): `tests/live/tinyman-production-test.test.ts`
+  scenarios `remove` / `roundtrip` (gated by `X402_TINYMAN_EXECUTION_LIVE=1`).
 
 Source references:
 

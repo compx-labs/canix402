@@ -107,7 +107,7 @@ export async function resolveTinymanV2PoolState(params: {
 
   if (!poolUtils.isPoolReady(poolInfo)) {
     throw new ShapeStateError(
-      "Tinyman v2 pool is not ready for liquidity operations (bootstrap/incomplete).",
+      "Tinyman v2 pool is not ready for subsequent liquidity operations (bootstrap/incomplete).",
       { details: { asset1Id, asset2Id, network, status: poolInfo.status } }
     );
   }
@@ -116,6 +116,94 @@ export async function resolveTinymanV2PoolState(params: {
     throw new ShapeStateError("Tinyman v2 pool is missing a pool token id.", {
       details: { asset1Id, asset2Id, network }
     });
+  }
+
+  const poolAddress = poolInfo.account.address().toString();
+  const decimals = await dependencies.resolveAssetDecimals([asset1Id, asset2Id], algod);
+  const asset1Decimals = decimals.get(asset1Id);
+  const asset2Decimals = decimals.get(asset2Id);
+
+  if (asset1Decimals === undefined || asset2Decimals === undefined) {
+    throw new ShapeStateError("Could not resolve asset decimals for the pool assets.", {
+      details: { asset1Id, asset2Id, network }
+    });
+  }
+
+  return {
+    network,
+    validatorAppId: dependencies.getValidatorAppId(network),
+    poolAddress,
+    poolTokenId: poolInfo.poolTokenID,
+    asset1Id,
+    asset2Id,
+    asset1Decimals,
+    asset2Decimals,
+    poolInfo
+  };
+}
+
+/**
+ * Resolve pool state for initial (first) liquidity into a bootstrapped but empty
+ * Tinyman v2 pool. Rejects pools that do not exist or already have liquidity.
+ */
+export async function resolveTinymanV2PoolStateForInitialAdd(params: {
+  network: ExecutionNetwork;
+  algod: Algodv2;
+  asset1Id: number;
+  asset2Id: number;
+}): Promise<TinymanV2PoolState> {
+  const dependencies = resolveDependencies();
+  const { network, algod, asset1Id, asset2Id } = params;
+
+  let poolInfo: V2PoolInfo;
+  try {
+    poolInfo = await dependencies.getPoolInfo({
+      client: algod,
+      network,
+      asset1ID: asset1Id,
+      asset2ID: asset2Id
+    });
+  } catch (error) {
+    throw new ShapeStateError("Failed to fetch Tinyman v2 pool info.", {
+      details: { asset1Id, asset2Id, network },
+      cause: error
+    });
+  }
+
+  if (poolUtils.isPoolNotCreated(poolInfo)) {
+    throw new ShapeStateError("Tinyman v2 pool does not exist for the requested pair.", {
+      details: { asset1Id, asset2Id, network }
+    });
+  }
+
+  if (poolUtils.isPoolReady(poolInfo)) {
+    throw new ShapeStateError(
+      "Tinyman v2 pool already has liquidity; use flexible or single-asset add instead.",
+      { details: { asset1Id, asset2Id, network, status: poolInfo.status } }
+    );
+  }
+
+  if (poolInfo.poolTokenID === undefined) {
+    throw new ShapeStateError("Tinyman v2 pool is missing a pool token id.", {
+      details: { asset1Id, asset2Id, network }
+    });
+  }
+
+  let reserves: PoolReserves;
+  try {
+    reserves = await dependencies.getPoolReserves(algod, poolInfo);
+  } catch (error) {
+    throw new ShapeStateError("Failed to fetch Tinyman v2 pool reserves for initial add.", {
+      details: { asset1Id, asset2Id, network },
+      cause: error
+    });
+  }
+
+  if (!poolUtils.isPoolEmpty(reserves)) {
+    throw new ShapeStateError(
+      "Tinyman v2 pool reserves are not empty; use flexible or single-asset add instead.",
+      { details: { asset1Id, asset2Id, network } }
+    );
   }
 
   const poolAddress = poolInfo.account.address().toString();
