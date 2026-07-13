@@ -1,19 +1,11 @@
 import algosdk from "algosdk";
 import { FastifyInstance } from "fastify";
 
-import {
-  CompXAdapterError,
-  DorkFiAdapterError,
-  fetchCompXOpportunities,
-  fetchFolksFinanceOpportunities,
-  fetchDorkFiOpportunities,
-  FolksFinanceAdapterError,
-  fetchPactOpportunities,
-  PactAdapterError,
-  fetchTinymanOpportunities,
-  TinymanAdapterError
-} from "../adapters/index.js";
 import { fetchHeldAssetIds } from "../services/account-assets.js";
+import {
+  fetchOpportunitiesForProtocols,
+  SUPPORTED_AGGREGATE_PROTOCOLS
+} from "../services/aggregate-opportunities.js";
 import { rankOpportunitiesByApy } from "../services/opportunity-ranking.js";
 import { formatOpportunitiesForAgent } from "../services/precision.js";
 import { selectPersonalizedOpportunities } from "../services/personalized-opportunities.js";
@@ -185,68 +177,6 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
       });
     }
   );
-}
-
-const SUPPORTED_AGGREGATE_PROTOCOLS = [
-  "tinyman",
-  "pact",
-  "folks-finance",
-  "compx",
-  "dorkfi"
-] as const;
-
-async function fetchOpportunitiesForProtocols(
-  protocols: readonly Protocol[]
-): Promise<OpportunityRecordV1[]> {
-  const results = await Promise.allSettled(
-    protocols.map((protocol) => fetchOpportunitiesForProtocol(protocol))
-  );
-
-  const fulfilledResults = results.filter(
-    (result): result is PromiseFulfilledResult<OpportunityRecordV1[]> =>
-      result.status === "fulfilled"
-  );
-  if (fulfilledResults.length === 0) {
-    const firstRejected = results.find(
-      (result): result is PromiseRejectedResult => result.status === "rejected"
-    );
-    throw firstRejected?.reason ?? new Error("All opportunity adapters failed.");
-  }
-
-  return fulfilledResults.flatMap((result) => result.value);
-}
-
-async function fetchOpportunitiesForProtocol(protocol: Protocol): Promise<OpportunityRecordV1[]> {
-  try {
-    if (protocol === "tinyman") {
-      return await fetchTinymanOpportunities();
-    }
-    if (protocol === "pact") {
-      return await fetchPactOpportunities();
-    }
-    if (protocol === "folks-finance") {
-      return await fetchFolksFinanceOpportunities();
-    }
-    if (protocol === "compx") {
-      return await fetchCompXOpportunities();
-    }
-    if (protocol === "dorkfi") {
-      return await fetchDorkFiOpportunities();
-    }
-  } catch (error) {
-    if (
-      error instanceof TinymanAdapterError ||
-      error instanceof PactAdapterError ||
-      error instanceof FolksFinanceAdapterError ||
-      error instanceof CompXAdapterError ||
-      error instanceof DorkFiAdapterError
-    ) {
-      throw error;
-    }
-    throw error;
-  }
-
-  return [];
 }
 
 function parseProtocolFilters(value: string | undefined): Protocol[] {

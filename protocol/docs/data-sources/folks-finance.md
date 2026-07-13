@@ -40,9 +40,9 @@ Other emitted fields:
 |---|---|---|
 | `MainnetPools` key | `assetPair` | Symbol-like market label (e.g. `ALGO`, `USDC`) |
 | `pool.appId` | `opportunityId` | `folks-lending-<poolAppId>` |
-| `poolManagerInfo.pools[appId].depositInterestYield` | `apy` | 16-decimal fixed-point -> decimal number |
+| `poolManagerInfo.pools[appId].depositInterestYield` | `apy` | 16-decimal fixed-point decimal fraction -> percentage points |
 | (adapter policy) | `yieldBasis` | Always `apy` |
-| `poolManagerInfo.pools[appId].depositInterestRate` | `apr` | 16-decimal fixed-point -> decimal number |
+| `poolManagerInfo.pools[appId].depositInterestRate` | `apr` | 16-decimal fixed-point decimal fraction -> percentage points |
 | `poolInfo.interest.totalDeposits` + oracle price | `tvlUsd` | Computed via on-chain asset decimals and 14-decimal oracle price |
 | (adapter policy) | `opportunityType` | Always `lending` |
 
