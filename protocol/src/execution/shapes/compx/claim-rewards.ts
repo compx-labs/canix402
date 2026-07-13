@@ -93,7 +93,7 @@ export const compxClaimRewardsShape: TransactionShapeSpec<
   sources: [
     {
       kind: "arc56",
-      description: "protocol/docs/staking.arc56.json claimRewards()void"
+      description: "protocol/src/staking.arc56.json claimRewards()void"
     }
   ],
 

@@ -28,7 +28,7 @@ Three outer transactions in order:
    first-time stakers; `0` for existing stakers with a box).
 3. Application call: user -> pool app with `stake(axfer,uint64,pay)void`.
 
-Built from `protocol/docs/staking.arc56.json` using `AtomicTransactionComposer` and
+Built from `protocol/src/staking.arc56.json` using `AtomicTransactionComposer` and
 simulation-derived app-call resources/fees.
 
 ## Validation invariants

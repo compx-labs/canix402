@@ -32,7 +32,7 @@ export type FetchFn = typeof fetch;
 export class GatewayClient {
   constructor(
     private readonly config: GatewayClientConfig,
-    private readonly fetchImpl: FetchFn = fetch
+    private readonly fetchImpl: FetchFn = (...args) => fetch(...args)
   ) {}
 
   buildUrl(path: string, query?: Record<string, string | number | boolean | undefined>): string {

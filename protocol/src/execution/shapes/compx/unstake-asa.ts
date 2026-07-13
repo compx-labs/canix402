@@ -95,7 +95,7 @@ export const compxUnstakeAsaShape: TransactionShapeSpec<
   sources: [
     {
       kind: "arc56",
-      description: "protocol/docs/staking.arc56.json unstake(uint64)void"
+      description: "protocol/src/staking.arc56.json unstake(uint64)void"
     }
   ],
 

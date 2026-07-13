@@ -1,6 +1,6 @@
 import algosdk from "algosdk";
 
-import stakingArc56 from "../../../../docs/staking.arc56.json" with { type: "json" };
+import stakingArc56 from "../../../staking.arc56.json" with { type: "json" };
 
 export const STAKING_ARC56 = stakingArc56;
 

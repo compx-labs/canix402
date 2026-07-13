@@ -99,7 +99,7 @@ export const compxStakeAsaShape: TransactionShapeSpec<
   sources: [
     {
       kind: "arc56",
-      description: "protocol/docs/staking.arc56.json stake(axfer,uint64,pay)void"
+      description: "protocol/src/staking.arc56.json stake(axfer,uint64,pay)void"
     }
   ],
 

@@ -21,6 +21,26 @@ function encodePaymentRequired(amount = "10000"): string {
   ).toString("base64");
 }
 
+test("default fetch preserves the Cloudflare runtime receiver", async () => {
+  const originalFetch = globalThis.fetch;
+  let fetchThis: unknown;
+
+  globalThis.fetch = (async function (this: unknown) {
+    fetchThis = this;
+    return new Response(JSON.stringify({ data: { status: "ok" } }), { status: 200 });
+  }) as typeof fetch;
+
+  try {
+    const client = new GatewayClient({ gatewayUrl: "https://gateway.example" });
+    const result = await client.fetchFree("/health");
+
+    assert.notEqual(fetchThis, client);
+    assert.deepEqual(result, { data: { status: "ok" } });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("fetchPaid returns 402 payment requirement details", async () => {
   const paymentHeader = encodePaymentRequired();
   const client = new GatewayClient(
