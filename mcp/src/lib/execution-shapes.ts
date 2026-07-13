@@ -88,6 +88,96 @@ export const EXECUTION_SHAPES = [
     summary: "Withdraw underlying asset from a Folks Finance lending pool via deposit escrow",
     docsPath: "protocol/docs/execution-shapes/folks-finance-withdraw-escrow.md",
     priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:pact:v1:addLiquidity:twoSided",
+    protocol: "pact",
+    protocolVersion: "v1",
+    action: "addLiquidity",
+    variant: "twoSided",
+    summary: "Two-sided add-liquidity to an existing Pact AMM pool",
+    docsPath: "protocol/docs/execution-shapes/pact-add-liquidity-two-sided.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:pact:v1:removeLiquidity:proportional",
+    protocol: "pact",
+    protocolVersion: "v1",
+    action: "removeLiquidity",
+    variant: "proportional",
+    summary: "Remove LP tokens and receive both pool assets proportionally",
+    docsPath: "protocol/docs/execution-shapes/pact-remove-liquidity-proportional.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:compx:v1:deposit:asa",
+    protocol: "compx",
+    protocolVersion: "v1",
+    action: "deposit",
+    variant: "asa",
+    summary: "Deposit base ASA into a CompX lending market and receive LST",
+    docsPath: "protocol/docs/execution-shapes/compx-deposit-asa.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:compx:v1:withdraw:asa",
+    protocol: "compx",
+    protocolVersion: "v1",
+    action: "withdraw",
+    variant: "asa",
+    summary: "Withdraw base ASA from a CompX lending market by burning LST",
+    docsPath: "protocol/docs/execution-shapes/compx-withdraw-asa.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:compx:v1:stake:asa",
+    protocol: "compx",
+    protocolVersion: "v1",
+    action: "stake",
+    variant: "asa",
+    summary: "Stake ASA into a CompX staking pool",
+    docsPath: "protocol/docs/execution-shapes/compx-stake-asa.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:compx:v1:unstake:asa",
+    protocol: "compx",
+    protocolVersion: "v1",
+    action: "unstake",
+    variant: "asa",
+    summary: "Unstake ASA from a CompX staking pool",
+    docsPath: "protocol/docs/execution-shapes/compx-unstake-asa.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:compx:v1:claim:rewards",
+    protocol: "compx",
+    protocolVersion: "v1",
+    action: "claim",
+    variant: "rewards",
+    summary: "Claim accrued rewards from a CompX staking pool",
+    docsPath: "protocol/docs/execution-shapes/compx-claim-rewards.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:dorkfi:v1:deposit:asa",
+    protocol: "dorkfi",
+    protocolVersion: "v1",
+    action: "deposit",
+    variant: "asa",
+    summary: "Deposit ASA into a Dork.fi lending market via nt200 wrapping",
+    docsPath: "protocol/docs/execution-shapes/dorkfi-deposit-asa.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:dorkfi:v1:withdraw:asa",
+    protocol: "dorkfi",
+    protocolVersion: "v1",
+    action: "withdraw",
+    variant: "asa",
+    summary: "Withdraw ASA from a Dork.fi lending market by burning nToken",
+    docsPath: "protocol/docs/execution-shapes/dorkfi-withdraw-asa.md",
+    priceUsdc: "0.10"
   }
 ] as const;
 

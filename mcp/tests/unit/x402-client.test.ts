@@ -65,6 +65,15 @@ test("execution shapes catalog includes tinyman add and remove", () => {
   const keys = EXECUTION_SHAPES.map((shape) => shape.shapeKey);
   assert.ok(keys.includes("mainnet:tinyman:v2:addLiquidity:flexible"));
   assert.ok(keys.includes("mainnet:tinyman:v2:removeLiquidity:multipleAssetsOut"));
+  assert.ok(keys.includes("mainnet:pact:v1:addLiquidity:twoSided"));
+  assert.ok(keys.includes("mainnet:pact:v1:removeLiquidity:proportional"));
+  assert.ok(keys.includes("mainnet:compx:v1:deposit:asa"));
+  assert.ok(keys.includes("mainnet:compx:v1:withdraw:asa"));
+  assert.ok(keys.includes("mainnet:compx:v1:stake:asa"));
+  assert.ok(keys.includes("mainnet:compx:v1:unstake:asa"));
+  assert.ok(keys.includes("mainnet:compx:v1:claim:rewards"));
+  assert.ok(keys.includes("mainnet:dorkfi:v1:deposit:asa"));
+  assert.ok(keys.includes("mainnet:dorkfi:v1:withdraw:asa"));
 });
 
 test("X402Client fetchFree returns JSON on 200", async () => {

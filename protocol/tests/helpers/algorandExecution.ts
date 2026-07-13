@@ -1,4 +1,5 @@
 import algosdk, { Algodv2 } from "algosdk";
+import { PactClient } from "@pactfi/pactsdk";
 import { poolUtils } from "@tinymanorg/tinyman-js-sdk";
 
 export const USDC_ASSET_ID = 31566704;
@@ -15,6 +16,13 @@ export interface TinymanPoolContext {
   poolTokenId: number;
   asset1Id: number;
   asset2Id: number;
+}
+
+export interface PactPoolContext {
+  poolAppId: number;
+  poolTokenId: number;
+  primaryAssetId: number;
+  secondaryAssetId: number;
 }
 
 export interface SubmitTransactionGroupResult {
@@ -138,6 +146,76 @@ export async function computeBalancedAddAmounts(
     assetBId: ALGO_ASSET_ID,
     assetBAmount
   };
+}
+
+export async function resolvePactAlgoUsdcPool(algod: Algodv2): Promise<PactPoolContext> {
+  const pact = new PactClient(algod, { network: "mainnet" });
+  const pools = await pact.fetchPoolsByAssets(ALGO_ASSET_ID, USDC_ASSET_ID);
+  if (pools.length === 0) {
+    throw new Error("No Pact ALGO/USDC pool found on mainnet.");
+  }
+
+  const pool = pools[0];
+  return {
+    poolAppId: pool.appId,
+    poolTokenId: pool.liquidityAsset.index,
+    primaryAssetId: pool.primaryAsset.index,
+    secondaryAssetId: pool.secondaryAsset.index
+  };
+}
+
+export async function computeBalancedPactAddAmounts(
+  algod: Algodv2,
+  usdcMicroAmount: bigint
+): Promise<BalancedAddAmounts> {
+  const pact = new PactClient(algod, { network: "mainnet" });
+  const pools = await pact.fetchPoolsByAssets(ALGO_ASSET_ID, USDC_ASSET_ID);
+  if (pools.length === 0) {
+    throw new Error("No Pact ALGO/USDC pool found on mainnet.");
+  }
+
+  const pool = pools[0];
+  if (pool.state.totalSecondary <= 0) {
+    throw new Error("Pact pool secondary reserves must be positive.");
+  }
+
+  const secondaryAmount = usdcMicroAmount;
+  const primaryAmount = BigInt(
+    Math.round(
+      (Number(secondaryAmount) * pool.state.totalPrimary) / pool.state.totalSecondary
+    )
+  );
+  if (primaryAmount <= 0n) {
+    throw new Error("Computed ALGO deposit amount must be greater than zero.");
+  }
+
+  return {
+    assetAId: USDC_ASSET_ID,
+    assetAAmount: secondaryAmount,
+    assetBId: ALGO_ASSET_ID,
+    assetBAmount: primaryAmount
+  };
+}
+
+export async function getDorkFiArc200Balance(
+  algod: Algodv2,
+  contractAppId: number,
+  userAddress: string
+): Promise<bigint> {
+  const { abi, CONTRACT } = await import("ulujs");
+  const signer = { addr: userAddress, sk: new Uint8Array() };
+  const token = new CONTRACT(
+    contractAppId,
+    algod,
+    undefined,
+    abi.nt200,
+    signer,
+    true,
+    false,
+    true
+  );
+  const response = await token.arc200_balanceOf(userAddress);
+  return BigInt(response.returnValue);
 }
 
 export function signEncodedTransactionGroup(

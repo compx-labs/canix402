@@ -62,7 +62,7 @@ Coverage:
   - Pact
   - Folks Finance
 - Execution quote route coverage (`POST /execution/quotes`)
-- Transaction-shape registry and Tinyman add-liquidity / remove-liquidity shape fixtures
+- Transaction-shape registry and Tinyman / Pact / Folks / CompX / Dork.fi execution shape fixtures
 
 Files:
 
@@ -74,7 +74,10 @@ Files:
 - `tests/integration/folks-finance-escrow-shapes.test.ts`
 - `tests/integration/tinyman-remove-liquidity-shape.test.ts`
 - `tests/integration/tinyman-adapter.test.ts`
+- `tests/integration/pact-liquidity-shapes.test.ts`
 - `tests/integration/pact-adapter.test.ts`
+- `tests/integration/compx-execution-shapes.test.ts`
+- `tests/integration/dorkfi-execution-shapes.test.ts`
 - `tests/integration/folks-finance-adapter.test.ts`
 
 ### Gateway tests through Caddy (`protocol/tests/e2e`)
@@ -438,6 +441,44 @@ Wallet requirements:
 `test:live:execution` is an alias for `test:tinyman-production`. This suite is
 excluded from `test:ci` and incurs real mainnet + x402 costs.
 
+### Pact production liquidity tests
+
+Production on-chain tests live in [`tests/live/pact-production-test.test.ts`](../tests/live/pact-production-test.test.ts).
+They mirror the Tinyman production flow using the same ALGO/USDC pair and amounts:
+
+- **0.1 USDC (100,000 micro)** balanced deposit with proportional ALGO
+- **50 bps** add-liquidity slippage tolerance
+- Each `POST /execution/quotes` costs **0.1 USDC** x402
+
+| Scenario | Shape(s) | Notes |
+|---|---|---|
+| `add` | `mainnet:pact:v1:addLiquidity:twoSided` | Adds balanced ALGO/USDC liquidity |
+| `remove` | `mainnet:pact:v1:removeLiquidity:proportional` | Removes LP tokens proportionally |
+| `roundtrip` | add then remove | Removes LP minted by the add step |
+
+```sh
+X402_PACT_EXECUTION_LIVE=1 npm run test:pact-production -w protocol
+```
+
+Scenario selector (default: `roundtrip`):
+
+```sh
+X402_PACT_EXECUTION_LIVE=1 X402_PACT_EXECUTION_SCENARIO=add npm run test:pact-production -w protocol
+X402_PACT_EXECUTION_LIVE=1 X402_PACT_EXECUTION_SCENARIO=remove npm run test:pact-production -w protocol
+X402_PACT_EXECUTION_LIVE=1 X402_PACT_EXECUTION_SCENARIO=roundtrip npm run test:pact-production -w protocol
+```
+
+Optional configuration:
+
+```sh
+# Override LP amount burned on standalone remove
+X402_PACT_REMOVE_POOL_TOKEN_AMOUNT=50000
+```
+
+Wallet requirements match Tinyman production tests: USDC opted in, ALGO for fees,
+LP token opt-in before add, and enough USDC for x402 quote fees (~0.2 USDC on
+roundtrip). `test:pact-execution-live` is an alias for `test:pact-production`.
+
 ### Folks Finance production lending tests
 
 Opt-in suite that pays production x402 fees, builds execution quotes via
@@ -497,6 +538,104 @@ Wallet requirements:
 
 `test:folks-execution-live` and `test:live:folks-execution` are aliases for
 `test:folks-production`. Excluded from `test:ci`.
+
+### CompX production lending and staking tests
+
+Production on-chain tests live in
+[`tests/live/compx-production-test.test.ts`](../tests/live/compx-production-test.test.ts).
+
+Lending uses the active mainnet USDC ASA market by default (`marketAppId`
+3475099935) with **0.1 USDC (100,000 micro)** deposit and LST-denominated
+withdraw of exactly the minted LST.
+
+| Lending scenario | Shape(s) | Notes |
+|---|---|---|
+| `deposit` | `mainnet:compx:v1:deposit:asa` | Deposits 0.1 USDC base asset |
+| `withdraw` | `mainnet:compx:v1:withdraw:asa` | Burns wallet LST balance |
+| `roundtrip` | deposit then withdraw | Withdraws LST minted by deposit |
+
+```sh
+X402_COMPX_EXECUTION_LIVE=1 npm run test:compx-production -w protocol
+```
+
+Lending scenario selector (default: `roundtrip`):
+
+```sh
+X402_COMPX_EXECUTION_LIVE=1 X402_COMPX_LENDING_SCENARIO=deposit npm run test:compx-production -w protocol
+X402_COMPX_EXECUTION_LIVE=1 X402_COMPX_LENDING_SCENARIO=withdraw npm run test:compx-production -w protocol
+X402_COMPX_EXECUTION_LIVE=1 X402_COMPX_LENDING_SCENARIO=roundtrip npm run test:compx-production -w protocol
+```
+
+Staking tests require `X402_COMPX_STAKING_POOL_APP_ID` and a funded stake amount.
+Claim runs only when accrued rewards exist.
+
+```sh
+X402_COMPX_EXECUTION_LIVE=1 \
+X402_COMPX_STAKING_POOL_APP_ID=YOUR_POOL_APP_ID \
+X402_COMPX_STAKE_AMOUNT=100000 \
+X402_COMPX_STAKING_SCENARIO=roundtrip \
+npm run test:compx-production -w protocol
+```
+
+Optional configuration:
+
+```sh
+X402_COMPX_USDC_MARKET_APP_ID=3475099935
+```
+
+Integration fixtures for all five CompX shapes:
+`tests/integration/compx-execution-shapes.test.ts`.
+
+`test:compx-execution-live` is an alias for `test:compx-production`. Excluded
+from `test:ci`.
+
+### Dork.fi production lending tests
+
+Production on-chain tests live in
+[`tests/live/dorkfi-production-test.test.ts`](../tests/live/dorkfi-production-test.test.ts).
+
+Lending uses the active mainnet USDC ASA market by default (`poolAppId`
+3333688282, `marketAppId` 3210682240, `assetId` 31566704) with **0.1 USDC
+(100,000 micro)** deposit and nToken-denominated withdraw of exactly the minted
+nToken balance.
+
+| Scenario | Shape(s) | Notes |
+|---|---|---|
+| `deposit` | `mainnet:dorkfi:v1:deposit:asa` | Deposits 0.1 USDC base asset |
+| `withdraw` | `mainnet:dorkfi:v1:withdraw:asa` | Burns wallet nToken balance |
+| `roundtrip` | deposit then withdraw | Withdraws nToken minted by deposit |
+
+```sh
+X402_DORKFI_EXECUTION_LIVE=1 npm run test:dorkfi-production -w protocol
+```
+
+Scenario selector (default: `roundtrip`):
+
+```sh
+X402_DORKFI_EXECUTION_LIVE=1 X402_DORKFI_EXECUTION_SCENARIO=deposit npm run test:dorkfi-production -w protocol
+X402_DORKFI_EXECUTION_LIVE=1 X402_DORKFI_EXECUTION_SCENARIO=withdraw npm run test:dorkfi-production -w protocol
+X402_DORKFI_EXECUTION_LIVE=1 X402_DORKFI_EXECUTION_SCENARIO=roundtrip npm run test:dorkfi-production -w protocol
+```
+
+Optional configuration:
+
+```sh
+X402_DORKFI_USDC_POOL_APP_ID=3333688282
+X402_DORKFI_USDC_MARKET_APP_ID=3210682240
+X402_DORKFI_USDC_ASSET_ID=31566704
+```
+
+Wallet requirements:
+
+- USDC ASA opted in
+- ALGO for txn fees and optional nt200 box funding
+- Enough USDC for x402 quote fees (~0.2 USDC on roundtrip) plus 0.1 USDC deposit
+
+Integration fixtures for both Dork.fi shapes:
+`tests/integration/dorkfi-execution-shapes.test.ts`.
+
+`test:dorkfi-execution-live` is an alias for `test:dorkfi-production`. Excluded
+from `test:ci`.
 
 ## Troubleshooting
 
