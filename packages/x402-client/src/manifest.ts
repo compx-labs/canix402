@@ -13,6 +13,7 @@ export const MCP_TOOL_NAMES = [
   "canix_search_opportunities",
   "canix_get_personalized_opportunities",
   "canix_get_protocol_opportunities",
+  "canix_get_positions",
   "canix_get_execution_quote"
 ] as const;
 

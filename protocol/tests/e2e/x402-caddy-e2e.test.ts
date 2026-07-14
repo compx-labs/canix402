@@ -29,6 +29,62 @@ test("paid endpoint returns 402 and PAYMENT-REQUIRED without signature", async (
   }
 });
 
+test("positions endpoint advertises exactly 5000 micro-USDC", async () => {
+  const context = await setup();
+  try {
+    const response = await fetch(
+      `${context.baseUrl}/positions?address=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ`
+    );
+    assert.equal(response.status, 402);
+
+    const paymentRequired = response.headers.get("payment-required");
+    assert.ok(paymentRequired);
+    const decoded = decodePaymentRequired(paymentRequired);
+    assert.equal(
+      decoded.accepts[0]?.maxAmountRequired ?? decoded.accepts[0]?.amount,
+      "5000"
+    );
+    assert.equal(context.facilitator.calls.length, 0);
+  } finally {
+    await context.teardown();
+  }
+});
+
+test("positions endpoint verifies and settles a 5000 micro-USDC payment", async () => {
+  const context = await setup();
+  const path =
+    "/positions?address=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ";
+  try {
+    const preflight = await fetch(`${context.baseUrl}${path}`);
+    assert.equal(preflight.status, 402);
+    const paymentRequired = preflight.headers.get("payment-required");
+    assert.ok(paymentRequired);
+
+    const paid = await fetch(`${context.baseUrl}${path}`, {
+      headers: {
+        "PAYMENT-SIGNATURE": buildSignatureFromPaymentRequired(
+          paymentRequired,
+          "/positions"
+        )
+      }
+    });
+
+    assert.equal(paid.status, 200);
+    assert.deepEqual(
+      context.facilitator.calls.map(({ endpoint }) => endpoint),
+      ["/verify", "/settle"]
+    );
+    const verifyBody = context.facilitator.calls[0]?.body as Record<string, unknown>;
+    const requirements = verifyBody.paymentRequirements as Record<string, unknown>;
+    assert.equal(
+      requirements.maxAmountRequired ?? requirements.amount,
+      "5000"
+    );
+  } finally {
+    await context.teardown();
+  }
+});
+
 test("valid PAYMENT-SIGNATURE triggers verify then settle and returns 200", async () => {
   const context = await setup();
   try {
@@ -208,7 +264,10 @@ function readFixtures(): { valid: X402PaymentSignaturePayload } {
   };
 }
 
-function buildSignatureFromPaymentRequired(headerValue: string): string {
+function buildSignatureFromPaymentRequired(
+  headerValue: string,
+  resourcePath = "/opportunities"
+): string {
   const decoded = decodePaymentRequired(headerValue);
 
   const accepted = decoded.accepts[0] ?? {};
@@ -217,11 +276,11 @@ function buildSignatureFromPaymentRequired(headerValue: string): string {
     scheme: accepted.scheme ?? "exact",
     network: accepted.network ?? "algorand-mainnet",
     resource: {
-      url: "https://api.canix402.local/opportunities"
+      url: `https://api.canix402.local${resourcePath}`
     },
     accepted: {
       ...accepted,
-      amount: accepted.maxAmountRequired ?? "10000"
+      amount: accepted.maxAmountRequired ?? accepted.amount ?? "10000"
     },
     extensions: {},
     outputSchema: null,

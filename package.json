@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "dev:protocol": "npm run dev -w protocol",
+    "positions": "npm run positions -w protocol --",
     "build:protocol": "npm run build -w protocol",
     "typecheck:protocol": "npm run typecheck -w protocol",
     "build:caddy-x402": "npm run build:caddy-x402 -w protocol",

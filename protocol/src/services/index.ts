@@ -4,10 +4,41 @@ export interface ServiceHealth {
 }
 
 export {
+  AllPositionSourcesUnavailableError,
+  SUPPORTED_POSITION_PROTOCOLS,
+  fetchWalletPositions,
+  setPositionCollectorsForTests
+} from "./aggregate-positions.js";
+export {
+  collectCompXPositions,
+  collectDorkFiPositions,
+  collectFolksFinancePositions,
+  collectPactPositions,
+  collectTinymanPositions,
+  normalizeDorkFiHealthRecords
+} from "./protocol-positions.js";
+export type {
+  PositionCollector,
+  ProtocolPositionsCollection
+} from "./protocol-positions.js";
+export {
   fetchHeldAssetIds,
   setAccountAssetsDependenciesForTests,
   AccountAssetsError
 } from "./account-assets.js";
+export {
+  emptyWalletSnapshot,
+  fetchWalletSnapshot,
+  getHeldWalletAssetIds,
+  getWalletAssetBalance,
+  getWalletLocalAppIds,
+  WalletSnapshotError
+} from "./wallet-snapshot.js";
+export type {
+  WalletAppLocalState,
+  WalletAssetHolding,
+  WalletSnapshot
+} from "./wallet-snapshot.js";
 export {
   ALGO_ASSET_ID,
   ALGO_DECIMALS,

@@ -9,6 +9,8 @@ import {
   TinymanAdapterError
 } from "./adapters/index.js";
 import { AccountAssetsError } from "./services/account-assets.js";
+import { AllPositionSourcesUnavailableError } from "./services/aggregate-positions.js";
+import { WalletSnapshotError } from "./services/wallet-snapshot.js";
 import { ApiError } from "./types/index.js";
 import { registerRoutes } from "./routes/index.js";
 
@@ -35,6 +37,8 @@ export function buildApp() {
           || error instanceof CompXAdapterError
           || error instanceof DorkFiAdapterError
           || error instanceof AccountAssetsError
+          || error instanceof WalletSnapshotError
+          || error instanceof AllPositionSourcesUnavailableError
         ? {
             error: {
               code: "INTERNAL_ERROR",
@@ -57,6 +61,8 @@ export function buildApp() {
           || error instanceof CompXAdapterError
           || error instanceof DorkFiAdapterError
           || error instanceof AccountAssetsError
+          || error instanceof WalletSnapshotError
+          || error instanceof AllPositionSourcesUnavailableError
           ? 502
           : 500;
 

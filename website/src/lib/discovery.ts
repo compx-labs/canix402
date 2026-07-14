@@ -1,5 +1,9 @@
 import snapshot from "../data/discovery.snapshot.json";
-import { defaultPaidPriceUsdc, personalizedPriceUsdc } from "./config";
+import {
+  defaultPaidPriceUsdc,
+  personalizedPriceUsdc,
+  positionsPriceUsdc
+} from "./config";
 
 export interface DiscoveryEndpoint {
   id: string;
@@ -67,6 +71,10 @@ function isPersonalizedEndpoint(endpoint: DiscoveryEndpoint): boolean {
   );
 }
 
+function isPositionsEndpoint(endpoint: DiscoveryEndpoint): boolean {
+  return endpoint.id === "positions" || endpoint.path === "/positions";
+}
+
 export function formatEndpointPrice(endpoint: DiscoveryEndpoint): string {
   if (endpoint.access !== "paid") {
     return "Free";
@@ -84,6 +92,10 @@ export function formatEndpointPrice(endpoint: DiscoveryEndpoint): string {
 
   if (isPersonalizedEndpoint(endpoint)) {
     return `${personalizedPriceUsdc} USDC`;
+  }
+
+  if (isPositionsEndpoint(endpoint)) {
+    return `${positionsPriceUsdc} USDC`;
   }
 
   return `${defaultPaidPriceUsdc} USDC`;

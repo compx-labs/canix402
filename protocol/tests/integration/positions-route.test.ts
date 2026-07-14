@@ -1,0 +1,277 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+
+import { buildApp } from "../../src/app.js";
+import {
+  fetchWalletPositions,
+  setPositionCollectorsForTests
+} from "../../src/services/aggregate-positions.js";
+import { normalizeDorkFiHealthRecords } from "../../src/services/protocol-positions.js";
+import type { PositionRecordV1 } from "../../src/types/position.js";
+
+const VALID_ADDRESS =
+  "RS7TLLQRXKBAQDAVTSZC2ZLMVMLNSCL3FOUOESJJZ5XSKFFL56UI6X33CI";
+
+test.afterEach(() => {
+  setPositionCollectorsForTests(undefined);
+});
+
+test("aggregate returns every protocol status and preserves safe amounts", async () => {
+  const position: PositionRecordV1 = {
+    protocol: "tinyman",
+    positionType: "lp",
+    positionId: "tinyman:lp:99",
+    opportunityId: "pool:lp",
+    assetId: 99,
+    assetSymbol: "ALGO/USDC LP",
+    amountRaw: "900719925474099312345",
+    amount: "900719925474099.312345",
+    usdValue: 42.5
+  };
+  setPositionCollectorsForTests({
+    tinyman: async () => ({ positions: [position], warnings: [] }),
+    pact: async () => ({ positions: [], warnings: ["one pool failed"] }),
+    "folks-finance": async () => {
+      throw new Error("indexer offline");
+    },
+    compx: async () => ({ positions: [], warnings: [] }),
+    dorkfi: async () => ({ positions: [], warnings: [] })
+  });
+
+  const response = await fetchWalletPositions(VALID_ADDRESS);
+
+  assert.equal(response.data[0]?.amountRaw, "900719925474099312345");
+  assert.deepEqual(response.totals, {
+    suppliedUsd: null,
+    borrowedUsd: null,
+    rewardsUsd: null,
+    netUsd: null
+  });
+  assert.deepEqual(
+    response.protocols.map(({ protocol, status }) => ({ protocol, status })),
+    [
+      { protocol: "tinyman", status: "ok" },
+      { protocol: "pact", status: "partial" },
+      { protocol: "folks-finance", status: "unavailable" },
+      { protocol: "compx", status: "ok" },
+      { protocol: "dorkfi", status: "ok" }
+    ]
+  );
+});
+
+test("aggregate runs protocol collectors in sequence", async () => {
+  const order: string[] = [];
+  const collector = (protocol: string) => async () => {
+    order.push(`${protocol}:start`);
+    await new Promise((resolve) => setTimeout(resolve, 2));
+    order.push(`${protocol}:end`);
+    return { positions: [], warnings: [] };
+  };
+  setPositionCollectorsForTests({
+    tinyman: collector("tinyman"),
+    pact: collector("pact"),
+    "folks-finance": collector("folks-finance"),
+    compx: collector("compx"),
+    dorkfi: collector("dorkfi")
+  });
+
+  await fetchWalletPositions(VALID_ADDRESS);
+
+  assert.deepEqual(order, [
+    "tinyman:start",
+    "tinyman:end",
+    "pact:start",
+    "pact:end",
+    "folks-finance:start",
+    "folks-finance:end",
+    "compx:start",
+    "compx:end",
+    "dorkfi:start",
+    "dorkfi:end"
+  ]);
+});
+
+test("GET /positions returns 200 for a valid empty wallet", async () => {
+  setAllCollectors(async () => ({ positions: [], warnings: [] }));
+  const app = buildApp();
+  await app.ready();
+
+  try {
+    const response = await app.inject({
+      method: "GET",
+      url: `/positions?address=${VALID_ADDRESS}`
+    });
+    assert.equal(response.statusCode, 200);
+    const body = response.json() as {
+      data: unknown[];
+      protocols: Array<{ status: string }>;
+      totals: {
+        suppliedUsd: number;
+        borrowedUsd: number;
+        rewardsUsd: number;
+        netUsd: number;
+      };
+      meta: { address: string };
+    };
+    assert.deepEqual(body.data, []);
+    assert.equal(body.protocols.length, 5);
+    assert.ok(body.protocols.every(({ status }) => status === "ok"));
+    assert.deepEqual(body.totals, {
+      suppliedUsd: 0,
+      borrowedUsd: 0,
+      rewardsUsd: 0,
+      netUsd: 0
+    });
+    assert.equal(body.meta.address, VALID_ADDRESS);
+  } finally {
+    await app.close();
+  }
+});
+
+test("aggregate calculates complete supplied, borrowed, reward, and net totals", async () => {
+  const position = (
+    positionType: PositionRecordV1["positionType"],
+    usdValue: number
+  ): PositionRecordV1 => ({
+    protocol: "tinyman",
+    positionType,
+    positionId: `${positionType}:1`,
+    opportunityId: null,
+    assetId: 1,
+    assetSymbol: "TEST",
+    amountRaw: "1",
+    amount: "1",
+    usdValue
+  });
+  const emptyCollector = async () => ({
+    positions: [],
+    warnings: [],
+    coverage: {
+      suppliedUsdComplete: true,
+      borrowedUsdComplete: true,
+      rewardsUsdComplete: true
+    }
+  });
+  setPositionCollectorsForTests({
+    tinyman: async () => ({
+      positions: [
+        position("supplied", 100),
+        position("lp", 50),
+        position("staked", 25),
+        position("debt", 40),
+        position("reward", 5)
+      ],
+      warnings: [],
+      coverage: {
+        suppliedUsdComplete: true,
+        borrowedUsdComplete: true,
+        rewardsUsdComplete: true
+      }
+    }),
+    pact: emptyCollector,
+    "folks-finance": emptyCollector,
+    compx: emptyCollector,
+    dorkfi: emptyCollector
+  });
+
+  const response = await fetchWalletPositions(VALID_ADDRESS);
+  assert.deepEqual(response.totals, {
+    suppliedUsd: 175,
+    borrowedUsd: 40,
+    rewardsUsd: 5,
+    netUsd: 140
+  });
+});
+
+test("Dork.fi indexed health records normalize supplied debt and health", () => {
+  const result = normalizeDorkFiHealthRecords([
+    {
+      network: "algorand-mainnet",
+      appId: "3333688282",
+      totalCollateralValue: "12500000000000",
+      totalBorrowValue: "3000000000000",
+      healthFactor: "4.1667",
+      lastUpdated: 1_783_944_000_000
+    }
+  ]);
+
+  assert.equal(result.positions.length, 2);
+  assert.deepEqual(
+    result.positions.map((position) => ({
+      type: position.positionType,
+      usdValue: position.usdValue,
+      healthFactor: position.healthFactor,
+      sourceTimestamp: position.sourceTimestamp
+    })),
+    [
+      {
+        type: "supplied",
+        usdValue: 12.5,
+        healthFactor: 4.1667,
+        sourceTimestamp: "2026-07-13T12:00:00.000Z"
+      },
+      {
+        type: "debt",
+        usdValue: 3,
+        healthFactor: 4.1667,
+        sourceTimestamp: "2026-07-13T12:00:00.000Z"
+      }
+    ]
+  );
+  assert.deepEqual(result.warnings, []);
+});
+
+test("GET /positions returns 502 only when every source is unavailable", async () => {
+  setAllCollectors(async () => {
+    throw new Error("offline");
+  });
+  const app = buildApp();
+  await app.ready();
+
+  try {
+    const response = await app.inject({
+      method: "GET",
+      url: `/positions?address=${VALID_ADDRESS}`
+    });
+    assert.equal(response.statusCode, 502);
+    assert.equal(response.json().error.code, "INTERNAL_ERROR");
+  } finally {
+    await app.close();
+  }
+});
+
+test("GET /positions rejects invalid Algorand addresses", async () => {
+  const app = buildApp();
+  await app.ready();
+
+  try {
+    const response = await app.inject({
+      method: "GET",
+      url: "/positions?address=invalid"
+    });
+    assert.equal(response.statusCode, 400);
+    assert.equal(response.json().error.code, "VALIDATION_ERROR");
+  } finally {
+    await app.close();
+  }
+});
+
+function setAllCollectors(
+  collector: () => Promise<{
+    positions: PositionRecordV1[];
+    warnings: string[];
+    coverage?: {
+      suppliedUsdComplete: boolean;
+      borrowedUsdComplete: boolean;
+      rewardsUsdComplete: boolean;
+    };
+  }>
+): void {
+  setPositionCollectorsForTests({
+    tinyman: collector,
+    pact: collector,
+    "folks-finance": collector,
+    compx: collector,
+    dorkfi: collector
+  });
+}

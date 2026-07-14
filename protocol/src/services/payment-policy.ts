@@ -134,6 +134,18 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     priceUsdc: process.env.X402_PRICE_PERSONALIZED_USDC ?? "0.05"
   },
   {
+    id: "positions",
+    method: "GET",
+    pathPattern: "/positions",
+    access: "paid",
+    summary: "Algorand DeFi positions held by a wallet",
+    description:
+      "Returns normalized DeFi positions associated with a supplied Algorand wallet address across supported protocols. Use when an agent needs a wallet-level view of deposited, supplied, staked, or liquidity positions and their current values. This endpoint provides position data only; it does not build or submit transactions.",
+    tags: ["defi", "positions", "wallet"],
+    queryParams: ["address"],
+    priceUsdc: process.env.X402_PRICE_POSITIONS_USDC ?? "0.005"
+  },
+  {
     id: "executionQuote",
     method: "POST",
     pathPattern: "/execution/quotes",
@@ -203,6 +215,7 @@ const paidPathMatchers = [
   /^\/opportunities$/,
   /^\/opportunities\/search$/,
   /^\/opportunities\/personalized$/,
+  /^\/positions$/,
   /^\/protocols\/[^/]+\/opportunities$/,
   /^\/execution\/quotes$/
 ];

@@ -52,6 +52,7 @@ export async function resolveCompXLendingMarketState(params: {
   algod: Algodv2;
   marketAppId: number;
   userAddress: string;
+  userAssetHoldings?: ReadonlyMap<number, bigint>;
 }): Promise<CompXLendingMarketState> {
   const dependencies = resolveDependencies();
   const { network, algod, marketAppId, userAddress } = params;
@@ -96,12 +97,38 @@ export async function resolveCompXLendingMarketState(params: {
     });
   }
 
-  const [userBaseBalance, userLstBalance, userOptedIntoBase, userOptedIntoLst] = await Promise.all([
-    dependencies.getAccountAssetBalance(algod, userAddress, market.baseTokenId),
-    dependencies.getAccountAssetBalance(algod, userAddress, market.lstTokenId),
-    dependencies.isAssetOptedIn(algod, userAddress, market.baseTokenId),
-    dependencies.isAssetOptedIn(algod, userAddress, market.lstTokenId)
-  ]);
+  const [userBaseBalance, userLstBalance, userOptedIntoBase, userOptedIntoLst] =
+    params.userAssetHoldings === undefined
+      ? await Promise.all([
+          dependencies.getAccountAssetBalance(
+            algod,
+            userAddress,
+            market.baseTokenId
+          ),
+          dependencies.getAccountAssetBalance(
+            algod,
+            userAddress,
+            market.lstTokenId
+          ),
+          dependencies.isAssetOptedIn(
+            algod,
+            userAddress,
+            market.baseTokenId
+          ),
+          dependencies.isAssetOptedIn(
+            algod,
+            userAddress,
+            market.lstTokenId
+          )
+        ])
+      : [
+          params.userAssetHoldings.get(market.baseTokenId) ?? 0n,
+          params.userAssetHoldings.get(market.lstTokenId) ?? 0n,
+          market.baseTokenId === 0 ||
+            params.userAssetHoldings.has(market.baseTokenId),
+          market.lstTokenId === 0 ||
+            params.userAssetHoldings.has(market.lstTokenId)
+        ];
 
   return {
     network,

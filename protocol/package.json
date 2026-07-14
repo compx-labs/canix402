@@ -12,6 +12,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node --env-file-if-exists=.env dist/index.js",
     "cli:opportunities": "tsx --env-file-if-exists=.env src/cli/opportunities.ts",
+    "positions": "tsx --env-file-if-exists=.env src/cli/positions.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "tsx --test tests/integration/*.test.ts",
     "test:api": "tsx --test tests/integration/*.test.ts",

@@ -74,6 +74,9 @@ One pool can emit multiple opportunities:
 - No retry loop is implemented in this phase.
 - No persistent cache is used yet (planned for future phases).
 - Aggregate `/opportunities` requests degrade gracefully if one upstream fails.
+- Wallet positions keep the pools/farms metadata catalog in a short-lived
+  process cache. Held LP asset ids and wallet-local farm app ids are intersected
+  with that metadata first; only matching farms are read from chain, sequentially.
 
 ## Known Caveats
 

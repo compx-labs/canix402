@@ -26,6 +26,7 @@ test("loadConfig accepts CANIX402 and X402 base URL aliases", () => {
 });
 
 test("microUsdcToUsdc converts integer micro amounts", () => {
+  assert.equal(microUsdcToUsdc("5000"), "0.005");
   assert.equal(microUsdcToUsdc("10000"), "0.01");
   assert.equal(microUsdcToUsdc("100000"), "0.1");
   assert.equal(microUsdcToUsdc("0.05"), "0.05");

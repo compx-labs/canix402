@@ -1,10 +1,11 @@
 import algosdk, { Algodv2 } from "algosdk";
 
+import { mapWithThrottle, retryRateLimited } from "./request-throttle.js";
+
 export const ALGO_ASSET_ID = 0;
 export const ALGO_DECIMALS = 6;
 
 const MAX_ASA_DECIMALS = 19;
-const MAX_LOOKUP_CONCURRENCY = 8;
 
 interface AssetInformationResponse {
   params?: {
@@ -67,13 +68,23 @@ export async function resolveAssetDecimals(
 
   const client = algodClient ?? dependencies.createAlgodClient();
 
-  await mapWithConcurrency(pending, MAX_LOOKUP_CONCURRENCY, async (assetId) => {
-    const decimals = await lookupAssetDecimals(dependencies, client, assetId);
-    if (decimals !== undefined) {
-      decimalsCache.set(assetId, decimals);
-      decimalsByAssetId.set(assetId, decimals);
+  await mapWithThrottle(
+    pending,
+    {
+      concurrency: readNonNegativeInteger(
+        process.env.ALGOD_LOOKUP_CONCURRENCY,
+        1
+      ),
+      delayMs: readNonNegativeInteger(process.env.ALGOD_LOOKUP_DELAY_MS, 150)
+    },
+    async (assetId) => {
+      const decimals = await lookupAssetDecimals(dependencies, client, assetId);
+      if (decimals !== undefined) {
+        decimalsCache.set(assetId, decimals);
+        decimalsByAssetId.set(assetId, decimals);
+      }
     }
-  });
+  );
 
   return decimalsByAssetId;
 }
@@ -110,7 +121,20 @@ async function lookupAssetDecimals(
   assetId: number
 ): Promise<number | undefined> {
   try {
-    const info = await dependencies.getAssetById(client, assetId);
+    const info = await retryRateLimited(
+      () => dependencies.getAssetById(client, assetId),
+      {
+        maxRetries: readNonNegativeInteger(
+          process.env.ALGOD_429_MAX_RETRIES,
+          2
+        ),
+        baseDelayMs: readNonNegativeInteger(
+          process.env.ALGOD_429_RETRY_BASE_MS,
+          250
+        ),
+        getStatus: extractHttpStatus
+      }
+    );
     const decimals = normalizeDecimals(info.params?.decimals);
     if (decimals === undefined) {
       dependencies.logWarning(
@@ -165,23 +189,12 @@ function extractHttpStatus(error: unknown): number | undefined {
   return undefined;
 }
 
-async function mapWithConcurrency<T>(
-  items: readonly T[],
-  limit: number,
-  worker: (item: T) => Promise<void>
-): Promise<void> {
-  const queue = [...items];
-  const runners = Array.from({ length: Math.min(limit, queue.length) }, async () => {
-    while (queue.length > 0) {
-      const item = queue.shift();
-      if (item === undefined) {
-        return;
-      }
-      await worker(item);
-    }
-  });
-
-  await Promise.all(runners);
+function readNonNegativeInteger(
+  value: string | undefined,
+  fallback: number
+): number {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
 }
 
 function trimTrailingSlash(value: string): string {

@@ -43,6 +43,7 @@ export const supportedProtocols = [
 
 export const defaultPaidPriceUsdc = "0.01";
 export const personalizedPriceUsdc = "0.05";
+export const positionsPriceUsdc = "0.005";
 
 /** Canonical MCP tool names — aligned with API discovery metadata. */
 export const mcpToolNames = [
@@ -55,5 +56,6 @@ export const mcpToolNames = [
   "canix_search_opportunities",
   "canix_get_personalized_opportunities",
   "canix_get_protocol_opportunities",
+  "canix_get_positions",
   "canix_get_execution_quote"
 ] as const;

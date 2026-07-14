@@ -1,7 +1,7 @@
 {
   "data": {
     "service": "canix402",
-    "apiVersion": "1.0.0",
+    "apiVersion": "0.1.0",
     "discoveryVersion": "1.0.0",
     "capabilities": [
       "algorand-defi-opportunities",
@@ -319,6 +319,83 @@
             "maxAmountRequired": "0.05"
           }
         }
+      },
+      {
+        "id": "positions",
+        "method": "GET",
+        "path": "/positions",
+        "access": "paid",
+        "summary": "Algorand DeFi positions held by a wallet",
+        "description": "Returns normalized DeFi positions associated with a supplied Algorand wallet address across supported protocols. Use when an agent needs a wallet-level view of deposited, supplied, staked, or liquidity positions and their current values. This endpoint provides position data only; it does not build or submit transactions.",
+        "tags": [
+          "defi",
+          "positions",
+          "wallet"
+        ],
+        "pathParams": [],
+        "queryParams": [
+          "address"
+        ],
+        "responseCodes": [
+          200,
+          400,
+          402,
+          500,
+          502
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet",
+            "asset": "31566704",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.005"
+          }
+        }
+      },
+      {
+        "id": "executionQuote",
+        "method": "POST",
+        "path": "/execution/quotes",
+        "access": "paid",
+        "summary": "Compile a verified transaction shape into unsigned Algorand transactions",
+        "description": "Returns a fresh, validated, unsigned transaction group for a supported execution shape. Use when an agent has selected a DeFi action and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Pact v1 LP add/remove shapes, CompX v1 lending/staking shapes, and Dork.fi v1 ASA lending deposit/withdraw shapes. Canix does not sign or submit transactions in this endpoint.",
+        "tags": [
+          "execution",
+          "transactions",
+          "x402",
+          "agents"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          402,
+          500
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet",
+            "asset": "31566704",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.1"
+          }
+        }
       }
     ],
     "errorCatalog": [
@@ -351,9 +428,7 @@
     "mcpServer": {
       "name": "canix402",
       "transport": "streamable-http",
-      "url": "https://canix402-mcp.compx.io/mcp",
-      "install": "Connect your MCP client to the remote canix402 endpoint at /mcp (walletless pass-through).",
-      "docsUrl": "https://canix402.compx.io/mcp",
+      "docsUrl": "https://canix402.compx.io/x402#mcp",
       "tools": [
         "canix_health",
         "canix_get_metadata",
@@ -364,8 +439,11 @@
         "canix_search_opportunities",
         "canix_get_personalized_opportunities",
         "canix_get_protocol_opportunities",
+        "canix_get_positions",
         "canix_get_execution_quote"
-      ]
+      ],
+      "url": "https://mcp.canix402.com/mcp",
+      "install": "Connect your MCP client to the remote canix402 endpoint at /mcp (walletless pass-through)."
     }
   }
 }

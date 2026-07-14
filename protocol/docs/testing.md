@@ -344,20 +344,22 @@ npm run test:production-smoke -w protocol
 Coverage on every production test run:
 
 - **Free (expect 200):** `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/favicon.ico`, `/favicon.png`, `/.well-known/x402`, `/.well-known/x402.json`
-- **Paid preflight (expect 402 + `PAYMENT-REQUIRED`):** `/opportunities`, `/opportunities/search`, `/opportunities/personalized`, `/protocols/tinyman/opportunities`
+- **Paid preflight (expect 402 + `PAYMENT-REQUIRED`):** `/opportunities`, `/opportunities/search`, `/opportunities/personalized`, `/positions?address=...`, `/protocols/tinyman/opportunities`, `/execution/quotes`
 
 Behavior:
 
 - Without `X402_PRODUCTION_PAID_TEST=1`, the paid settlement test is skipped.
 - Free and paid preflight tests always run against production.
-- With opt-in, the suite signs and retries against all four paid routes sequentially.
+- With opt-in, the suite signs and retries against all paid routes sequentially.
 - Personalized preflight/settlement uses `X402_PRODUCTION_PERSONALIZED_ADDRESS`, falling back to the configured pay-to address.
+- Positions uses the same production address and must advertise exactly `5000`
+  micro-USDC (`0.005 USDC`) in `PAYMENT-REQUIRED`.
 
 Wallet requirements for paid settlement:
 
 - ALGO balance for transaction fees
 - USDC ASA opt-in
-- enough USDC for all paid routes in one run (~0.08 USDC: 3×0.01 + 1×0.05)
+- enough USDC for all paid routes in one run, based on current discovery prices
 - never commit `X402_CLIENT_MNEMONIC` to the repository
 
 This suite is not part of `test`, `test:ci`, or default GitHub Actions. The daily
