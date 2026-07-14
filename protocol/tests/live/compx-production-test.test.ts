@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import algosdk from "algosdk";
-import { CompXSDK } from "@compx/sdk";
+import { CompXSDK, DEFAULT_APP_CALL_MAX_FEE, buildDepositTransactions } from "@compx/sdk";
 
 import {
   USDC_ASSET_ID,
@@ -19,6 +19,7 @@ import {
   loadLiveEnvFiles,
   requireClientMnemonic
 } from "../helpers/x402LiveClient.js";
+import { createCompXBuilderAlgodClient } from "../../src/execution/shapes/compx/shared.js";
 
 loadLiveEnvFiles();
 
@@ -131,6 +132,53 @@ function resolveStakeAmount(): bigint {
   return amount;
 }
 
+test("CompX SDK production smoke reads markets and builds deposit group", async (t) => {
+  if (skipUnlessLive(t)) return;
+
+  const env = getLiveEnv();
+  const clientMnemonic = requireClientMnemonic("npm run test:compx-production");
+  const account = accountFromMnemonic(clientMnemonic);
+  const algod = createAlgodClientFromEnv();
+  const userAddress = account.addr.toString();
+  const sdk = new CompXSDK({ algodClient: algod, network: "mainnet" });
+
+  const market = await sdk.lending.getMarket(USDC_MARKET_APP_ID);
+  assert.ok(market, `CompX USDC lending market ${USDC_MARKET_APP_ID} was not found.`);
+  assert.equal(market.appId, USDC_MARKET_APP_ID);
+  assert.equal(market.baseTokenId, USDC_ASSET_ID);
+  assert.equal(market.contractState, 1);
+
+  const markets = await sdk.lending.getAllMarkets();
+  assert.ok(markets.length > 0, "Expected CompX SDK to return at least one lending market.");
+  assert.equal(
+    markets.some((candidate) => candidate.appId === USDC_MARKET_APP_ID),
+    true
+  );
+
+  const pools = await sdk.staking.getAllPools();
+  assert.ok(Array.isArray(pools), "Expected CompX SDK staking pools response to be an array.");
+
+  const builderAlgod = createCompXBuilderAlgodClient();
+  const bundle = await buildDepositTransactions(builderAlgod, {
+    appId: market.appId,
+    sender: userAddress,
+    amount: DEPOSIT_USDC_MICRO_AMOUNT,
+    appCallMaxFee: DEFAULT_APP_CALL_MAX_FEE
+  });
+
+  console.log("CompX SDK smoke... algodUrl:", env.algodUrl);
+  console.log("CompX SDK smoke... marketCount:", markets.length);
+  console.log("CompX SDK smoke... stakingPoolCount:", pools.length);
+  console.log("CompX SDK smoke... buildDepositTransactions txnCount:", bundle.transactions.length);
+  console.log("CompX SDK smoke... buildDepositTransactions metadata:", bundle.metadata);
+
+  assert.ok(bundle.transactions.length > 0);
+  assert.equal(bundle.metadata.appId, USDC_MARKET_APP_ID);
+  assert.equal(bundle.metadata.sender, userAddress);
+  assert.equal(bundle.metadata.baseTokenId, USDC_ASSET_ID);
+  assert.equal(bundle.metadata.lstTokenId, market.lstTokenId);
+});
+
 async function runLendingDeposit(): Promise<{ marketAppId: number; lstMinted: bigint }> {
   const env = getLiveEnv();
   const baseUrl = getProductionBaseUrl();
@@ -144,6 +192,12 @@ async function runLendingDeposit(): Promise<{ marketAppId: number; lstMinted: bi
 
   const lstBefore = await getAssetBalance(algod, userAddress, lstTokenId);
 
+  console.log("Running lending deposit... userAddress:", userAddress);
+  console.log("Running lending deposit... marketAppId:", marketAppId);
+  console.log("Running lending deposit... amount:", DEPOSIT_USDC_MICRO_AMOUNT);
+  console.log("Running lending deposit... algodUrl:", env.algodUrl);
+  console.log("Running lending deposit... baseUrl:", baseUrl);
+  console.log("Running lending deposit... shapeKey:", DEPOSIT_SHAPE);
   const quoteResponse = await fetchPaidExecutionQuote({
     baseUrl,
     shapeKey: DEPOSIT_SHAPE,

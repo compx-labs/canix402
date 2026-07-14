@@ -26,6 +26,7 @@ import {
   COMPX_LENDING_APP_CALL_MIN_FEE,
   DEFAULT_COMPX_APP_CALL_MAX_FEE,
   assertGroupedTransactions,
+  createCompXBuilderAlgodClient,
   getSuggestedParams,
   readAppCallSelectorHex,
   rejectUnexpectedSignerMetadata,
@@ -137,7 +138,11 @@ export const compxDepositAsaShape: TransactionShapeSpec<
 
     let bundle: LendingTransactionBundle;
     try {
-      bundle = (await dependencies.buildDepositTransactions(context.algod, {
+      console.log("Building deposit transactions... marketAppId:", input.marketAppId);
+      console.log("Building deposit transactions... sender:", input.userAddress);
+      console.log("Building deposit transactions... amount:", input.amount);
+      console.log("Building deposit transactions... appCallMaxFee:", DEFAULT_COMPX_APP_CALL_MAX_FEE);
+      bundle = (await dependencies.buildDepositTransactions(createCompXBuilderAlgodClient(), {
         appId: input.marketAppId,
         sender: input.userAddress,
         amount: input.amount,

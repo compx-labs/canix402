@@ -1123,6 +1123,61 @@ test("POST /execution/quotes compiles CompX lending deposit shape", async () => 
   await app.close();
 });
 
+test("POST /execution/quotes includes underlying shape build error cause", async () => {
+  setCompXDepositAsaDependenciesForTests({
+    resolveMarketState: async () => compxMarketState(),
+    buildDepositTransactions: async () => {
+      const sdkError = new Error("CompX SDK raw failure") as Error & {
+        code: string;
+        context: { amount: bigint };
+      };
+      sdkError.code = "COMPX_SDK_FAILURE";
+      sdkError.context = { amount: 100_000n };
+      throw sdkError;
+    }
+  });
+
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: compxDepositAsaShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        marketAppId: COMPX_MARKET_APP_ID,
+        amount: "100000"
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 500);
+  const body = response.json() as {
+    error: {
+      code: string;
+      message: string;
+      details?: {
+        cause?: {
+          name?: string;
+          message?: string;
+          code?: string;
+          properties?: { context?: { amount?: string } };
+        };
+      };
+    };
+  };
+  assert.equal(body.error.code, "INTERNAL_ERROR");
+  assert.equal(body.error.message, "Failed to generate CompX lending deposit transactions.");
+  assert.equal(body.error.details?.cause?.name, "Error");
+  assert.equal(body.error.details?.cause?.message, "CompX SDK raw failure");
+  assert.equal(body.error.details?.cause?.code, "COMPX_SDK_FAILURE");
+  assert.equal(body.error.details?.cause?.properties?.context?.amount, "100000");
+
+  await app.close();
+});
+
 test("POST /execution/quotes compiles CompX staking stake shape", async () => {
   installCompXStakeMocks();
   const app = buildApp();
