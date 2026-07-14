@@ -1,4 +1,4 @@
-import algosdk, { Algodv2, SuggestedParams, Transaction } from "algosdk";
+import { Algodv2, SuggestedParams, Transaction } from "algosdk";
 import { prepareWithdrawFromDepositEscrowInDeposits } from "@folks-finance/algorand-sdk";
 
 import { InvalidShapeInputError, ShapeBuildError } from "../../errors.js";
@@ -24,6 +24,7 @@ import {
   FolksPoolState,
   MainnetDepositsAppId,
   MainnetPoolManagerAppId,
+  createFolksBuilderAlgodClient,
   getSuggestedParams,
   resolveFolksEscrowContext,
   resolveFolksPoolState
@@ -183,7 +184,7 @@ export const folksFinanceWithdrawEscrowShape: TransactionShapeSpec<
 
     let params: SuggestedParams;
     try {
-      params = await dependencies.getSuggestedParams(context.algod);
+      params = await dependencies.getSuggestedParams(createFolksBuilderAlgodClient());
     } catch (error) {
       throw new ShapeBuildError("Failed to fetch suggested params for Folks escrow withdraw.", {
         cause: error

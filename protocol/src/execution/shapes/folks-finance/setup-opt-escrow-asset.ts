@@ -1,4 +1,4 @@
-import algosdk, { Algodv2, SuggestedParams, Transaction } from "algosdk";
+import { Algodv2, SuggestedParams, Transaction } from "algosdk";
 import { prepareOptDepositEscrowIntoAssetInDeposits } from "@folks-finance/algorand-sdk";
 
 import { InvalidShapeInputError, ShapeBuildError } from "../../errors.js";
@@ -21,6 +21,8 @@ import {
   FolksPoolState,
   MainnetDepositsAppId,
   MainnetPoolManagerAppId,
+  createFolksBuilderAlgodClient,
+  getFolksBuilderAlgodSdk,
   getSuggestedParams,
   isAccountOptedIntoAsset,
   resolveFolksPoolState
@@ -151,7 +153,7 @@ export const folksFinanceSetupOptEscrowAssetShape: TransactionShapeSpec<
 
     let params: SuggestedParams;
     try {
-      params = await dependencies.getSuggestedParams(context.algod);
+      params = await dependencies.getSuggestedParams(createFolksBuilderAlgodClient());
     } catch (error) {
       throw new ShapeBuildError("Failed to fetch suggested params for Folks escrow opt-in.", {
         cause: error
@@ -174,7 +176,8 @@ export const folksFinanceSetupOptEscrowAssetShape: TransactionShapeSpec<
       });
     }
 
-    const fundEscrowTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+    const builderAlgosdk = getFolksBuilderAlgodSdk();
+    const fundEscrowTxn = builderAlgosdk.makePaymentTxnWithSuggestedParamsFromObject({
       sender: input.userAddress,
       receiver: input.escrowAddress,
       amount: ASSET_OPT_IN_MIN_BALANCE,
@@ -184,8 +187,9 @@ export const folksFinanceSetupOptEscrowAssetShape: TransactionShapeSpec<
         fee: 1000
       }
     });
-    const transactions = normalizeTransactions([fundEscrowTxn, optTxn]);
-    algosdk.assignGroupID(transactions);
+    const groupTxns = [fundEscrowTxn as unknown as Transaction, optTxn];
+    builderAlgosdk.assignGroupID(groupTxns);
+    const transactions = normalizeTransactions(groupTxns);
     warnings.push(
       "The group funds the recoverable 0.1 ALGO minimum balance required by the fAsset opt-in."
     );
