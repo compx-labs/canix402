@@ -1,7 +1,7 @@
 {
   "data": {
     "service": "canix402",
-    "apiVersion": "0.1.0",
+    "apiVersion": "1.0.0",
     "discoveryVersion": "1.0.0",
     "capabilities": [
       "algorand-defi-opportunities",
@@ -10,6 +10,7 @@
       "agent-discovery",
       "openapi",
       "execution-quotes",
+      "haystack-swaps",
       "mcp-server"
     ],
     "x402ProtocolVersion": 2,
@@ -152,6 +153,50 @@
         ]
       },
       {
+        "id": "haystackSwapQuote",
+        "method": "POST",
+        "path": "/swaps/quote",
+        "access": "free",
+        "summary": "Fetch a walletless Haystack swap quote",
+        "description": "Returns a serializable Haystack route quote for an Algorand swap without signing or submitting transactions. Amounts use asset base units. Quotes are short-lived and should be refreshed after completing prerequisite opt-ins.",
+        "tags": [
+          "defi",
+          "swaps",
+          "haystack",
+          "agents"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          400,
+          429,
+          502
+        ]
+      },
+      {
+        "id": "haystackSwapOptIn",
+        "method": "POST",
+        "path": "/swaps/optin",
+        "access": "free",
+        "summary": "Build prerequisite Haystack swap opt-ins",
+        "description": "Inspects the supplied account and quote, then returns any required output-asset and application opt-in transactions as an unsigned group. The caller signs and submits the group locally; canix402 never receives wallet keys or submits it.",
+        "tags": [
+          "defi",
+          "swaps",
+          "haystack",
+          "transactions",
+          "wallet"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          400,
+          502
+        ]
+      },
+      {
         "id": "opportunities",
         "method": "GET",
         "path": "/opportunities",
@@ -184,9 +229,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet",
+            "network": "algorand",
             "asset": "31566704",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.01"
           }
         }
@@ -226,9 +271,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet",
+            "network": "algorand",
             "asset": "31566704",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.01"
           }
         }
@@ -271,9 +316,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet",
+            "network": "algorand",
             "asset": "31566704",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.01"
           }
         }
@@ -313,9 +358,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet",
+            "network": "algorand",
             "asset": "31566704",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.05"
           }
         }
@@ -353,9 +398,50 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet",
+            "network": "algorand",
             "asset": "31566704",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "maxAmountRequired": "0.005"
+          }
+        }
+      },
+      {
+        "id": "haystackSwapTransactions",
+        "method": "POST",
+        "path": "/swaps/transactions",
+        "access": "paid",
+        "summary": "Build a walletless Haystack swap transaction group",
+        "description": "Returns an ordered Algorand swap group for a fresh Haystack quote, including signer indexes and any Haystack pre-signed members. The caller signs only the designated transactions and submits the complete group locally. The 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee, DEX fees, price impact, and Algorand network fees.",
+        "tags": [
+          "defi",
+          "swaps",
+          "haystack",
+          "transactions",
+          "x402",
+          "agents"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          400,
+          402,
+          429,
+          502
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand",
+            "asset": "31566704",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.005"
           }
         }
@@ -390,9 +476,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet",
+            "network": "algorand",
             "asset": "31566704",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.1"
           }
         }
@@ -440,9 +526,12 @@
         "canix_get_personalized_opportunities",
         "canix_get_protocol_opportunities",
         "canix_get_positions",
-        "canix_get_execution_quote"
+        "canix_get_execution_quote",
+        "canix_get_quote",
+        "canix_optin",
+        "canix_swap"
       ],
-      "url": "https://mcp.canix402.com/mcp",
+      "url": "https://canix402-mcp.compx.io/mcp",
       "install": "Connect your MCP client to the remote canix402 endpoint at /mcp (walletless pass-through)."
     }
   }

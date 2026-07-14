@@ -3,13 +3,13 @@
   "info": {
     "title": "canix402 API",
     "version": "1.0.0",
-    "description": "x402-gated Algorand DeFi opportunities data API. Numeric yield/USD fields (apy, apr, tvlUsd) are returned with a standard precision of 6 decimal places, extended up to 12 decimal places only when needed to represent small non-zero values. Asset decimals are always sourced on-chain from algod.",
+    "description": "x402-gated Algorand DeFi data and walletless transaction API, including Haystack swap quotes, prerequisite opt-ins, and paid atomic swap-group generation. Numeric yield/USD fields (apy, apr, tvlUsd) are returned with a standard precision of 6 decimal places, extended up to 12 decimal places only when needed to represent small non-zero values. Asset decimals are always sourced on-chain from algod.",
     "contact": {
       "name": "Neon Forge Ltd",
       "email": "kieran@neonforge.ltd",
       "url": "https://canix402.compx.io"
     },
-    "x-guidance": "Use the gateway base URL in servers[0]. Fetch /discovery and /openapi.json before integrating. Prefer the remote canix402 MCP server at https://mcp.canix402.com/mcp (streamable-http, walletless pass-through) for agent tool access. Paid routes return HTTP 402 with PAYMENT-REQUIRED; sign a USDC ASA transfer client-side and retry with PAYMENT-SIGNATURE. Human and LLM docs: https://canix402.compx.io/llms.txt",
+    "x-guidance": "Use the gateway base URL in servers[0]. Fetch /discovery and /openapi.json before integrating. Prefer the remote canix402 MCP server at https://mcp.canix402.com/mcp (streamable-http, walletless pass-through) for agent tool access. Paid routes return HTTP 402 with PAYMENT-REQUIRED; sign a USDC ASA transfer client-side and retry with PAYMENT-SIGNATURE. Haystack swaps follow quote -> opt-in if needed -> fresh quote -> paid transaction generation -> local signing/submission. Human and LLM docs: https://canix402.compx.io/llms.txt",
     "x-precision": {
       "fields": ["apy", "apr", "tvlUsd"],
       "defaultDecimalPlaces": 6,
@@ -212,7 +212,7 @@
                         "required": ["id", "method", "path", "url", "description", "price", "x402"],
                         "properties": {
                           "id": { "type": "string" },
-                          "method": { "type": "string", "const": "GET" },
+                          "method": { "type": "string", "enum": ["GET", "POST"] },
                           "path": { "type": "string" },
                           "url": { "type": "string", "format": "uri" },
                           "description": { "type": "string" },
@@ -582,6 +582,118 @@
             "asset": "31566704",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.1"
+          }
+        }
+      }
+    },
+    "/swaps/quote": {
+      "post": {
+        "summary": "Fetch a walletless Haystack swap quote",
+        "description": "Returns a short-lived, serializable Haystack route quote without signing or submitting transactions. Asset amounts are integer base units, not display-unit decimals. Use the returned quote unchanged with /swaps/optin and /swaps/transactions. If prerequisite opt-ins are submitted, fetch a fresh quote before building the swap group.",
+        "tags": ["defi", "swaps", "haystack", "agents"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/HaystackSwapQuoteRequest" },
+              "examples": {
+                "algoToUsdc": {
+                  "value": {
+                    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                    "fromAssetId": 0,
+                    "toAssetId": 31566704,
+                    "amount": "1000000",
+                    "type": "fixed-input"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Serializable Haystack quote and prerequisite identifiers",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HaystackSwapQuoteResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "429": { "$ref": "#/components/responses/UpstreamRateLimited" },
+          "502": { "$ref": "#/components/responses/UpstreamError" }
+        }
+      }
+    },
+    "/swaps/optin": {
+      "post": {
+        "summary": "Build prerequisite Haystack swap opt-ins",
+        "description": "Checks the supplied Algorand account against the quote and returns a fresh unsigned group containing any missing output-asset and required application opt-ins. An empty transaction group means no opt-ins are required. canix402 is walletless: the caller signs and submits every returned opt-in transaction locally, waits for confirmation, and then refreshes the quote before requesting swap transactions. This route does not claim that returned opt-ins have executed.",
+        "tags": ["defi", "swaps", "haystack", "transactions", "wallet"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/HaystackSwapOptInRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Unsigned prerequisite group, or an empty group when no opt-ins are missing",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HaystackSwapOptInResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "502": { "$ref": "#/components/responses/UpstreamError" }
+        }
+      }
+    },
+    "/swaps/transactions": {
+      "post": {
+        "summary": "Build a walletless Haystack swap transaction group",
+        "description": "Paid transaction-generation step for a fresh Haystack quote. The initial request may return 402 with PAYMENT-REQUIRED; satisfy the advertised 0.005 USDC requirement and retry with PAYMENT-SIGNATURE. On success, the response preserves transaction order, identifies caller members in userSignIndexes, and includes Haystack pre-signed members. Sign only the userSignIndexes members, combine them with the pre-signed members in the original order, and submit the complete atomic group through your own Algod client. canix402 never receives wallet keys and never submits the swap. The 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee (including referral split), DEX fees, route price impact, and Algorand network transaction fees.",
+        "tags": ["defi", "swaps", "haystack", "transactions", "x402", "agents"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/HaystackSwapTransactionsRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ordered, walletless Haystack swap group ready for caller signing",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HaystackSwapTransactionsResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "429": { "$ref": "#/components/responses/UpstreamRateLimited" },
+          "502": { "$ref": "#/components/responses/UpstreamError" }
+        },
+        "x-payment-info": {
+          "protocols": [{ "x402": {} }],
+          "price": { "mode": "fixed", "currency": "USD", "amount": "0.005" }
+        },
+        "x-x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet",
+            "asset": "31566704",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.005"
           }
         }
       }
@@ -1056,6 +1168,275 @@
           }
         }
       },
+      "AlgorandBaseUnitAmount": {
+        "description": "Positive integer amount in the asset's base units. A decimal string is preferred to preserve precision.",
+        "oneOf": [
+          { "type": "string", "pattern": "^[1-9][0-9]*$" },
+          { "type": "integer", "minimum": 1 }
+        ]
+      },
+      "HaystackSwapQuoteRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["address", "fromAssetId", "toAssetId", "amount"],
+        "properties": {
+          "address": {
+            "type": "string",
+            "description": "Algorand account that will sign and submit the eventual swap."
+          },
+          "fromAssetId": {
+            "description": "Input ASA id; use 0 for ALGO.",
+            "oneOf": [
+              { "type": "integer", "minimum": 0 },
+              { "type": "string", "pattern": "^[0-9]+$" }
+            ]
+          },
+          "toAssetId": {
+            "description": "Output ASA id; use 0 for ALGO.",
+            "oneOf": [
+              { "type": "integer", "minimum": 0 },
+              { "type": "string", "pattern": "^[0-9]+$" }
+            ]
+          },
+          "amount": { "$ref": "#/components/schemas/AlgorandBaseUnitAmount" },
+          "type": {
+            "type": "string",
+            "enum": ["fixed-input", "fixed-output"],
+            "default": "fixed-input"
+          },
+          "disabledProtocols": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["TinymanV2", "Algofi", "Algomint", "Pact", "Folks", "TAlgo"]
+            },
+            "uniqueItems": true
+          },
+          "maxGroupSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 16,
+            "default": 16
+          },
+          "maxDepth": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4,
+            "default": 4
+          }
+        }
+      },
+      "HaystackTransactionPayload": {
+        "type": ["object", "null"],
+        "required": ["iv", "data"],
+        "properties": {
+          "iv": { "type": "string" },
+          "data": { "type": "string" }
+        }
+      },
+      "HaystackSwapQuote": {
+        "type": "object",
+        "description": "Serializable, short-lived Haystack quote. Preserve this object unchanged when calling the opt-in and transaction endpoints.",
+        "required": [
+          "address",
+          "fromAssetId",
+          "toAssetId",
+          "amount",
+          "type",
+          "quotedAmount",
+          "createdAt",
+          "expiresAt",
+          "requiredAppOptIns",
+          "txnPayload",
+          "route",
+          "quotes",
+          "protocolFees"
+        ],
+        "properties": {
+          "address": { "type": "string" },
+          "fromAssetId": { "type": "string", "pattern": "^[0-9]+$" },
+          "toAssetId": { "type": "string", "pattern": "^[0-9]+$" },
+          "amount": { "type": "string", "pattern": "^[1-9][0-9]*$" },
+          "type": {
+            "type": "string",
+            "enum": ["fixed-input", "fixed-output"]
+          },
+          "quotedAmount": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "description": "Quoted output base units for fixed-input or required input base units for fixed-output."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Reject the quote after this time and fetch a fresh one."
+          },
+          "priceBaseline": { "type": "number" },
+          "userPriceImpact": { "type": "number" },
+          "marketPriceImpact": { "type": "number" },
+          "usdIn": { "type": "number" },
+          "usdOut": { "type": "number" },
+          "route": { "type": "array", "items": { "type": "object" } },
+          "quotes": { "type": "array", "items": { "type": "object" } },
+          "requiredAppOptIns": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^[1-9][0-9]*$" }
+          },
+          "txnPayload": { "$ref": "#/components/schemas/HaystackTransactionPayload" },
+          "protocolFees": {
+            "type": "object",
+            "additionalProperties": { "type": "number" }
+          }
+        },
+        "additionalProperties": true
+      },
+      "HaystackSwapQuoteResponse": {
+        "type": "object",
+        "required": ["data", "meta"],
+        "properties": {
+          "data": { "$ref": "#/components/schemas/HaystackSwapQuote" },
+          "meta": {
+            "type": "object",
+            "required": ["paymentRequired", "executionSubmitted"],
+            "properties": {
+              "paymentRequired": { "type": "boolean", "const": false },
+              "executionSubmitted": { "type": "boolean", "const": false }
+            }
+          }
+        }
+      },
+      "HaystackSwapOptInRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["address", "quote"],
+        "properties": {
+          "address": { "type": "string" },
+          "quote": { "$ref": "#/components/schemas/HaystackSwapQuote" }
+        }
+      },
+      "HaystackSwapTransactionsRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["address", "quote", "slippage"],
+        "properties": {
+          "address": { "type": "string" },
+          "quote": { "$ref": "#/components/schemas/HaystackSwapQuote" },
+          "slippage": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Maximum unfavorable movement as a percentage; for example, 1 means 1%."
+          }
+        }
+      },
+      "WalletlessTransaction": {
+        "type": "object",
+        "required": ["index", "encodedTransaction", "signer"],
+        "properties": {
+          "index": { "type": "integer", "minimum": 0 },
+          "encodedTransaction": {
+            "type": "string",
+            "contentEncoding": "base64",
+            "description": "Base64-encoded unsigned transaction bytes for inspection and caller signing."
+          },
+          "signedTransaction": {
+            "type": "string",
+            "contentEncoding": "base64",
+            "description": "Base64-encoded Haystack-signed blob when this member is already signed."
+          },
+          "signer": {
+            "type": "string",
+            "enum": ["user", "haystack"],
+            "description": "Who supplies the signature for this group member."
+          }
+        }
+      },
+      "HaystackOptInTransaction": {
+        "type": "object",
+        "required": ["index", "kind", "encodedTransaction", "signer"],
+        "properties": {
+          "index": { "type": "integer", "minimum": 0 },
+          "kind": {
+            "type": "string",
+            "enum": ["asset-opt-in", "application-opt-in"]
+          },
+          "encodedTransaction": {
+            "type": "string",
+            "contentEncoding": "base64"
+          },
+          "signer": { "type": "string", "const": "user" },
+          "assetId": { "type": "string", "pattern": "^[1-9][0-9]*$" },
+          "appId": { "type": "string", "pattern": "^[1-9][0-9]*$" }
+        }
+      },
+      "WalletlessTransactionGroup": {
+        "type": "object",
+        "required": ["transactions", "userSignIndexes", "createdAt", "quoteExpiresAt"],
+        "properties": {
+          "transactions": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WalletlessTransaction" },
+            "description": "Atomic-group order. Do not reorder members."
+          },
+          "userSignIndexes": {
+            "type": "array",
+            "items": { "type": "integer", "minimum": 0 },
+            "description": "Indexes the caller wallet must sign. Preserve Haystack-signed members unchanged."
+          },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "quoteExpiresAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "HaystackSwapOptInResponse": {
+        "type": "object",
+        "required": ["data", "meta"],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": ["required", "transactions", "userSignIndexes", "createdAt", "expiresAt"],
+            "properties": {
+              "required": { "type": "boolean" },
+              "transactions": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/HaystackOptInTransaction" }
+              },
+              "userSignIndexes": {
+                "type": "array",
+                "items": { "type": "integer", "minimum": 0 }
+              },
+              "createdAt": { "type": "string", "format": "date-time" },
+              "expiresAt": { "type": "string", "format": "date-time" }
+            }
+          },
+          "meta": {
+            "type": "object",
+            "required": ["paymentRequired", "executionSubmitted"],
+            "properties": {
+              "paymentRequired": { "type": "boolean", "const": false },
+              "executionSubmitted": { "type": "boolean", "const": false }
+            }
+          }
+        }
+      },
+      "HaystackSwapTransactionsResponse": {
+        "type": "object",
+        "required": ["data", "meta"],
+        "properties": {
+          "data": { "$ref": "#/components/schemas/WalletlessTransactionGroup" },
+          "meta": {
+            "type": "object",
+            "required": ["paymentRequired", "executionSubmitted"],
+            "properties": {
+              "paymentRequired": { "type": "boolean", "const": true },
+              "executionSubmitted": { "type": "boolean", "const": false }
+            }
+          }
+        }
+      },
       "HealthResponse": {
         "type": "object",
         "required": ["data"],
@@ -1082,7 +1463,8 @@
           "description": { "type": "string" },
           "tags": { "type": "array", "items": { "type": "string" } },
           "pathParams": { "type": "array", "items": { "type": "string" } },
-          "queryParams": { "type": "array", "items": { "type": "string" } }
+          "queryParams": { "type": "array", "items": { "type": "string" } },
+          "priceUsdc": { "type": "string" }
         }
       },
       "MetadataResponse": {
@@ -1195,6 +1577,22 @@
             }
           }
         }
+      },
+      "UpstreamRateLimited": {
+        "description": "The Haystack upstream rate limit was exceeded. Retry after the interval advertised by the response when available.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ApiError" }
+          }
+        }
+      },
+      "UpstreamError": {
+        "description": "Haystack or an Algorand network dependency was unavailable.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ApiError" }
+          }
+        }
       }
     },
     "examples": {
@@ -1236,7 +1634,8 @@
               "x402-paid-data",
               "wallet-personalization",
               "agent-discovery",
-              "openapi"
+              "openapi",
+              "haystack-swaps"
             ],
             "x402ProtocolVersion": 2,
             "endpoints": [

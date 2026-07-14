@@ -41,6 +41,32 @@ test("default fetch preserves the Cloudflare runtime receiver", async () => {
   }
 });
 
+test("fetchFree posts JSON bodies", async () => {
+  let seenMethod = "";
+  let seenContentType = "";
+  let seenBody = "";
+  const client = new GatewayClient(
+    { gatewayUrl: "https://gateway.example" },
+    async (_input, init) => {
+      seenMethod = init?.method ?? "";
+      seenContentType =
+        (init?.headers as Record<string, string> | undefined)?.["content-type"] ?? "";
+      seenBody = String(init?.body);
+      return new Response(JSON.stringify({ quote: { id: "quote-1" } }), { status: 200 });
+    }
+  );
+
+  const result = await client.fetchFree("/swaps/quote", {
+    method: "POST",
+    body: { address: "WALLET", amount: "1000" }
+  });
+
+  assert.equal(seenMethod, "POST");
+  assert.equal(seenContentType, "application/json");
+  assert.deepEqual(JSON.parse(seenBody), { address: "WALLET", amount: "1000" });
+  assert.deepEqual(result, { quote: { id: "quote-1" } });
+});
+
 test("fetchPaid decodes payment requirements without Node Buffer", async () => {
   const paymentHeader = encodePaymentRequired();
   const bufferDescriptor = Object.getOwnPropertyDescriptor(globalThis, "Buffer");

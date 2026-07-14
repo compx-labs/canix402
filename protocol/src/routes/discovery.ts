@@ -139,6 +139,12 @@ function buildDiscoveryDocument(): DiscoveryDocument {
       responseCodes:
         endpoint.id === "positions"
           ? [200, 400, 402, 500, 502]
+          : endpoint.id === "haystackSwapQuote"
+            ? [200, 400, 429, 502]
+            : endpoint.id === "haystackSwapOptIn"
+              ? [200, 400, 502]
+              : endpoint.id === "haystackSwapTransactions"
+                ? [200, 400, 402, 429, 502]
           : endpoint.access === "paid"
             ? [200, 402, 500]
             : [200, 500]
@@ -163,6 +169,7 @@ function buildDiscoveryDocument(): DiscoveryDocument {
       "agent-discovery",
       "openapi",
       "execution-quotes",
+      "haystack-swaps",
       "mcp-server"
     ],
     x402ProtocolVersion: 2,

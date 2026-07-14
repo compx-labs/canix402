@@ -12,8 +12,8 @@ import { config, mcpToolNames } from "../lib/config";
   <h1 class="page-title">MCP server</h1>
   <p class="muted">
     The canix402 MCP is a remote, walletless wrapper over the public Caddy gateway. Agents connect
-    over Streamable HTTP, call typed tools for discovery and opportunity data, and handle x402
-    payment signing on the client side.
+    over Streamable HTTP, call typed tools for discovery, opportunity data, and Haystack swaps, and
+    handle x402 payment signing on the client side.
   </p>
 
   <section class="panel">
@@ -28,6 +28,23 @@ import { config, mcpToolNames } from "../lib/config";
       The MCP never stores mnemonics or private keys. Paid tools return structured payment
       requirements on the first call; your agent signs USDC client-side and retries with
       <code>paymentSignature</code>.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>Haystack swaps</h2>
+    <ul>
+      <li><code>canix_get_quote</code> — free, stateless quote from <code>POST /swaps/quote</code>.</li>
+      <li><code>canix_optin</code> — free output-asset and application opt-ins from <code>POST /swaps/optin</code>.</li>
+      <li>
+        <code>canix_swap</code> — paid swap transaction response from
+        <code>POST /swaps/transactions</code>, with a 0.005 USDC fallback price.
+      </li>
+    </ul>
+    <p>
+      Pass the quote returned by <code>canix_get_quote</code> into the opt-in or swap tool. The MCP
+      does not retain quotes, sign transactions, or submit them; gateway responses pass through to
+      the caller.
     </p>
   </section>
 
@@ -78,7 +95,7 @@ import { config, mcpToolNames } from "../lib/config";
         Your agent builds a <code>PAYMENT-SIGNATURE</code> payload client-side and retries the same
         tool with <code>paymentSignature</code> set.
       </li>
-      <li>On success, the tool returns normalized API data.</li>
+      <li>On success, the tool returns the gateway response.</li>
     </ol>
     <p>
       This mirrors the direct HTTP flow documented on <a href="/x402">x402 payment flow</a> and
@@ -99,8 +116,9 @@ import { config, mcpToolNames } from "../lib/config";
       }
     </ul>
     <p class="muted">
-      Free tools: health, metadata, discovery, OpenAPI, execution shapes. Paid tools: opportunities,
-      search, personalized, protocol-specific, and execution quotes.
+      Free tools include health, metadata, discovery, OpenAPI, execution shapes, Haystack quotes,
+      and opt-ins. Paid tools include opportunities, positions, execution quotes, and Haystack swap
+      transactions.
     </p>
   </section>
 

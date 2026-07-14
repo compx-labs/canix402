@@ -1,6 +1,6 @@
 # CANIX402 — full agent integration guide
 
-> x402-gated Algorand DeFi opportunities data API (version 0.1.0). Normalized yield data for autonomous agents; USDC micropayments at the gateway; no transaction building.
+> x402-gated Algorand DeFi data and walletless transaction API (version 1.0.0). Normalized yield data and Haystack swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.
 
 ## Overview
 
@@ -39,7 +39,7 @@ Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `htt
 Default payment context (confirm against live discovery before integrating):
 
 - **Protocol version:** 2
-- **Network:** algorand-mainnet
+- **Network:** algorand
 - **USDC asset id:** 31566704
 - **Facilitator:** https://facilitator.goplausible.xyz
 - **Headers:** PAYMENT-REQUIRED, PAYMENT-SIGNATURE, PAYMENT-RESPONSE
@@ -60,11 +60,14 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `GET /favicon.png` (Free) — API favicon image.
 - `GET /.well-known/x402` (Free) — x402 discovery fan-out document.
 - `GET /.well-known/x402.json` (Free) — x402 discovery manifest for agent and directory indexing.
+- `POST /swaps/quote` (Free) — Fetch a walletless Haystack swap quote.
+- `POST /swaps/optin` (Free) — Build prerequisite Haystack swap opt-ins.
 - `GET /opportunities` (0.01 USDC) — Top 10 aggregated DeFi opportunities ranked by APY. Params: protocol=, limit=, offset=, includeInactive=.
 - `GET /protocols/:protocol/opportunities` (0.01 USDC) — Top 25 DeFi opportunities for a single protocol ranked by APY. Params: :protocol, limit=, offset=, includeInactive=.
 - `GET /opportunities/search` (0.01 USDC) — Caller-filtered opportunities across supported platforms. Params: platform=, type=, minApy=, maxApy=, minTvlUsd=, limit=, offset=, includeInactive=.
 - `GET /opportunities/personalized` (0.05 USDC) — Top opportunities tuned to a wallet's held assets. Params: address=, limit=, offset=, includeInactive=.
 - `GET /positions` (0.005 USDC) — Algorand DeFi positions held by a wallet. Params: address=.
+- `POST /swaps/transactions` (0.005 USDC) — Build a walletless Haystack swap transaction group.
 - `POST /execution/quotes` (0.1 USDC) — Compile a verified transaction shape into unsigned Algorand transactions.
 
 ### Route notes
@@ -74,8 +77,11 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `GET /opportunities/search` — filter by `platform`, `type`, `minApy`, `maxApy`, `minTvlUsd`.
 - `GET /opportunities/personalized` — requires `address` (Algorand account); premium price; matches opportunities to wallet-held assets.
 - `GET /positions` — requires `address` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
+- Haystack swaps — call free `POST /swaps/quote`, sign and submit any group from free `POST /swaps/optin`, refresh the short-lived quote, then call paid `POST /swaps/transactions` for 0.005 USDC. Amounts are asset base units.
+- Walletless handoff — sign only the returned `userSignIndexes`, preserve Haystack pre-signed members and group order, and submit the complete group through the caller's Algod client.
+- Swap costs — the 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee/referral, DEX fees, price impact, and Algorand network fees.
 
-Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-known/x402.json`.
+Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-known/x402.json`, `POST /swaps/quote`, `POST /swaps/optin`.
 
 ## Error catalog
 

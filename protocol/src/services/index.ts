@@ -65,3 +65,11 @@ export type {
   SourceMetadataFields,
   SourceTimestampOrigin
 } from "./source-metadata.js";
+export {
+  HaystackRouterError,
+  createHaystackService
+} from "./haystack-router.js";
+export type {
+  HaystackErrorKind,
+  HaystackService
+} from "./haystack-router.js";

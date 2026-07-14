@@ -4,8 +4,8 @@ MCP server that exposes canix402 free and paid gateway endpoints as agent tools.
 
 ## What it does
 
-- Free tools: health, metadata, discovery, OpenAPI, execution shape catalog
-- Paid tools: opportunities (list/search/personalized/protocol), wallet positions, and execution quotes
+- Free tools: health, metadata, discovery, OpenAPI, execution shape catalog, Haystack quotes, and Haystack opt-ins
+- Paid tools: opportunities (list/search/personalized/protocol), wallet positions, execution quotes, and Haystack swap transactions
 - Walletless x402 passthrough: paid tool preflight returns `PAYMENT-REQUIRED`, retry with `paymentSignature`
 - Resources: `canix://discovery`, `canix://openapi`, `canix://execution-shapes`
 - Prompt: `analyze-opportunity`
@@ -20,6 +20,14 @@ For hosted/remote agent usage, use the Cloudflare Worker remote endpoint in `mcp
 The advertised fallback price is 0.005 USDC. Omit `paymentSignature` for the
 x402 preflight, then retry the same address with the signed
 `PAYMENT-SIGNATURE` payload.
+
+## Haystack swap tools
+
+- `canix_get_quote` passes `{address, fromAssetId, toAssetId, amount, type?, disabledProtocols?, maxGroupSize?, maxDepth?}` to free `POST /swaps/quote`.
+- `canix_optin` passes `{address, quote}` to free `POST /swaps/optin`.
+- `canix_swap` passes `{address, quote, slippage}` to paid `POST /swaps/transactions`. Its fallback price is 0.005 USDC; omit `paymentSignature` for preflight, then retry with the same body and signed payload.
+
+All three tools are stateless. Quote and transaction responses are passed through from the gateway, and the MCP never signs or submits wallet transactions.
 
 ## Setup
 

@@ -22,3 +22,12 @@ export type {
   DiscoveryEndpointDescriptor,
   DiscoveryErrorDescriptor
 } from "./discovery.js";
+export type {
+  HaystackQuote,
+  SwapOptInRequest,
+  SwapOptInResponse,
+  SwapQuoteRequest,
+  SwapQuoteResponse,
+  SwapTransactionsRequest,
+  SwapTransactionsResponse
+} from "./swap-schema.js";

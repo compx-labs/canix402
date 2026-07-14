@@ -25,7 +25,7 @@ interface X402Manifest {
   }>;
   resources: Array<{
     id: string;
-    method: "GET";
+    method: "GET" | "POST";
     path: string;
     url: string;
     price: {
@@ -56,6 +56,19 @@ test("discovery includes every endpoint in policy matrix", async () => {
   assert.deepEqual(discoveryPaths, policyPaths);
   // Agent discovery metadata: advertises MCP tooling without invoking the MCP server.
   assert.ok(payload.data.capabilities.includes("mcp-server"));
+  assert.ok(payload.data.capabilities.includes("haystack-swaps"));
+  const quote = payload.data.endpoints.find((endpoint) => endpoint.id === "haystackSwapQuote");
+  const optIn = payload.data.endpoints.find((endpoint) => endpoint.id === "haystackSwapOptIn");
+  const transactions = payload.data.endpoints.find(
+    (endpoint) => endpoint.id === "haystackSwapTransactions"
+  );
+  assert.equal(quote?.access, "free");
+  assert.deepEqual(quote?.responseCodes, [200, 400, 429, 502]);
+  assert.equal(optIn?.access, "free");
+  assert.deepEqual(optIn?.responseCodes, [200, 400, 502]);
+  assert.equal(transactions?.access, "paid");
+  assert.deepEqual(transactions?.responseCodes, [200, 400, 402, 429, 502]);
+  assert.equal(transactions?.x402?.requirementTemplate.maxAmountRequired, "0.005");
   assert.equal(payload.data.mcpServer?.transport, MCP_SERVER_TRANSPORT);
   assert.equal(payload.data.mcpServer?.url, MCP_SERVER_REMOTE_URL);
   assert.deepEqual(
@@ -103,6 +116,11 @@ test("well-known x402 manifest lists paid resources and indexing links", async (
   assert.deepEqual(manifestPaths, paidPolicyPaths);
   assert.equal(
     manifest.resources.find((resource) => resource.id === "positions")?.price.amount,
+    "0.005"
+  );
+  assert.equal(
+    manifest.resources.find((resource) => resource.id === "haystackSwapTransactions")?.price
+      .amount,
     "0.005"
   );
 
@@ -162,8 +180,11 @@ test("well-known x402 fan-out lists paid resource URLs", async () => {
 
   const payload = response.json() as { version: 1; resources: string[] };
   assert.equal(payload.version, 1);
-  assert.equal(payload.resources.length, 6);
+  assert.equal(payload.resources.length, 7);
   assert.ok(payload.resources.includes("https://canix402-api.compx.io/positions"));
+  assert.ok(
+    payload.resources.includes("https://canix402-api.compx.io/swaps/transactions")
+  );
   assert.equal(payload.resources.every((url) => url.startsWith("https://canix402-api.compx.io/")), true);
 
   await app.close();

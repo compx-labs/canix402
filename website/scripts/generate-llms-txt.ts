@@ -110,9 +110,9 @@ function buildLlmsTxt(discovery: DiscoveryDocument): string {
 
   return `# CANIX402
 
-> x402-gated Algorand DeFi opportunities data API for autonomous agents. Pay in USDC micropayments at the gateway edge, then fetch normalized APY/TVL data from Tinyman, Pact, Folks Finance, CompX, and Dork.fi.
+> x402-gated Algorand DeFi data and walletless transaction API for autonomous agents. Pay in USDC micropayments at the gateway edge, fetch normalized APY/TVL data, and build locally signable Haystack swap groups.
 
-Use the **Caddy gateway** (\`${GATEWAY}\`) for all API calls. Discovery and OpenAPI are free; opportunity data routes require x402 payment. This API returns market data only — it does not build or submit transactions. For the full integration guide in one file, see [llms-full.txt](${docs}/llms-full.txt).
+Use the **Caddy gateway** (\`${GATEWAY}\`) for all API calls. Discovery, Haystack quotes, and opt-in preparation are free; data routes and Haystack swap transaction generation require x402 payment as advertised. The API never receives wallet keys or submits transactions. For the full integration guide in one file, see [llms-full.txt](${docs}/llms-full.txt).
 
 ## API (machine-readable)
 
@@ -159,7 +159,7 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
 
   return `# CANIX402 — full agent integration guide
 
-> x402-gated Algorand DeFi opportunities data API (version ${discovery.apiVersion}). Normalized yield data for autonomous agents; USDC micropayments at the gateway; no transaction building.
+> x402-gated Algorand DeFi data and walletless transaction API (version ${discovery.apiVersion}). Normalized yield data and Haystack swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.
 
 ## Overview
 
@@ -220,8 +220,11 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 - \`GET /opportunities/search\` — filter by \`platform\`, \`type\`, \`minApy\`, \`maxApy\`, \`minTvlUsd\`.
 - \`GET /opportunities/personalized\` — requires \`address\` (Algorand account); premium price; matches opportunities to wallet-held assets.
 - \`GET /positions\` — requires \`address\` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
+- Haystack swaps — call free \`POST /swaps/quote\`, sign and submit any group from free \`POST /swaps/optin\`, refresh the short-lived quote, then call paid \`POST /swaps/transactions\` for 0.005 USDC. Amounts are asset base units.
+- Walletless handoff — sign only the returned \`userSignIndexes\`, preserve Haystack pre-signed members and group order, and submit the complete group through the caller's Algod client.
+- Swap costs — the 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee/referral, DEX fees, price impact, and Algorand network fees.
 
-Free routes: \`/health\`, \`/metadata\`, \`/discovery\`, \`/openapi.json\`, \`/.well-known/x402.json\`.
+Free routes: \`/health\`, \`/metadata\`, \`/discovery\`, \`/openapi.json\`, \`/.well-known/x402.json\`, \`POST /swaps/quote\`, \`POST /swaps/optin\`.
 
 ## Error catalog
 

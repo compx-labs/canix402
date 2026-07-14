@@ -9,7 +9,8 @@ single source directory.
 
 ## Route Access Policy
 
-- Free routes: `GET /health`, `GET /metadata`, `GET /discovery`, `GET /openapi.json`
+- Free routes: `GET /health`, `GET /metadata`, `GET /discovery`, `GET /openapi.json`,
+  `POST /swaps/quote`, `POST /swaps/optin`
 - Paid routes:
   - `GET /opportunities`
   - `GET /opportunities/search`
@@ -17,6 +18,7 @@ single source directory.
   - `GET /positions?address=` (price: `X402_PRICE_POSITIONS_USDC`, exactly `0.005`)
   - `GET /protocols/:protocol/opportunities`
   - `POST /execution/quotes` (price: `X402_PRICE_EXECUTION_QUOTE_USDC`, default `0.1`)
+  - `POST /swaps/transactions` (price: `X402_PRICE_HAYSTACK_SWAP_USDC`, default `0.005`)
 
 ## Local Usage
 

@@ -79,6 +79,26 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     tags: ["discovery", "agents", "x402"]
   },
   {
+    id: "haystackSwapQuote",
+    method: "POST",
+    pathPattern: "/swaps/quote",
+    access: "free",
+    summary: "Fetch a walletless Haystack swap quote",
+    description:
+      "Returns a serializable Haystack route quote for an Algorand swap without signing or submitting transactions. Amounts use asset base units. Quotes are short-lived and should be refreshed after completing prerequisite opt-ins.",
+    tags: ["defi", "swaps", "haystack", "agents"]
+  },
+  {
+    id: "haystackSwapOptIn",
+    method: "POST",
+    pathPattern: "/swaps/optin",
+    access: "free",
+    summary: "Build prerequisite Haystack swap opt-ins",
+    description:
+      "Inspects the supplied account and quote, then returns any required output-asset and application opt-in transactions as an unsigned group. The caller signs and submits the group locally; canix402 never receives wallet keys or submits it.",
+    tags: ["defi", "swaps", "haystack", "transactions", "wallet"]
+  },
+  {
     id: "opportunities",
     method: "GET",
     pathPattern: "/opportunities",
@@ -144,6 +164,17 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     tags: ["defi", "positions", "wallet"],
     queryParams: ["address"],
     priceUsdc: process.env.X402_PRICE_POSITIONS_USDC ?? "0.005"
+  },
+  {
+    id: "haystackSwapTransactions",
+    method: "POST",
+    pathPattern: "/swaps/transactions",
+    access: "paid",
+    summary: "Build a walletless Haystack swap transaction group",
+    description:
+      "Returns an ordered Algorand swap group for a fresh Haystack quote, including signer indexes and any Haystack pre-signed members. The caller signs only the designated transactions and submits the complete group locally. The 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee, DEX fees, price impact, and Algorand network fees.",
+    tags: ["defi", "swaps", "haystack", "transactions", "x402", "agents"],
+    priceUsdc: process.env.X402_PRICE_HAYSTACK_SWAP_USDC ?? "0.005"
   },
   {
     id: "executionQuote",
@@ -217,6 +248,7 @@ const paidPathMatchers = [
   /^\/opportunities\/personalized$/,
   /^\/positions$/,
   /^\/protocols\/[^/]+\/opportunities$/,
+  /^\/swaps\/transactions$/,
   /^\/execution\/quotes$/
 ];
 
@@ -228,7 +260,9 @@ const freePathMatchers = [
   /^\/favicon\.ico$/,
   /^\/favicon\.png$/,
   /^\/\.well-known\/x402$/,
-  /^\/\.well-known\/x402\.json$/
+  /^\/\.well-known\/x402\.json$/,
+  /^\/swaps\/quote$/,
+  /^\/swaps\/optin$/
 ];
 
 export function classifyEndpointAccess(path: string): EndpointAccess {
