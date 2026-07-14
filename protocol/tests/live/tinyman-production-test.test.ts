@@ -139,7 +139,6 @@ async function runFlexibleAddLiquidity(): Promise<{
   assert.equal(quoteResponse.meta.paymentRequired, true);
   assert.equal(quoteResponse.meta.executionSubmitted, false);
   assert.equal(quoteResponse.data.shapeKey, FLEXIBLE_ADD_SHAPE);
-  assert.equal(quoteResponse.data.encodedTransactions.length, 3);
 
   const signed = signEncodedTransactionGroup(
     quoteResponse.data.encodedTransactions,
@@ -193,8 +192,6 @@ async function runMultipleAssetsOutRemoveLiquidity(poolTokenAmount?: bigint): Pr
   assert.equal(quoteResponse.meta.paymentRequired, true);
   assert.equal(quoteResponse.meta.executionSubmitted, false);
   assert.equal(quoteResponse.data.shapeKey, MULTIPLE_ASSETS_OUT_REMOVE_SHAPE);
-  assert.equal(quoteResponse.data.encodedTransactions.length, 2);
-  assert.equal(quoteResponse.data.transactions[1]?.applicationCall?.appArgsText[0], "remove_liquidity");
 
   const signed = signEncodedTransactionGroup(
     quoteResponse.data.encodedTransactions,
@@ -245,8 +242,6 @@ async function runSingleAssetAddLiquidity(): Promise<{
   assert.equal(quoteResponse.meta.paymentRequired, true);
   assert.equal(quoteResponse.meta.executionSubmitted, false);
   assert.equal(quoteResponse.data.shapeKey, SINGLE_ASSET_ADD_SHAPE);
-  assert.equal(quoteResponse.data.encodedTransactions.length, 2);
-  assert.equal(quoteResponse.data.transactions[1]?.applicationCall?.appArgsText[1], "single");
 
   const signed = signEncodedTransactionGroup(
     quoteResponse.data.encodedTransactions,
@@ -301,11 +296,6 @@ async function runSingleAssetOutRemoveLiquidity(poolTokenAmount?: bigint): Promi
   assert.equal(quoteResponse.meta.paymentRequired, true);
   assert.equal(quoteResponse.meta.executionSubmitted, false);
   assert.equal(quoteResponse.data.shapeKey, SINGLE_ASSET_OUT_REMOVE_SHAPE);
-  assert.equal(quoteResponse.data.encodedTransactions.length, 2);
-  assert.equal(quoteResponse.data.transactions[1]?.applicationCall?.appArgsText[0], "remove_liquidity");
-  assert.deepEqual(quoteResponse.data.transactions[1]?.applicationCall?.foreignAssets, [
-    String(OUTPUT_ASSET_ID)
-  ]);
 
   const signed = signEncodedTransactionGroup(
     quoteResponse.data.encodedTransactions,

@@ -25,6 +25,7 @@ import {
 import {
   PactPoolState,
   mapAssetsToPactAmounts,
+  normalizeSuggestedParamsForPact,
   resolvePactPoolState
 } from "./pool-state.js";
 
@@ -217,7 +218,7 @@ export const pactAddLiquidityTwoSidedShape: TransactionShapeSpec<
       rawTxns = dependencies.buildAddLiquidityTxs(state.pool, {
         liquidityAddition,
         address: input.userAddress,
-        suggestedParams
+        suggestedParams: normalizeSuggestedParamsForPact(suggestedParams)
       });
       algosdk.assignGroupID(rawTxns);
     } catch (error) {

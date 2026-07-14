@@ -208,6 +208,22 @@ export function createPactCompatibleAlgodClient(algod: Algodv2): Algodv2 {
   });
 }
 
+export function normalizeSuggestedParamsForPact(
+  params: algosdk.SuggestedParams
+): algosdk.SuggestedParams {
+  const firstRound = toPactNumber(params.firstValid, "firstValid");
+  const lastRound = toPactNumber(params.lastValid, "lastValid");
+  return {
+    ...params,
+    fee: toPactNumber(params.fee, "fee"),
+    minFee: toPactNumber(params.minFee, "minFee"),
+    firstValid: firstRound,
+    lastValid: lastRound,
+    firstRound,
+    lastRound
+  } as unknown as algosdk.SuggestedParams;
+}
+
 function wrapAlgodRequest<T>(
   request: AlgodRequestLike<T>,
   normalize: (value: T) => T
@@ -298,6 +314,16 @@ function encodeBytesForPact(value: unknown): unknown {
 
 function normalizeUintForPact(value: unknown): unknown {
   return typeof value === "bigint" ? Number(value) : value;
+}
+
+function toPactNumber(value: unknown, label: string): number {
+  const numeric = typeof value === "bigint" ? Number(value) : value;
+  if (typeof numeric !== "number" || !Number.isSafeInteger(numeric) || numeric < 0) {
+    throw new ShapeStateError(`Suggested params ${label} is not a Pact-compatible number.`, {
+      details: { [label]: String(value) }
+    });
+  }
+  return numeric;
 }
 
 function isRecordLike(value: unknown): value is RecordLike {

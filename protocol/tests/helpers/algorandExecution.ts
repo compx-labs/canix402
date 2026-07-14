@@ -299,23 +299,13 @@ export function signEncodedTransactionGroup(
   });
 }
 
-export function signEncodedTransactionGroupWithSigners(
+export function signEncodedTransactionGroupByIndex(
   encodedTransactions: readonly string[],
-  secretKeysByAddress: ReadonlyMap<string, Uint8Array> | Record<string, Uint8Array>
+  secretKeyByIndex: (index: number) => Uint8Array
 ): Uint8Array[] {
-  const resolveSecretKey =
-    secretKeysByAddress instanceof Map
-      ? (address: string) => secretKeysByAddress.get(address)
-      : (address: string) => secretKeysByAddress[address];
-
-  return encodedTransactions.map((encoded) => {
+  return encodedTransactions.map((encoded, index) => {
     const txn = algosdk.decodeUnsignedTransaction(Buffer.from(encoded, "base64"));
-    const sender = txn.sender.toString();
-    const secretKey = resolveSecretKey(sender);
-    if (secretKey === undefined) {
-      throw new Error(`No secret key provided for transaction sender ${sender}.`);
-    }
-    return algosdk.signTransaction(txn, secretKey).blob;
+    return algosdk.signTransaction(txn, secretKeyByIndex(index)).blob;
   });
 }
 
