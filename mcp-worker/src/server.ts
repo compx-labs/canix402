@@ -29,7 +29,7 @@ export function createCanixWorkerMcpServer(options: CreateWorkerServerOptions): 
         prompts: {}
       },
       instructions: [
-        "Remote canix402 MCP server for Algorand DeFi opportunity data and execution quotes.",
+        "Remote canix402 MCP server for Algorand DeFi opportunities, execution quotes, and Haystack swaps.",
         `Gateway URL: ${options.config.gatewayUrl}.`,
         "Paid tools are walletless passthrough wrappers.",
         "First paid call returns PAYMENT-REQUIRED details; retry with paymentSignature."

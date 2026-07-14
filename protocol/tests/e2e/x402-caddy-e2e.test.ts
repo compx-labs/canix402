@@ -213,6 +213,47 @@ test("execution quote endpoint returns 402 and PAYMENT-REQUIRED without signatur
   }
 });
 
+test("Haystack quote and opt-in endpoints bypass x402", async () => {
+  const context = await setup();
+  try {
+    for (const path of ["/swaps/quote", "/swaps/optin"]) {
+      const response = await fetch(`${context.baseUrl}${path}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{}"
+      });
+
+      assert.notEqual(response.status, 402, `${path} must remain free`);
+    }
+    assert.equal(context.facilitator.calls.length, 0);
+  } finally {
+    await context.teardown();
+  }
+});
+
+test("Haystack transaction endpoint advertises exactly 5000 micro-USDC", async () => {
+  const context = await setup();
+  try {
+    const response = await fetch(`${context.baseUrl}/swaps/transactions`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{}"
+    });
+    assert.equal(response.status, 402);
+
+    const paymentRequired = response.headers.get("payment-required");
+    assert.ok(paymentRequired);
+    const decoded = decodePaymentRequired(paymentRequired);
+    assert.equal(
+      decoded.accepts[0]?.maxAmountRequired ?? decoded.accepts[0]?.amount,
+      "5000"
+    );
+    assert.equal(context.facilitator.calls.length, 0);
+  } finally {
+    await context.teardown();
+  }
+});
+
 test("free endpoints bypass validator and remain accessible", async () => {
   const context = await setup();
   try {

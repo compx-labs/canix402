@@ -7,7 +7,7 @@ import { microUsdcToUsdc } from "../lib/x402-client.js";
 
 const ProtocolSchema = z.enum(["tinyman", "pact", "folks-finance", "compx", "dorkfi"]);
 
-interface PaidRequestContext {
+export interface PaidRequestContext {
   path: string;
   method: "GET" | "POST";
   query?: Record<string, unknown>;
@@ -29,7 +29,7 @@ function paidMeta(result: PaidCallResult, fallbackPriceUsdc: string) {
   };
 }
 
-function paymentSignatureArgSchema() {
+export function paymentSignatureArgSchema() {
   return z
     .string()
     .min(1)
@@ -39,7 +39,7 @@ function paymentSignatureArgSchema() {
     .optional();
 }
 
-function formatPaidToolResult(
+export function formatPaidToolResult(
   result: PaidCallResult,
   fallbackPriceUsdc: string,
   request: PaidRequestContext

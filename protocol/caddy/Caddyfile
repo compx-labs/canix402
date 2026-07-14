@@ -3,7 +3,7 @@
 }
 
 {$CADDY_SITE_ADDRESS} {
-	@free path /health /metadata /discovery /openapi.json /favicon.ico /favicon.png /.well-known/x402 /.well-known/x402.json
+	@free path /health /metadata /discovery /openapi.json /favicon.ico /favicon.png /.well-known/x402 /.well-known/x402.json /swaps/quote /swaps/optin
 	handle @free {
 		reverse_proxy {$UPSTREAM_API}
 	}
@@ -108,6 +108,24 @@
 			accept {
 				pay_to {$X402_PAY_TO}
 				price {$X402_PRICE_EXECUTION_QUOTE_USDC}
+				network {$X402_NETWORK}
+				scheme {$X402_SCHEME}
+			}
+		}
+
+		reverse_proxy {$UPSTREAM_API}
+	}
+
+	@paid_haystack_swap path /swaps/transactions
+	handle @paid_haystack_swap {
+		x402 {
+			description "canix402 paid Haystack swap transaction endpoint"
+			mime_type application/json
+			facilitator_url {$FACILITATOR_URL}
+
+			accept {
+				pay_to {$X402_PAY_TO}
+				price {$X402_PRICE_HAYSTACK_SWAP_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
 			}

@@ -9,8 +9,17 @@ import {
   PositionRecordSchema,
   WalletPositionsResponseSchema
 } from "../../src/types/position-schema.js";
+import {
+  SwapOptInRequestSchema,
+  SwapOptInResponseSchema,
+  SwapQuoteRequestSchema,
+  SwapQuoteResponseSchema,
+  SwapTransactionsRequestSchema,
+  SwapTransactionsResponseSchema
+} from "../../src/types/swap-schema.js";
 
 interface OpenApiOperation {
+  description?: string;
   "x-x402"?: {
     requirementTemplate?: {
       maxAmountRequired?: string;
@@ -99,6 +108,18 @@ test("paid operations expose x-x402 metadata", async () => {
   );
   assert.equal(positionsOperation?.["x-payment-info"]?.price?.amount, "0.005");
 
+  const haystackSwapOperation = openapi.paths["/swaps/transactions"]?.post;
+  assert.equal(
+    haystackSwapOperation?.["x-x402"]?.requirementTemplate?.maxAmountRequired,
+    "0.005"
+  );
+  assert.equal(haystackSwapOperation?.["x-payment-info"]?.price?.amount, "0.005");
+  assert.match(haystackSwapOperation?.description ?? "", /sign/i);
+  assert.match(haystackSwapOperation?.description ?? "", /10 bps/i);
+
+  assert.deepEqual(openapi.paths["/swaps/quote"]?.post?.security, []);
+  assert.deepEqual(openapi.paths["/swaps/optin"]?.post?.security, []);
+
   const freePolicyEndpoints = endpointPolicyMatrix.filter(
     (endpoint) => endpoint.access === "free"
   );
@@ -186,6 +207,49 @@ test("position record schema stays aligned with TypeBox contract", async () => {
         .required ?? [])
     ].sort()
   );
+
+  await app.close();
+});
+
+test("Haystack OpenAPI request and response envelopes stay aligned", async () => {
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "GET",
+    url: "/openapi.json"
+  });
+  assert.equal(response.statusCode, 200);
+
+  const openapi = response.json() as OpenApiDocument;
+  const pairs = [
+    ["HaystackSwapQuoteRequest", SwapQuoteRequestSchema],
+    ["HaystackSwapQuoteResponse", SwapQuoteResponseSchema],
+    ["HaystackSwapOptInRequest", SwapOptInRequestSchema],
+    ["HaystackSwapOptInResponse", SwapOptInResponseSchema],
+    ["HaystackSwapTransactionsRequest", SwapTransactionsRequestSchema],
+    ["HaystackSwapTransactionsResponse", SwapTransactionsResponseSchema]
+  ] as const;
+
+  for (const [name, typeboxSchema] of pairs) {
+    const openapiSchema = openapi.components.schemas[name];
+    assert.ok(openapiSchema, name);
+    assert.deepEqual(
+      [...(openapiSchema.required ?? [])].sort(),
+      [
+        ...((typeboxSchema as unknown as { required?: string[] }).required ?? [])
+      ].sort(),
+      `${name} required fields`
+    );
+    assert.deepEqual(
+      Object.keys(openapiSchema.properties ?? {}).sort(),
+      Object.keys(
+        (typeboxSchema as unknown as { properties?: Record<string, unknown> }).properties
+          ?? {}
+      ).sort(),
+      `${name} properties`
+    );
+  }
 
   await app.close();
 });

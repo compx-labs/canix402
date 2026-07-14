@@ -50,7 +50,34 @@ import {
       opportunities at <code>/opportunities/personalized</code> cost
       <code>{personalizedPriceUsdc} USDC</code>, while <code>/positions?address=</code> costs
       exactly <code>{positionsPriceUsdc} USDC</code> (<code>5000</code> micro-USDC).
+      Haystack quote and prerequisite opt-in generation are free; only
+      <code>POST /swaps/transactions</code> costs <code>0.005 USDC</code>.
       See the <a href="/endpoints">endpoint catalog</a> for current values from discovery metadata.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>Walletless Haystack swaps</h2>
+    <ol>
+      <li>Request a free <code>POST /swaps/quote</code> using integer asset base units.</li>
+      <li>
+        Call free <code>POST /swaps/optin</code>. If it returns transactions, sign and submit them
+        locally, wait for confirmation, then request a fresh quote.
+      </li>
+      <li>
+        Preflight paid <code>POST /swaps/transactions</code>, satisfy its
+        <code>0.005 USDC</code> x402 requirement, and retry with
+        <code>PAYMENT-SIGNATURE</code>.
+      </li>
+      <li>
+        Sign only the returned <code>userSignIndexes</code>, preserve Haystack pre-signed members and
+        atomic-group order, then submit the complete group through your own Algod client.
+      </li>
+    </ol>
+    <p>
+      Quotes are short-lived. Canix402 never receives wallet keys and never submits opt-ins or
+      swaps. The x402 access charge is separate from Haystack's SDK-default <code>10 bps</code> output
+      fee (including its referral split), DEX fees, route price impact, and Algorand network fees.
     </p>
   </section>
 

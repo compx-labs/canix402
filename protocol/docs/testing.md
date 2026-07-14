@@ -33,6 +33,7 @@ npm run test:mcp-worker
 npm run test:live:local
 npm run test:live:production
 npm run test:tinyman-production
+npm run test:live:haystack-swap
 npm run test:folks-production
 CANIX402_LIVE_TESTS=1 npm run test:live:mcp
 
@@ -364,6 +365,25 @@ Wallet requirements for paid settlement:
 
 This suite is not part of `test`, `test:ci`, or default GitHub Actions. The daily
 `Production Smoke` workflow runs `test:production-smoke` (preflight only).
+
+## Haystack production swap test
+
+The opt-in test in
+[`tests/live/haystack-production-swap.test.ts`](../tests/live/haystack-production-swap.test.ts)
+executes a real mainnet swap through the deployed production gateway:
+
+```sh
+X402_HAYSTACK_SWAP_LIVE=1 npm run test:live:haystack-swap
+```
+
+It requests a fixed-input quote for **0.1 USDC (100,000 micro-USDC) to ALGO**,
+submits any Haystack app or asset opt-ins, pays the production
+`/swaps/transactions` x402 charge, signs the returned user transactions locally,
+preserves Haystack-signed group members, and submits the atomic group.
+
+The test requires `X402_CLIENT_MNEMONIC`, at least **0.105 USDC** (0.1 USDC swap
+input plus the 0.005 USDC x402 charge), and enough ALGO for opt-ins and network
+fees. It is skipped unless explicitly enabled and is excluded from CI.
 
 ## Tinyman production liquidity tests
 

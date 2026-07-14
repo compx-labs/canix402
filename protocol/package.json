@@ -30,6 +30,7 @@
     "test:dorkfi-production": "tsx --test tests/live/dorkfi-production-test.test.ts",
     "test:dorkfi-execution-live": "npm run test:dorkfi-production",
     "test:x402-production": "tsx --test tests/live/x402-production.test.ts",
+    "test:haystack-production": "tsx --test tests/live/haystack-production-swap.test.ts",
     "test:production-smoke": "tsx scripts/production-smoke.ts",
     "test:tinyman-live": "npm run test:live",
     "build:caddy-x402": "mkdir -p .bin && xcaddy build --output .bin/caddy-x402 --with github.com/algorandecosystem/caddy-x402avm=./caddy",
@@ -51,6 +52,7 @@
     "@pactfi/pactsdk": "^0.8.1",
     "@sinclair/typebox": "^0.34.49",
     "@tinymanorg/tinyman-js-sdk": "^5.1.4",
+    "@txnlab/haystack-router": "^2.0.5",
     "algosdk": "^3.6.0",
     "fastify": "^5.8.5",
     "ulujs": "^3.0.2"

@@ -36,6 +36,13 @@ export class X402ClientError extends Error {
 }
 
 export type FetchFn = typeof fetch;
+export type QueryParams = Record<string, string | number | boolean | undefined>;
+
+export interface FreeCallOptions {
+  method?: "GET" | "POST";
+  query?: QueryParams;
+  body?: unknown;
+}
 
 export class X402Client {
   constructor(
@@ -58,10 +65,25 @@ export class X402Client {
 
   async fetchFree(
     path: string,
-    query?: Record<string, string | number | boolean | undefined>
+    queryOrOptions?: QueryParams | FreeCallOptions
   ): Promise<unknown> {
-    const requestUrl = this.buildUrl(path, query);
-    const response = await this.fetchImpl(requestUrl);
+    const options = normalizeFreeCallOptions(queryOrOptions);
+    const method = options?.method ?? (options?.body === undefined ? "GET" : "POST");
+    const requestUrl = this.buildUrl(path, options?.query);
+    const headers: Record<string, string> = {};
+    let serializedBody: string | undefined;
+
+    if (options?.body !== undefined) {
+      headers["content-type"] = "application/json";
+      serializedBody =
+        typeof options.body === "string" ? options.body : JSON.stringify(options.body);
+    }
+
+    const response = await this.fetchImpl(requestUrl, {
+      method,
+      headers,
+      ...(serializedBody === undefined ? {} : { body: serializedBody })
+    });
     const bodyText = await response.text();
 
     if (response.status !== 200) {
@@ -140,6 +162,18 @@ export class X402Client {
       paymentRequiredHeader
     };
   }
+}
+
+function normalizeFreeCallOptions(
+  queryOrOptions: QueryParams | FreeCallOptions | undefined
+): FreeCallOptions | undefined {
+  if (
+    queryOrOptions
+    && ("method" in queryOrOptions || "query" in queryOrOptions || "body" in queryOrOptions)
+  ) {
+    return queryOrOptions as FreeCallOptions;
+  }
+  return queryOrOptions ? { query: queryOrOptions as QueryParams } : undefined;
 }
 
 function parseBodyOrText(bodyText: string): unknown {

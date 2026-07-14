@@ -21,6 +21,7 @@ export interface LiveEnv {
   pricePersonalizedUsdc: string;
   priceProtocolUsdc: string;
   priceExecutionQuoteUsdc: string;
+  priceHaystackSwapUsdc: string;
   algodUrl: string;
 }
 
@@ -52,6 +53,7 @@ export function getLiveEnv(): LiveEnv {
     pricePersonalizedUsdc: process.env.X402_PRICE_PERSONALIZED_USDC ?? "0.05",
     priceProtocolUsdc: process.env.X402_PRICE_PROTOCOL_USDC ?? defaultPrice,
     priceExecutionQuoteUsdc: process.env.X402_PRICE_EXECUTION_QUOTE_USDC ?? "0.1",
+    priceHaystackSwapUsdc: process.env.X402_PRICE_HAYSTACK_SWAP_USDC ?? "0.005",
     algodUrl: process.env.X402_ALGOD_URL ?? "https://mainnet-api.algonode.cloud"
   };
 }

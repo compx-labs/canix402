@@ -113,3 +113,103 @@ test("canix_get_positions forwards address and reports 0.005 preflight price", a
   assert.equal(payload.mcpPayment.priceUsdc, "0.005");
   assert.equal(payload.request.query.address, "WALLET");
 });
+
+test("Haystack free tools post their bodies and pass responses through", async () => {
+  const requests: Array<{ path: string; body: unknown }> = [];
+  const server = createCanixWorkerMcpServer({
+    config: {
+      gatewayUrl: "https://gateway.example",
+      publicUrl: "https://mcp.example/mcp",
+      network: "algorand-mainnet"
+    },
+    fetchImpl: async (input, init) => {
+      assert.equal(init?.method, "POST");
+      requests.push({
+        path: new URL(String(input)).pathname,
+        body: JSON.parse(String(init?.body))
+      });
+      return new Response(JSON.stringify({ data: { requestNumber: requests.length } }), {
+        status: 200
+      });
+    }
+  });
+
+  const quoteResult = await registeredTools(server).canix_get_quote!.handler(
+    {
+      address: "WALLET",
+      fromAssetId: 0,
+      toAssetId: 31566704,
+      amount: "1000000",
+      maxDepth: 2
+    },
+    {}
+  );
+  const quote = { id: "quote-1", route: [{ protocol: "tinyman" }] };
+  const optinResult = await registeredTools(server).canix_optin!.handler(
+    { address: "WALLET", quote },
+    {}
+  );
+
+  assert.deepEqual(requests, [
+    {
+      path: "/swaps/quote",
+      body: {
+        address: "WALLET",
+        fromAssetId: 0,
+        toAssetId: 31566704,
+        amount: "1000000",
+        maxDepth: 2
+      }
+    },
+    {
+      path: "/swaps/optin",
+      body: { address: "WALLET", quote }
+    }
+  ]);
+  assert.deepEqual(JSON.parse(quoteResult.content[0]!.text ?? ""), {
+    data: { requestNumber: 1 }
+  });
+  assert.deepEqual(JSON.parse(optinResult.content[0]!.text ?? ""), {
+    data: { requestNumber: 2 }
+  });
+});
+
+test("canix_swap forwards paymentSignature and reports 0.005 fallback price", async () => {
+  const quote = { id: "quote-1" };
+  let requestBody: unknown;
+  let paymentSignature = "";
+  const server = createCanixWorkerMcpServer({
+    config: {
+      gatewayUrl: "https://gateway.example",
+      publicUrl: "https://mcp.example/mcp",
+      network: "algorand-mainnet"
+    },
+    fetchImpl: async (input, init) => {
+      assert.equal(new URL(String(input)).pathname, "/swaps/transactions");
+      assert.equal(init?.method, "POST");
+      requestBody = JSON.parse(String(init?.body));
+      paymentSignature =
+        (init?.headers as Record<string, string> | undefined)?.["PAYMENT-SIGNATURE"] ?? "";
+      return new Response("payment required", { status: 402 });
+    }
+  });
+
+  const result = await registeredTools(server).canix_swap!.handler(
+    {
+      address: "WALLET",
+      quote,
+      slippage: 0.5,
+      paymentSignature: "signed-payload"
+    },
+    {}
+  );
+
+  assert.deepEqual(requestBody, { address: "WALLET", quote, slippage: 0.5 });
+  assert.equal(paymentSignature, "signed-payload");
+  const payload = JSON.parse(result.content[0]!.text ?? "") as {
+    error: string;
+    mcpPayment: { priceUsdc: string };
+  };
+  assert.equal(payload.error, "PAYMENT_REQUIRED");
+  assert.equal(payload.mcpPayment.priceUsdc, "0.005");
+});

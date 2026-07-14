@@ -96,6 +96,35 @@ test("X402Client fetchFree returns JSON on 200", async () => {
   assert.equal(body.data.status, "ok");
 });
 
+test("X402Client fetchFree posts JSON bodies", async () => {
+  let seenMethod: string | undefined;
+  let seenContentType = "";
+  let seenBody = "";
+  const client = new X402Client(
+    {
+      apiUrl: "https://example.test",
+      network: "algorand-mainnet"
+    },
+    async (_input, init) => {
+      seenMethod = init?.method;
+      seenContentType =
+        (init?.headers as Record<string, string> | undefined)?.["content-type"] ?? "";
+      seenBody = String(init?.body);
+      return new Response(JSON.stringify({ quote: { id: "quote-1" } }), { status: 200 });
+    }
+  );
+
+  const result = await client.fetchFree("/swaps/quote", {
+    method: "POST",
+    body: { address: "WALLET", amount: "1000" }
+  });
+
+  assert.equal(seenMethod, "POST");
+  assert.equal(seenContentType, "application/json");
+  assert.deepEqual(JSON.parse(seenBody), { address: "WALLET", amount: "1000" });
+  assert.deepEqual(result, { quote: { id: "quote-1" } });
+});
+
 test("X402Client fetchPaid returns 402 preflight metadata", async () => {
   const paymentRequired = {
     accepts: [

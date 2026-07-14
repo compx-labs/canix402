@@ -5,6 +5,7 @@ import { X402Client, type FetchFn } from "./lib/x402-client.js";
 import { registerPrompts } from "./prompts.js";
 import { registerResources } from "./resources.js";
 import { registerFreeTools } from "./tools/free.js";
+import { registerHaystackTools } from "./tools/haystack.js";
 import { registerPaidTools } from "./tools/paid.js";
 
 export interface CreateServerOptions {
@@ -28,7 +29,7 @@ export function createCanixMcpServer(options: CreateServerOptions = {}): McpServ
         prompts: {}
       },
       instructions: [
-        "canix402 MCP server for Algorand DeFi opportunity data and execution quotes.",
+        "canix402 MCP server for Algorand DeFi opportunities, execution quotes, and Haystack swaps.",
         "Always use the Caddy gateway URL configured via CANIX402_API_URL.",
         "Free tools: health, metadata, discovery, openapi, list_execution_shapes.",
         "Paid tools are walletless passthrough wrappers: initial call returns PAYMENT-REQUIRED metadata, retry with paymentSignature.",
@@ -39,6 +40,7 @@ export function createCanixMcpServer(options: CreateServerOptions = {}): McpServ
 
   registerFreeTools(server, client);
   registerPaidTools(server, client);
+  registerHaystackTools(server, client);
   registerResources(server, client);
   registerPrompts(server);
 

@@ -21,6 +21,7 @@
     "test:live:production": "npm run test:live:production -w protocol",
     "test:live:execution": "npm run test:live:execution -w protocol",
     "test:live:folks-execution": "npm run test:live:folks-execution -w protocol",
+    "test:live:haystack-swap": "npm run test:haystack-production -w protocol",
     "test:live:mcp": "npm run test:live -w @canix402/mcp",
     "dev:website": "npm run dev -w website",
     "build:website": "npm run build -w website",
