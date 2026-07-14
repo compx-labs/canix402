@@ -96,7 +96,9 @@ async function runTwoSidedAddLiquidity(): Promise<{
   const userAddress = account.addr.toString();
 
   const pool = await resolvePactAlgoUsdcPool(algod);
-  await ensureAssetOptIn(account, algod, pool.poolTokenId);
+  await ensureAssetOptIn(account, algod, pool.poolTokenId, {
+    waitForConfirmation: false
+  });
 
   const amounts = await computeBalancedPactAddAmounts(algod, ADD_USDC_MICRO_AMOUNT);
   const lpBalanceBefore = await getAssetBalance(algod, userAddress, pool.poolTokenId);

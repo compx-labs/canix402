@@ -82,7 +82,8 @@ export async function getAssetBalance(
 export async function ensureAssetOptIn(
   account: algosdk.Account,
   algod: Algodv2,
-  assetId: number
+  assetId: number,
+  options: { waitForConfirmation?: boolean } = {}
 ): Promise<void> {
   if (assetId === ALGO_ASSET_ID) {
     return;
@@ -116,7 +117,9 @@ export async function ensureAssetOptIn(
 
   const signed = algosdk.signTransaction(optInTxn, account.sk);
   const { txId } = await algod.sendRawTransaction(signed.blob).do();
-  await algosdk.waitForConfirmation(algod, txId, 4);
+  if (options.waitForConfirmation !== false) {
+    await algosdk.waitForConfirmation(algod, txId, 4);
+  }
 }
 
 export async function resolveTinymanAlgoUsdcPool(algod: Algodv2): Promise<TinymanPoolContext> {

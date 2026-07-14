@@ -186,7 +186,7 @@ async function runSetupDepositEscrow(userAddress: string): Promise<string> {
   });
 
   assert.equal(quoteResponse.data.shapeKey, SETUP_DEPOSIT_ESCROW_SHAPE);
-  assert.equal(quoteResponse.data.encodedTransactions.length, 2);
+  assert.equal(quoteResponse.data.encodedTransactions.length, 3);
 
   const escrowAddress = quoteResponse.data.metadata.escrowAddress;
   const escrowPrivateKeyBase64 = quoteResponse.data.metadata.escrowPrivateKeyBase64;
@@ -230,7 +230,7 @@ async function runSetupOptEscrowAsset(
   });
 
   assert.equal(quoteResponse.data.shapeKey, SETUP_OPT_ESCROW_ASSET_SHAPE);
-  assert.equal(quoteResponse.data.encodedTransactions.length, 1);
+  assert.equal(quoteResponse.data.encodedTransactions.length, 2);
 
   const signed = signEncodedTransactionGroup(
     quoteResponse.data.encodedTransactions,

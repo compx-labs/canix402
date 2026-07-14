@@ -555,6 +555,9 @@ Wallet requirements:
 
 - USDC ASA opted in
 - ALGO for txn fees
+- For a new Folks deposit escrow: 0.25 ALGO recoverable escrow minimum balance,
+  plus 0.1 ALGO recoverable minimum balance for the USDC fAsset opt-in. The
+  setup quote groups include these funding payments.
 - Enough USDC for x402 quote fees (up to ~0.4 USDC on first roundtrip if escrow
   setup and opt-in are required, plus 0.1 USDC deposit liquidity)
 
