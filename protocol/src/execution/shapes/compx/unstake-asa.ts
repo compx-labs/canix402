@@ -201,7 +201,6 @@ export const compxUnstakeAsaShape: TransactionShapeSpec<
     }
 
     const transactions = normalizeTransactions(rawTxns);
-    algosdk.assignGroupID(transactions);
 
     return {
       transactions,

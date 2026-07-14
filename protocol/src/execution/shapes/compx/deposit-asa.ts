@@ -157,7 +157,6 @@ export const compxDepositAsaShape: TransactionShapeSpec<
     rejectUnexpectedSignerMetadata(bundle.signers, input.userAddress);
 
     const transactions = normalizeTransactions(bundle.transactions);
-    algosdk.assignGroupID(transactions);
 
     return {
       transactions,

@@ -72,6 +72,26 @@ function buildContext(): ShapeBuildContext {
   };
 }
 
+function assertEncodedGroupIsValid(encodedTransactions: readonly string[]): void {
+  const transactions = encodedTransactions.map((encoded) =>
+    algosdk.decodeUnsignedTransaction(Buffer.from(encoded, "base64"))
+  );
+  const groupIds = transactions.map((txn) => Buffer.from(txn.group ?? []).toString("base64"));
+  assert.ok(groupIds.every((groupId) => groupId.length > 0));
+
+  const ungroupedTransactions = transactions.map((txn) =>
+    algosdk.decodeUnsignedTransaction(algosdk.encodeUnsignedTransaction(txn))
+  );
+  ungroupedTransactions.forEach((txn) => {
+    txn.group = undefined;
+  });
+
+  const computedGroupId = Buffer.from(algosdk.computeGroupID(ungroupedTransactions)).toString(
+    "base64"
+  );
+  assert.deepEqual(groupIds, new Array(groupIds.length).fill(computedGroupId));
+}
+
 function marketData(): MarketData {
   return {
     appId: MARKET_APP_ID,
@@ -222,6 +242,7 @@ test("deposit shape builds and validates 2-txn group without LST opt-in", async 
   );
 
   assert.equal(quote.transactions.length, 2);
+  assertEncodedGroupIsValid(quote.encodedTransactions);
   const input = compxDepositAsaShape.parseInput({
     userAddress: USER_ADDRESS,
     marketAppId: MARKET_APP_ID,
@@ -329,6 +350,7 @@ test("stake shape compileExecutableQuote builds 3-txn group with mocked finalize
   );
 
   assert.equal(quote.transactions.length, 3);
+  assertEncodedGroupIsValid(quote.encodedTransactions);
 });
 
 test("stake shape validates staker box MBR and ARC-4 selector", () => {

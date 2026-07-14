@@ -189,7 +189,6 @@ export const compxClaimRewardsShape: TransactionShapeSpec<
     }
 
     const transactions = normalizeTransactions(rawTxns);
-    algosdk.assignGroupID(transactions);
 
     return {
       transactions,
