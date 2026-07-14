@@ -1,4 +1,4 @@
-import algosdk, { Algodv2, SuggestedParams, Transaction } from "algosdk";
+import { Algodv2, SuggestedParams, Transaction } from "algosdk";
 import {
   calcDepositReturn,
   prepareDepositIntoPool,
@@ -28,7 +28,9 @@ import {
   FolksPoolState,
   MainnetOpUp,
   MainnetPoolManagerAppId,
+  createFolksBuilderAlgodClient,
   getAccountAssetBalance,
+  getFolksBuilderAlgodSdk,
   getSuggestedParams,
   resolveFolksEscrowContext,
   resolveFolksPoolState
@@ -184,7 +186,7 @@ export const folksFinanceDepositEscrowShape: TransactionShapeSpec<
 
     let params: SuggestedParams;
     try {
-      params = await dependencies.getSuggestedParams(context.algod);
+      params = await dependencies.getSuggestedParams(createFolksBuilderAlgodClient());
     } catch (error) {
       throw new ShapeBuildError("Failed to fetch suggested params for Folks escrow deposit.", {
         cause: error
@@ -207,6 +209,7 @@ export const folksFinanceDepositEscrowShape: TransactionShapeSpec<
       });
     }
 
+    const builderAlgosdk = getFolksBuilderAlgodSdk();
     let groupTxns = depositTxns;
     if (input.includeOpUp) {
       groupTxns = dependencies.prefixWithOpUp(
@@ -218,8 +221,8 @@ export const folksFinanceDepositEscrowShape: TransactionShapeSpec<
       );
     }
 
+    builderAlgosdk.assignGroupID(groupTxns);
     const transactions = normalizeTransactions(groupTxns);
-    algosdk.assignGroupID(transactions);
 
     const expectedFAssetOut = calcDepositReturn(
       input.assetAmount,

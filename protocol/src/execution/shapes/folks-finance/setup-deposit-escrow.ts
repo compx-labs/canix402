@@ -1,4 +1,4 @@
-import algosdk, { Account, Algodv2, SuggestedParams, Transaction } from "algosdk";
+import { Account, Algodv2, SuggestedParams, Transaction } from "algosdk";
 import { prepareAddDepositEscrowToDeposits } from "@folks-finance/algorand-sdk";
 
 import { InvalidShapeInputError, ShapeBuildError } from "../../errors.js";
@@ -14,6 +14,8 @@ import {
 import { parseAddress } from "./parse-input.js";
 import {
   MainnetDepositsAppId,
+  createFolksBuilderAlgodClient,
+  getFolksBuilderAlgodSdk,
   getDepositsAppAddress,
   getSuggestedParams
 } from "./pool-state.js";
@@ -113,7 +115,7 @@ export const folksFinanceSetupDepositEscrowShape: TransactionShapeSpec<
   },
 
   async build(
-    context: ShapeBuildContext,
+    _context: ShapeBuildContext,
     input: FolksSetupDepositEscrowInput,
     state: FolksSetupDepositEscrowState
   ): Promise<ShapeBuildResult> {
@@ -126,7 +128,7 @@ export const folksFinanceSetupDepositEscrowShape: TransactionShapeSpec<
 
     let params: SuggestedParams;
     try {
-      params = await dependencies.getSuggestedParams(context.algod);
+      params = await dependencies.getSuggestedParams(createFolksBuilderAlgodClient());
     } catch (error) {
       throw new ShapeBuildError("Failed to fetch suggested params for Folks escrow setup.", {
         cause: error
@@ -146,9 +148,10 @@ export const folksFinanceSetupDepositEscrowShape: TransactionShapeSpec<
       });
     }
 
-    const fundEscrowTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+    const builderAlgosdk = getFolksBuilderAlgodSdk();
+    const fundEscrowTxn = builderAlgosdk.makePaymentTxnWithSuggestedParamsFromObject({
       sender: input.userAddress,
-      receiver: result.escrow.addr,
+      receiver: result.escrow.addr.toString(),
       amount: ESCROW_APP_OPT_IN_MIN_BALANCE,
       suggestedParams: {
         ...params,
@@ -156,8 +159,9 @@ export const folksFinanceSetupDepositEscrowShape: TransactionShapeSpec<
         fee: 1000
       }
     });
-    const transactions = normalizeTransactions([fundEscrowTxn, ...result.txns]);
-    algosdk.assignGroupID(transactions);
+    const groupTxns = [fundEscrowTxn as unknown as Transaction, ...result.txns];
+    builderAlgosdk.assignGroupID(groupTxns);
+    const transactions = normalizeTransactions(groupTxns);
 
     return {
       transactions,

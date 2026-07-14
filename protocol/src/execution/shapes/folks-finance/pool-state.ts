@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import algosdk, { Algodv2, Indexer, SuggestedParams } from "algosdk";
 import {
   MainnetDepositsAppId,
@@ -16,6 +17,9 @@ import {
 import { ShapeStateError } from "../../errors.js";
 import type { ExecutionNetwork } from "../../types.js";
 import { createExecutionAlgodClient } from "../tinyman/pool-state.js";
+
+const require = createRequire(import.meta.url);
+const commonJsAlgodSdk = require("algosdk") as typeof import("algosdk");
 
 export interface FolksPoolState {
   network: ExecutionNetwork;
@@ -73,6 +77,21 @@ export function createExecutionIndexerClient(): Indexer {
   const server = process.env.X402_INDEXER_URL ?? "https://mainnet-idx.algonode.cloud";
   const token = process.env.X402_INDEXER_TOKEN ?? "";
   return new algosdk.Indexer(token, trimTrailingSlash(server), "");
+}
+
+/**
+ * @folks-finance/algorand-sdk is published through its CommonJS entry point.
+ * Its transaction builders can return CommonJS algosdk Address/Transaction
+ * values, so use the matching algosdk instance while constructing those groups.
+ */
+export function createFolksBuilderAlgodClient(): Algodv2 {
+  const server = process.env.X402_ALGOD_URL ?? "https://mainnet-api.algonode.cloud";
+  const token = process.env.X402_ALGOD_TOKEN ?? "";
+  return new commonJsAlgodSdk.Algodv2(token, trimTrailingSlash(server), "") as unknown as Algodv2;
+}
+
+export function getFolksBuilderAlgodSdk(): typeof import("algosdk") {
+  return commonJsAlgodSdk;
 }
 
 export async function getSuggestedParams(algod: Algodv2): Promise<SuggestedParams> {
