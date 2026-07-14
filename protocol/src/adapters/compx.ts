@@ -65,16 +65,18 @@ export async function fetchCompXOpportunities(): Promise<OpportunityRecordV1[]> 
     const algodClient = dependencies.createAlgodClient();
     const sdk = dependencies.createSdk(algodClient);
 
-    const [markets, pools] = await Promise.all([
-      dependencies.getAllMarketsFn.call(sdk.lending),
-      dependencies.getAllPoolsFn.call(sdk.staking)
-    ]);
+    const markets = await dependencies.getAllMarketsFn.call(sdk.lending);
+    const pools = await dependencies.getAllPoolsFn.call(sdk.staking);
 
     const assetIds = collectUniqueAssetIds(markets, pools);
-    const [assets, decimalsByAssetId] = await Promise.all([
-      dependencies.getAssetsInfoFn.call(sdk.lending, assetIds),
-      resolveAssetDecimals(assetIds, algodClient)
-    ]);
+    const assets = await dependencies.getAssetsInfoFn.call(
+      sdk.lending,
+      assetIds
+    );
+    const decimalsByAssetId = await resolveAssetDecimals(
+      assetIds,
+      algodClient
+    );
     const assetById = new Map(assets.map((asset) => [asset.id, asset]));
 
     const priceableStakingAssetIds = collectOraclePriceableAssetIds(markets, pools);
@@ -94,51 +96,54 @@ export async function fetchCompXOpportunities(): Promise<OpportunityRecordV1[]> 
       )
       .filter((record): record is OpportunityRecordV1 => record !== null);
 
-    const stakingOpportunities = (
-      await Promise.all(
-        pools
-          .filter((pool) => passesStakingActiveFilter(pool, dependencies.onlyActive))
-          .map(async (pool) => {
-            const stakedDecimals = decimalsByAssetId.get(pool.stakedAssetId);
-            const rewardDecimals = decimalsByAssetId.get(pool.rewardAssetId);
-            // Both staked and reward decimals must come from chain: staked
-            // decimals drive TVL, reward decimals drive the APR estimate.
-            // Guessing either produces materially wrong yields, so drop the row.
-            if (stakedDecimals === undefined || rewardDecimals === undefined) {
-              return null;
-            }
+    const stakingOpportunities: OpportunityRecordV1[] = [];
+    for (const pool of pools.filter((candidate) =>
+      passesStakingActiveFilter(candidate, dependencies.onlyActive)
+    )) {
+      const stakedDecimals = decimalsByAssetId.get(pool.stakedAssetId);
+      const rewardDecimals = decimalsByAssetId.get(pool.rewardAssetId);
+      // Both staked and reward decimals must come from chain: staked
+      // decimals drive TVL, reward decimals drive the APR estimate.
+      // Guessing either produces materially wrong yields, so drop the row.
+      if (stakedDecimals === undefined || rewardDecimals === undefined) {
+        continue;
+      }
 
-            const stakedAsset = assetById.get(pool.stakedAssetId);
-            const rewardAsset = assetById.get(pool.rewardAssetId);
-            const stakedAssetPriceUsd = priceByAssetId.get(pool.stakedAssetId);
-            const rewardAssetPriceUsd = priceByAssetId.get(pool.rewardAssetId);
+      const stakedAsset = assetById.get(pool.stakedAssetId);
+      const rewardAsset = assetById.get(pool.rewardAssetId);
+      const stakedAssetPriceUsd = priceByAssetId.get(pool.stakedAssetId);
+      const rewardAssetPriceUsd = priceByAssetId.get(pool.rewardAssetId);
 
-            const aprOptions: Parameters<GetPoolAprFn>[1] = {
-              nowTimestamp: Math.floor(Date.now() / 1000),
-              stakedAssetDecimals: stakedDecimals,
-              rewardAssetDecimals: rewardDecimals
-            };
-            if (stakedAssetPriceUsd !== undefined) {
-              aprOptions.stakedAssetPriceUsd = stakedAssetPriceUsd;
-            }
-            if (rewardAssetPriceUsd !== undefined) {
-              aprOptions.rewardAssetPriceUsd = rewardAssetPriceUsd;
-            }
+      const aprOptions: Parameters<GetPoolAprFn>[1] = {
+        nowTimestamp: Math.floor(Date.now() / 1000),
+        stakedAssetDecimals: stakedDecimals,
+        rewardAssetDecimals: rewardDecimals
+      };
+      if (stakedAssetPriceUsd !== undefined) {
+        aprOptions.stakedAssetPriceUsd = stakedAssetPriceUsd;
+      }
+      if (rewardAssetPriceUsd !== undefined) {
+        aprOptions.rewardAssetPriceUsd = rewardAssetPriceUsd;
+      }
 
-            const apr = await dependencies.getPoolAprFn.call(sdk.staking, pool.appId, aprOptions);
-
-            return normalizeCompxStakingOpportunity({
-              pool,
-              apr,
-              stakedAsset,
-              rewardAsset,
-              stakedAssetPriceUsd,
-              stakedDecimals,
-              fetchedAtIso: fetchedAt
-            });
-          })
-      )
-    ).filter((record): record is OpportunityRecordV1 => record !== null);
+      const apr = await dependencies.getPoolAprFn.call(
+        sdk.staking,
+        pool.appId,
+        aprOptions
+      );
+      const opportunity = normalizeCompxStakingOpportunity({
+        pool,
+        apr,
+        stakedAsset,
+        rewardAsset,
+        stakedAssetPriceUsd,
+        stakedDecimals,
+        fetchedAtIso: fetchedAt
+      });
+      if (opportunity !== null) {
+        stakingOpportunities.push(opportunity);
+      }
+    }
 
     const opportunities = [...lendingOpportunities, ...stakingOpportunities];
 

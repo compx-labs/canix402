@@ -1,6 +1,6 @@
 # CANIX402 — full agent integration guide
 
-> x402-gated Algorand DeFi opportunities data API (version 1.0.0). Normalized yield data for autonomous agents; USDC micropayments at the gateway; no transaction building.
+> x402-gated Algorand DeFi opportunities data API (version 0.1.0). Normalized yield data for autonomous agents; USDC micropayments at the gateway; no transaction building.
 
 ## Overview
 
@@ -27,7 +27,7 @@ Always call the **gateway**, not an internal upstream API. x402 enforcement, `PA
 
 ### MCP server
 
-Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_get_execution_quote`, and free discovery helpers. See https://canix402.compx.io/mcp.
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_get_positions`, `canix_get_execution_quote`, and free discovery helpers. See https://canix402.compx.io/mcp.
 
 ## x402 payment flow
 
@@ -64,6 +64,8 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `GET /protocols/:protocol/opportunities` (0.01 USDC) — Top 25 DeFi opportunities for a single protocol ranked by APY. Params: :protocol, limit=, offset=, includeInactive=.
 - `GET /opportunities/search` (0.01 USDC) — Caller-filtered opportunities across supported platforms. Params: platform=, type=, minApy=, maxApy=, minTvlUsd=, limit=, offset=, includeInactive=.
 - `GET /opportunities/personalized` (0.05 USDC) — Top opportunities tuned to a wallet's held assets. Params: address=, limit=, offset=, includeInactive=.
+- `GET /positions` (0.005 USDC) — Algorand DeFi positions held by a wallet. Params: address=.
+- `POST /execution/quotes` (0.1 USDC) — Compile a verified transaction shape into unsigned Algorand transactions.
 
 ### Route notes
 
@@ -71,6 +73,7 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `GET /protocols/:protocol/opportunities` — protocol slug e.g. `tinyman`, `pact`, `folks-finance`, `compx`, `dork-fi`.
 - `GET /opportunities/search` — filter by `platform`, `type`, `minApy`, `maxApy`, `minTvlUsd`.
 - `GET /opportunities/personalized` — requires `address` (Algorand account); premium price; matches opportunities to wallet-held assets.
+- `GET /positions` — requires `address` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
 
 Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-known/x402.json`.
 

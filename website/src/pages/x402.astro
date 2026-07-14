@@ -2,7 +2,12 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import PaymentFlow from "../components/PaymentFlow.astro";
 import CodeBlock from "../components/CodeBlock.astro";
-import { config } from "../lib/config";
+import {
+  config,
+  defaultPaidPriceUsdc,
+  personalizedPriceUsdc,
+  positionsPriceUsdc
+} from "../lib/config";
 ---
 
 <BaseLayout
@@ -41,8 +46,10 @@ import { config } from "../lib/config";
   <section class="panel">
     <h2>Per-route pricing</h2>
     <p>
-      Most paid routes default to <code>0.01 USDC</code>. Wallet-personalized opportunities at
-      <code>/opportunities/personalized</code> are priced separately (currently <code>0.05 USDC</code>).
+      Most paid routes default to <code>{defaultPaidPriceUsdc} USDC</code>. Wallet-personalized
+      opportunities at <code>/opportunities/personalized</code> cost
+      <code>{personalizedPriceUsdc} USDC</code>, while <code>/positions?address=</code> costs
+      exactly <code>{positionsPriceUsdc} USDC</code> (<code>5000</code> micro-USDC).
       See the <a href="/endpoints">endpoint catalog</a> for current values from discovery metadata.
     </p>
   </section>

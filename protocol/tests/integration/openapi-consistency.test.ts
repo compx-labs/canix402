@@ -5,10 +5,22 @@ import { buildApp } from "../../src/app.js";
 import { SupportedProtocolValues } from "../../src/routes/schemas.js";
 import { endpointPolicyMatrix } from "../../src/services/payment-policy.js";
 import { OpportunityRecordSchema } from "../../src/types/opportunity-schema.js";
+import {
+  PositionRecordSchema,
+  WalletPositionsResponseSchema
+} from "../../src/types/position-schema.js";
 
 interface OpenApiOperation {
-  "x-x402"?: unknown;
-  "x-payment-info"?: unknown;
+  "x-x402"?: {
+    requirementTemplate?: {
+      maxAmountRequired?: string;
+    };
+  };
+  "x-payment-info"?: {
+    price?: {
+      amount?: string;
+    };
+  };
   security?: unknown[];
 }
 
@@ -80,6 +92,13 @@ test("paid operations expose x-x402 metadata", async () => {
     assert.ok(operation?.["x-payment-info"]);
   }
 
+  const positionsOperation = openapi.paths["/positions"]?.get;
+  assert.equal(
+    positionsOperation?.["x-x402"]?.requirementTemplate?.maxAmountRequired,
+    "0.005"
+  );
+  assert.equal(positionsOperation?.["x-payment-info"]?.price?.amount, "0.005");
+
   const freePolicyEndpoints = endpointPolicyMatrix.filter(
     (endpoint) => endpoint.access === "free"
   );
@@ -127,6 +146,46 @@ test("opportunity record schema stays aligned with TypeBox contract", async () =
   assert.deepEqual(opportunityTypeProperty?.enum, ["lp", "farm", "staking", "lending"]);
   assert.deepEqual(yieldBasisProperty?.enum, ["apy", "apr"]);
   assert.equal(assetIdsProperty?.type, "array");
+
+  await app.close();
+});
+
+test("position record schema stays aligned with TypeBox contract", async () => {
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "GET",
+    url: "/openapi.json"
+  });
+  assert.equal(response.statusCode, 200);
+
+  const openapi = response.json() as OpenApiDocument;
+  const openapiRecord = openapi.components.schemas.PositionRecord;
+  assert.ok(openapiRecord);
+
+  const openapiRequired = [...(openapiRecord.required ?? [])].sort();
+  const typeboxRequired = [
+    ...((PositionRecordSchema as unknown as { required?: string[] }).required ?? [])
+  ].sort();
+  assert.deepEqual(openapiRequired, typeboxRequired);
+  assert.deepEqual(
+    Object.keys(openapiRecord.properties ?? {}).sort(),
+    Object.keys(
+      (PositionRecordSchema as unknown as { properties?: Record<string, unknown> })
+        .properties ?? {}
+    ).sort()
+  );
+
+  const openapiResponse = openapi.components.schemas.WalletPositionsResponse;
+  assert.ok(openapiResponse);
+  assert.deepEqual(
+    [...(openapiResponse.required ?? [])].sort(),
+    [
+      ...((WalletPositionsResponseSchema as unknown as { required?: string[] })
+        .required ?? [])
+    ].sort()
+  );
 
   await app.close();
 });

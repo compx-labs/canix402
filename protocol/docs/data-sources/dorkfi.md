@@ -6,14 +6,28 @@ This document defines the current Dork.fi adapter contract used by canix402.
 
 - Mode: API-first
 - Adapter file: `src/adapters/dorkfi.ts`
+- Wallet position collector: `src/services/protocol-positions.ts`
 - Base URL: `DORKFI_API_BASE_URL`
 - Endpoint used: `GET /dorkfi-opportunities-latest.json`
+- Position endpoint: `GET {DORKFI_INDEXED_API_BASE_URL}/user-health/user/{address}`
 - Network policy: Algorand-only rows are normalized; non-Algorand rows are ignored.
 
 ## Environment Variables
 
 - `DORKFI_API_BASE_URL` (required)
 - `DORKFI_API_KEY` (optional; sent as bearer token when configured)
+- `DORKFI_INDEXED_API_BASE_URL` (optional; defaults to `https://dorkfi-api.nautilus.sh`)
+
+## Wallet Positions
+
+`GET /positions` uses Dork.fi's indexed health response first. It emits pool-level
+supplied and debt rows with USD values and health factors. These are deliberately
+identified as USD summaries rather than asset-level token balances.
+
+If the indexed source is unavailable, the collector falls back to verified
+Algorand ASA markets, reads the wallet's nToken balances on-chain, and simulates
+their current withdrawal value. The fallback cannot provide debt, health, or USD
+valuation, so Dork.fi is reported as `partial` and aggregate totals remain `null`.
 
 ## Normalized Output Fields
 

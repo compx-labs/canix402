@@ -88,6 +88,7 @@ export async function resolveDorkFiLendingMarketState(params: {
   marketAppId: number;
   assetId: number;
   userAddress: string;
+  userAssetHoldings?: ReadonlyMap<number, bigint>;
 }): Promise<DorkFiLendingMarketState> {
   const dependencies = resolveDependencies();
 
@@ -151,15 +152,28 @@ export async function resolveDorkFiLendingMarketState(params: {
     });
   }
 
-  const [userAssetBalance, userNTokenBalance, userOptedIntoAsset] = await Promise.all([
-    dependencies.getAccountAssetBalance(params.algod, params.userAddress, params.assetId),
-    dependencies.getArc200Balance({
-      algod: params.algod,
-      contractAppId: params.marketAppId,
-      userAddress: params.userAddress
-    }),
-    dependencies.isAssetOptedIn(params.algod, params.userAddress, params.assetId)
-  ]);
+  const userAssetBalance =
+    params.userAssetHoldings === undefined
+      ? await dependencies.getAccountAssetBalance(
+          params.algod,
+          params.userAddress,
+          params.assetId
+        )
+      : (params.userAssetHoldings.get(params.assetId) ?? 0n);
+  const userNTokenBalance = await dependencies.getArc200Balance({
+    algod: params.algod,
+    contractAppId: params.marketAppId,
+    userAddress: params.userAddress
+  });
+  const userOptedIntoAsset =
+    params.assetId === 0 ||
+    (params.userAssetHoldings === undefined
+      ? await dependencies.isAssetOptedIn(
+          params.algod,
+          params.userAddress,
+          params.assetId
+        )
+      : params.userAssetHoldings.has(params.assetId));
 
   return {
     network: params.network,

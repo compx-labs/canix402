@@ -75,6 +75,9 @@ opportunities:
 - Adapter currently performs on-demand fetches per request.
 - No retry loop is implemented in this phase.
 - No persistent cache is used yet (future phases will add cache strategy).
+- Wallet positions do not scan the opportunity catalog. `/positions` sends the
+  positive ASA ids from its shared indexer snapshot as `liquidity_asset_ids` and
+  values only the LP tokens returned by that targeted query.
 
 ## Known Caveats
 

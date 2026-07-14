@@ -71,6 +71,7 @@ export async function resolveCompXStakingPoolState(params: {
   algod: Algodv2;
   poolAppId: number;
   userAddress: string;
+  userAssetHoldings?: ReadonlyMap<number, bigint>;
   now?: () => number;
 }): Promise<CompXStakingPoolState> {
   const dependencies = resolveDependencies();
@@ -139,10 +140,25 @@ export async function resolveCompXStakingPoolState(params: {
     hasBox: stakerRecord !== null
   };
 
-  const [userStakedBalance, userOptedIntoRewardAsset] = await Promise.all([
-    dependencies.getAccountAssetBalance(algod, userAddress, pool.stakedAssetId),
-    dependencies.isAssetOptedIn(algod, userAddress, pool.rewardAssetId)
-  ]);
+  const [userStakedBalance, userOptedIntoRewardAsset] =
+    params.userAssetHoldings === undefined
+      ? await Promise.all([
+          dependencies.getAccountAssetBalance(
+            algod,
+            userAddress,
+            pool.stakedAssetId
+          ),
+          dependencies.isAssetOptedIn(
+            algod,
+            userAddress,
+            pool.rewardAssetId
+          )
+        ])
+      : [
+          params.userAssetHoldings.get(pool.stakedAssetId) ?? 0n,
+          pool.rewardAssetId === 0 ||
+            params.userAssetHoldings.has(pool.rewardAssetId)
+        ];
 
   return {
     network,

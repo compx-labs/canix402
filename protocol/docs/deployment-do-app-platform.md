@@ -38,6 +38,7 @@ X402_PAY_TO=<your-address>
 X402_PRICE_AGGREGATE_USDC=0.01
 X402_PRICE_SEARCH_USDC=0.01
 X402_PRICE_PERSONALIZED_USDC=0.05
+X402_PRICE_POSITIONS_USDC=0.005
 X402_PRICE_PROTOCOL_USDC=0.01
 X402_PRICE_EXECUTION_QUOTE_USDC=0.1
 X402_NETWORK=algorand-mainnet
@@ -45,8 +46,9 @@ X402_SCHEME=exact
 ```
 
 The **protocol** (internal API) component should also set
-`X402_PRICE_EXECUTION_QUOTE_USDC=0.1` so discovery/OpenAPI metadata matches the
-Caddy gate (see [`protocol/.env.example`](../.env.example)).
+`X402_PRICE_POSITIONS_USDC=0.005` and `X402_PRICE_EXECUTION_QUOTE_USDC=0.1` so
+discovery/OpenAPI metadata matches the Caddy gate (see
+[`protocol/.env.example`](../.env.example)).
 
 `UPSTREAM_API` must use the protocol component's **internal** hostname on App
 Platform (for example `http://canix402-protocol:3000`), not `localhost`.
@@ -70,9 +72,11 @@ Website stays on `canix402.compx.io` → website component.
 ```sh
 curl -s https://canix402-api.compx.io/health
 curl -s -o /dev/null -w "%{http_code}\n" https://canix402-api.compx.io/opportunities
+curl -s -o /dev/null -w "%{http_code}\n" "https://canix402-api.compx.io/positions?address=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
 curl -s -o /dev/null -w "%{http_code}\n" -X POST https://canix402-api.compx.io/execution/quotes \
   -H "content-type: application/json" \
   -d '{"shapeKey":"mainnet:tinyman:v2:addLiquidity:flexible","input":{"userAddress":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ","assetAId":31566704,"assetAAmount":"1000000","assetBId":0,"assetBAmount":"1000000","maxSlippageBps":50}}'
 ```
 
-Expect `200` on health and `402` on paid routes (including `POST /execution/quotes`).
+Expect `200` on health and `402` on paid routes. The `/positions` preflight must
+advertise `5000` micro-USDC in `PAYMENT-REQUIRED`.

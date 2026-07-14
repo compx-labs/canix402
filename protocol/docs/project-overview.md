@@ -127,6 +127,7 @@ Planned endpoint families (exact contracts to be defined during implementation):
 - Protocol-specific opportunities endpoint
 - Caller-filtered opportunities endpoint (`/opportunities/search`)
 - Wallet-personalized opportunities endpoint (`/opportunities/personalized`)
+- Wallet DeFi positions endpoint (`/positions?address=`)
 - Health/metadata endpoints (non-paid where appropriate)
 - Discovery endpoints (`/discovery`, `/openapi.json`) for agents and marketplaces
 
@@ -147,6 +148,28 @@ A premium paid route (0.05 USDC) that tunes results to a specific wallet:
   results are ranked by APY and capped (default top 10).
 - Pricing is configured independently via `X402_PRICE_PERSONALIZED_USDC` in both the
   API discovery metadata and the Caddy accept policy.
+
+### Wallet Positions (`GET /positions?address=`)
+
+A paid wallet data route priced at exactly 0.005 USDC:
+
+- Caller supplies a required Algorand `address` query parameter.
+- One authenticated indexer lookup supplies the wallet's ASA balances and
+  application local state to every protocol collector.
+- Collectors run sequentially. Tinyman queries only liquidity-token ids held by
+  the wallet; Pact maps held LP tokens and wallet-local farm app ids against a
+  short-lived protocol metadata cache before making any on-chain farm calls.
+- The response normalizes supplied, LP, staked, debt, and reward positions found
+  across Tinyman, Pact, Folks Finance, CompX, and Dork.fi. Base-unit and decimal
+  token amounts are strings to preserve precision.
+- Every protocol reports `ok`, `partial`, or `unavailable`. Partial upstream
+  failures do not discard successful protocol data; the route returns `502` only
+  when all five sources are unavailable.
+- USD totals cover supplied value, debt, rewards, and net value. A `null` total
+  means its coverage or pricing is incomplete and must not be interpreted as zero.
+- Discovery and OpenAPI advertise the route as paid with `maxAmountRequired: "0.005"`.
+- Caddy enforces `X402_PRICE_POSITIONS_USDC=0.005`, which is encoded as `5000`
+  micro-USDC in `PAYMENT-REQUIRED`.
 
 ## Discovery Contract (Grade A)
 

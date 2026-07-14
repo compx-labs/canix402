@@ -136,7 +136,12 @@ function buildDiscoveryDocument(): DiscoveryDocument {
       tags: endpoint.tags,
       pathParams: endpoint.pathParams ?? [],
       queryParams: endpoint.queryParams ?? [],
-      responseCodes: endpoint.access === "paid" ? [200, 402, 500] : [200, 500]
+      responseCodes:
+        endpoint.id === "positions"
+          ? [200, 400, 402, 500, 502]
+          : endpoint.access === "paid"
+            ? [200, 402, 500]
+            : [200, 500]
     };
 
     return endpoint.access === "paid"

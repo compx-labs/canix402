@@ -2,6 +2,22 @@ export type { ApiSuccess, MetaValue } from "./api.js";
 export type { ApiError, ApiErrorCode } from "./errors.js";
 export type { OpportunityRecordV1, YieldBasis } from "./opportunity.js";
 export type {
+  PositionRecordV1,
+  PositionType,
+  ProtocolPositionResult,
+  ProtocolPositionStatus,
+  WalletPositionTotals,
+  WalletPositionsResponse
+} from "./position.js";
+export {
+  PositionRecordSchema,
+  PositionTypeSchema,
+  ProtocolPositionResultSchema,
+  ProtocolPositionStatusSchema,
+  WalletPositionsQuerySchema,
+  WalletPositionsResponseSchema
+} from "./position-schema.js";
+export type {
   DiscoveryDocument,
   DiscoveryEndpointDescriptor,
   DiscoveryErrorDescriptor

@@ -1,0 +1,182 @@
+import type { Protocol } from "../routes/schemas.js";
+import type {
+  ProtocolPositionResult,
+  WalletPositionTotals,
+  WalletPositionsResponse
+} from "../types/position.js";
+import {
+  collectCompXPositions,
+  collectDorkFiPositions,
+  collectFolksFinancePositions,
+  collectPactPositions,
+  collectTinymanPositions,
+  type ProtocolPositionsCollection,
+  type PositionCollector
+} from "./protocol-positions.js";
+import {
+  emptyWalletSnapshot,
+  fetchWalletSnapshot
+} from "./wallet-snapshot.js";
+
+export const SUPPORTED_POSITION_PROTOCOLS = [
+  "tinyman",
+  "pact",
+  "folks-finance",
+  "compx",
+  "dorkfi"
+] as const satisfies readonly Protocol[];
+
+export class AllPositionSourcesUnavailableError extends Error {
+  public constructor() {
+    super("All wallet position sources are unavailable.");
+    this.name = "AllPositionSourcesUnavailableError";
+  }
+}
+
+type PositionCollectors = Record<Protocol, PositionCollector>;
+
+let collectorOverrides: Partial<PositionCollectors> | undefined;
+
+export function setPositionCollectorsForTests(
+  overrides?: Partial<PositionCollectors>
+): void {
+  collectorOverrides = overrides;
+}
+
+export async function fetchWalletPositions(
+  address: string
+): Promise<WalletPositionsResponse> {
+  const collectors = resolveCollectors();
+  const snapshot =
+    collectorOverrides === undefined
+      ? await fetchWalletSnapshot(address)
+      : emptyWalletSnapshot(address);
+  const settled: PromiseSettledResult<ProtocolPositionsCollection>[] = [];
+  for (const protocol of SUPPORTED_POSITION_PROTOCOLS) {
+    try {
+      settled.push({
+        status: "fulfilled",
+        value: await collectors[protocol](address, snapshot)
+      });
+    } catch (reason) {
+      settled.push({ status: "rejected", reason });
+    }
+  }
+  const data: WalletPositionsResponse["data"] = [];
+  const protocols: ProtocolPositionResult[] = [];
+  const coverage = {
+    suppliedUsdComplete: true,
+    borrowedUsdComplete: true,
+    rewardsUsdComplete: true
+  };
+
+  settled.forEach((result, index) => {
+    const protocol = SUPPORTED_POSITION_PROTOCOLS[index]!;
+    if (result.status === "rejected") {
+      coverage.suppliedUsdComplete = false;
+      coverage.borrowedUsdComplete = false;
+      coverage.rewardsUsdComplete = false;
+      protocols.push({
+        protocol,
+        status: "unavailable",
+        positionCount: 0,
+        message: errorMessage(result.reason)
+      });
+      return;
+    }
+
+    data.push(...result.value.positions);
+    const sourceCoverage = result.value.coverage ?? {
+      suppliedUsdComplete: result.value.warnings.length === 0,
+      borrowedUsdComplete: result.value.warnings.length === 0,
+      rewardsUsdComplete: result.value.warnings.length === 0
+    };
+    coverage.suppliedUsdComplete &&= sourceCoverage.suppliedUsdComplete;
+    coverage.borrowedUsdComplete &&= sourceCoverage.borrowedUsdComplete;
+    coverage.rewardsUsdComplete &&= sourceCoverage.rewardsUsdComplete;
+    protocols.push({
+      protocol,
+      status: result.value.warnings.length > 0 ? "partial" : "ok",
+      positionCount: result.value.positions.length,
+      message:
+        result.value.warnings.length > 0
+          ? result.value.warnings.join("; ")
+          : null
+    });
+  });
+
+  if (protocols.every((result) => result.status === "unavailable")) {
+    throw new AllPositionSourcesUnavailableError();
+  }
+
+  return {
+    data,
+    protocols,
+    totals: calculateTotals(data, coverage),
+    meta: {
+      address,
+      fetchedAt: new Date().toISOString()
+    }
+  };
+}
+
+function calculateTotals(
+  positions: WalletPositionsResponse["data"],
+  coverage: {
+    suppliedUsdComplete: boolean;
+    borrowedUsdComplete: boolean;
+    rewardsUsdComplete: boolean;
+  }
+): WalletPositionTotals {
+  const suppliedUsd = sumUsd(
+    positions.filter((position) =>
+      ["supplied", "lp", "staked"].includes(position.positionType)
+    ),
+    coverage.suppliedUsdComplete
+  );
+  const borrowedUsd = sumUsd(
+    positions.filter((position) => position.positionType === "debt"),
+    coverage.borrowedUsdComplete
+  );
+  const rewardsUsd = sumUsd(
+    positions.filter((position) => position.positionType === "reward"),
+    coverage.rewardsUsdComplete
+  );
+  return {
+    suppliedUsd,
+    borrowedUsd,
+    rewardsUsd,
+    netUsd:
+      suppliedUsd === null || borrowedUsd === null || rewardsUsd === null
+        ? null
+        : suppliedUsd - borrowedUsd + rewardsUsd
+  };
+}
+
+function sumUsd(
+  positions: WalletPositionsResponse["data"],
+  complete: boolean
+): number | null {
+  if (!complete || positions.some((position) => position.usdValue === null)) {
+    return null;
+  }
+  return positions.reduce(
+    (sum, position) => sum + (position.usdValue ?? 0),
+    0
+  );
+}
+
+function resolveCollectors(): PositionCollectors {
+  return {
+    tinyman: collectTinymanPositions,
+    pact: collectPactPositions,
+    "folks-finance": collectFolksFinancePositions,
+    compx: collectCompXPositions,
+    dorkfi: collectDorkFiPositions,
+    ...collectorOverrides
+  };
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}

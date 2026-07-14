@@ -234,6 +234,37 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
   );
 
   server.registerTool(
+    "canix_get_positions",
+    {
+      description:
+        "Fetch Algorand DeFi positions for a wallet (GET /positions). Paid: ~0.005 USDC via x402. First call returns PAYMENT-REQUIRED metadata; retry with paymentSignature.",
+      inputSchema: {
+        address: z.string().min(1),
+        paymentSignature: paymentSignatureArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const query = {
+          address: args.address
+        };
+        const result = await client.fetchPaid("/positions", {
+          method: "GET",
+          query,
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+        });
+        return formatPaidToolResult(result, "0.005", {
+          path: "/positions",
+          method: "GET",
+          query
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
     "canix_get_execution_quote",
     {
       description:

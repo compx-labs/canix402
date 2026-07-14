@@ -135,6 +135,45 @@ test("paid tool preflight returns PAYMENT_REQUIRED metadata", async () => {
   await server.close();
 });
 
+test("canix_get_positions forwards address and reports 0.005 preflight price", async () => {
+  let requestUrl = "";
+  let paymentSignature = "";
+  const server = createCanixMcpServer({
+    config: {
+      apiUrl: "https://example.test",
+      network: "algorand-mainnet"
+    },
+    fetchImpl: async (input, init) => {
+      requestUrl = String(input);
+      paymentSignature = String(
+        init?.headers && (init.headers as Record<string, string>)["PAYMENT-SIGNATURE"]
+      );
+      return new Response("payment required", { status: 402 });
+    }
+  });
+
+  const result = await registeredTools(server).canix_get_positions!.handler(
+    { address: "WALLET", paymentSignature: "signed-payload" },
+    {}
+  );
+
+  assert.equal(new URL(requestUrl).pathname, "/positions");
+  assert.equal(new URL(requestUrl).searchParams.get("address"), "WALLET");
+  assert.equal(paymentSignature, "signed-payload");
+  const text = result.content.find((part) => part.type === "text");
+  assert.ok(text?.text);
+  const payload = JSON.parse(text.text) as {
+    error: string;
+    mcpPayment: { priceUsdc: string };
+    request: { query: { address: string } };
+  };
+  assert.equal(payload.error, "PAYMENT_REQUIRED");
+  assert.equal(payload.mcpPayment.priceUsdc, "0.005");
+  assert.equal(payload.request.query.address, "WALLET");
+
+  await server.close();
+});
+
 test("MCP resources include discovery openapi and shapes", async () => {
   const server = createCanixMcpServer({
     config: {

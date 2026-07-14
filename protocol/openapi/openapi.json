@@ -426,6 +426,51 @@
         }
       }
     },
+    "/positions": {
+      "get": {
+        "summary": "Algorand DeFi positions held by a wallet",
+        "description": "Returns normalized DeFi positions associated with a supplied Algorand wallet address across supported protocols. Use when an agent needs a wallet-level view of deposited, supplied, staked, or liquidity positions and their current values. This endpoint provides position data only; it does not build or submit transactions.",
+        "tags": ["defi", "positions", "wallet"],
+        "parameters": [
+          {
+            "name": "address",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Algorand account address whose DeFi positions should be returned."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Wallet position list",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/WalletPositionsResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/InvalidAddress" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "500": { "$ref": "#/components/responses/InternalError" },
+          "502": { "$ref": "#/components/responses/InternalError" }
+        },
+        "x-payment-info": {
+          "protocols": [{ "x402": {} }],
+          "price": { "mode": "fixed", "currency": "USD", "amount": "0.005" }
+        },
+        "x-x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet",
+            "asset": "31566704",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.005"
+          }
+        }
+      }
+    },
     "/protocols/{protocol}/opportunities": {
       "get": {
         "summary": "Top 25 DeFi opportunities for a single protocol ranked by APY",
@@ -693,6 +738,123 @@
             "items": { "$ref": "#/components/schemas/PersonalizedOpportunityRecord" }
           },
           "meta": { "$ref": "#/components/schemas/PersonalizedOpportunitiesListMeta" }
+        }
+      },
+      "PositionRecord": {
+        "type": "object",
+        "description": "A protocol-neutral economic position. Integer base units and normalized token amounts are decimal strings to preserve precision.",
+        "required": [
+          "protocol",
+          "positionType",
+          "positionId",
+          "opportunityId",
+          "assetId",
+          "assetSymbol",
+          "amountRaw",
+          "amount",
+          "usdValue"
+        ],
+        "properties": {
+          "protocol": {
+            "type": "string",
+            "enum": ["tinyman", "pact", "folks-finance", "compx", "dorkfi"]
+          },
+          "positionType": {
+            "type": "string",
+            "enum": ["supplied", "lp", "staked", "debt", "reward"]
+          },
+          "positionId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "opportunityId": {
+            "type": ["string", "null"]
+          },
+          "assetId": {
+            "type": ["integer", "null"],
+            "minimum": 0
+          },
+          "assetSymbol": {
+            "type": ["string", "null"]
+          },
+          "amountRaw": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^[0-9]+(?:\\.[0-9]+)?$"
+          },
+          "usdValue": {
+            "type": ["number", "null"],
+            "minimum": 0
+          },
+          "healthFactor": {
+            "type": ["number", "null"],
+            "minimum": 0,
+            "description": "Protocol-reported collateral health ratio when applicable."
+          },
+          "sourceTimestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "caveats": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "notes": { "type": "string" }
+        }
+      },
+      "ProtocolPositionResult": {
+        "type": "object",
+        "required": ["protocol", "status", "positionCount", "message"],
+        "properties": {
+          "protocol": {
+            "type": "string",
+            "enum": ["tinyman", "pact", "folks-finance", "compx", "dorkfi"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ok", "partial", "unavailable"]
+          },
+          "positionCount": { "type": "integer", "minimum": 0 },
+          "message": { "type": ["string", "null"] }
+        }
+      },
+      "WalletPositionsResponse": {
+        "type": "object",
+        "required": ["data", "protocols", "totals", "meta"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PositionRecord" }
+          },
+          "protocols": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ProtocolPositionResult" }
+          },
+          "totals": {
+            "type": "object",
+            "description": "Aggregate USD totals. A null value means at least one relevant protocol or position could not be valued completely; null must not be interpreted as zero.",
+            "required": ["suppliedUsd", "borrowedUsd", "rewardsUsd", "netUsd"],
+            "properties": {
+              "suppliedUsd": { "type": ["number", "null"] },
+              "borrowedUsd": { "type": ["number", "null"] },
+              "rewardsUsd": { "type": ["number", "null"] },
+              "netUsd": { "type": ["number", "null"] }
+            }
+          },
+          "meta": {
+            "type": "object",
+            "required": ["address", "fetchedAt"],
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "Algorand address whose positions were queried."
+              },
+              "fetchedAt": { "type": "string", "format": "date-time" }
+            }
+          }
         }
       },
       "ExecutionQuoteInput": {

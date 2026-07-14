@@ -29,6 +29,12 @@ Protocol docs:
 - [Testing Guide](protocol/docs/testing.md)
 - [Caddy Gateway Setup](protocol/caddy/README.md)
 
+Query a wallet's DeFi positions directly from the protocol services:
+
+```sh
+npm run positions -- --address <Algorand address>
+```
+
 ### Website
 
 ```sh
