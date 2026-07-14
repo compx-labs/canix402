@@ -134,8 +134,8 @@ function poolState(): FolksPoolState {
 function buildSetupEscrowGroup(): algosdk.Transaction[] {
   const userTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
     sender: USER.addr,
-    receiver: ESCROW.addr,
-    amount: 100_000n,
+    receiver: algosdk.getApplicationAddress(MainnetDepositsAppId),
+    amount: 0n,
     suggestedParams: suggestedParams(2000)
   });
   const escrowTxn = algosdk.makeApplicationOptInTxnFromObject({
@@ -192,7 +192,7 @@ test("computeEscrowWithdrawParams maps amount denomination", () => {
   assert.equal(assetParams.isfAssetAmount, false);
 });
 
-test("setup deposit escrow shape builds 2-txn group with escrow metadata", async () => {
+test("setup deposit escrow shape builds funded 3-txn group with escrow metadata", async () => {
   setFolksSetupDepositEscrowDependenciesForTests({
     getSuggestedParams: async () => suggestedParams(1000),
     prepareAddDepositEscrowToDeposits: () => ({
@@ -207,9 +207,18 @@ test("setup deposit escrow shape builds 2-txn group with escrow metadata", async
     { depositsAppId: MainnetDepositsAppId, depositsAppAddress: "DEPOSITS" }
   );
 
-  assert.equal(result.transactions.length, 2);
+  assert.equal(result.transactions.length, 3);
+  const fundingTxn = result.transactions[0]!;
+  assert.equal(fundingTxn.payment?.receiver.toString(), ESCROW_ADDRESS);
+  assert.equal(fundingTxn.payment?.amount, 250_000n);
   assert.equal(result.metadata.escrowAddress, ESCROW_ADDRESS);
   assert.equal(typeof result.metadata.escrowPrivateKeyBase64, "string");
+  const validation = folksFinanceSetupDepositEscrowShape.validate(
+    result.transactions.map(serializeTransaction),
+    { userAddress: USER_ADDRESS },
+    { depositsAppId: MainnetDepositsAppId, depositsAppAddress: "DEPOSITS" }
+  );
+  assert.equal(validation.valid, true, validation.errors.join("; "));
 });
 
 test("deposit escrow shape validates 3-txn group", () => {
@@ -291,7 +300,7 @@ test("registry includes all Folks escrow shapes", async () => {
   assert.equal(quote.transactions.length, 3);
 });
 
-test("opt escrow asset shape builds single transaction", async () => {
+test("opt escrow asset shape builds funded 2-transaction group", async () => {
   setFolksSetupOptEscrowAssetDependenciesForTests({
     resolvePoolState: async () => poolState(),
     getSuggestedParams: async () => suggestedParams(1000),
@@ -314,8 +323,21 @@ test("opt escrow asset shape builds single transaction", async () => {
     poolState()
   );
 
-  assert.equal(result.transactions.length, 1);
+  assert.equal(result.transactions.length, 2);
+  const fundingTxn = result.transactions[0]!;
+  assert.equal(fundingTxn.payment?.receiver.toString(), ESCROW_ADDRESS);
+  assert.equal(fundingTxn.payment?.amount, 100_000n);
   assert.equal(result.metadata.escrowAddress, ESCROW_ADDRESS);
+  const validation = folksFinanceSetupOptEscrowAssetShape.validate(
+    result.transactions.map(serializeTransaction),
+    {
+      userAddress: USER_ADDRESS,
+      escrowAddress: ESCROW_ADDRESS,
+      poolAppId: USDC_POOL_APP_ID
+    },
+    poolState()
+  );
+  assert.equal(validation.valid, true, validation.errors.join("; "));
 });
 
 test.after(() => {

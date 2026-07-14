@@ -19,6 +19,7 @@ import {
 } from "./pool-state.js";
 
 const USER_ESCROW_SETUP_FEE = 2000n;
+const ESCROW_APP_OPT_IN_MIN_BALANCE = 250_000n;
 
 const IDENTITY: TransactionShapeIdentity = {
   network: "mainnet",
@@ -71,17 +72,22 @@ export const folksFinanceSetupDepositEscrowShape: TransactionShapeSpec<
 > = {
   identity: IDENTITY,
   key: buildShapeKey(IDENTITY),
-  shapeVersion: "1.0.0",
+  shapeVersion: "1.1.0",
   title: "Folks Finance v2 add deposit escrow",
   description:
-    "Creates a new Folks Finance deposit escrow for the user. Returns a 2-transaction " +
-    "group that must be signed by both the user and the generated escrow account.",
+    "Creates and funds a new Folks Finance deposit escrow for the user. Returns a " +
+    "3-transaction group that must be signed by both the user and the generated escrow account.",
   supportedOpportunityTypes: ["lending"],
   requiredInputs: ["userAddress"],
   sources: [
     {
       kind: "sdk",
       description: "@folks-finance/algorand-sdk prepareAddDepositEscrowToDeposits"
+    },
+    {
+      kind: "docs",
+      description: "Folks Finance recoverable deposit escrow minimum-balance funding",
+      url: "https://docs.folks.finance/introduction/need-help/fees"
     }
   ],
 
@@ -114,6 +120,7 @@ export const folksFinanceSetupDepositEscrowShape: TransactionShapeSpec<
     const dependencies = resolveDependencies();
     const warnings = [
       "Store escrowPrivateKeyBase64 securely; it is required to sign the escrow transaction in this group.",
+      "The group funds the recoverable 0.25 ALGO minimum balance required by the escrow app opt-in.",
       "After this setup confirms, run setup:optEscrowAsset before deposit:escrow for a specific pool."
     ];
 
@@ -139,7 +146,17 @@ export const folksFinanceSetupDepositEscrowShape: TransactionShapeSpec<
       });
     }
 
-    const transactions = normalizeTransactions(result.txns);
+    const fundEscrowTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      sender: input.userAddress,
+      receiver: result.escrow.addr,
+      amount: ESCROW_APP_OPT_IN_MIN_BALANCE,
+      suggestedParams: {
+        ...params,
+        flatFee: true,
+        fee: 1000
+      }
+    });
+    const transactions = normalizeTransactions([fundEscrowTxn, ...result.txns]);
     algosdk.assignGroupID(transactions);
 
     return {
@@ -162,24 +179,40 @@ export const folksFinanceSetupDepositEscrowShape: TransactionShapeSpec<
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    if (group.length !== 2) {
-      errors.push(`Expected exactly 2 transactions, received ${group.length}.`);
+    if (group.length !== 3) {
+      errors.push(`Expected exactly 3 transactions, received ${group.length}.`);
       return { valid: false, errors, warnings };
     }
 
-    const [userTxn, escrowTxn] = group;
+    const [fundingTxn, userTxn, escrowTxn] = group;
+    if (fundingTxn === undefined || fundingTxn.type !== "pay" || !fundingTxn.payment) {
+      errors.push("First transaction must fund the generated escrow.");
+    } else {
+      if (fundingTxn.sender !== input.userAddress) {
+        errors.push("Escrow funding transaction sender must be the user address.");
+      }
+      if (BigInt(fundingTxn.payment.amount) < ESCROW_APP_OPT_IN_MIN_BALANCE) {
+        errors.push(
+          `Escrow funding amount must be at least ${ESCROW_APP_OPT_IN_MIN_BALANCE.toString()} microAlgos.`
+        );
+      }
+      if (escrowTxn !== undefined && fundingTxn.payment.receiver !== escrowTxn.sender) {
+        errors.push("Escrow funding receiver must match the escrow opt-in sender.");
+      }
+    }
+
     if (userTxn === undefined) {
-      errors.push("Missing user setup transaction.");
+      errors.push("Missing user registration transaction.");
     } else if (userTxn.sender !== input.userAddress) {
-      errors.push("First transaction sender must be the user address.");
+      errors.push("Second transaction sender must be the user address.");
     } else if (BigInt(userTxn.fee) < USER_ESCROW_SETUP_FEE) {
       errors.push(
-        `First transaction fee must be at least ${USER_ESCROW_SETUP_FEE.toString()} microAlgos.`
+        `Second transaction fee must be at least ${USER_ESCROW_SETUP_FEE.toString()} microAlgos.`
       );
     }
 
     if (escrowTxn === undefined || escrowTxn.type !== "appl" || !escrowTxn.applicationCall) {
-      errors.push("Second transaction must be the escrow opt-in application call.");
+      errors.push("Third transaction must be the escrow opt-in application call.");
     } else {
       if (escrowTxn.applicationCall.appIndex !== String(state.depositsAppId)) {
         errors.push("Escrow opt-in must target the Folks deposits application.");

@@ -35,7 +35,7 @@ export const SwapQuoteRequestSchema = Type.Object({
 });
 
 export const HaystackTxnPayloadSchema = Type.Object({
-  iv: Type.String({ minLength: 1 }),
+  iv: Type.String(),
   data: Type.String({ minLength: 1 })
 });
 

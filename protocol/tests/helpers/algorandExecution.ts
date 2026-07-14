@@ -1,6 +1,7 @@
 import algosdk, { Algodv2 } from "algosdk";
-import { PactClient } from "@pactfi/pactsdk";
 import { poolUtils } from "@tinymanorg/tinyman-js-sdk";
+
+import { resolvePactPoolState } from "../../src/execution/shapes/pact/index.js";
 
 export const USDC_ASSET_ID = 31566704;
 export const ALGO_ASSET_ID = 0;
@@ -23,6 +24,24 @@ export interface PactPoolContext {
   poolTokenId: number;
   primaryAssetId: number;
   secondaryAssetId: number;
+}
+
+interface PactPoolApiAsset {
+  on_chain_id?: number | string | null;
+}
+
+interface PactPoolApiRecord {
+  on_chain_id?: number | string | null;
+  primary_asset?: PactPoolApiAsset | null;
+  secondary_asset?: PactPoolApiAsset | null;
+  pool_asset?: PactPoolApiAsset | null;
+  is_deprecated?: boolean | null;
+  is_verified?: boolean | null;
+  tvl_usd?: number | string | null;
+}
+
+interface PactPoolsApiResponse {
+  results?: PactPoolApiRecord[];
 }
 
 export interface SubmitTransactionGroupResult {
@@ -63,7 +82,8 @@ export async function getAssetBalance(
 export async function ensureAssetOptIn(
   account: algosdk.Account,
   algod: Algodv2,
-  assetId: number
+  assetId: number,
+  options: { waitForConfirmation?: boolean } = {}
 ): Promise<void> {
   if (assetId === ALGO_ASSET_ID) {
     return;
@@ -97,7 +117,9 @@ export async function ensureAssetOptIn(
 
   const signed = algosdk.signTransaction(optInTxn, account.sk);
   const { txId } = await algod.sendRawTransaction(signed.blob).do();
-  await algosdk.waitForConfirmation(algod, txId, 4);
+  if (options.waitForConfirmation !== false) {
+    await algosdk.waitForConfirmation(algod, txId, 4);
+  }
 }
 
 export async function resolveTinymanAlgoUsdcPool(algod: Algodv2): Promise<TinymanPoolContext> {
@@ -149,18 +171,17 @@ export async function computeBalancedAddAmounts(
 }
 
 export async function resolvePactAlgoUsdcPool(algod: Algodv2): Promise<PactPoolContext> {
-  const pact = new PactClient(algod, { network: "mainnet" });
-  const pools = await pact.fetchPoolsByAssets(ALGO_ASSET_ID, USDC_ASSET_ID);
+  const pools = await fetchPactAlgoUsdcPools();
   if (pools.length === 0) {
     throw new Error("No Pact ALGO/USDC pool found on mainnet.");
   }
 
-  const pool = pools[0];
+  const pool = selectPactPool(pools);
   return {
-    poolAppId: pool.appId,
-    poolTokenId: pool.liquidityAsset.index,
-    primaryAssetId: pool.primaryAsset.index,
-    secondaryAssetId: pool.secondaryAsset.index
+    poolAppId: parsePactApiId(pool.on_chain_id, "Pact pool app id"),
+    poolTokenId: parsePactApiId(pool.pool_asset?.on_chain_id, "Pact pool token id"),
+    primaryAssetId: parsePactApiId(pool.primary_asset?.on_chain_id, "Pact primary asset id"),
+    secondaryAssetId: parsePactApiId(pool.secondary_asset?.on_chain_id, "Pact secondary asset id")
   };
 }
 
@@ -168,21 +189,22 @@ export async function computeBalancedPactAddAmounts(
   algod: Algodv2,
   usdcMicroAmount: bigint
 ): Promise<BalancedAddAmounts> {
-  const pact = new PactClient(algod, { network: "mainnet" });
-  const pools = await pact.fetchPoolsByAssets(ALGO_ASSET_ID, USDC_ASSET_ID);
-  if (pools.length === 0) {
-    throw new Error("No Pact ALGO/USDC pool found on mainnet.");
-  }
-
-  const pool = pools[0];
-  if (pool.state.totalSecondary <= 0) {
+  const pool = await resolvePactAlgoUsdcPool(algod);
+  const state = await resolvePactPoolState({
+    network: "mainnet",
+    algod,
+    poolAppId: pool.poolAppId,
+    assetAId: ALGO_ASSET_ID,
+    assetBId: USDC_ASSET_ID
+  });
+  if (state.reserves.totalSecondary <= 0) {
     throw new Error("Pact pool secondary reserves must be positive.");
   }
 
   const secondaryAmount = usdcMicroAmount;
   const primaryAmount = BigInt(
     Math.round(
-      (Number(secondaryAmount) * pool.state.totalPrimary) / pool.state.totalSecondary
+      (Number(secondaryAmount) * state.reserves.totalPrimary) / state.reserves.totalSecondary
     )
   );
   if (primaryAmount <= 0n) {
@@ -195,6 +217,55 @@ export async function computeBalancedPactAddAmounts(
     assetBId: ALGO_ASSET_ID,
     assetBAmount: primaryAmount
   };
+}
+
+async function fetchPactAlgoUsdcPools(): Promise<PactPoolApiRecord[]> {
+  const baseUrl = trimTrailingSlash(process.env.PACT_API_BASE_URL ?? "https://api.pact.fi/api");
+  const url = new URL(`${baseUrl}/pools`);
+  url.searchParams.set("primary_asset__on_chain_id", ALGO_ASSET_ID.toString());
+  url.searchParams.set("secondary_asset__on_chain_id", USDC_ASSET_ID.toString());
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Pact pool lookup failed with HTTP ${response.status}.`);
+  }
+
+  const payload = (await response.json()) as PactPoolsApiResponse;
+  return payload.results ?? [];
+}
+
+function selectPactPool(pools: readonly PactPoolApiRecord[]): PactPoolApiRecord {
+  const currentVerified = pools.filter(
+    (pool) => pool.is_deprecated !== true && pool.is_verified === true
+  );
+  const current = pools.filter((pool) => pool.is_deprecated !== true);
+  const candidates =
+    currentVerified.length > 0 ? currentVerified : current.length > 0 ? current : [...pools];
+
+  return [...candidates].sort((left, right) => toNumber(right.tvl_usd) - toNumber(left.tvl_usd))[0]!;
+}
+
+function parsePactApiId(value: number | string | null | undefined, label: string): number {
+  const parsed = typeof value === "string" ? Number(value) : value;
+  if (typeof parsed !== "number" || !Number.isSafeInteger(parsed) || parsed < 0) {
+    throw new Error(`${label} is missing or invalid.`);
+  }
+  return parsed;
+}
+
+function toNumber(value: number | string | null | undefined): number {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : 0;
+  }
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+}
+
+function trimTrailingSlash(value: string): string {
+  return value.endsWith("/") ? value.slice(0, -1) : value;
 }
 
 export async function getDorkFiArc200Balance(

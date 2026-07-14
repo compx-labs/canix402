@@ -27,6 +27,7 @@ import {
 } from "./pool-state.js";
 
 const OPT_ESCROW_APP_CALL_FEE = 2000n;
+const ASSET_OPT_IN_MIN_BALANCE = 100_000n;
 
 const IDENTITY: TransactionShapeIdentity = {
   network: "mainnet",
@@ -84,16 +85,21 @@ export const folksFinanceSetupOptEscrowAssetShape: TransactionShapeSpec<
 > = {
   identity: IDENTITY,
   key: buildShapeKey(IDENTITY),
-  shapeVersion: "1.0.0",
+  shapeVersion: "1.1.0",
   title: "Folks Finance v2 opt deposit escrow into pool fAsset",
   description:
-    "Opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+    "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
   supportedOpportunityTypes: ["lending"],
   requiredInputs: ["userAddress", "escrowAddress"],
   sources: [
     {
       kind: "sdk",
       description: "@folks-finance/algorand-sdk prepareOptDepositEscrowIntoAssetInDeposits"
+    },
+    {
+      kind: "docs",
+      description: "Folks Finance recoverable per-asset minimum-balance funding",
+      url: "https://docs.folks.finance/introduction/need-help/fees"
     }
   ],
 
@@ -168,7 +174,21 @@ export const folksFinanceSetupOptEscrowAssetShape: TransactionShapeSpec<
       });
     }
 
-    const transactions = normalizeTransactions([optTxn]);
+    const fundEscrowTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      sender: input.userAddress,
+      receiver: input.escrowAddress,
+      amount: ASSET_OPT_IN_MIN_BALANCE,
+      suggestedParams: {
+        ...params,
+        flatFee: true,
+        fee: 1000
+      }
+    });
+    const transactions = normalizeTransactions([fundEscrowTxn, optTxn]);
+    algosdk.assignGroupID(transactions);
+    warnings.push(
+      "The group funds the recoverable 0.1 ALGO minimum balance required by the fAsset opt-in."
+    );
 
     return {
       transactions,
@@ -192,14 +212,30 @@ export const folksFinanceSetupOptEscrowAssetShape: TransactionShapeSpec<
     const warnings: string[] = [];
     const dependencies = resolveDependencies();
 
-    if (group.length !== 1) {
-      errors.push(`Expected exactly 1 transaction, received ${group.length}.`);
+    if (group.length !== 2) {
+      errors.push(`Expected exactly 2 transactions, received ${group.length}.`);
       return { valid: false, errors, warnings };
     }
 
-    const appTxn = group[0];
+    const [fundingTxn, appTxn] = group;
+    if (fundingTxn === undefined || fundingTxn.type !== "pay" || !fundingTxn.payment) {
+      errors.push("First transaction must fund the escrow fAsset opt-in minimum balance.");
+    } else {
+      if (fundingTxn.sender !== input.userAddress) {
+        errors.push("Escrow funding transaction sender must be the user address.");
+      }
+      if (fundingTxn.payment.receiver !== input.escrowAddress) {
+        errors.push("Escrow funding transaction receiver must be the escrow address.");
+      }
+      if (BigInt(fundingTxn.payment.amount) < ASSET_OPT_IN_MIN_BALANCE) {
+        errors.push(
+          `Escrow funding amount must be at least ${ASSET_OPT_IN_MIN_BALANCE.toString()} microAlgos.`
+        );
+      }
+    }
+
     if (appTxn === undefined || appTxn.type !== "appl" || !appTxn.applicationCall) {
-      errors.push("Opt-in must be a deposits application call.");
+      errors.push("Second transaction must be a deposits application call.");
     } else {
       if (appTxn.sender !== input.userAddress) {
         errors.push("Opt-in app call sender must be the user address.");
@@ -212,6 +248,10 @@ export const folksFinanceSetupOptEscrowAssetShape: TransactionShapeSpec<
           `Opt-in app call fee must be at least ${OPT_ESCROW_APP_CALL_FEE.toString()} microAlgos.`
         );
       }
+    }
+
+    if (group.some((txn) => !txn.groupPresent)) {
+      errors.push("All transactions must belong to a single atomic group.");
     }
 
     return { valid: errors.length === 0, errors, warnings };

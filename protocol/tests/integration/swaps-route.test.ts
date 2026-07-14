@@ -116,6 +116,38 @@ test("POST /swaps/quote returns a free serializable Haystack quote", async () =>
   await app.close();
 });
 
+test("POST /swaps/quote accepts Haystack quotes with an empty payload iv", async () => {
+  const service = mockService();
+  const app = await createApp({
+    ...service,
+    async getQuote(input) {
+      return quote({
+        address: input.address,
+        fromAssetId: String(input.fromAssetId),
+        toAssetId: String(input.toAssetId),
+        amount: String(input.amount),
+        type: input.type ?? "fixed-input",
+        txnPayload: { iv: "", data: "payload" }
+      });
+    }
+  });
+  const response = await app.inject({
+    method: "POST",
+    url: "/swaps/quote",
+    payload: {
+      address: ADDRESS,
+      fromAssetId: "31566704",
+      toAssetId: 0,
+      amount: "100000",
+      type: "fixed-input"
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.json().data.txnPayload.iv, "");
+  await app.close();
+});
+
 test("POST /swaps/optin returns caller-signable prerequisite transactions", async () => {
   const app = await createApp(mockService());
   const response = await app.inject({

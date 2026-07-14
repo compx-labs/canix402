@@ -19,6 +19,7 @@ export type {
   PactRemoveLiquidityProportionalDependencies
 } from "./remove-liquidity-proportional.js";
 export {
+  createPactCompatibleAlgodClient,
   resolvePactPoolState,
   mapAssetsToPactAmounts,
   setPactPoolStateDependenciesForTests

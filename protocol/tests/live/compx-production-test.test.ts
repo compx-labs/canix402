@@ -29,6 +29,7 @@ const UNSTAKE_SHAPE = "mainnet:compx:v1:unstake:asa";
 const CLAIM_SHAPE = "mainnet:compx:v1:claim:rewards";
 
 const DEPOSIT_USDC_MICRO_AMOUNT = 100_000n;
+const USDC_MARKET_APP_ID = 3491050310;
 
 type LendingScenario = "deposit" | "withdraw" | "roundtrip";
 type StakingScenario = "stake" | "unstake" | "claim" | "roundtrip";
@@ -73,26 +74,17 @@ async function resolveUsdcMarketAppId(algod: ReturnType<typeof createAlgodClient
   marketAppId: number;
   lstTokenId: number;
 }> {
-  const configured = process.env.X402_COMPX_USDC_MARKET_APP_ID?.trim();
-  if (configured !== undefined && configured.length > 0) {
-    const marketAppId = Number(configured);
-    const sdk = new CompXSDK({ algodClient: algod, network: "mainnet" });
-    const market = await sdk.lending.getMarket(marketAppId);
-    if (market === null) {
-      throw new Error(`Configured CompX market ${marketAppId} was not found.`);
-    }
-    return { marketAppId, lstTokenId: market.lstTokenId };
-  }
-
   const sdk = new CompXSDK({ algodClient: algod, network: "mainnet" });
-  const markets = await sdk.lending.getAllMarkets();
-  const usdcMarket = markets.find(
-    (market) => market.baseTokenId === USDC_ASSET_ID && market.contractState === 1
-  );
-  if (usdcMarket === undefined) {
-    throw new Error("No active CompX USDC lending market found on mainnet.");
+  const market = await sdk.lending.getMarket(USDC_MARKET_APP_ID);
+  if (market === null) {
+    throw new Error(`CompX USDC lending market ${USDC_MARKET_APP_ID} was not found.`);
   }
-  return { marketAppId: usdcMarket.appId, lstTokenId: usdcMarket.lstTokenId };
+  if (market.baseTokenId !== USDC_ASSET_ID || market.contractState !== 1) {
+    throw new Error(
+      `CompX USDC lending market ${USDC_MARKET_APP_ID} is not an active USDC market.`
+    );
+  }
+  return { marketAppId: market.appId, lstTokenId: market.lstTokenId };
 }
 
 function resolveStakingPoolAppId(): number | undefined {
@@ -146,7 +138,7 @@ async function runLendingDeposit(): Promise<{ marketAppId: number; lstMinted: bi
   });
 
   assert.equal(quoteResponse.meta.paymentRequired, true);
-  const signed = signEncodedTransactionGroup(account, quoteResponse.data.encodedTransactions);
+  const signed = signEncodedTransactionGroup(quoteResponse.data.encodedTransactions, account.sk);
   await submitTransactionGroup(algod, signed);
 
   const lstAfter = await getAssetBalance(algod, userAddress, lstTokenId);
@@ -199,7 +191,7 @@ test("CompX production lending withdraw", async (t) => {
     algodUrl: env.algodUrl
   });
 
-  const signed = signEncodedTransactionGroup(account, quoteResponse.data.encodedTransactions);
+  const signed = signEncodedTransactionGroup(quoteResponse.data.encodedTransactions, account.sk);
   await submitTransactionGroup(algod, signed);
 });
 
@@ -231,7 +223,7 @@ test("CompX production lending roundtrip", async (t) => {
     algodUrl: env.algodUrl
   });
 
-  const signed = signEncodedTransactionGroup(account, quoteResponse.data.encodedTransactions);
+  const signed = signEncodedTransactionGroup(quoteResponse.data.encodedTransactions, account.sk);
   await submitTransactionGroup(algod, signed);
 });
 
@@ -281,8 +273,8 @@ test("CompX production staking stake/unstake roundtrip", async (t) => {
       algodUrl: env.algodUrl
     });
     const signedStake = signEncodedTransactionGroup(
-      account,
-      stakeQuote.data.encodedTransactions
+      stakeQuote.data.encodedTransactions,
+      account.sk
     );
     await submitTransactionGroup(algod, signedStake);
   }
@@ -308,8 +300,8 @@ test("CompX production staking stake/unstake roundtrip", async (t) => {
       algodUrl: env.algodUrl
     });
     const signedUnstake = signEncodedTransactionGroup(
-      account,
-      unstakeQuote.data.encodedTransactions
+      unstakeQuote.data.encodedTransactions,
+      account.sk
     );
     await submitTransactionGroup(algod, signedUnstake);
   }
@@ -362,7 +354,7 @@ test("CompX production staking claim rewards", async (t) => {
     algodUrl: env.algodUrl
   });
 
-  const signed = signEncodedTransactionGroup(account, quoteResponse.data.encodedTransactions);
+  const signed = signEncodedTransactionGroup(quoteResponse.data.encodedTransactions, account.sk);
   await submitTransactionGroup(algod, signed);
 
   const rewardAfter = await getAssetBalance(algod, userAddress, pool.rewardAssetId);

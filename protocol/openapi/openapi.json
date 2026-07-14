@@ -2058,7 +2058,7 @@
           "shapeKey": "mainnet:compx:v1:deposit:asa",
           "input": {
             "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "marketAppId": 3475099935,
+            "marketAppId": 3491050310,
             "amount": "100000"
           }
         }
@@ -2069,7 +2069,7 @@
           "shapeKey": "mainnet:compx:v1:withdraw:asa",
           "input": {
             "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "marketAppId": 3475099935,
+            "marketAppId": 3491050310,
             "amount": "100000"
           }
         }

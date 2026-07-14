@@ -25,16 +25,16 @@
 
 ## Expected transaction group
 
-Two to four outer transactions built via ulujs `custom()`:
+Two to sixteen outer transactions built via ulujs `custom()`:
 
-1. Optional nt200 `createBalanceBox` funding when required by simulation.
-2. ASA transfer into nt200 (`deposit` with `xaid` / `aamt`).
-3. ARC-200 `approve` for the lending pool.
-4. Lending pool `deposit(market_id, amount)` application call.
+The group includes an ASA transfer into nt200 (`deposit` with `xaid` / `aamt`),
+ARC-200 approval for the lending pool, and a lending pool
+`deposit(market_id, amount)` application call. Dork.fi may add supporting
+application calls and funding transactions around those core actions.
 
 ## Validation invariants
 
-- Group size is between 2 and 4 transactions.
+- Group size is between 2 and 16 transactions.
 - Includes an ASA transfer matching the requested deposit amount.
 - Includes a lending pool deposit app call on `poolAppId`.
 - All transactions are atomically grouped and signed only by the user.

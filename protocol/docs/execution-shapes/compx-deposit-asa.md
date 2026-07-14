@@ -13,7 +13,7 @@
   "shapeKey": "mainnet:compx:v1:deposit:asa",
   "input": {
     "userAddress": "YOUR_ALGORAND_ADDRESS",
-    "marketAppId": 3475099935,
+    "marketAppId": 3491050310,
     "amount": "100000"
   }
 }
@@ -34,7 +34,8 @@ Two or three outer transactions in order:
 - Group size is 2 without opt-in, 3 with leading LST opt-in.
 - Base transfer amount matches the requested deposit amount.
 - App call targets `marketAppId` with the `depositASA` ARC-4 selector.
-- App call fee is at least `250000` microAlgos.
+- App call foreign assets include the market LST token id.
+- App call fee is at least `2000` microAlgos.
 - All transactions are atomically grouped and signed only by the user.
 
 ## Caveats

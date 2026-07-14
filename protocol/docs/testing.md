@@ -555,6 +555,9 @@ Wallet requirements:
 
 - USDC ASA opted in
 - ALGO for txn fees
+- For a new Folks deposit escrow: 0.25 ALGO recoverable escrow minimum balance,
+  plus 0.1 ALGO recoverable minimum balance for the USDC fAsset opt-in. The
+  setup quote groups include these funding payments.
 - Enough USDC for x402 quote fees (up to ~0.4 USDC on first roundtrip if escrow
   setup and opt-in are required, plus 0.1 USDC deposit liquidity)
 
@@ -566,8 +569,8 @@ Wallet requirements:
 Production on-chain tests live in
 [`tests/live/compx-production-test.test.ts`](../tests/live/compx-production-test.test.ts).
 
-Lending uses the active mainnet USDC ASA market by default (`marketAppId`
-3475099935) with **0.1 USDC (100,000 micro)** deposit and LST-denominated
+Lending uses the active mainnet USDC ASA market (`marketAppId`
+3491050310) with **0.1 USDC (100,000 micro)** deposit and LST-denominated
 withdraw of exactly the minted LST.
 
 | Lending scenario | Shape(s) | Notes |
@@ -597,12 +600,6 @@ X402_COMPX_STAKING_POOL_APP_ID=YOUR_POOL_APP_ID \
 X402_COMPX_STAKE_AMOUNT=100000 \
 X402_COMPX_STAKING_SCENARIO=roundtrip \
 npm run test:compx-production -w protocol
-```
-
-Optional configuration:
-
-```sh
-X402_COMPX_USDC_MARKET_APP_ID=3475099935
 ```
 
 Integration fixtures for all five CompX shapes:
