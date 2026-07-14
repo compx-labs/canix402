@@ -59,12 +59,24 @@ test("aggregate returns every protocol status and preserves safe amounts", async
   );
 });
 
-test("aggregate runs protocol collectors in sequence", async () => {
-  const order: string[] = [];
+test("aggregate bounds concurrent protocol collectors and preserves protocol order", async () => {
+  const originalConcurrency = process.env.POSITIONS_PROTOCOL_CONCURRENCY;
+  process.env.POSITIONS_PROTOCOL_CONCURRENCY = "2";
+  const started: string[] = [];
+  let releaseCollectors: (() => void) | undefined;
+  const release = new Promise<void>((resolve) => {
+    releaseCollectors = resolve;
+  });
+  let resolveFirstPair: (() => void) | undefined;
+  const firstPairStarted = new Promise<void>((resolve) => {
+    resolveFirstPair = resolve;
+  });
   const collector = (protocol: string) => async () => {
-    order.push(`${protocol}:start`);
-    await new Promise((resolve) => setTimeout(resolve, 2));
-    order.push(`${protocol}:end`);
+    started.push(protocol);
+    if (started.length === 2) {
+      resolveFirstPair?.();
+    }
+    await release;
     return { positions: [], warnings: [] };
   };
   setPositionCollectorsForTests({
@@ -75,20 +87,25 @@ test("aggregate runs protocol collectors in sequence", async () => {
     dorkfi: collector("dorkfi")
   });
 
-  await fetchWalletPositions(VALID_ADDRESS);
+  try {
+    const responsePromise = fetchWalletPositions(VALID_ADDRESS);
+    await firstPairStarted;
 
-  assert.deepEqual(order, [
-    "tinyman:start",
-    "tinyman:end",
-    "pact:start",
-    "pact:end",
-    "folks-finance:start",
-    "folks-finance:end",
-    "compx:start",
-    "compx:end",
-    "dorkfi:start",
-    "dorkfi:end"
-  ]);
+    assert.deepEqual(started, ["tinyman", "pact"]);
+
+    releaseCollectors?.();
+    const response = await responsePromise;
+    assert.deepEqual(
+      response.protocols.map(({ protocol }) => protocol),
+      ["tinyman", "pact", "folks-finance", "compx", "dorkfi"]
+    );
+  } finally {
+    if (originalConcurrency === undefined) {
+      delete process.env.POSITIONS_PROTOCOL_CONCURRENCY;
+    } else {
+      process.env.POSITIONS_PROTOCOL_CONCURRENCY = originalConcurrency;
+    }
+  }
 });
 
 test("GET /positions returns 200 for a valid empty wallet", async () => {

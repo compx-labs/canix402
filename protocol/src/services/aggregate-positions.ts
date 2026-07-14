@@ -10,9 +10,11 @@ import {
   collectFolksFinancePositions,
   collectPactPositions,
   collectTinymanPositions,
+  type PositionCollectionContext,
   type ProtocolPositionsCollection,
   type PositionCollector
 } from "./protocol-positions.js";
+import { createRequestGate, mapWithThrottle } from "./request-throttle.js";
 import {
   emptyWalletSnapshot,
   fetchWalletSnapshot
@@ -51,17 +53,41 @@ export async function fetchWalletPositions(
     collectorOverrides === undefined
       ? await fetchWalletSnapshot(address)
       : emptyWalletSnapshot(address);
-  const settled: PromiseSettledResult<ProtocolPositionsCollection>[] = [];
-  for (const protocol of SUPPORTED_POSITION_PROTOCOLS) {
-    try {
-      settled.push({
-        status: "fulfilled",
-        value: await collectors[protocol](address, snapshot)
-      });
-    } catch (reason) {
-      settled.push({ status: "rejected", reason });
+  const context: PositionCollectionContext = {
+    algodRequestGate: createRequestGate({
+      concurrency: readPositiveInteger(
+        process.env.POSITIONS_RPC_CONCURRENCY,
+        2
+      ),
+      delayMs: readNonNegativeInteger(process.env.POSITIONS_RPC_DELAY_MS, 125)
+    })
+  };
+  const settled: Array<
+    PromiseSettledResult<ProtocolPositionsCollection> | undefined
+  > = new Array(SUPPORTED_POSITION_PROTOCOLS.length);
+  await mapWithThrottle(
+    SUPPORTED_POSITION_PROTOCOLS.map((protocol, index) => ({
+      protocol,
+      index
+    })),
+    {
+      concurrency: readPositiveInteger(
+        process.env.POSITIONS_PROTOCOL_CONCURRENCY,
+        2
+      ),
+      delayMs: 0
+    },
+    async ({ protocol, index }) => {
+      try {
+        settled[index] = {
+          status: "fulfilled",
+          value: await collectors[protocol](address, snapshot, context)
+        };
+      } catch (reason) {
+        settled[index] = { status: "rejected", reason };
+      }
     }
-  }
+  );
   const data: WalletPositionsResponse["data"] = [];
   const protocols: ProtocolPositionResult[] = [];
   const coverage = {
@@ -71,6 +97,9 @@ export async function fetchWalletPositions(
   };
 
   settled.forEach((result, index) => {
+    if (result === undefined) {
+      throw new Error(`Positions collector ${index} returned no result.`);
+    }
     const protocol = SUPPORTED_POSITION_PROTOCOLS[index]!;
     if (result.status === "rejected") {
       coverage.suppliedUsdComplete = false;
@@ -179,4 +208,17 @@ function resolveCollectors(): PositionCollectors {
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function readPositiveInteger(value: string | undefined, fallback: number): number {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function readNonNegativeInteger(
+  value: string | undefined,
+  fallback: number
+): number {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
 }

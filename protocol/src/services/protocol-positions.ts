@@ -28,6 +28,12 @@ import type { OpportunityRecordV1 } from "../types/opportunity.js";
 import type { PositionRecordV1 } from "../types/position.js";
 import { resolveAssetDecimals } from "./asset-decimals.js";
 import {
+  createRequestGate,
+  mapWithThrottle,
+  type RequestGate,
+  withAlgodRequestGate
+} from "./request-throttle.js";
+import {
   getHeldWalletAssetIds,
   getWalletAssetBalance,
   getWalletLocalAppIds,
@@ -44,9 +50,14 @@ export interface ProtocolPositionsCollection {
   };
 }
 
+export interface PositionCollectionContext {
+  algodRequestGate: RequestGate;
+}
+
 export type PositionCollector = (
   address: string,
-  snapshot: WalletSnapshot
+  snapshot: WalletSnapshot,
+  context: PositionCollectionContext
 ) => Promise<ProtocolPositionsCollection>;
 
 export async function collectTinymanPositions(
@@ -141,35 +152,43 @@ async function fetchTinymanPoolsForLiquidityAssets(
     "https://mainnet.analytics.tinyman.org/api/v1";
   const apiKey = process.env.TINYMAN_API_KEY;
   const chunks = chunkValues(assetIds, 100);
-  const pools: TinymanPositionPool[] = [];
-
-  for (const chunk of chunks) {
-    const query = new URLSearchParams({
-      with_statistics: "true",
-      limit: "all",
-      version__in: process.env.TINYMAN_POOL_VERSIONS ?? "1.1,2.0",
-      liquidity_asset_ids: chunk.join(",")
-    });
-    const requestInit: RequestInit = {};
-    if (apiKey) {
-      requestInit.headers = { authorization: `Bearer ${apiKey}` };
+  const poolsByChunk: TinymanPositionPool[][] = new Array(chunks.length);
+  await mapWithThrottle(
+    chunks.map((chunk, index) => ({ chunk, index })),
+    {
+      concurrency: readPositiveInteger(
+        process.env.POSITIONS_HTTP_CONCURRENCY,
+        2
+      ),
+      delayMs: 0
+    },
+    async ({ chunk, index }) => {
+      const query = new URLSearchParams({
+        with_statistics: "true",
+        limit: "all",
+        version__in: process.env.TINYMAN_POOL_VERSIONS ?? "1.1,2.0",
+        liquidity_asset_ids: chunk.join(",")
+      });
+      const requestInit: RequestInit = {};
+      if (apiKey) {
+        requestInit.headers = { authorization: `Bearer ${apiKey}` };
+      }
+      const response = await fetch(
+        `${trimTrailingSlash(baseUrl)}/pools/?${query.toString()}`,
+        requestInit
+      );
+      if (!response.ok) {
+        throw new Error(`Tinyman positions API returned HTTP ${response.status}.`);
+      }
+      const payload = (await response.json()) as {
+        results?: TinymanPositionPool[];
+      };
+      poolsByChunk[index] = (payload.results ?? []).filter(
+        (pool) => pool.is_verified === true
+      );
     }
-    const response = await fetch(
-      `${trimTrailingSlash(baseUrl)}/pools/?${query.toString()}`,
-      requestInit
-    );
-    if (!response.ok) {
-      throw new Error(`Tinyman positions API returned HTTP ${response.status}.`);
-    }
-    const payload = (await response.json()) as {
-      results?: TinymanPositionPool[];
-    };
-    pools.push(
-      ...(payload.results ?? []).filter((pool) => pool.is_verified === true)
-    );
-  }
-
-  return pools;
+  );
+  return poolsByChunk.flat();
 }
 
 function tinymanPoolPair(pool: TinymanPositionPool): string {
@@ -191,9 +210,10 @@ function assetFallback(value: unknown): string {
 
 export async function collectPactPositions(
   _address: string,
-  snapshot: WalletSnapshot
+  snapshot: WalletSnapshot,
+  context: PositionCollectionContext = createPositionCollectionContext()
 ): Promise<ProtocolPositionsCollection> {
-  const algod = createAlgodClient();
+  const algod = createAlgodClient(context.algodRequestGate);
   const catalog = await fetchPactPositionCatalog();
   const localAppIds = getWalletLocalAppIds(snapshot);
   const positions: PositionRecordV1[] = [];
@@ -364,12 +384,27 @@ interface PactPositionCatalog {
 let pactPositionCatalogCache:
   | { expiresAt: number; value: PactPositionCatalog }
   | undefined;
+let pactPositionCatalogInFlight: Promise<PactPositionCatalog> | undefined;
 
 async function fetchPactPositionCatalog(): Promise<PactPositionCatalog> {
   const now = Date.now();
   if (pactPositionCatalogCache && pactPositionCatalogCache.expiresAt > now) {
     return pactPositionCatalogCache.value;
   }
+  if (pactPositionCatalogInFlight !== undefined) {
+    return pactPositionCatalogInFlight;
+  }
+  pactPositionCatalogInFlight = fetchPactPositionCatalogFromSource(now);
+  try {
+    return await pactPositionCatalogInFlight;
+  } finally {
+    pactPositionCatalogInFlight = undefined;
+  }
+}
+
+async function fetchPactPositionCatalogFromSource(
+  now: number
+): Promise<PactPositionCatalog> {
   const baseUrl =
     process.env.PACT_API_BASE_URL ?? "https://api.pact.fi/api";
   const headers = process.env.PACT_API_KEY
@@ -377,18 +412,20 @@ async function fetchPactPositionCatalog(): Promise<PactPositionCatalog> {
     : undefined;
   const requestInit: RequestInit =
     headers === undefined ? {} : { headers };
-  const poolsResponse = await fetch(
-    `${trimTrailingSlash(baseUrl)}/pools/all?ordering=-tvl_usd&deprecated=false`,
-    requestInit
-  );
+  const [poolsResponse, farmsResponse] = await Promise.all([
+    fetch(
+      `${trimTrailingSlash(baseUrl)}/pools/all?ordering=-tvl_usd&deprecated=false`,
+      requestInit
+    ),
+    fetch(
+      `${trimTrailingSlash(baseUrl)}/farms/all?ordering=-tvl_usd`,
+      requestInit
+    )
+  ]);
   if (!poolsResponse.ok) {
     throw new Error(`Pact pools API returned HTTP ${poolsResponse.status}.`);
   }
   const poolsPayload = (await poolsResponse.json()) as unknown;
-  const farmsResponse = await fetch(
-    `${trimTrailingSlash(baseUrl)}/farms/all?ordering=-tvl_usd`,
-    requestInit
-  );
   if (!farmsResponse.ok) {
     throw new Error(`Pact farms API returned HTTP ${farmsResponse.status}.`);
   }
@@ -495,28 +532,56 @@ export async function collectFolksFinancePositions(
     MainnetOracle,
     address
   );
-  const settledLoans: PromiseSettledResult<{
+  const loanSources = Object.entries(MainnetLoans);
+  const settledLoans: Array<
+    | PromiseSettledResult<{
+        loanType: string;
+        loans: Awaited<ReturnType<typeof retrieveUserLoansInfo>>;
+      }>
+    | undefined
+  > = new Array(loanSources.length);
+  await mapWithThrottle(
+    loanSources.map(([loanType, loanAppId], index) => ({
+      loanType,
+      loanAppId,
+      index
+    })),
+    {
+      concurrency: readPositiveInteger(
+        process.env.POSITIONS_INDEXER_CONCURRENCY,
+        2
+      ),
+      delayMs: 0
+    },
+    async ({ loanType, loanAppId, index }) => {
+      try {
+        settledLoans[index] = {
+          status: "fulfilled",
+          value: {
+            loanType,
+            loans: await retrieveUserLoansInfo(
+              indexer,
+              loanAppId,
+              MainnetPoolManagerAppId,
+              MainnetOracle,
+              address
+            )
+          }
+        };
+      } catch (reason) {
+        settledLoans[index] = { status: "rejected", reason };
+      }
+    }
+  );
+  const completedLoanSources: PromiseSettledResult<{
     loanType: string;
     loans: Awaited<ReturnType<typeof retrieveUserLoansInfo>>;
   }>[] = [];
-  for (const [loanType, loanAppId] of Object.entries(MainnetLoans)) {
-    try {
-      settledLoans.push({
-        status: "fulfilled",
-        value: {
-          loanType,
-          loans: await retrieveUserLoansInfo(
-            indexer,
-            loanAppId,
-            MainnetPoolManagerAppId,
-            MainnetOracle,
-            address
-          )
-        }
-      });
-    } catch (reason) {
-      settledLoans.push({ status: "rejected", reason });
+  for (const result of settledLoans) {
+    if (result === undefined) {
+      throw new Error("Folks Finance loan collector returned no result.");
     }
+    completedLoanSources.push(result);
   }
   const poolsByAppId = new Map(
     Object.entries(MainnetPools).map(([symbol, pool]) => [
@@ -555,7 +620,7 @@ export async function collectFolksFinancePositions(
   }
 
   let failedLoanSources = 0;
-  for (const result of settledLoans) {
+  for (const result of completedLoanSources) {
     if (result.status === "rejected") {
       failedLoanSources += 1;
       warnings.push(`Folks loan source unavailable: ${errorMessage(result.reason)}`);
@@ -636,10 +701,13 @@ export async function collectFolksFinancePositions(
 
 export async function collectCompXPositions(
   address: string,
-  snapshot: WalletSnapshot
+  snapshot: WalletSnapshot,
+  context: PositionCollectionContext = createPositionCollectionContext()
 ): Promise<ProtocolPositionsCollection> {
-  const algod = createAlgodClient();
-  const opportunities = await fetchCompXOpportunities();
+  const algod = createAlgodClient(context.algodRequestGate);
+  const opportunities = await fetchCompXOpportunities({
+    algodRequestGate: context.algodRequestGate
+  });
   const walletHoldings = new Map(
     snapshot.assets.map((holding) => [holding.assetId, holding.amount])
   );
@@ -770,12 +838,13 @@ export async function collectCompXPositions(
 
 export async function collectDorkFiPositions(
   address: string,
-  snapshot: WalletSnapshot
+  snapshot: WalletSnapshot,
+  context: PositionCollectionContext = createPositionCollectionContext()
 ): Promise<ProtocolPositionsCollection> {
   try {
     return await fetchDorkFiIndexedPositions(address);
   } catch (indexedError) {
-    const fallback = await collectDorkFiOnChainSupply(address, snapshot);
+    const fallback = await collectDorkFiOnChainSupply(address, snapshot, context);
     fallback.warnings.unshift(
       `Dork.fi indexed debt/health source unavailable: ${errorMessage(indexedError)}`
     );
@@ -907,9 +976,10 @@ async function fetchDorkFiIndexedPositions(
 
 async function collectDorkFiOnChainSupply(
   address: string,
-  snapshot: WalletSnapshot
+  snapshot: WalletSnapshot,
+  context: PositionCollectionContext
 ): Promise<ProtocolPositionsCollection> {
-  const algod = createAlgodClient();
+  const algod = createAlgodClient(context.algodRequestGate);
   const walletHoldings = new Map(
     snapshot.assets.map((holding) => [holding.assetId, holding.amount])
   );
@@ -971,26 +1041,44 @@ async function mapPositionCandidates<T>(
   candidates: readonly T[],
   worker: (candidate: T) => Promise<void>
 ): Promise<void> {
-  const delayMs = readNonNegativeInteger(
-    process.env.POSITIONS_RPC_DELAY_MS,
-    200
+  await mapWithThrottle(
+    candidates,
+    {
+      concurrency: readPositiveInteger(
+        process.env.POSITIONS_RPC_CONCURRENCY,
+        2
+      ),
+      // The shared Algod client gate applies the inter-request delay. Adding
+      // another delay here would serialize candidate scheduling twice.
+      delayMs: 0
+    },
+    worker
   );
-  for (let index = 0; index < candidates.length; index += 1) {
-    await worker(candidates[index]!);
-    if (delayMs > 0 && index < candidates.length - 1) {
-      await sleep(delayMs);
-    }
-  }
 }
 
-function createAlgodClient(): Algodv2 {
-  return new algosdk.Algodv2(
+function createAlgodClient(requestGate?: RequestGate): Algodv2 {
+  const algod = new algosdk.Algodv2(
     process.env.X402_ALGOD_TOKEN ?? "",
     trimTrailingSlash(
       process.env.X402_ALGOD_URL ?? "https://mainnet-api.algonode.cloud"
     ),
     ""
   );
+  return requestGate === undefined
+    ? algod
+    : (withAlgodRequestGate(algod, requestGate) as Algodv2);
+}
+
+function createPositionCollectionContext(): PositionCollectionContext {
+  return {
+    algodRequestGate: createRequestGate({
+      concurrency: readPositiveInteger(
+        process.env.POSITIONS_RPC_CONCURRENCY,
+        2
+      ),
+      delayMs: readNonNegativeInteger(process.env.POSITIONS_RPC_DELAY_MS, 125)
+    })
+  };
 }
 
 function createIndexerClient(): algosdk.Indexer {
@@ -1179,14 +1267,15 @@ function chunkValues<T>(values: readonly T[], size: number): T[][] {
   return chunks;
 }
 
-function sleep(milliseconds: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, milliseconds));
-}
-
 function readNonNegativeInteger(
   value: string | undefined,
   fallback: number
 ): number {
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+function readPositiveInteger(value: string | undefined, fallback: number): number {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 }
