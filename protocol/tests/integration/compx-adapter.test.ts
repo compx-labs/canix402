@@ -426,6 +426,40 @@ test("fetchCompXOpportunities maps SDK responses and filters invalid rows", asyn
   }
 });
 
+test("fetchCompXOpportunities shares an in-flight catalog request", async () => {
+  let marketCalls = 0;
+  let releaseMarkets: (() => void) | undefined;
+  const marketsReady = new Promise<void>((resolve) => {
+    releaseMarkets = resolve;
+  });
+  setCompXSdkDependenciesForTests({
+    createAlgodClient: () => ({}) as never,
+    createSdk: () => ({ lending: {}, staking: {} }) as never,
+    getAllMarketsFn: async () => {
+      marketCalls += 1;
+      await marketsReady;
+      return [];
+    },
+    getAllPoolsFn: async () => [],
+    getAssetsInfoFn: async () => [],
+    getPoolAprFn: async () => null,
+    getTokenPricesFn: async () => ({})
+  });
+
+  try {
+    const first = fetchCompXOpportunities();
+    const second = fetchCompXOpportunities();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    assert.equal(marketCalls, 1);
+    releaseMarkets?.();
+    const results = await Promise.allSettled([first, second]);
+    assert.ok(results.every((result) => result.status === "rejected"));
+  } finally {
+    setCompXSdkDependenciesForTests(undefined);
+  }
+});
+
 test("GET /protocols/compx/opportunities returns CompX normalized data", async () => {
   mockOnChainAssetDecimals();
   setCompXSdkDependenciesForTests({

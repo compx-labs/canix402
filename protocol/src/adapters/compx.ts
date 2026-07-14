@@ -10,6 +10,11 @@ import {
 
 import { OpportunityRecordV1 } from "../types/opportunity.js";
 import { resolveAssetDecimals } from "../services/asset-decimals.js";
+import {
+  type RequestGate,
+  mapWithThrottle,
+  withAlgodRequestGate
+} from "../services/request-throttle.js";
 import { buildSourceMetadata } from "../services/source-metadata.js";
 
 export class CompXAdapterError extends Error {
@@ -50,40 +55,69 @@ interface CompXSdkDependencies {
 }
 
 let compxSdkDependencyOverrides: Partial<CompXSdkDependencies> | undefined;
+let compxOpportunitiesInFlight: Promise<OpportunityRecordV1[]> | undefined;
+
+interface FetchCompXOpportunitiesOptions {
+  algodRequestGate?: RequestGate;
+}
 
 export function setCompXSdkDependenciesForTests(
   overrides?: Partial<CompXSdkDependencies>
 ): void {
   compxSdkDependencyOverrides = overrides;
+  compxOpportunitiesInFlight = undefined;
 }
 
-export async function fetchCompXOpportunities(): Promise<OpportunityRecordV1[]> {
+export async function fetchCompXOpportunities(
+  options: FetchCompXOpportunitiesOptions = {}
+): Promise<OpportunityRecordV1[]> {
+  if (compxOpportunitiesInFlight !== undefined) {
+    return compxOpportunitiesInFlight;
+  }
+  const request = fetchCompXOpportunitiesFromSource(options);
+  compxOpportunitiesInFlight = request;
+  try {
+    return await request;
+  } finally {
+    if (compxOpportunitiesInFlight === request) {
+      compxOpportunitiesInFlight = undefined;
+    }
+  }
+}
+
+async function fetchCompXOpportunitiesFromSource(
+  options: FetchCompXOpportunitiesOptions
+): Promise<OpportunityRecordV1[]> {
   const dependencies = resolveDependencies();
   const fetchedAt = new Date().toISOString();
 
   try {
-    const algodClient = dependencies.createAlgodClient();
+    const rawAlgodClient = dependencies.createAlgodClient();
+    const algodClient =
+      options.algodRequestGate === undefined
+        ? rawAlgodClient
+        : (withAlgodRequestGate(
+            rawAlgodClient,
+            options.algodRequestGate
+          ) as Algodv2);
     const sdk = dependencies.createSdk(algodClient);
 
-    const markets = await dependencies.getAllMarketsFn.call(sdk.lending);
-    const pools = await dependencies.getAllPoolsFn.call(sdk.staking);
+    const [markets, pools] = await Promise.all([
+      dependencies.getAllMarketsFn.call(sdk.lending),
+      dependencies.getAllPoolsFn.call(sdk.staking)
+    ]);
 
     const assetIds = collectUniqueAssetIds(markets, pools);
-    const assets = await dependencies.getAssetsInfoFn.call(
-      sdk.lending,
-      assetIds
-    );
-    const decimalsByAssetId = await resolveAssetDecimals(
-      assetIds,
-      algodClient
-    );
-    const assetById = new Map(assets.map((asset) => [asset.id, asset]));
-
     const priceableStakingAssetIds = collectOraclePriceableAssetIds(markets, pools);
-    const priceByAssetId = await resolveAssetPrices(
-      dependencies.getTokenPricesFn.bind(sdk.pricing),
-      priceableStakingAssetIds
-    );
+    const [assets, decimalsByAssetId, priceByAssetId] = await Promise.all([
+      dependencies.getAssetsInfoFn.call(sdk.lending, assetIds),
+      resolveAssetDecimals(assetIds, algodClient),
+      resolveAssetPrices(
+        dependencies.getTokenPricesFn.bind(sdk.pricing),
+        priceableStakingAssetIds
+      )
+    ]);
+    const assetById = new Map(assets.map((asset) => [asset.id, asset]));
 
     const lendingOpportunities = markets
       .filter((market) => passesActiveFilter(market.contractState, dependencies.onlyActive))
@@ -96,54 +130,67 @@ export async function fetchCompXOpportunities(): Promise<OpportunityRecordV1[]> 
       )
       .filter((record): record is OpportunityRecordV1 => record !== null);
 
-    const stakingOpportunities: OpportunityRecordV1[] = [];
-    for (const pool of pools.filter((candidate) =>
+    const activePools = pools.filter((candidate) =>
       passesStakingActiveFilter(candidate, dependencies.onlyActive)
-    )) {
-      const stakedDecimals = decimalsByAssetId.get(pool.stakedAssetId);
-      const rewardDecimals = decimalsByAssetId.get(pool.rewardAssetId);
-      // Both staked and reward decimals must come from chain: staked
-      // decimals drive TVL, reward decimals drive the APR estimate.
-      // Guessing either produces materially wrong yields, so drop the row.
-      if (stakedDecimals === undefined || rewardDecimals === undefined) {
-        continue;
-      }
+    );
+    const stakingOpportunitiesByIndex: Array<OpportunityRecordV1 | undefined> =
+      new Array(activePools.length);
+    await mapWithThrottle(
+      activePools.map((pool, index) => ({ pool, index })),
+      {
+        concurrency: options.algodRequestGate === undefined ? 1 : 2,
+        delayMs: 0
+      },
+      async ({ pool, index }) => {
+        const stakedDecimals = decimalsByAssetId.get(pool.stakedAssetId);
+        const rewardDecimals = decimalsByAssetId.get(pool.rewardAssetId);
+        // Both staked and reward decimals must come from chain: staked
+        // decimals drive TVL, reward decimals drive the APR estimate.
+        // Guessing either produces materially wrong yields, so drop the row.
+        if (stakedDecimals === undefined || rewardDecimals === undefined) {
+          return;
+        }
 
-      const stakedAsset = assetById.get(pool.stakedAssetId);
-      const rewardAsset = assetById.get(pool.rewardAssetId);
-      const stakedAssetPriceUsd = priceByAssetId.get(pool.stakedAssetId);
-      const rewardAssetPriceUsd = priceByAssetId.get(pool.rewardAssetId);
+        const stakedAsset = assetById.get(pool.stakedAssetId);
+        const rewardAsset = assetById.get(pool.rewardAssetId);
+        const stakedAssetPriceUsd = priceByAssetId.get(pool.stakedAssetId);
+        const rewardAssetPriceUsd = priceByAssetId.get(pool.rewardAssetId);
 
-      const aprOptions: Parameters<GetPoolAprFn>[1] = {
-        nowTimestamp: Math.floor(Date.now() / 1000),
-        stakedAssetDecimals: stakedDecimals,
-        rewardAssetDecimals: rewardDecimals
-      };
-      if (stakedAssetPriceUsd !== undefined) {
-        aprOptions.stakedAssetPriceUsd = stakedAssetPriceUsd;
-      }
-      if (rewardAssetPriceUsd !== undefined) {
-        aprOptions.rewardAssetPriceUsd = rewardAssetPriceUsd;
-      }
+        const aprOptions: Parameters<GetPoolAprFn>[1] = {
+          nowTimestamp: Math.floor(Date.now() / 1000),
+          stakedAssetDecimals: stakedDecimals,
+          rewardAssetDecimals: rewardDecimals
+        };
+        if (stakedAssetPriceUsd !== undefined) {
+          aprOptions.stakedAssetPriceUsd = stakedAssetPriceUsd;
+        }
+        if (rewardAssetPriceUsd !== undefined) {
+          aprOptions.rewardAssetPriceUsd = rewardAssetPriceUsd;
+        }
 
-      const apr = await dependencies.getPoolAprFn.call(
-        sdk.staking,
-        pool.appId,
-        aprOptions
-      );
-      const opportunity = normalizeCompxStakingOpportunity({
-        pool,
-        apr,
-        stakedAsset,
-        rewardAsset,
-        stakedAssetPriceUsd,
-        stakedDecimals,
-        fetchedAtIso: fetchedAt
-      });
-      if (opportunity !== null) {
-        stakingOpportunities.push(opportunity);
+        const apr = await dependencies.getPoolAprFn.call(
+          sdk.staking,
+          pool.appId,
+          aprOptions
+        );
+        const opportunity = normalizeCompxStakingOpportunity({
+          pool,
+          apr,
+          stakedAsset,
+          rewardAsset,
+          stakedAssetPriceUsd,
+          stakedDecimals,
+          fetchedAtIso: fetchedAt
+        });
+        if (opportunity !== null) {
+          stakingOpportunitiesByIndex[index] = opportunity;
+        }
       }
-    }
+    );
+    const stakingOpportunities = stakingOpportunitiesByIndex.filter(
+      (opportunity): opportunity is OpportunityRecordV1 =>
+        opportunity !== undefined
+    );
 
     const opportunities = [...lendingOpportunities, ...stakingOpportunities];
 
