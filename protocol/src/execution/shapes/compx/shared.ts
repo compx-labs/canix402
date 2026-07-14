@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import algosdk, { Algodv2, Transaction } from "algosdk";
 import { DEFAULT_APP_CALL_MAX_FEE } from "@compx/sdk";
 
@@ -8,6 +9,9 @@ export const MIN_ALGO_FEE = 1000n;
 export const COMPX_LENDING_APP_CALL_MIN_FEE = 2n * MIN_ALGO_FEE;
 export const DEFAULT_COMPX_APP_CALL_MAX_FEE = BigInt(DEFAULT_APP_CALL_MAX_FEE);
 
+const require = createRequire(import.meta.url);
+const commonJsAlgodSdk = require("algosdk") as typeof import("algosdk");
+
 export interface LendingTransactionBundle {
   transactions: Transaction[];
   signers: Array<{ address: string; transactionIndexes: number[] }>;
@@ -16,6 +20,18 @@ export interface LendingTransactionBundle {
 
 export async function getSuggestedParams(algod: Algodv2): Promise<algosdk.SuggestedParams> {
   return algod.getTransactionParams().do();
+}
+
+/**
+ * @compx/sdk is currently published through its CommonJS entry point. Its
+ * transaction builders must receive an Algod client created by that same
+ * CommonJS algosdk instance; mixing it with this package's ESM algosdk client
+ * creates incompatible Address values during transaction group encoding.
+ */
+export function createCompXBuilderAlgodClient(): Algodv2 {
+  const server = process.env.X402_ALGOD_URL ?? "https://mainnet-api.algonode.cloud";
+  const token = process.env.X402_ALGOD_TOKEN ?? "";
+  return new commonJsAlgodSdk.Algodv2(token, trimTrailingSlash(server), "") as unknown as Algodv2;
 }
 
 export async function getAccountAssetBalance(
@@ -125,4 +141,8 @@ export function rejectUnexpectedSignerMetadata(
       details: { signers, userAddress }
     });
   }
+}
+
+function trimTrailingSlash(value: string): string {
+  return value.endsWith("/") ? value.slice(0, -1) : value;
 }

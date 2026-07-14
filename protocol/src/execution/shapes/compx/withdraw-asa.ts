@@ -26,6 +26,7 @@ import {
   COMPX_LENDING_APP_CALL_MIN_FEE,
   DEFAULT_COMPX_APP_CALL_MAX_FEE,
   assertGroupedTransactions,
+  createCompXBuilderAlgodClient,
   readAppCallSelectorHex,
   rejectUnexpectedSignerMetadata,
   type LendingTransactionBundle
@@ -134,7 +135,7 @@ export const compxWithdrawAsaShape: TransactionShapeSpec<
 
     let bundle: LendingTransactionBundle;
     try {
-      bundle = (await dependencies.buildWithdrawTransactions(context.algod, {
+      bundle = (await dependencies.buildWithdrawTransactions(createCompXBuilderAlgodClient(), {
         appId: input.marketAppId,
         sender: input.userAddress,
         amount: input.amount,
