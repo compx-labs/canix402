@@ -23,8 +23,8 @@ import {
   parsePositiveBaseUnitAmount
 } from "./parse-input.js";
 import {
+  COMPX_LENDING_APP_CALL_MIN_FEE,
   DEFAULT_COMPX_APP_CALL_MAX_FEE,
-  MIN_ALGO_FEE,
   assertGroupedTransactions,
   getSuggestedParams,
   readAppCallSelectorHex,
@@ -215,7 +215,7 @@ export const compxDepositAsaShape: TransactionShapeSpec<
       label: `Transaction ${transferIndex + 2}`,
       userAddress: input.userAddress,
       marketAppId: state.marketAppId,
-      baseTokenId: state.baseTokenId,
+      lstTokenId: state.lstTokenId,
       errors
     });
 
@@ -288,10 +288,10 @@ function validateDepositAppCallTxn(params: {
   label: string;
   userAddress: string;
   marketAppId: number;
-  baseTokenId: number;
+  lstTokenId: number;
   errors: string[];
 }): void {
-  const { txn, label, userAddress, marketAppId, baseTokenId, errors } = params;
+  const { txn, label, userAddress, marketAppId, lstTokenId, errors } = params;
   if (txn === undefined || txn.type !== "appl" || !txn.applicationCall) {
     errors.push(`${label} must be an application call.`);
     return;
@@ -305,15 +305,13 @@ function validateDepositAppCallTxn(params: {
   if (readAppCallSelectorHex(txn) !== DEPOSIT_METHOD_SELECTOR_HEX) {
     errors.push(`${label} must call depositASA(axfer,uint64)void.`);
   }
-  if (!txn.applicationCall.foreignAssets.includes(String(baseTokenId))) {
-    errors.push(`${label} foreign assets must include the base token.`);
+  if (!txn.applicationCall.foreignAssets.includes(String(lstTokenId))) {
+    errors.push(`${label} foreign assets must include the LST token.`);
   }
-  if (BigInt(txn.fee) < DEFAULT_COMPX_APP_CALL_MAX_FEE) {
+  if (BigInt(txn.fee) < COMPX_LENDING_APP_CALL_MIN_FEE) {
     errors.push(
-      `${label} fee must be at least ${DEFAULT_COMPX_APP_CALL_MAX_FEE.toString()} microAlgos.`
+      `${label} fee must be at least ${COMPX_LENDING_APP_CALL_MIN_FEE.toString()} microAlgos.`
     );
-  } else if (BigInt(txn.fee) < MIN_ALGO_FEE) {
-    errors.push(`${label} fee must be at least ${MIN_ALGO_FEE.toString()} microAlgos.`);
   }
 }
 

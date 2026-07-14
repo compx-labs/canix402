@@ -38,6 +38,14 @@ export function setPactPoolStateDependenciesForTests(
   dependencyOverrides = overrides;
 }
 
+interface AlgodRequestLike<T = unknown> {
+  do: () => Promise<T>;
+}
+
+type AlgodMethod = (...args: unknown[]) => AlgodRequestLike;
+
+type RecordLike = Record<string, unknown>;
+
 /**
  * Map caller asset ids to Pact primary (lower index) and secondary (higher
  * index) amounts.
@@ -162,13 +170,138 @@ function resolveDependencies(): PactPoolStateDependencies {
 
 function defaultCreatePactClient(algod: Algodv2, network: ExecutionNetwork): PactClient {
   // Pact SDK bundles algosdk v2; cast through unknown for v3 client compatibility.
-  return new PactClient(algod as unknown as ConstructorParameters<typeof PactClient>[0], {
-    network
-  });
+  return new PactClient(
+    createPactCompatibleAlgodClient(algod) as unknown as ConstructorParameters<typeof PactClient>[0],
+    {
+      network
+    }
+  );
 }
 
 async function defaultFetchPoolById(client: PactClient, poolAppId: number): Promise<Pool> {
   return client.fetchPoolById(poolAppId);
+}
+
+/**
+ * Pact SDK 0.8.x parses Algod responses using algosdk v2 field names and
+ * base64 strings. algosdk v3 returns camelCase fields and Uint8Array values.
+ */
+export function createPactCompatibleAlgodClient(algod: Algodv2): Algodv2 {
+  return new Proxy(algod, {
+    get(target, property, receiver) {
+      if (property === "getApplicationByID") {
+        return (...args: unknown[]) => {
+          const request = (target.getApplicationByID as AlgodMethod).apply(target, args);
+          return wrapAlgodRequest(request, normalizeApplicationResponseForPact);
+        };
+      }
+
+      if (property === "getAssetByID") {
+        return (...args: unknown[]) => {
+          const request = (target.getAssetByID as AlgodMethod).apply(target, args);
+          return wrapAlgodRequest(request, normalizeAssetResponseForPact);
+        };
+      }
+
+      return Reflect.get(target, property, receiver);
+    }
+  });
+}
+
+function wrapAlgodRequest<T>(
+  request: AlgodRequestLike<T>,
+  normalize: (value: T) => T
+): AlgodRequestLike<T> {
+  return {
+    ...request,
+    do: async () => normalize(await request.do())
+  };
+}
+
+function normalizeApplicationResponseForPact<T>(response: T): T {
+  if (!isRecordLike(response) || !isRecordLike(response.params)) {
+    return response;
+  }
+
+  const params = response.params;
+  const globalState = params["global-state"] ?? params.globalState;
+  if (globalState === undefined) {
+    return response;
+  }
+
+  return {
+    ...response,
+    params: {
+      ...params,
+      "global-state": normalizeStateEntries(globalState)
+    }
+  } as T;
+}
+
+function normalizeAssetResponseForPact<T>(response: T): T {
+  if (!isRecordLike(response) || !isRecordLike(response.params)) {
+    return response;
+  }
+
+  const params = response.params;
+  return {
+    ...response,
+    params: {
+      ...params,
+      "unit-name": params["unit-name"] ?? params.unitName
+    }
+  } as T;
+}
+
+function normalizeStateEntries(value: unknown): unknown {
+  if (!Array.isArray(value)) {
+    return value;
+  }
+
+  return value.map((entry) => {
+    if (!isRecordLike(entry)) {
+      return entry;
+    }
+
+    const rawValue = entry.value;
+    const normalizedValue = isRecordLike(rawValue)
+      ? {
+          ...rawValue,
+          bytes: encodeBytesForPact(rawValue.bytes),
+          uint: normalizeUintForPact(rawValue.uint)
+        }
+      : rawValue;
+
+    return {
+      ...entry,
+      key: encodeBytesForPact(entry.key),
+      value: normalizedValue
+    };
+  });
+}
+
+function encodeBytesForPact(value: unknown): unknown {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (value instanceof Uint8Array) {
+    return Buffer.from(value).toString("base64");
+  }
+  if (ArrayBuffer.isView(value)) {
+    return Buffer.from(value.buffer, value.byteOffset, value.byteLength).toString("base64");
+  }
+  if (value instanceof ArrayBuffer) {
+    return Buffer.from(value).toString("base64");
+  }
+  return value;
+}
+
+function normalizeUintForPact(value: unknown): unknown {
+  return typeof value === "bigint" ? Number(value) : value;
+}
+
+function isRecordLike(value: unknown): value is RecordLike {
+  return typeof value === "object" && value !== null;
 }
 
 export function createExecutionAlgodClient(): Algodv2 {

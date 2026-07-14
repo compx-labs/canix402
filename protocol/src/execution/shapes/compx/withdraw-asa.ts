@@ -23,8 +23,8 @@ import {
   parsePositiveBaseUnitAmount
 } from "./parse-input.js";
 import {
+  COMPX_LENDING_APP_CALL_MIN_FEE,
   DEFAULT_COMPX_APP_CALL_MAX_FEE,
-  MIN_ALGO_FEE,
   assertGroupedTransactions,
   readAppCallSelectorHex,
   rejectUnexpectedSignerMetadata,
@@ -213,7 +213,6 @@ export const compxWithdrawAsaShape: TransactionShapeSpec<
       userAddress: input.userAddress,
       marketAppId: state.marketAppId,
       baseTokenId: state.baseTokenId,
-      lstTokenId: state.lstTokenId,
       errors
     });
 
@@ -287,10 +286,9 @@ function validateWithdrawAppCallTxn(params: {
   userAddress: string;
   marketAppId: number;
   baseTokenId: number;
-  lstTokenId: number;
   errors: string[];
 }): void {
-  const { txn, label, userAddress, marketAppId, baseTokenId, lstTokenId, errors } = params;
+  const { txn, label, userAddress, marketAppId, baseTokenId, errors } = params;
   if (txn === undefined || txn.type !== "appl" || !txn.applicationCall) {
     errors.push(`${label} must be an application call.`);
     return;
@@ -307,15 +305,10 @@ function validateWithdrawAppCallTxn(params: {
   if (!txn.applicationCall.foreignAssets.includes(String(baseTokenId))) {
     errors.push(`${label} foreign assets must include the base token.`);
   }
-  if (!txn.applicationCall.foreignAssets.includes(String(lstTokenId))) {
-    errors.push(`${label} foreign assets must include the LST token.`);
-  }
-  if (BigInt(txn.fee) < DEFAULT_COMPX_APP_CALL_MAX_FEE) {
+  if (BigInt(txn.fee) < COMPX_LENDING_APP_CALL_MIN_FEE) {
     errors.push(
-      `${label} fee must be at least ${DEFAULT_COMPX_APP_CALL_MAX_FEE.toString()} microAlgos.`
+      `${label} fee must be at least ${COMPX_LENDING_APP_CALL_MIN_FEE.toString()} microAlgos.`
     );
-  } else if (BigInt(txn.fee) < MIN_ALGO_FEE) {
-    errors.push(`${label} fee must be at least ${MIN_ALGO_FEE.toString()} microAlgos.`);
   }
 }
 

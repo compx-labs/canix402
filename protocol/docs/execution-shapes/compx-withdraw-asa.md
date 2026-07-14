@@ -13,7 +13,7 @@
   "shapeKey": "mainnet:compx:v1:withdraw:asa",
   "input": {
     "userAddress": "YOUR_ALGORAND_ADDRESS",
-    "marketAppId": 3475099935,
+    "marketAppId": 3491050310,
     "amount": "100000"
   }
 }
@@ -35,8 +35,8 @@ Two or three outer transactions in order:
 - Group size is 2 without opt-in, 3 with leading base-asset opt-in.
 - LST transfer amount matches the requested withdraw amount.
 - App call targets `marketAppId` with the `withdrawDeposit` ARC-4 selector.
-- Foreign assets include both base and LST token ids.
-- App call fee is at least `250000` microAlgos.
+- App call foreign assets include the base token id.
+- App call fee is at least `2000` microAlgos.
 
 ## Caveats
 

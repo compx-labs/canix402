@@ -56,19 +56,7 @@ export function decodeMarketResult(returnValue: unknown): DecodedDorkFiMarket {
   };
 }
 
-function emptySignSigner(
-  txnGroup: algosdk.Transaction[],
-  indexesToSign: number[]
-): Promise<Uint8Array[]> {
-  return Promise.resolve(
-    indexesToSign.map((index) => {
-      const txnObj = algosdk.decodeObj(
-        algosdk.encodeUnsignedTransaction(txnGroup[index]!)
-      ) as { txn: Record<string, unknown> };
-      return new Uint8Array(algosdk.encodeObj({ txn: txnObj.txn }));
-    })
-  );
-}
+const emptySignSigner = algosdk.makeEmptyTransactionSigner();
 
 export async function simulateGetMarket(params: {
   algod: Algodv2;

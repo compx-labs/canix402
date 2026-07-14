@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import algosdk from "algosdk";
-import type { LiquidityAddition, Pool } from "@pactfi/pactsdk";
+import algosdk, { Algodv2 } from "algosdk";
+import { PactClient, type LiquidityAddition, type Pool } from "@pactfi/pactsdk";
 
 import {
   InvalidShapeInputError,
@@ -14,6 +14,7 @@ import {
 } from "../../src/execution/index.js";
 import type { SerializedTransaction, ShapeBuildContext } from "../../src/execution/index.js";
 import {
+  createPactCompatibleAlgodClient,
   mapAssetsToPactAmounts,
   pactAddLiquidityTwoSidedShape,
   pactRemoveLiquidityProportionalShape,
@@ -330,8 +331,91 @@ test("resolvePactPoolState rejects mismatched asset pair", async () => {
   );
 });
 
+test("Pact algod compatibility adapter normalizes algosdk v3 app state for SDK parsing", async () => {
+  const pact = new PactClient(
+    createPactCompatibleAlgodClient(buildPactSdkV3AlgodStub()) as unknown as ConstructorParameters<
+      typeof PactClient
+    >[0],
+    { network: "mainnet" }
+  );
+
+  const pool = await pact.fetchPoolById(POOL_APP_ID);
+
+  assert.equal(pool.appId, POOL_APP_ID);
+  assert.equal(pool.primaryAsset.index, ALGO_ID);
+  assert.equal(pool.secondaryAsset.index, USDC_ID);
+  assert.equal(pool.liquidityAsset.index, LP_TOKEN_ID);
+  assert.equal(pool.feeBps, 30);
+  assert.equal(pool.state.totalPrimary, 5_000_000);
+  assert.equal(pool.state.totalSecondary, 2_500_000);
+});
+
 test("registry includes both Pact liquidity shapes", () => {
   const registry = createExecutionRegistry();
   assert.equal(registry.has("mainnet:pact:v1:addLiquidity:twoSided"), true);
   assert.equal(registry.has("mainnet:pact:v1:removeLiquidity:proportional"), true);
 });
+
+function buildPactSdkV3AlgodStub(): Algodv2 {
+  return {
+    getApplicationByID: () => ({
+      do: async () => ({
+        id: BigInt(POOL_APP_ID),
+        params: {
+          globalState: [
+            stateBytes("CONFIG", encodeUint64Tuple(ALGO_ID, USDC_ID, 30)),
+            stateUint("A", 5_000_000n),
+            stateUint("B", 2_500_000n),
+            stateUint("L", 1_000_000n),
+            stateUint("LTID", BigInt(LP_TOKEN_ID)),
+            stateUint("VERSION", 1n),
+            stateBytes("CONTRACT_NAME", new TextEncoder().encode("PACT AMM"))
+          ]
+        }
+      })
+    }),
+    getAssetByID: (assetId: number | bigint) => ({
+      do: async () => ({
+        index: BigInt(assetId),
+        params: {
+          name: `asset ${assetId}`,
+          unitName: `A${assetId}`,
+          decimals: 6
+        }
+      })
+    })
+  } as unknown as Algodv2;
+}
+
+function stateUint(key: string, uint: bigint): unknown {
+  return {
+    key: new TextEncoder().encode(key),
+    value: {
+      bytes: new Uint8Array(),
+      type: 2,
+      uint
+    }
+  };
+}
+
+function stateBytes(key: string, bytes: Uint8Array): unknown {
+  return {
+    key: new TextEncoder().encode(key),
+    value: {
+      bytes,
+      type: 1,
+      uint: 0n
+    }
+  };
+}
+
+function encodeUint64Tuple(...values: readonly number[]): Uint8Array {
+  const chunks = values.map((value) => algosdk.encodeUint64(value));
+  const result = new Uint8Array(chunks.reduce((length, chunk) => length + chunk.length, 0));
+  let offset = 0;
+  for (const chunk of chunks) {
+    result.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return result;
+}

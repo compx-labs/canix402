@@ -149,7 +149,7 @@ export async function buildDorkFiAsaDepositTransactions(
   }
 
   const transactions = decodeUnsignedTransactions(customTx.txns);
-  rejectUnexpectedTransactionCount(transactions.length, 2, 4);
+  rejectUnexpectedTransactionCount(transactions.length, 2, 16);
   return transactions;
 }
 

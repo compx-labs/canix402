@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   MainnetDepositsAppId,
+  MainnetPools,
   retrieveUserDepositsInfo
 } from "@folks-finance/algorand-sdk";
 
@@ -38,6 +39,7 @@ const WITHDRAW_ESCROW_SHAPE = "mainnet:folks-finance:v2:withdraw:escrow";
 
 const DEPOSIT_USDC_MICRO_AMOUNT = 100_000n;
 const WITHDRAW_USDC_MICRO_AMOUNT = 100_000n;
+const USDC_POOL_APP_ID = 971372237;
 
 type ExecutionScenario = "deposit" | "withdraw" | "roundtrip";
 
@@ -85,6 +87,24 @@ function resolveUsdcAssetId(): number {
   return Number(configured);
 }
 
+function resolveFolksPoolAppId(): number {
+  const assetId = resolveUsdcAssetId();
+  if (assetId === USDC_ASSET_ID) {
+    return USDC_POOL_APP_ID;
+  }
+
+  const matches = Object.entries(MainnetPools).filter(([, pool]) => Number(pool.assetId) === assetId);
+  const nonIsolatedMatches = matches.filter(([symbol]) => !symbol.startsWith("ISOLATED_"));
+  const candidates = nonIsolatedMatches.length > 0 ? nonIsolatedMatches : matches;
+  if (candidates.length !== 1) {
+    throw new Error(
+      `Unable to choose a Folks Finance pool for asset ${assetId}; update the production test with the target pool app id.`
+    );
+  }
+
+  return candidates[0]![1].appId;
+}
+
 function resolveConfiguredEscrowAddress(): string | undefined {
   const configured = process.env.X402_FOLKS_ESCROW_ADDRESS?.trim();
   return configured === undefined || configured.length === 0 ? undefined : configured;
@@ -117,11 +137,11 @@ async function discoverEscrowAddress(userAddress: string): Promise<string | unde
 
 async function ensureEscrowReady(userAddress: string): Promise<string> {
   const algod = createAlgodClientFromEnv();
-  const assetId = resolveUsdcAssetId();
+  const poolAppId = resolveFolksPoolAppId();
   const poolState = await resolveFolksPoolState({
     network: "mainnet",
     algod,
-    assetId
+    poolAppId
   });
 
   let escrowAddress = await discoverEscrowAddress(userAddress);
@@ -137,7 +157,7 @@ async function ensureEscrowReady(userAddress: string): Promise<string> {
   });
 
   if (!escrow.optedIntoFAsset) {
-    await runSetupOptEscrowAsset(userAddress, escrow.escrowAddress, assetId);
+    await runSetupOptEscrowAsset(userAddress, escrow.escrowAddress, poolAppId);
     escrow = await resolveFolksEscrowContext({
       algod,
       userAddress,
@@ -189,7 +209,7 @@ async function runSetupDepositEscrow(userAddress: string): Promise<string> {
 async function runSetupOptEscrowAsset(
   userAddress: string,
   escrowAddress: string,
-  assetId: number
+  poolAppId: number
 ): Promise<void> {
   const env = getLiveEnv();
   const baseUrl = getProductionBaseUrl();
@@ -203,7 +223,7 @@ async function runSetupOptEscrowAsset(
     input: {
       userAddress,
       escrowAddress,
-      assetId
+      poolAppId
     },
     clientMnemonic,
     algodUrl: env.algodUrl
@@ -228,13 +248,14 @@ async function runEscrowDeposit(escrowAddress: string): Promise<bigint> {
   const algod = createAlgodClientFromEnv();
   const userAddress = account.addr.toString();
   const assetId = resolveUsdcAssetId();
+  const poolAppId = resolveFolksPoolAppId();
 
   await ensureAssetOptIn(account, algod, assetId);
 
   const poolState = await resolveFolksPoolState({
     network: "mainnet",
     algod,
-    assetId
+    poolAppId
   });
   const fAssetId = Number(poolState.pool.fAssetId);
   const fAssetBalanceBefore = await getAssetBalance(algod, escrowAddress, fAssetId);
@@ -245,7 +266,7 @@ async function runEscrowDeposit(escrowAddress: string): Promise<bigint> {
     input: {
       userAddress,
       escrowAddress,
-      assetId,
+      poolAppId,
       assetAmount: serializeAmount(DEPOSIT_USDC_MICRO_AMOUNT)
     },
     clientMnemonic,
@@ -279,6 +300,7 @@ async function runEscrowWithdraw(escrowAddress: string): Promise<void> {
   const algod = createAlgodClientFromEnv();
   const userAddress = account.addr.toString();
   const assetId = resolveUsdcAssetId();
+  const poolAppId = resolveFolksPoolAppId();
 
   const usdcBalanceBefore = await getAssetBalance(algod, userAddress, assetId);
 
@@ -288,7 +310,7 @@ async function runEscrowWithdraw(escrowAddress: string): Promise<void> {
     input: {
       userAddress,
       escrowAddress,
-      assetId,
+      poolAppId,
       amount: serializeAmount(WITHDRAW_USDC_MICRO_AMOUNT),
       amountDenomination: "asset"
     },
@@ -333,11 +355,11 @@ test("escrow withdraw via production x402 execution quote", async (t) => {
   const clientMnemonic = requireClientMnemonic("npm run test:folks-production");
   const userAddress = accountFromMnemonic(clientMnemonic).addr.toString();
   const algod = createAlgodClientFromEnv();
-  const assetId = resolveUsdcAssetId();
+  const poolAppId = resolveFolksPoolAppId();
   const poolState = await resolveFolksPoolState({
     network: "mainnet",
     algod,
-    assetId
+    poolAppId
   });
 
   const escrowAddress = await ensureEscrowReady(userAddress);

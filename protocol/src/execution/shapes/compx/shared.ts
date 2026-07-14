@@ -5,6 +5,7 @@ import { ShapeBuildError } from "../../errors.js";
 import type { SerializedTransaction, SerializedBoxReference } from "../../types.js";
 
 export const MIN_ALGO_FEE = 1000n;
+export const COMPX_LENDING_APP_CALL_MIN_FEE = 2n * MIN_ALGO_FEE;
 export const DEFAULT_COMPX_APP_CALL_MAX_FEE = BigInt(DEFAULT_APP_CALL_MAX_FEE);
 
 export interface LendingTransactionBundle {
