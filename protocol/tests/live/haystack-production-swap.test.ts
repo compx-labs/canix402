@@ -74,7 +74,7 @@ test(
       { method: "POST", body: requestBody }
     );
     const accepted = getAlgorandAccept(paymentRequest);
-    const paymentAmount = BigInt(
+    const paymentAmount = toMicroUsdc(
       accepted.maxAmountRequired ?? accepted.amount ?? "0"
     );
     assert.equal(accepted.asset, String(USDC_ASSET_ID));
@@ -213,4 +213,12 @@ async function postFreeJson<T>(
     );
   }
   return JSON.parse(text) as T;
+}
+
+function toMicroUsdc(value: string): bigint {
+  if (!value.includes(".")) {
+    return BigInt(value);
+  }
+  const [whole = "0", fraction = ""] = value.split(".");
+  return BigInt(whole) * 1_000_000n + BigInt(`${fraction}000000`.slice(0, 6));
 }
