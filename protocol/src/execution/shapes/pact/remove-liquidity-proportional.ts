@@ -18,7 +18,11 @@ import {
   parsePoolId,
   toSdkAmount
 } from "./parse-input.js";
-import { PactPoolState, resolvePactPoolState } from "./pool-state.js";
+import {
+  PactPoolState,
+  normalizeSuggestedParamsForPact,
+  resolvePactPoolState
+} from "./pool-state.js";
 
 const REMOVE_LIQUIDITY_APP_CALL_FEE = 3000n;
 const MIN_ALGO_FEE = 1000n;
@@ -151,7 +155,7 @@ export const pactRemoveLiquidityProportionalShape: TransactionShapeSpec<
       rawTxns = dependencies.buildRemoveLiquidityTxs(state.pool, {
         address: input.userAddress,
         amount: toSdkAmount(input.poolTokenAmount, "poolTokenAmount"),
-        suggestedParams
+        suggestedParams: normalizeSuggestedParamsForPact(suggestedParams)
       });
       algosdk.assignGroupID(rawTxns);
     } catch (error) {

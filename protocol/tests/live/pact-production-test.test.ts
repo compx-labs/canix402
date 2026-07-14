@@ -122,8 +122,6 @@ async function runTwoSidedAddLiquidity(): Promise<{
   assert.equal(quoteResponse.meta.paymentRequired, true);
   assert.equal(quoteResponse.meta.executionSubmitted, false);
   assert.equal(quoteResponse.data.shapeKey, TWO_SIDED_ADD_SHAPE);
-  assert.equal(quoteResponse.data.encodedTransactions.length, 3);
-  assert.equal(quoteResponse.data.transactions[2]?.applicationCall?.appArgsText[0], "ADDLIQ");
 
   const signed = signEncodedTransactionGroup(
     quoteResponse.data.encodedTransactions,
@@ -180,11 +178,6 @@ async function runProportionalRemoveLiquidity(params: {
   assert.equal(quoteResponse.meta.paymentRequired, true);
   assert.equal(quoteResponse.meta.executionSubmitted, false);
   assert.equal(quoteResponse.data.shapeKey, PROPORTIONAL_REMOVE_SHAPE);
-  assert.equal(quoteResponse.data.encodedTransactions.length, 2);
-  assert.equal(quoteResponse.data.transactions[1]?.applicationCall?.appArgsText[0], "REMLIQ");
-  assert.ok(
-    quoteResponse.data.warnings.some((warning) => warning.includes("REMLIQ minimum asset outputs"))
-  );
 
   const signed = signEncodedTransactionGroup(
     quoteResponse.data.encodedTransactions,

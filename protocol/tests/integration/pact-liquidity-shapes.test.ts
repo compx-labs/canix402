@@ -24,6 +24,11 @@ import {
   setPactRemoveLiquidityProportionalDependenciesForTests,
   type PactPoolState
 } from "../../src/execution/shapes/pact/index.js";
+import {
+  computeBalancedPactAddAmounts,
+  createAlgodClientFromEnv,
+  resolvePactAlgoUsdcPool
+} from "../helpers/algorandExecution.js";
 
 const USER = algosdk.generateAccount();
 const ESCROW = algosdk.generateAccount();
@@ -195,7 +200,7 @@ test("add shape parseInput rejects duplicate assets and invalid slippage", () =>
   );
 });
 
-test("add shape compileExecutableQuote builds 3-txn group with metadata", async () => {
+test("add shape compileExecutableQuote builds 3-txn group with mocked dependencies", async () => {
   const state = mockPoolState();
   const liquidityAddition = {
     primaryAssetAmount: 50_000,
@@ -348,6 +353,44 @@ test("Pact algod compatibility adapter normalizes algosdk v3 app state for SDK p
   assert.equal(pool.feeBps, 30);
   assert.equal(pool.state.totalPrimary, 5_000_000);
   assert.equal(pool.state.totalSecondary, 2_500_000);
+});
+
+test("add shape builds real Pact mainnet SDK transaction group", async () => {
+  const algod = createAlgodClientFromEnv();
+  const pool = await resolvePactAlgoUsdcPool(algod);
+  const amounts = await computeBalancedPactAddAmounts(algod, 100_000n);
+  const registry = new TransactionShapeRegistry();
+  registry.register(pactAddLiquidityTwoSidedShape);
+
+  const quote = await compileExecutableQuote(
+    registry,
+    pactAddLiquidityTwoSidedShape.key,
+    {
+      userAddress: USER_ADDRESS,
+      poolAppId: pool.poolAppId,
+      assetAId: USDC_ID,
+      assetAAmount: amounts.assetAAmount.toString(),
+      assetBId: ALGO_ID,
+      assetBAmount: amounts.assetBAmount.toString(),
+      maxSlippageBps: 50
+    },
+    {
+      network: "mainnet",
+      algod,
+      now: () => Date.UTC(2026, 6, 13, 9, 0, 0),
+      quoteTtlMs: 30_000
+    }
+  );
+
+  assert.equal(quote.shapeKey, pactAddLiquidityTwoSidedShape.key);
+  assert.equal(quote.transactions.length, 3);
+  assert.deepEqual(quote.transactions.map((txn) => txn.type), ["pay", "axfer", "appl"]);
+  assert.equal(quote.transactions[0]?.payment?.amount, amounts.assetBAmount.toString());
+  assert.equal(quote.transactions[1]?.assetTransfer?.assetIndex, String(USDC_ID));
+  assert.equal(quote.transactions[1]?.assetTransfer?.amount, amounts.assetAAmount.toString());
+  assert.equal(quote.transactions[2]?.applicationCall?.appArgsText[0], "ADDLIQ");
+  assert.equal(quote.metadata.poolAppId, pool.poolAppId);
+  assert.equal(quote.transactions.every((txn) => txn.groupPresent), true);
 });
 
 test("registry includes both Pact liquidity shapes", () => {

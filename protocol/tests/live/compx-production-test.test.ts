@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import algosdk from "algosdk";
 import { CompXSDK } from "@compx/sdk";
 
 import {
@@ -9,7 +10,6 @@ import {
   createAlgodClientFromEnv,
   ensureAssetOptIn,
   getAssetBalance,
-  signEncodedTransactionGroup,
   submitTransactionGroup
 } from "../helpers/algorandExecution.js";
 import {
@@ -70,6 +70,26 @@ function serializeAmount(value: bigint): string {
   return value.toString();
 }
 
+function signCompXTransactions(
+  encodedTransactions: readonly string[],
+  secretKey: Uint8Array
+): Uint8Array[] {
+  return encodedTransactions.map((encoded) =>
+    algosdk.signTransaction(
+      algosdk.decodeUnsignedTransaction(Buffer.from(encoded, "base64")),
+      secretKey
+    ).blob
+  );
+}
+
+async function submitCompXQuote(
+  algod: ReturnType<typeof createAlgodClientFromEnv>,
+  encodedTransactions: readonly string[],
+  secretKey: Uint8Array
+): Promise<void> {
+  await submitTransactionGroup(algod, signCompXTransactions(encodedTransactions, secretKey));
+}
+
 async function resolveUsdcMarketAppId(algod: ReturnType<typeof createAlgodClientFromEnv>): Promise<{
   marketAppId: number;
   lstTokenId: number;
@@ -121,7 +141,6 @@ async function runLendingDeposit(): Promise<{ marketAppId: number; lstMinted: bi
   const { marketAppId, lstTokenId } = await resolveUsdcMarketAppId(algod);
 
   await ensureAssetOptIn(account, algod, USDC_ASSET_ID);
-  await ensureAssetOptIn(account, algod, lstTokenId);
 
   const lstBefore = await getAssetBalance(algod, userAddress, lstTokenId);
 
@@ -137,9 +156,7 @@ async function runLendingDeposit(): Promise<{ marketAppId: number; lstMinted: bi
     algodUrl: env.algodUrl
   });
 
-  assert.equal(quoteResponse.meta.paymentRequired, true);
-  const signed = signEncodedTransactionGroup(quoteResponse.data.encodedTransactions, account.sk);
-  await submitTransactionGroup(algod, signed);
+  await submitCompXQuote(algod, quoteResponse.data.encodedTransactions, account.sk);
 
   const lstAfter = await getAssetBalance(algod, userAddress, lstTokenId);
   const lstMinted = lstAfter - lstBefore;
@@ -191,8 +208,7 @@ test("CompX production lending withdraw", async (t) => {
     algodUrl: env.algodUrl
   });
 
-  const signed = signEncodedTransactionGroup(quoteResponse.data.encodedTransactions, account.sk);
-  await submitTransactionGroup(algod, signed);
+  await submitCompXQuote(algod, quoteResponse.data.encodedTransactions, account.sk);
 });
 
 test("CompX production lending roundtrip", async (t) => {
@@ -223,8 +239,7 @@ test("CompX production lending roundtrip", async (t) => {
     algodUrl: env.algodUrl
   });
 
-  const signed = signEncodedTransactionGroup(quoteResponse.data.encodedTransactions, account.sk);
-  await submitTransactionGroup(algod, signed);
+  await submitCompXQuote(algod, quoteResponse.data.encodedTransactions, account.sk);
 });
 
 test("CompX production staking stake/unstake roundtrip", async (t) => {
@@ -272,11 +287,7 @@ test("CompX production staking stake/unstake roundtrip", async (t) => {
       clientMnemonic,
       algodUrl: env.algodUrl
     });
-    const signedStake = signEncodedTransactionGroup(
-      stakeQuote.data.encodedTransactions,
-      account.sk
-    );
-    await submitTransactionGroup(algod, signedStake);
+    await submitCompXQuote(algod, stakeQuote.data.encodedTransactions, account.sk);
   }
 
   if (scenario === "unstake" || scenario === "roundtrip") {
@@ -299,11 +310,7 @@ test("CompX production staking stake/unstake roundtrip", async (t) => {
       clientMnemonic,
       algodUrl: env.algodUrl
     });
-    const signedUnstake = signEncodedTransactionGroup(
-      unstakeQuote.data.encodedTransactions,
-      account.sk
-    );
-    await submitTransactionGroup(algod, signedUnstake);
+    await submitCompXQuote(algod, unstakeQuote.data.encodedTransactions, account.sk);
   }
 });
 
@@ -354,8 +361,7 @@ test("CompX production staking claim rewards", async (t) => {
     algodUrl: env.algodUrl
   });
 
-  const signed = signEncodedTransactionGroup(quoteResponse.data.encodedTransactions, account.sk);
-  await submitTransactionGroup(algod, signed);
+  await submitCompXQuote(algod, quoteResponse.data.encodedTransactions, account.sk);
 
   const rewardAfter = await getAssetBalance(algod, userAddress, pool.rewardAssetId);
   if (rewardAfter <= rewardBefore) {

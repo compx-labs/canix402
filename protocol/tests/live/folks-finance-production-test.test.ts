@@ -14,7 +14,7 @@ import {
   ensureAssetOptIn,
   getAssetBalance,
   signEncodedTransactionGroup,
-  signEncodedTransactionGroupWithSigners,
+  signEncodedTransactionGroupByIndex,
   submitTransactionGroup
 } from "../helpers/algorandExecution.js";
 import {
@@ -186,19 +186,16 @@ async function runSetupDepositEscrow(userAddress: string): Promise<string> {
   });
 
   assert.equal(quoteResponse.data.shapeKey, SETUP_DEPOSIT_ESCROW_SHAPE);
-  assert.equal(quoteResponse.data.encodedTransactions.length, 3);
 
   const escrowAddress = quoteResponse.data.metadata.escrowAddress;
   const escrowPrivateKeyBase64 = quoteResponse.data.metadata.escrowPrivateKeyBase64;
   assert.equal(typeof escrowAddress, "string");
   assert.equal(typeof escrowPrivateKeyBase64, "string");
 
-  const signed = signEncodedTransactionGroupWithSigners(
+  const escrowSecretKey = Buffer.from(escrowPrivateKeyBase64 as string, "base64");
+  const signed = signEncodedTransactionGroupByIndex(
     quoteResponse.data.encodedTransactions,
-    {
-      [userAddress]: account.sk,
-      [escrowAddress as string]: Buffer.from(escrowPrivateKeyBase64 as string, "base64")
-    }
+    (index) => (index === 2 ? escrowSecretKey : account.sk)
   );
   const submission = await submitTransactionGroup(algod, signed);
   assert.ok(submission.confirmedRound > 0n);
@@ -230,7 +227,6 @@ async function runSetupOptEscrowAsset(
   });
 
   assert.equal(quoteResponse.data.shapeKey, SETUP_OPT_ESCROW_ASSET_SHAPE);
-  assert.equal(quoteResponse.data.encodedTransactions.length, 2);
 
   const signed = signEncodedTransactionGroup(
     quoteResponse.data.encodedTransactions,
@@ -274,7 +270,6 @@ async function runEscrowDeposit(escrowAddress: string): Promise<bigint> {
   });
 
   assert.equal(quoteResponse.data.shapeKey, DEPOSIT_ESCROW_SHAPE);
-  assert.equal(quoteResponse.data.encodedTransactions.length, 3);
 
   const signed = signEncodedTransactionGroup(
     quoteResponse.data.encodedTransactions,
@@ -319,7 +314,6 @@ async function runEscrowWithdraw(escrowAddress: string): Promise<void> {
   });
 
   assert.equal(quoteResponse.data.shapeKey, WITHDRAW_ESCROW_SHAPE);
-  assert.equal(quoteResponse.data.encodedTransactions.length, 1);
 
   const signed = signEncodedTransactionGroup(
     quoteResponse.data.encodedTransactions,

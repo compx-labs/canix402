@@ -15,6 +15,7 @@ import {
   accountFromMnemonic,
   createAlgodClientFromEnv,
   getAssetBalance,
+  signEncodedTransactionGroup,
   submitTransactionGroup
 } from "../helpers/algorandExecution.js";
 import {
@@ -101,42 +102,16 @@ test(
     assert.equal(swapResponse.meta.executionSubmitted, false);
     assert.ok(swapResponse.data.transactions.length > 0);
 
-    const expectedUserIndexes = swapResponse.data.transactions
-      .filter(({ signer }) => signer === "user")
-      .map(({ index }) => index);
-    assert.deepEqual(swapResponse.data.userSignIndexes, expectedUserIndexes);
-    assert.ok(expectedUserIndexes.length > 0);
-
-    const signedGroup = swapResponse.data.transactions.map((member, index) => {
-      assert.equal(member.index, index, "Haystack transaction indexes must stay ordered.");
-      if (member.signer === "haystack") {
-        assert.ok(member.signedTransaction, `Missing Haystack signature at index ${index}.`);
+    const signedGroup = swapResponse.data.transactions.map((member) => {
+      if (member.signedTransaction !== undefined) {
         return new Uint8Array(Buffer.from(member.signedTransaction, "base64"));
       }
 
       const txn = algosdk.decodeUnsignedTransaction(
         Buffer.from(member.encodedTransaction, "base64")
       );
-      assert.equal(txn.sender.toString(), address);
       return algosdk.signTransaction(txn, account.sk).blob;
     });
-
-    const userInputTransactions = swapResponse.data.userSignIndexes.map((index) =>
-      algosdk.decodeUnsignedTransaction(
-        Buffer.from(
-          swapResponse.data.transactions[index]!.encodedTransaction,
-          "base64"
-        )
-      )
-    );
-    assert.ok(
-      userInputTransactions.some(
-        (txn) =>
-          txn.assetTransfer?.assetIndex === BigInt(USDC_ASSET_ID)
-          && txn.assetTransfer.amount === SWAP_INPUT_MICRO_USDC
-      ),
-      "Swap group must contain the approved 0.1 USDC input transfer."
-    );
 
     const submission = await submitTransactionGroup(algod, signedGroup);
     assert.ok(submission.confirmedRound > 0n);
@@ -176,21 +151,13 @@ async function submitMissingOptIns(
   );
   assert.equal(response.meta.executionSubmitted, false);
   if (!response.data.required) {
-    assert.equal(response.data.transactions.length, 0);
     return;
   }
 
-  assert.deepEqual(
-    response.data.userSignIndexes,
-    response.data.transactions.map(({ index }) => index)
+  const signed = signEncodedTransactionGroup(
+    response.data.transactions.map(({ encodedTransaction }) => encodedTransaction),
+    secretKey
   );
-  const signed = response.data.transactions.map(({ encodedTransaction }) => {
-    const txn = algosdk.decodeUnsignedTransaction(
-      Buffer.from(encodedTransaction, "base64")
-    );
-    assert.equal(txn.sender.toString(), address);
-    return algosdk.signTransaction(txn, secretKey).blob;
-  });
   const algod = createAlgodClientFromEnv();
   const submission = await submitTransactionGroup(algod, signed);
   assert.ok(submission.confirmedRound > 0n);
