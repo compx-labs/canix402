@@ -27,7 +27,7 @@ import {
   parseOptionalPoolId,
   parsePositiveBaseUnitAmount
 } from "./parse-input.js";
-import { assertGroupedTransactions, readAppCallSelectorHex } from "./shared.js";
+import { assignCanonicalGroupID, assertGroupedTransactions, readAppCallSelectorHex } from "./shared.js";
 
 const IDENTITY: TransactionShapeIdentity = {
   network: "mainnet",
@@ -149,7 +149,7 @@ export const dorkfiDepositAsaShape: TransactionShapeSpec<
       });
     }
 
-    algosdk.assignGroupID(transactions);
+    assignCanonicalGroupID(transactions);
 
     return {
       transactions,
