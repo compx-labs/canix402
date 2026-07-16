@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-  USDC_ASSET_ID,
   accountFromMnemonic,
   createAlgodClientFromEnv,
   ensureAssetOptIn,
@@ -19,6 +18,7 @@ import {
   requireClientMnemonic
 } from "../helpers/x402LiveClient.js";
 import {
+  findCatalogMarket,
   DORKFI_MAINNET_USDC_ASA_ID,
   DORKFI_MAINNET_USDC_MARKET_APP_ID,
   DORKFI_MAINNET_USDC_POOL_APP_ID
@@ -63,6 +63,7 @@ function resolveUsdcMarket(): {
   poolAppId: number;
   marketAppId: number;
   assetId: number;
+  nTokenAppId: number;
 } {
   const poolAppId = Number(
     process.env.X402_DORKFI_USDC_POOL_APP_ID ?? DORKFI_MAINNET_USDC_POOL_APP_ID
@@ -71,6 +72,10 @@ function resolveUsdcMarket(): {
     process.env.X402_DORKFI_USDC_MARKET_APP_ID ?? DORKFI_MAINNET_USDC_MARKET_APP_ID
   );
   const assetId = Number(process.env.X402_DORKFI_USDC_ASSET_ID ?? DORKFI_MAINNET_USDC_ASA_ID);
+  const catalogMarket = findCatalogMarket({ poolAppId, marketAppId, assetId });
+  const nTokenAppId = Number(
+    process.env.X402_DORKFI_USDC_NTOKEN_APP_ID ?? catalogMarket?.nTokenAppId
+  );
 
   if (!Number.isInteger(poolAppId) || poolAppId <= 0) {
     throw new Error("X402_DORKFI_USDC_POOL_APP_ID must be a positive integer.");
@@ -81,8 +86,13 @@ function resolveUsdcMarket(): {
   if (!Number.isInteger(assetId) || assetId <= 0) {
     throw new Error("X402_DORKFI_USDC_ASSET_ID must be a positive integer.");
   }
+  if (!Number.isInteger(nTokenAppId) || nTokenAppId <= 0) {
+    throw new Error(
+      "X402_DORKFI_USDC_NTOKEN_APP_ID must be configured for custom Dork.fi USDC market overrides."
+    );
+  }
 
-  return { poolAppId, marketAppId, assetId };
+  return { poolAppId, marketAppId, assetId, nTokenAppId };
 }
 
 async function runLendingDeposit(): Promise<{ nTokenMinted: bigint }> {
@@ -94,11 +104,11 @@ async function runLendingDeposit(): Promise<{ nTokenMinted: bigint }> {
   const userAddress = account.addr.toString();
   const market = resolveUsdcMarket();
 
-  await ensureAssetOptIn(account, algod, USDC_ASSET_ID);
+  await ensureAssetOptIn(account, algod, market.assetId);
 
   const nTokenBefore = await getDorkFiArc200Balance(
     algod,
-    market.marketAppId,
+    market.nTokenAppId,
     userAddress
   );
 
@@ -125,7 +135,7 @@ async function runLendingDeposit(): Promise<{ nTokenMinted: bigint }> {
 
   const nTokenAfter = await getDorkFiArc200Balance(
     algod,
-    market.marketAppId,
+    market.nTokenAppId,
     userAddress
   );
   const nTokenMinted = nTokenAfter - nTokenBefore;
@@ -160,7 +170,7 @@ test("Dork.fi production lending withdraw", async (t) => {
 
   const nTokenBalance = await getDorkFiArc200Balance(
     algod,
-    market.marketAppId,
+    market.nTokenAppId,
     userAddress
   );
   if (nTokenBalance <= 0n) {
@@ -168,7 +178,7 @@ test("Dork.fi production lending withdraw", async (t) => {
     return;
   }
 
-  const usdcBefore = await getAssetBalance(algod, userAddress, USDC_ASSET_ID);
+  const usdcBefore = await getAssetBalance(algod, userAddress, market.assetId);
 
   const quoteResponse = await fetchPaidExecutionQuote({
     baseUrl,
@@ -192,12 +202,12 @@ test("Dork.fi production lending withdraw", async (t) => {
 
   const nTokenAfter = await getDorkFiArc200Balance(
     algod,
-    market.marketAppId,
+    market.nTokenAppId,
     userAddress
   );
   assert.ok(nTokenAfter < nTokenBalance, "Expected nToken balance to decrease after withdraw.");
 
-  const usdcAfter = await getAssetBalance(algod, userAddress, USDC_ASSET_ID);
+  const usdcAfter = await getAssetBalance(algod, userAddress, market.assetId);
   assert.ok(usdcAfter > usdcBefore, "Expected USDC balance to increase after withdraw.");
 });
 
@@ -217,7 +227,7 @@ test("Dork.fi production lending roundtrip", async (t) => {
   const algod = createAlgodClientFromEnv();
   const userAddress = account.addr.toString();
   const market = resolveUsdcMarket();
-  const usdcBefore = await getAssetBalance(algod, userAddress, USDC_ASSET_ID);
+  const usdcBefore = await getAssetBalance(algod, userAddress, market.assetId);
 
   const quoteResponse = await fetchPaidExecutionQuote({
     baseUrl,
@@ -239,6 +249,6 @@ test("Dork.fi production lending roundtrip", async (t) => {
   );
   await submitTransactionGroup(algod, signed);
 
-  const usdcAfter = await getAssetBalance(algod, userAddress, USDC_ASSET_ID);
+  const usdcAfter = await getAssetBalance(algod, userAddress, market.assetId);
   assert.ok(usdcAfter >= usdcBefore, "Expected USDC balance to recover after roundtrip withdraw.");
 });

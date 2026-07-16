@@ -186,6 +186,6 @@ export async function buildDorkFiAsaWithdrawTransactions(
   }
 
   const transactions = decodeUnsignedTransactions(customTx.txns);
-  rejectUnexpectedTransactionCount(transactions.length, 2, 3);
+  rejectUnexpectedTransactionCount(transactions.length, 2, 16);
   return transactions;
 }
