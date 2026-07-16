@@ -6,6 +6,7 @@ import { loadDiscovery } from "../lib/discovery";
 
 const loaded = await loadDiscovery(config.discoveryUrl);
 const endpoints = loaded.document.endpoints;
+const paidCount = endpoints.filter((endpoint) => endpoint.access === "paid").length;
 ---
 
 <BaseLayout
@@ -13,11 +14,21 @@ const endpoints = loaded.document.endpoints;
   description="Browse the Canix402 endpoint catalog: free discovery and OpenAPI routes, plus x402-paid opportunity APIs with per-route USDC pricing sourced from live discovery metadata."
   keywords="Canix402 endpoints, API catalog, x402 pricing, discovery metadata, OpenAPI, paid routes, free routes"
 >
-  <h1 class="page-title">Endpoints</h1>
-  <p class="muted">
-    Endpoint inventory is sourced from discovery metadata. Live source:
-    <a href={config.discoveryUrl}>{config.discoveryUrl}</a>
-  </p>
+  <div class="section-header">
+    <span class="eyebrow">API catalog</span>
+    <h1 class="page-title">Endpoints</h1>
+    <p class="page-lead">
+      Browse Canix402 routes as individual cards — method, access, pricing, and parameters at a glance.
+      Inventory is sourced from discovery metadata and stays aligned with the live gateway contract.
+    </p>
+    <p class="muted">
+      Live source: <a href={config.discoveryUrl}>{config.discoveryUrl}</a>
+      <span aria-hidden="true"> · </span>
+      <span class="badge badge-live">{endpoints.length} APIs live</span>
+      <span aria-hidden="true"> · </span>
+      <span class="badge badge-paid">{paidCount} paid</span>
+    </p>
+  </div>
 
   {
     loaded.source === "snapshot" && (
@@ -31,8 +42,8 @@ const endpoints = loaded.document.endpoints;
 
   <section class="panel">
     <h2>OpenAPI contract</h2>
-    <p>
-      Detailed operation schemas are published at
+    <p class="muted">
+      Detailed operation schemas, request parameters, and response shapes are published at
       <a href={config.openApiUrl}>{config.openApiUrl}</a>.
     </p>
   </section>

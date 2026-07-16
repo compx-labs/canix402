@@ -112,4 +112,4 @@ After deploy:
 - `public/brand/canix402-banner.png`
 - `public/brand/canix402-mark.png`
 
-The site uses a dark/red neon visual system aligned with the CANIX402 logo set.
+The site uses a dark charcoal / red DeFi-native visual system with Inter Tight as the primary UI font and JetBrains Mono reserved for code, paths, and transaction identifiers.

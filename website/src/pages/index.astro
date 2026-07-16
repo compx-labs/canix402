@@ -1,7 +1,19 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import BrandLogo from "../components/BrandLogo.astro";
+import EndpointTable from "../components/EndpointTable.astro";
 import { config, supportedProtocols } from "../lib/config";
+import { loadDiscovery } from "../lib/discovery";
+
+const loaded = await loadDiscovery(config.discoveryUrl);
+const previewEndpoints = [...loaded.document.endpoints]
+  .sort((a, b) => {
+    if (a.access === b.access) {
+      return a.path.localeCompare(b.path);
+    }
+    return a.access === "paid" ? -1 : 1;
+  })
+  .slice(0, 6);
 
 const productSignals = [
   "x402 payments",
@@ -119,7 +131,7 @@ const caseStudyResults = [
         <div class="cta-row">
           <a class="button button-primary" href="/quickstart">Start quickstart</a>
           <a class="button" href="/mcp">Connect MCP</a>
-          <a class="button" href="/endpoints">Explore endpoints</a>
+          <a class="button button-ghost" href="/endpoints">Explore endpoints</a>
         </div>
         <ul class="signal-strip" aria-label="Product highlights">
           {
@@ -161,6 +173,29 @@ const caseStudyResults = [
           wallet — then pay per request and keep executing.
         </p>
       </article>
+    </div>
+  </section>
+
+  <!-- Endpoint preview -->
+  <section class="landing-section">
+    <div class="section-header-row">
+      <div class="section-header">
+        <span class="eyebrow">Live surface</span>
+        <h2>Core APIs agents can call today</h2>
+        <p class="section-lead muted">
+          Paid opportunity routes and free discovery endpoints, presented as cards with method,
+          pricing, and parameters — sourced from the same discovery metadata your agent will read.
+        </p>
+      </div>
+      <a class="button" href="/endpoints">View all endpoints →</a>
+    </div>
+    <div class="preview-endpoints">
+      <EndpointTable
+        endpoints={previewEndpoints}
+        showFilters={false}
+        actionHref="/endpoints"
+        actionLabel="Browse catalog"
+      />
     </div>
   </section>
 

@@ -75,30 +75,60 @@ function isPositionsEndpoint(endpoint: DiscoveryEndpoint): boolean {
   return endpoint.id === "positions" || endpoint.path === "/positions";
 }
 
+function resolvePaidAmount(endpoint: DiscoveryEndpoint): string {
+  const raw = endpoint.x402?.requirementTemplate.maxAmountRequired?.trim();
+  if (raw) {
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed)) {
+      return parsed.toString();
+    }
+
+    return raw;
+  }
+
+  if (isPersonalizedEndpoint(endpoint)) {
+    return personalizedPriceUsdc;
+  }
+
+  if (isPositionsEndpoint(endpoint)) {
+    return positionsPriceUsdc;
+  }
+
+  return defaultPaidPriceUsdc;
+}
+
 export function formatEndpointPrice(endpoint: DiscoveryEndpoint): string {
   if (endpoint.access !== "paid") {
     return "Free";
   }
 
-  const raw = endpoint.x402?.requirementTemplate.maxAmountRequired?.trim();
-  if (raw) {
-    const parsed = Number(raw);
-    if (Number.isFinite(parsed)) {
-      return `${parsed.toString()} USDC`;
-    }
+  return `${resolvePaidAmount(endpoint)} USDC`;
+}
 
-    return `${raw} USDC`;
+/** Compact card price label, e.g. "$0.01" or "Free". */
+export function formatEndpointPriceShort(endpoint: DiscoveryEndpoint): string {
+  if (endpoint.access !== "paid") {
+    return "Free";
   }
 
-  if (isPersonalizedEndpoint(endpoint)) {
-    return `${personalizedPriceUsdc} USDC`;
+  const amount = resolvePaidAmount(endpoint);
+  const parsed = Number(amount);
+  if (Number.isFinite(parsed)) {
+    const digits = parsed < 0.01 ? 3 : 2;
+    return `$${parsed.toFixed(digits)}`;
   }
 
-  if (isPositionsEndpoint(endpoint)) {
-    return `${positionsPriceUsdc} USDC`;
-  }
+  return `$${amount}`;
+}
 
-  return `${defaultPaidPriceUsdc} USDC`;
+export function formatEndpointTitle(endpoint: DiscoveryEndpoint): string {
+  const fromId = endpoint.id
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/[-_]/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+    .trim();
+
+  return fromId || endpoint.path;
 }
 
 export async function loadDiscovery(discoveryUrl: string): Promise<LoadedDiscovery> {
