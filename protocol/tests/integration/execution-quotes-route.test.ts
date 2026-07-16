@@ -11,11 +11,17 @@ import {
   setTinymanRemoveLiquidityDependenciesForTests,
   setTinymanRemoveLiquiditySingleAssetOutDependenciesForTests,
   setTinymanSingleAssetAddLiquidityDependenciesForTests,
+  setTinymanFarmCommitDependenciesForTests,
+  setTinymanAddLiquidityAndFarmFlexibleDependenciesForTests,
+  setTinymanAddLiquidityAndFarmSingleAssetDependenciesForTests,
   tinymanAddLiquidityFlexibleShape,
   tinymanAddLiquidityInitialShape,
   tinymanAddLiquiditySingleAssetShape,
   tinymanRemoveLiquidityMultipleAssetsOutShape,
-  tinymanRemoveLiquiditySingleAssetOutShape
+  tinymanRemoveLiquiditySingleAssetOutShape,
+  tinymanFarmCommitShape,
+  tinymanAddLiquidityAndFarmFlexibleShape,
+  tinymanAddLiquidityAndFarmSingleAssetShape
 } from "../../src/execution/shapes/tinyman/index.js";
 import type { TinymanV2PoolState } from "../../src/execution/shapes/tinyman/pool-state.js";
 import {
@@ -85,6 +91,11 @@ const COMPX_LST_ID = 3491050538;
 const COMPX_STAKING_POOL_APP_ID = 3500000001;
 const COMPX_STAKED_ID = 1058926737;
 const COMPX_REWARD_ID = 793124631;
+const TINYMAN_STAKING_APP_ID = 649588853;
+const FARM_PROGRAM = algosdk.generateAccount();
+const FARM_PROGRAM_ACCOUNT = FARM_PROGRAM.addr.toString();
+const FARM_PROGRAM_ID = 987654321;
+const FARM_REQUIRED_ASSET_ID = 226701642;
 const GENESIS_HASH = new Uint8Array(32).fill(9);
 
 function suggestedParams(fee: number): algosdk.SuggestedParams {
@@ -350,6 +361,142 @@ function installSingleAssetOutRemoveMocks(): void {
     }),
     generateSingleAssetOutTxns: async (): Promise<SignerTransaction[]> =>
       buildSingleAssetOutRemoveGroup().map((txn) => ({ txn }))
+  });
+}
+
+function farmCommitNote(amount: bigint): Uint8Array {
+  return new Uint8Array([
+    ...new TextEncoder().encode("tinymanStaking/v1:b"),
+    ...algosdk.encodeUint64(FARM_PROGRAM_ID),
+    ...algosdk.encodeUint64(POOL_TOKEN_ID),
+    ...algosdk.encodeUint64(amount)
+  ]);
+}
+
+function buildFarmCommitTxns(
+  amount: bigint,
+  options: { requiredAssetId?: number } = {}
+): algosdk.Transaction[] {
+  const commitTxn = algosdk.makeApplicationNoOpTxnFromObject({
+    sender: USER.addr,
+    appIndex: BigInt(TINYMAN_STAKING_APP_ID),
+    appArgs: [new TextEncoder().encode("commit"), algosdk.encodeUint64(amount)],
+    foreignAssets: [POOL_TOKEN_ID],
+    accounts: [FARM_PROGRAM.addr],
+    note: farmCommitNote(amount),
+    suggestedParams: suggestedParams(1000)
+  });
+  const txns = [commitTxn];
+  if (options.requiredAssetId !== undefined) {
+    const logBalanceTxn = algosdk.makeApplicationNoOpTxnFromObject({
+      sender: USER.addr,
+      appIndex: BigInt(TINYMAN_STAKING_APP_ID),
+      appArgs: [new TextEncoder().encode("log_balance")],
+      foreignAssets: [options.requiredAssetId],
+      suggestedParams: suggestedParams(1000)
+    });
+    txns.push(logBalanceTxn);
+    algosdk.assignGroupID(txns);
+  }
+  return txns;
+}
+
+function farmState(balance = 10_000_000n): {
+  network: "mainnet";
+  stakingAppId: number;
+  programId: number;
+  programAccount: string;
+  requiredAssetId?: number;
+  liquidityAssetId: number;
+  userLpBalance: bigint;
+} {
+  return {
+    network: "mainnet",
+    stakingAppId: TINYMAN_STAKING_APP_ID,
+    programId: FARM_PROGRAM_ID,
+    programAccount: FARM_PROGRAM_ACCOUNT,
+    liquidityAssetId: POOL_TOKEN_ID,
+    userLpBalance: balance
+  };
+}
+
+function installFarmCommitMocks(balance = 10_000_000n): void {
+  setTinymanFarmCommitDependenciesForTests({
+    resolveFarmState: async (params) => ({
+      ...farmState(balance),
+      ...(params.requiredAssetId === undefined ? {} : { requiredAssetId: params.requiredAssetId })
+    }),
+    prepareCommitTransactions: async ({ amount, requiredAssetID }) =>
+      buildFarmCommitTxns(
+        amount,
+        requiredAssetID === undefined ? {} : { requiredAssetId: requiredAssetID }
+      ).map((txn) => ({ txn }))
+  });
+}
+
+function regroup(...groups: SignerTransaction[][]): SignerTransaction[] {
+  const txns = groups.flat().map((signer) => signer.txn);
+  for (const txn of txns) {
+    txn.group = undefined;
+  }
+  algosdk.assignGroupID(txns);
+  return txns.map((txn) => ({ txn }));
+}
+
+function installAddLiquidityAndFarmFlexibleMocks(): void {
+  setTinymanAddLiquidityAndFarmFlexibleDependenciesForTests({
+    resolvePoolState: async () => poolState(),
+    getStakingAppId: () => TINYMAN_STAKING_APP_ID,
+    getFlexibleQuote: () => ({
+      asset1In: { id: USDC_ID, amount: 1_000_000n },
+      asset2In: { id: ALGO_ID, amount: 2_000_000n },
+      poolTokenOut: { id: POOL_TOKEN_ID, amount: 1_414_213n },
+      share: 0.01,
+      slippage: 0.005,
+      internalSwapQuote: {
+        assetIn: { id: USDC_ID, amount: 0n, decimals: 6 },
+        assetOut: { id: ALGO_ID, amount: 0n, decimals: 6 },
+        swapFees: 0n,
+        priceImpact: 0
+      },
+      minPoolTokenAssetAmountWithSlippage: 1_407_142n
+    }),
+    generateFlexibleTxns: async (): Promise<SignerTransaction[]> =>
+      buildFlexibleGroup().map((txn) => ({ txn })),
+    prepareCommitTransactions: async ({ amount, requiredAssetID }) =>
+      buildFarmCommitTxns(
+        amount,
+        requiredAssetID === undefined ? {} : { requiredAssetId: requiredAssetID }
+      ).map((txn) => ({ txn })),
+    combineAndRegroupSignerTxns: regroup
+  });
+}
+
+function installAddLiquidityAndFarmSingleAssetMocks(): void {
+  setTinymanAddLiquidityAndFarmSingleAssetDependenciesForTests({
+    resolvePoolState: async () => poolState(),
+    getStakingAppId: () => TINYMAN_STAKING_APP_ID,
+    getSingleAssetQuote: () => ({
+      assetIn: { id: USDC_ID, amount: 1_000_000n },
+      poolTokenOut: { id: POOL_TOKEN_ID, amount: 900_000n },
+      share: 0.01,
+      slippage: 0.005,
+      internalSwapQuote: {
+        assetIn: { id: USDC_ID, amount: 100_000n, decimals: 6 },
+        assetOut: { id: ALGO_ID, amount: 50_000n, decimals: 6 },
+        swapFees: 500n,
+        priceImpact: 0.001
+      },
+      minPoolTokenAssetAmountWithSlippage: 895_500n
+    }),
+    generateSingleAssetTxns: async (): Promise<SignerTransaction[]> =>
+      buildSingleAssetAddGroup().map((txn) => ({ txn })),
+    prepareCommitTransactions: async ({ amount, requiredAssetID }) =>
+      buildFarmCommitTxns(
+        amount,
+        requiredAssetID === undefined ? {} : { requiredAssetId: requiredAssetID }
+      ).map((txn) => ({ txn })),
+    combineAndRegroupSignerTxns: regroup
   });
 }
 
@@ -784,6 +931,9 @@ test.afterEach(() => {
   setTinymanSingleAssetAddLiquidityDependenciesForTests(undefined);
   setTinymanInitialAddLiquidityDependenciesForTests(undefined);
   setTinymanRemoveLiquiditySingleAssetOutDependenciesForTests(undefined);
+  setTinymanFarmCommitDependenciesForTests(undefined);
+  setTinymanAddLiquidityAndFarmFlexibleDependenciesForTests(undefined);
+  setTinymanAddLiquidityAndFarmSingleAssetDependenciesForTests(undefined);
   setFolksDepositEscrowDependenciesForTests(undefined);
   setFolksWithdrawEscrowDependenciesForTests(undefined);
   setPactAddLiquidityTwoSidedDependenciesForTests(undefined);
@@ -970,6 +1120,216 @@ test("POST /execution/quotes returns single-asset-out remove-liquidity executabl
   };
   assert.equal(body.data.shapeKey, tinymanRemoveLiquiditySingleAssetOutShape.key);
   assert.equal(body.data.transactions.length, 2);
+
+  await app.close();
+});
+
+test("POST /execution/quotes returns Tinyman farm commit quote for an existing LP position", async () => {
+  installFarmCommitMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: tinymanFarmCommitShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        liquidityAssetId: POOL_TOKEN_ID,
+        commitAmount: "500000",
+        programId: FARM_PROGRAM_ID,
+        programAccount: FARM_PROGRAM_ACCOUNT
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: {
+      shapeKey: string;
+      transactions: Array<{ type: string; applicationCall?: { appArgsText: (string | null)[] } }>;
+      metadata: { committedAmount?: string; includesLogBalance?: boolean };
+    };
+  };
+  assert.equal(body.data.shapeKey, tinymanFarmCommitShape.key);
+  assert.equal(body.data.transactions.length, 1);
+  assert.equal(body.data.transactions[0]?.type, "appl");
+  assert.equal(body.data.transactions[0]?.applicationCall?.appArgsText[0], "commit");
+
+  await app.close();
+});
+
+test("POST /execution/quotes resolves Tinyman farm program metadata from the LP token", async () => {
+  installFarmCommitMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: tinymanFarmCommitShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        liquidityAssetId: POOL_TOKEN_ID,
+        commitAmount: "500000"
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: { metadata: { programId?: number; programAccount?: string } };
+  };
+  assert.equal(body.data.metadata.programId, FARM_PROGRAM_ID);
+  assert.equal(body.data.metadata.programAccount, FARM_PROGRAM_ACCOUNT);
+
+  await app.close();
+});
+
+test("POST /execution/quotes returns farm commit + log_balance when requiredAssetId is provided", async () => {
+  installFarmCommitMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: tinymanFarmCommitShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        liquidityAssetId: POOL_TOKEN_ID,
+        commitAmount: "500000",
+        programId: FARM_PROGRAM_ID,
+        programAccount: FARM_PROGRAM_ACCOUNT,
+        requiredAssetId: FARM_REQUIRED_ASSET_ID
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: {
+      transactions: Array<{ type: string; applicationCall?: { appArgsText: (string | null)[] } }>;
+    };
+  };
+  assert.equal(body.data.transactions.length, 2);
+  assert.deepEqual(
+    body.data.transactions.map((txn) => txn.applicationCall?.appArgsText[0]),
+    ["commit", "log_balance"]
+  );
+
+  await app.close();
+});
+
+test("POST /execution/quotes returns 400 when farm commit is missing pool selectors", async () => {
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: tinymanFarmCommitShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        commitAmount: "500000",
+        programId: FARM_PROGRAM_ID,
+        programAccount: FARM_PROGRAM_ACCOUNT
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 400);
+  assert.equal(response.json().error.code, "VALIDATION_ERROR");
+
+  await app.close();
+});
+
+test("POST /execution/quotes returns flexible add-liquidity-plus-farm atomic group", async () => {
+  installAddLiquidityAndFarmFlexibleMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: tinymanAddLiquidityAndFarmFlexibleShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        assetAId: USDC_ID,
+        assetAAmount: "1000000",
+        assetBId: ALGO_ID,
+        assetBAmount: "2000000",
+        maxSlippageBps: 50,
+        programId: FARM_PROGRAM_ID,
+        programAccount: FARM_PROGRAM_ACCOUNT
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: {
+      shapeKey: string;
+      transactions: Array<{ type: string; groupPresent: boolean }>;
+      metadata: { committedAmount?: string; commitAmountDefaulted?: boolean };
+    };
+  };
+  assert.equal(body.data.shapeKey, tinymanAddLiquidityAndFarmFlexibleShape.key);
+  assert.equal(body.data.transactions.length, 4);
+  assert.deepEqual(
+    body.data.transactions.map((txn) => txn.type),
+    ["axfer", "pay", "appl", "appl"]
+  );
+  assert.ok(body.data.transactions.every((txn) => txn.groupPresent));
+  assert.equal(body.data.metadata.commitAmountDefaulted, true);
+  assert.equal(body.data.metadata.committedAmount, "1407142");
+
+  await app.close();
+});
+
+test("POST /execution/quotes returns single-asset add-liquidity-plus-farm atomic group", async () => {
+  installAddLiquidityAndFarmSingleAssetMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: tinymanAddLiquidityAndFarmSingleAssetShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        assetAId: USDC_ID,
+        assetBId: ALGO_ID,
+        depositAssetId: USDC_ID,
+        depositAmount: "1000000",
+        maxSlippageBps: 50,
+        programId: FARM_PROGRAM_ID,
+        programAccount: FARM_PROGRAM_ACCOUNT,
+        commitAmount: "895500"
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: {
+      shapeKey: string;
+      transactions: Array<{ type: string; groupPresent: boolean }>;
+    };
+  };
+  assert.equal(body.data.shapeKey, tinymanAddLiquidityAndFarmSingleAssetShape.key);
+  assert.equal(body.data.transactions.length, 3);
+  assert.deepEqual(
+    body.data.transactions.map((txn) => txn.type),
+    ["axfer", "appl", "appl"]
+  );
+  assert.ok(body.data.transactions.every((txn) => txn.groupPresent));
 
   await app.close();
 });

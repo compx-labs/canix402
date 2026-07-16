@@ -4,6 +4,14 @@ import { tinymanAddLiquidityInitialShape } from "./add-liquidity-initial.js";
 import { tinymanAddLiquiditySingleAssetShape } from "./add-liquidity-single-asset.js";
 import { tinymanRemoveLiquidityMultipleAssetsOutShape } from "./remove-liquidity-multiple-assets-out.js";
 import { tinymanRemoveLiquiditySingleAssetOutShape } from "./remove-liquidity-single-asset-out.js";
+import { tinymanFarmCommitShape } from "./farm-commit.js";
+import { tinymanAddLiquidityAndFarmFlexibleShape } from "./add-liquidity-and-farm-flexible.js";
+import { tinymanAddLiquidityAndFarmSingleAssetShape } from "./add-liquidity-and-farm-single-asset.js";
+import { tinymanMintTAlgoShape } from "./mint-talgo.js";
+import { tinymanBurnTAlgoShape } from "./burn-talgo.js";
+import { tinymanIncreaseStakeStAlgoShape } from "./increase-stake-stalgo.js";
+import { tinymanDecreaseStakeStAlgoShape } from "./decrease-stake-stalgo.js";
+import { tinymanClaimRewardsStAlgoShape } from "./claim-rewards-stalgo.js";
 
 export {
   tinymanAddLiquidityFlexibleShape,
@@ -57,6 +65,94 @@ export type {
   TinymanV2PoolState,
   TinymanPoolStateDependencies
 } from "./pool-state.js";
+export {
+  tinymanFarmCommitShape,
+  setTinymanFarmCommitDependenciesForTests
+} from "./farm-commit.js";
+export type {
+  TinymanFarmCommitInput,
+  TinymanFarmCommitDependencies
+} from "./farm-commit.js";
+export {
+  resolveTinymanFarmState,
+  setTinymanFarmStateDependenciesForTests
+} from "./farm-state.js";
+export type {
+  TinymanFarmState,
+  TinymanFarmStateDependencies
+} from "./farm-state.js";
+export { validateFarmCommitTransactions } from "./farm-commit.js";
+export {
+  tinymanAddLiquidityAndFarmFlexibleShape,
+  setTinymanAddLiquidityAndFarmFlexibleDependenciesForTests
+} from "./add-liquidity-and-farm-flexible.js";
+export type {
+  TinymanAddLiquidityAndFarmFlexibleInput,
+  TinymanAddLiquidityAndFarmFlexibleDependencies,
+  TinymanAddLiquidityAndFarmState
+} from "./add-liquidity-and-farm-flexible.js";
+export {
+  tinymanAddLiquidityAndFarmSingleAssetShape,
+  setTinymanAddLiquidityAndFarmSingleAssetDependenciesForTests
+} from "./add-liquidity-and-farm-single-asset.js";
+export type {
+  TinymanAddLiquidityAndFarmSingleAssetInput,
+  TinymanAddLiquidityAndFarmSingleAssetDependencies
+} from "./add-liquidity-and-farm-single-asset.js";
+export {
+  tinymanMintTAlgoShape,
+  setTinymanMintTAlgoDependenciesForTests
+} from "./mint-talgo.js";
+export type {
+  TinymanMintTAlgoInput,
+  TinymanMintTAlgoDependencies
+} from "./mint-talgo.js";
+export {
+  tinymanBurnTAlgoShape,
+  setTinymanBurnTAlgoDependenciesForTests
+} from "./burn-talgo.js";
+export type {
+  TinymanBurnTAlgoInput,
+  TinymanBurnTAlgoDependencies
+} from "./burn-talgo.js";
+export {
+  tinymanIncreaseStakeStAlgoShape,
+  setTinymanIncreaseStakeStAlgoDependenciesForTests
+} from "./increase-stake-stalgo.js";
+export type {
+  TinymanIncreaseStakeStAlgoInput,
+  TinymanIncreaseStakeStAlgoDependencies
+} from "./increase-stake-stalgo.js";
+export {
+  tinymanDecreaseStakeStAlgoShape,
+  setTinymanDecreaseStakeStAlgoDependenciesForTests
+} from "./decrease-stake-stalgo.js";
+export type {
+  TinymanDecreaseStakeStAlgoInput,
+  TinymanDecreaseStakeStAlgoDependencies
+} from "./decrease-stake-stalgo.js";
+export {
+  tinymanClaimRewardsStAlgoShape,
+  setTinymanClaimRewardsStAlgoDependenciesForTests
+} from "./claim-rewards-stalgo.js";
+export type {
+  TinymanClaimRewardsStAlgoInput,
+  TinymanClaimRewardsStAlgoDependencies
+} from "./claim-rewards-stalgo.js";
+export {
+  resolveTinymanLiquidStakeState,
+  setTinymanLiquidStakeStateDependenciesForTests,
+  TINYMAN_STAKE_APP_ID,
+  TINYMAN_RESTAKE_APP_ID,
+  TINYMAN_VAULT_APP_ID,
+  TALGO_ASSET_ID,
+  STALGO_ASSET_ID,
+  TINY_ASSET_ID
+} from "./liquid-stake-state.js";
+export type {
+  TinymanLiquidStakeState,
+  TinymanLiquidStakeStateDependencies
+} from "./liquid-stake-state.js";
 
 /** All verified Tinyman transaction shapes. */
 export const tinymanShapes: readonly TransactionShapeSpec[] = [
@@ -64,5 +160,13 @@ export const tinymanShapes: readonly TransactionShapeSpec[] = [
   tinymanAddLiquidityInitialShape,
   tinymanAddLiquiditySingleAssetShape,
   tinymanRemoveLiquidityMultipleAssetsOutShape,
-  tinymanRemoveLiquiditySingleAssetOutShape
+  tinymanRemoveLiquiditySingleAssetOutShape,
+  tinymanFarmCommitShape,
+  tinymanAddLiquidityAndFarmFlexibleShape,
+  tinymanAddLiquidityAndFarmSingleAssetShape,
+  tinymanMintTAlgoShape,
+  tinymanBurnTAlgoShape,
+  tinymanIncreaseStakeStAlgoShape,
+  tinymanDecreaseStakeStAlgoShape,
+  tinymanClaimRewardsStAlgoShape
 ];

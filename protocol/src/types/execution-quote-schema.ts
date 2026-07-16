@@ -39,7 +39,13 @@ export const ExecutionQuoteInputSchema = Type.Object({
   poolAppId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
   poolId: Type.Optional(Type.String({ minLength: 1 })),
   // CompX lending fields (validated per shape)
-  marketAppId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()]))
+  marketAppId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
+  // Tinyman farm fields (validated per shape)
+  programId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
+  programAccount: Type.Optional(Type.String({ minLength: 58, maxLength: 58 })),
+  liquidityAssetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
+  commitAmount: Type.Optional(BaseUnitAmountSchema),
+  requiredAssetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()]))
 });
 
 export const ExecutionQuoteRequestSchema = Type.Object({
@@ -82,6 +88,7 @@ export const SerializedTransactionSchema = Type.Object({
   sender: Type.String(),
   fee: Type.String(),
   groupPresent: Type.Boolean(),
+  noteBase64: Type.Optional(Type.String()),
   payment: Type.Optional(SerializedPaymentFieldsSchema),
   assetTransfer: Type.Optional(SerializedAssetTransferFieldsSchema),
   applicationCall: Type.Optional(SerializedApplicationCallFieldsSchema)
