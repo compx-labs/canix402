@@ -50,6 +50,39 @@ test("worker MCP server registers expected tool names", () => {
   assert.deepEqual(names, [...MCP_TOOL_NAMES].sort());
 });
 
+test("canix_get_token_prices posts a free pricing request", async () => {
+  let method = "";
+  let requestBody: unknown;
+  let paymentSignature = "";
+  const server = createCanixWorkerMcpServer({
+    config: {
+      gatewayUrl: "https://gateway.example",
+      publicUrl: "https://mcp.example/mcp",
+      network: "algorand-mainnet"
+    },
+    fetchImpl: async (input, init) => {
+      assert.equal(new URL(String(input)).pathname, "/pricing");
+      method = init?.method ?? "";
+      requestBody = JSON.parse(String(init?.body));
+      paymentSignature =
+        (init?.headers as Record<string, string> | undefined)?.["PAYMENT-SIGNATURE"] ?? "";
+      return new Response(JSON.stringify({ data: { prices: [] } }), { status: 200 });
+    }
+  });
+
+  const result = await registeredTools(server).canix_get_token_prices!.handler(
+    { assetIds: [0, 31566704] },
+    {}
+  );
+
+  assert.equal(method, "POST");
+  assert.deepEqual(requestBody, { assetIds: [0, 31566704] });
+  assert.equal(paymentSignature, "");
+  assert.deepEqual(JSON.parse(result.content[0]!.text ?? ""), {
+    data: { prices: [] }
+  });
+});
+
 test("paid tool returns PAYMENT_REQUIRED metadata on preflight", async () => {
   const paymentHeader = encodePaymentRequired("10000");
   const server = createCanixWorkerMcpServer({

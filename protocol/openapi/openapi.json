@@ -586,6 +586,39 @@
         }
       }
     },
+    "/pricing": {
+      "post": {
+        "summary": "Fetch USD token prices for Algorand asset IDs",
+        "description": "Returns CompX USD oracle prices for the requested Algorand asset IDs. A null price indicates that CompX has no current price for that asset.",
+        "tags": ["defi", "pricing", "compx", "agents"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PricingRequest" },
+              "examples": {
+                "algoAndUsdc": {
+                  "value": { "assetIds": [0, 31566704] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Current CompX USD prices for requested assets",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PricingResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "502": { "$ref": "#/components/responses/UpstreamError" }
+        }
+      }
+    },
     "/swaps/quote": {
       "post": {
         "summary": "Fetch a walletless Haystack swap quote",
@@ -1174,6 +1207,57 @@
           { "type": "string", "pattern": "^[1-9][0-9]*$" },
           { "type": "integer", "minimum": 1 }
         ]
+      },
+      "PricingRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["assetIds"],
+        "properties": {
+          "assetIds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          }
+        }
+      },
+      "TokenPrice": {
+        "type": "object",
+        "required": ["assetId", "priceUsd"],
+        "properties": {
+          "assetId": { "type": "string", "pattern": "^[0-9]+$" },
+          "priceUsd": { "type": ["number", "null"], "minimum": 0 }
+        }
+      },
+      "PricingResponse": {
+        "type": "object",
+        "required": ["data", "meta"],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": ["prices", "source", "fetchedAt"],
+            "properties": {
+              "prices": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/TokenPrice" }
+              },
+              "source": { "type": "string", "const": "compx" },
+              "fetchedAt": { "type": "string", "format": "date-time" }
+            }
+          },
+          "meta": {
+            "type": "object",
+            "required": ["paymentRequired", "executionSubmitted"],
+            "properties": {
+              "paymentRequired": { "type": "boolean", "const": false },
+              "executionSubmitted": { "type": "boolean", "const": false }
+            }
+          }
+        }
       },
       "HaystackSwapQuoteRequest": {
         "type": "object",

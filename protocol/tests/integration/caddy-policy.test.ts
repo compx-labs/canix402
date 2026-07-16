@@ -5,11 +5,12 @@ import test from "node:test";
 
 const caddyfile = readFileSync(resolve(process.cwd(), "caddy/Caddyfile"), "utf-8");
 
-test("Caddy keeps Haystack quote and opt-in routes free", () => {
+test("Caddy keeps free POST routes outside x402 enforcement", () => {
   const freeMatcher = caddyfile.match(/@free path ([^\n]+)/)?.[1] ?? "";
 
   assert.match(freeMatcher, /(?:^|\s)\/swaps\/quote(?:\s|$)/);
   assert.match(freeMatcher, /(?:^|\s)\/swaps\/optin(?:\s|$)/);
+  assert.match(freeMatcher, /(?:^|\s)\/pricing(?:\s|$)/);
   assert.doesNotMatch(freeMatcher, /(?:^|\s)\/swaps\/transactions(?:\s|$)/);
 });
 

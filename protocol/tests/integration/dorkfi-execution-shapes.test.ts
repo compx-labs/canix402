@@ -83,6 +83,29 @@ function lendingMarketState(overrides?: Partial<DorkFiLendingMarketState>): Dork
   };
 }
 
+function decodedMarket() {
+  return {
+    paused: false,
+    maxTotalDeposits: 0n,
+    maxTotalBorrows: 0n,
+    liquidationBonus: 0n,
+    collateralFactor: 0n,
+    liquidationThreshold: 0n,
+    reserveFactor: 0n,
+    borrowRate: 0n,
+    slope: 0n,
+    totalScaledDeposits: 0n,
+    totalScaledBorrows: 0n,
+    depositIndex: 0n,
+    borrowIndex: 0n,
+    lastUpdateTime: 0n,
+    reserves: 0n,
+    price: 0n,
+    nTokenAppId: BigInt(NTOKEN_APP_ID),
+    closeFactor: 0n
+  };
+}
+
 function cloneWithoutGroup(txn: algosdk.Transaction): algosdk.Transaction {
   const clone = algosdk.decodeUnsignedTransaction(algosdk.encodeUnsignedTransaction(txn));
   delete clone.group;
@@ -96,6 +119,17 @@ function buildStaleGroupedTransactions(transactions: algosdk.Transaction[]): alg
   algosdk.assignGroupID(stale);
   stale[0]!.fee = BigInt(stale[0]!.fee) + 1n;
   return stale;
+}
+
+function buildPaddingPayments(count: number): algosdk.Transaction[] {
+  return Array.from({ length: count }, () =>
+    algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      sender: USER.addr,
+      receiver: USER.addr,
+      amount: 0n,
+      suggestedParams: suggestedParams(1_000)
+    })
+  );
 }
 
 function assertEncodedTransactionsHaveCanonicalGroup(encodedTransactions: readonly string[]): void {
@@ -256,14 +290,17 @@ test("withdraw shape clears stale builder group ids before encoding quote", asyn
   const state = lendingMarketState();
   const amount = 50_000n;
   const staleGroup = buildStaleGroupedTransactions(
-    buildMockDorkFiWithdrawGroup({
-      user: USER,
-      poolAppId: POOL_APP_ID,
-      marketAppId: MARKET_APP_ID,
-      assetId: USDC_ID,
-      nTokenAmount: amount,
-      suggestedParams: suggestedParams(20_000)
-    })
+    [
+      ...buildMockDorkFiWithdrawGroup({
+        user: USER,
+        poolAppId: POOL_APP_ID,
+        marketAppId: MARKET_APP_ID,
+        assetId: USDC_ID,
+        nTokenAmount: amount,
+        suggestedParams: suggestedParams(20_000)
+      }),
+      ...buildPaddingPayments(7)
+    ]
   );
 
   setDorkFiWithdrawAsaDependenciesForTests({
@@ -328,6 +365,30 @@ test("resolveState rejects unknown market catalog entries", async () => {
       }),
     ShapeStateError
   );
+});
+
+test("resolveState reads user nToken balance from nToken app id", async () => {
+  let balanceContractAppId = 0;
+  setDorkFiLendingMarketStateDependenciesForTests({
+    simulateGetMarket: async () => decodedMarket(),
+    getAccountAssetBalance: async () => 5_000_000n,
+    getArc200Balance: async ({ contractAppId }) => {
+      balanceContractAppId = contractAppId;
+      return 50_000n;
+    },
+    isAssetOptedIn: async () => true
+  });
+
+  const state = await dorkfiWithdrawAsaShape.resolveState(buildContext(), {
+    userAddress: USER_ADDRESS,
+    poolAppId: POOL_APP_ID,
+    marketAppId: MARKET_APP_ID,
+    assetId: USDC_ID,
+    amount: 1000n
+  });
+
+  assert.equal(balanceContractAppId, NTOKEN_APP_ID);
+  assert.equal(state.userNTokenBalance, 50_000n);
 });
 
 test("createExecutionRegistry includes all Dork.fi shapes", () => {

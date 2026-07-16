@@ -196,8 +196,8 @@ export const dorkfiWithdrawAsaShape: TransactionShapeSpec<
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    if (group.length < 2 || group.length > 3) {
-      errors.push(`Expected between 2 and 3 transactions, received ${group.length}.`);
+    if (group.length < 2 || group.length > 16) {
+      errors.push(`Expected between 2 and 16 transactions, received ${group.length}.`);
       return { valid: false, errors, warnings };
     }
 

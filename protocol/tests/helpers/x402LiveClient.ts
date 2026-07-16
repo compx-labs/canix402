@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import algosdk from "algosdk";
 
-import { buildProductionUrl } from "./productionEndpoints.js";
+import { buildProductionUrl, type ProductionEndpoint } from "./productionEndpoints.js";
 import type { ExecutableQuote } from "../../src/execution/types.js";
 
 export async function buildLivePaymentSignature(
@@ -122,9 +122,26 @@ export interface ExecutionQuoteResponse {
   };
 }
 
-export async function assertFreeEndpoint(baseUrl: string, path: string): Promise<void> {
+export async function assertFreeEndpoint(
+  baseUrl: string,
+  endpoint: string | ProductionEndpoint
+): Promise<void> {
+  const path = typeof endpoint === "string" ? endpoint : endpoint.path;
   const requestUrl = buildProductionUrl(baseUrl, path);
-  const response = await fetch(requestUrl);
+  const method = typeof endpoint === "string" ? "GET" : endpoint.method ?? "GET";
+  const serializedBody =
+    typeof endpoint !== "string" && endpoint.body !== undefined
+      ? JSON.stringify(endpoint.body)
+      : undefined;
+  const response = await fetch(requestUrl, {
+    method,
+    ...(serializedBody === undefined
+      ? {}
+      : {
+          headers: { "content-type": "application/json" },
+          body: serializedBody
+        })
+  });
 
   if (response.status !== 200) {
     throw new Error(`${path}: expected 200, got ${response.status}`);
@@ -189,6 +206,13 @@ export async function assertFreeEndpoint(baseUrl: string, path: string): Promise
     const resources = body.resources;
     if (!Array.isArray(resources) || resources.length === 0) {
       throw new Error(`${path}: resources missing`);
+    }
+  }
+
+  if (path === "/pricing") {
+    const data = body.data as { prices?: unknown[] } | undefined;
+    if (!Array.isArray(data?.prices)) {
+      throw new Error(`${path}: prices missing`);
     }
   }
 }

@@ -85,6 +85,19 @@ export async function fetchCompXOpportunities(
   }
 }
 
+export async function fetchCompXTokenPrices(
+  assetIds: number[]
+): Promise<Record<string, number>> {
+  const dependencies = resolveDependencies();
+
+  try {
+    const sdk = dependencies.createSdk(dependencies.createAlgodClient());
+    return await dependencies.getTokenPricesFn.call(sdk.pricing, assetIds);
+  } catch (error) {
+    throw new CompXAdapterError("CompX pricing request failed.", error);
+  }
+}
+
 async function fetchCompXOpportunitiesFromSource(
   options: FetchCompXOpportunitiesOptions
 ): Promise<OpportunityRecordV1[]> {

@@ -11,6 +11,7 @@
       "openapi",
       "execution-quotes",
       "haystack-swaps",
+      "token-pricing",
       "mcp-server"
     ],
     "x402ProtocolVersion": 2,
@@ -187,6 +188,27 @@
           "haystack",
           "transactions",
           "wallet"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          400,
+          502
+        ]
+      },
+      {
+        "id": "tokenPricing",
+        "method": "POST",
+        "path": "/pricing",
+        "access": "free",
+        "summary": "Fetch USD token prices for Algorand asset IDs",
+        "description": "Returns CompX USD oracle prices for the requested Algorand asset IDs. A null price indicates that CompX has no current price for that asset.",
+        "tags": [
+          "defi",
+          "pricing",
+          "compx",
+          "agents"
         ],
         "pathParams": [],
         "queryParams": [],
@@ -520,6 +542,7 @@
         "canix_get_metadata",
         "canix_get_discovery",
         "canix_get_openapi",
+        "canix_get_token_prices",
         "canix_list_execution_shapes",
         "canix_list_opportunities",
         "canix_search_opportunities",

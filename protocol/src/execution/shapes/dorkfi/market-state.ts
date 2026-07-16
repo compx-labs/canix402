@@ -162,7 +162,7 @@ export async function resolveDorkFiLendingMarketState(params: {
       : (params.userAssetHoldings.get(params.assetId) ?? 0n);
   const userNTokenBalance = await dependencies.getArc200Balance({
     algod: params.algod,
-    contractAppId: params.marketAppId,
+    contractAppId: nTokenAppId,
     userAddress: params.userAddress
   });
   const userOptedIntoAsset =

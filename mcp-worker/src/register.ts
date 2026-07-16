@@ -125,6 +125,28 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
   );
 
   server.registerTool(
+    "canix_get_token_prices",
+    {
+      description:
+        "Fetch CompX USD oracle prices for Algorand asset IDs via POST /pricing. Free endpoint; missing prices are returned as null.",
+      inputSchema: {
+        assetIds: z.array(z.number().int().min(0)).min(1).max(100)
+      }
+    },
+    async (args) => {
+      try {
+        const body = await client.fetchFree("/pricing", {
+          method: "POST",
+          body: { assetIds: args.assetIds }
+        });
+        return jsonResult(body);
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
     "canix_list_execution_shapes",
     {
       description:

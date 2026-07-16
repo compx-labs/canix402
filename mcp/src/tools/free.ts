@@ -1,4 +1,5 @@
 import type { McpServer } from "@modelcontextprotocol/server";
+import * as z from "zod";
 
 import { EXECUTION_SHAPES } from "../lib/execution-shapes.js";
 import { errorResult, jsonResult } from "../lib/tool-result.js";
@@ -66,6 +67,28 @@ export function registerFreeTools(server: McpServer, client: X402Client): void {
     async () => {
       try {
         const body = await client.fetchFree("/openapi.json");
+        return jsonResult(body);
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_get_token_prices",
+    {
+      description:
+        "Fetch CompX USD oracle prices for Algorand asset IDs via POST /pricing. Free endpoint; missing prices are returned as null.",
+      inputSchema: {
+        assetIds: z.array(z.number().int().min(0)).min(1).max(100)
+      }
+    },
+    async (args) => {
+      try {
+        const body = await client.fetchFree("/pricing", {
+          method: "POST",
+          body: { assetIds: args.assetIds }
+        });
         return jsonResult(body);
       } catch (error) {
         return errorResult(error);
