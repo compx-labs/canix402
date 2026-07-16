@@ -271,16 +271,23 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         "Compile an unsigned Algorand transaction group for a verified execution shape (POST /execution/quotes). Paid: ~0.10 USDC via x402. Canix does not sign or submit transactions. Use canix_list_execution_shapes first.",
       inputSchema: {
         shapeKey: z.string().min(1),
-        input: z.object({
-          userAddress: z.string().min(1),
-          assetAId: z.union([z.number().int().min(0), z.string()]),
-          assetAAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
-          assetBId: z.union([z.number().int().min(0), z.string()]),
-          assetBAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
-          poolTokenAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
-          maxSlippageBps: z.union([z.number().int().min(0).max(10_000), z.string()]),
-          poolId: z.string().min(1).optional()
-        }),
+        input: z
+          .object({
+            userAddress: z.string().min(1),
+            // LP fields (Tinyman/Pact) - validated per shape by the API
+            assetAId: z.union([z.number().int().min(0), z.string()]).optional(),
+            assetAAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
+            assetBId: z.union([z.number().int().min(0), z.string()]).optional(),
+            assetBAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
+            poolTokenAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
+            maxSlippageBps: z.union([z.number().int().min(0).max(10_000), z.string()]).optional(),
+            poolId: z.string().min(1).optional(),
+            // Single-token staking / lending fields (CompX, Haystack, Dork.fi, Folks)
+            amount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
+            poolAppId: z.union([z.number().int().min(1), z.string()]).optional(),
+            marketAppId: z.union([z.number().int().min(1), z.string()]).optional()
+          })
+          .passthrough(),
         paymentSignature: paymentSignatureArgSchema()
       }
     },

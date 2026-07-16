@@ -12,7 +12,13 @@ export type ExecutionNetwork = "mainnet" | "testnet";
  * here does not imply every action is supported; only actions with a verified
  * transaction-shape spec registered in the registry are executable.
  */
-export type ExecutionProtocol = "tinyman" | "pact" | "folks-finance" | "compx" | "dorkfi";
+export type ExecutionProtocol =
+  | "tinyman"
+  | "pact"
+  | "folks-finance"
+  | "compx"
+  | "dorkfi"
+  | "haystack";
 
 /**
  * Fully-qualified identity for a transaction shape. The stable string key is

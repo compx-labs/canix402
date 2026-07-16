@@ -32,6 +32,8 @@
     "test:dorkfi-execution-live": "npm run test:dorkfi-production",
     "test:x402-production": "tsx --test tests/live/x402-production.test.ts",
     "test:haystack-production": "tsx --test tests/live/haystack-production-swap.test.ts",
+    "test:haystack-staking-production": "tsx --test tests/live/haystack-staking-production-test.test.ts",
+    "test:haystack-staking-execution-live": "npm run test:haystack-staking-production",
     "test:production-smoke": "tsx scripts/production-smoke.ts",
     "test:tinyman-live": "npm run test:live",
     "build:caddy-x402": "mkdir -p .bin && xcaddy build --output .bin/caddy-x402 --with github.com/algorandecosystem/caddy-x402avm=./caddy",

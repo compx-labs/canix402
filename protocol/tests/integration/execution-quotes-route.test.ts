@@ -68,6 +68,18 @@ import {
   setDorkFiWithdrawAsaDependenciesForTests,
   type DorkFiLendingMarketState
 } from "../../src/execution/shapes/dorkfi/index.js";
+import {
+  buildMockStakeGroup as buildMockHaystackStakeGroup,
+  createStakerBoxName as createHaystackStakerBoxName,
+  haystackStakeHayShape,
+  HAYSTACK_STAKING_APP_ID,
+  HAY_ASSET_ID,
+  STAKER_BOX_MBR_MICROALGOS as HAYSTACK_STAKER_BOX_MBR,
+  USDC_ASSET_ID as HAYSTACK_USDC_ASSET_ID,
+  setHaystackStakeHayDependenciesForTests,
+  setHaystackStakingStateDependenciesForTests,
+  type HaystackStakingState
+} from "../../src/execution/shapes/haystack/index.js";
 
 const FOLKS_USDC_POOL_APP_ID = 971372237;
 const FOLKS_FUSDC_ASSET_ID = 971384592;
@@ -844,6 +856,44 @@ function installCompXStakeMocks(): void {
   });
 }
 
+const HAYSTACK_APP_ADDRESS = algosdk.getApplicationAddress(HAYSTACK_STAKING_APP_ID).toString();
+
+function haystackStakingState(): HaystackStakingState {
+  return {
+    network: "mainnet",
+    appId: HAYSTACK_STAKING_APP_ID,
+    appAddress: HAYSTACK_APP_ADDRESS,
+    hayAssetId: HAY_ASSET_ID,
+    usdcAssetId: HAYSTACK_USDC_ASSET_ID,
+    oracleAppId: 3_016_268_320,
+    paused: false,
+    staker: { hasBox: false, stake: 0n },
+    userHayBalance: 500_000_000n,
+    userOptedIntoUsdc: true,
+    stakerBoxName: createHaystackStakerBoxName(USER_ADDRESS),
+    mbrMicroAlgos: HAYSTACK_STAKER_BOX_MBR
+  };
+}
+
+function installHaystackStakeMocks(): void {
+  setHaystackStakeHayDependenciesForTests({
+    resolveState: async () => haystackStakingState(),
+    getSuggestedParams: async () => suggestedParams(1000),
+    finalizeComposerGroup: async () =>
+      buildMockHaystackStakeGroup({
+        user: USER,
+        appId: HAYSTACK_STAKING_APP_ID,
+        appAddress: HAYSTACK_APP_ADDRESS,
+        hayAssetId: HAY_ASSET_ID,
+        usdcAssetId: HAYSTACK_USDC_ASSET_ID,
+        amount: 100_000_000n,
+        mbrAmount: HAYSTACK_STAKER_BOX_MBR,
+        stakerBoxName: createHaystackStakerBoxName(USER_ADDRESS),
+        suggestedParams: suggestedParams(1000)
+      })
+  });
+}
+
 function dorkfiMarketState(): DorkFiLendingMarketState {
   return {
     network: "mainnet",
@@ -945,6 +995,8 @@ test.afterEach(() => {
   setDorkFiDepositAsaDependenciesForTests(undefined);
   setDorkFiWithdrawAsaDependenciesForTests(undefined);
   setDorkFiLendingMarketStateDependenciesForTests(undefined);
+  setHaystackStakeHayDependenciesForTests(undefined);
+  setHaystackStakingStateDependenciesForTests(undefined);
 });
 
 test("POST /execution/quotes returns unsigned executable quote", async () => {
@@ -1561,6 +1613,33 @@ test("POST /execution/quotes compiles CompX staking stake shape", async () => {
     data: { shapeKey: string; transactions: Array<{ type: string }> };
   };
   assert.equal(body.data.shapeKey, compxStakeAsaShape.key);
+  assert.equal(body.data.transactions.length, 3);
+
+  await app.close();
+});
+
+test("POST /execution/quotes compiles Haystack HAY staking stake shape", async () => {
+  installHaystackStakeMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: haystackStakeHayShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        amount: "100000000"
+      }
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: { shapeKey: string; transactions: Array<{ type: string }> };
+  };
+  assert.equal(body.data.shapeKey, haystackStakeHayShape.key);
   assert.equal(body.data.transactions.length, 3);
 
   await app.close();

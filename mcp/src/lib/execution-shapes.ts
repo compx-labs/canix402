@@ -178,6 +178,37 @@ export const EXECUTION_SHAPES = [
     summary: "Withdraw ASA from a Dork.fi lending market by burning nToken",
     docsPath: "protocol/docs/execution-shapes/dorkfi-withdraw-asa.md",
     priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:haystack:v1:stake:hay",
+    protocol: "haystack",
+    protocolVersion: "v1",
+    action: "stake",
+    variant: "hay",
+    summary: "Stake HAY into the Haystack single-token staking pool",
+    docsPath: "protocol/docs/execution-shapes/haystack-stake-hay.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:haystack:v1:unstake:hay",
+    protocol: "haystack",
+    protocolVersion: "v1",
+    action: "unstake",
+    variant: "hay",
+    summary:
+      "Unstake HAY from the Haystack staking pool and claim pending USDC and HAY rewards",
+    docsPath: "protocol/docs/execution-shapes/haystack-unstake-hay.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:haystack:v1:claim:rewards",
+    protocol: "haystack",
+    protocolVersion: "v1",
+    action: "claim",
+    variant: "rewards",
+    summary: "Claim accrued USDC and HAY rewards from the Haystack staking pool",
+    docsPath: "protocol/docs/execution-shapes/haystack-claim-rewards.md",
+    priceUsdc: "0.10"
   }
 ] as const;
 

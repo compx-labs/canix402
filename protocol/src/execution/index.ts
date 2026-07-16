@@ -2,6 +2,7 @@ import { TransactionShapeRegistry } from "./registry.js";
 import { compxShapes } from "./shapes/compx/index.js";
 import { dorkfiShapes } from "./shapes/dorkfi/index.js";
 import { folksFinanceShapes } from "./shapes/folks-finance/index.js";
+import { haystackShapes } from "./shapes/haystack/index.js";
 import { pactShapes } from "./shapes/pact/index.js";
 import { tinymanShapes } from "./shapes/tinyman/index.js";
 
@@ -17,6 +18,20 @@ export * from "./shapes/folks-finance/index.js";
 export * from "./shapes/pact/index.js";
 export * from "./shapes/compx/index.js";
 export * from "./shapes/dorkfi/index.js";
+export {
+  haystackStakeHayShape,
+  haystackUnstakeHayShape,
+  haystackClaimRewardsShape,
+  haystackShapes,
+  resolveHaystackStakingState,
+  HAYSTACK_STAKING_APP_ID
+} from "./shapes/haystack/index.js";
+export type {
+  HaystackStakeHayInput,
+  HaystackUnstakeHayInput,
+  HaystackClaimRewardsInput,
+  HaystackStakingState
+} from "./shapes/haystack/index.js";
 
 /**
  * Build a registry pre-loaded with every verified transaction shape. Callers
@@ -30,7 +45,8 @@ export function createExecutionRegistry(): TransactionShapeRegistry {
     ...folksFinanceShapes,
     ...pactShapes,
     ...compxShapes,
-    ...dorkfiShapes
+    ...dorkfiShapes,
+    ...haystackShapes
   ]) {
     registry.register(shape);
   }
