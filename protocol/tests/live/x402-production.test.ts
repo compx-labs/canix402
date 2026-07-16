@@ -21,7 +21,7 @@ test("production free endpoints return 200", async () => {
   const baseUrl = getProductionBaseUrl();
 
   for (const endpoint of productionFreeEndpoints) {
-    await assertFreeEndpoint(baseUrl, endpoint.path);
+    await assertFreeEndpoint(baseUrl, endpoint);
   }
 });
 

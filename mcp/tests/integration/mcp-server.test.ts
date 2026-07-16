@@ -82,6 +82,40 @@ test("canix_health tool returns gateway payload", async () => {
   await server.close();
 });
 
+test("canix_get_token_prices posts a free pricing request", async () => {
+  let method = "";
+  let requestBody: unknown;
+  let paymentSignature = "";
+  const server = createCanixMcpServer({
+    config: {
+      apiUrl: "https://example.test",
+      network: "algorand-mainnet"
+    },
+    fetchImpl: async (input, init) => {
+      assert.equal(new URL(String(input)).pathname, "/pricing");
+      method = init?.method ?? "";
+      requestBody = JSON.parse(String(init?.body));
+      paymentSignature =
+        (init?.headers as Record<string, string> | undefined)?.["PAYMENT-SIGNATURE"] ?? "";
+      return new Response(JSON.stringify({ data: { prices: [] } }), { status: 200 });
+    }
+  });
+
+  const result = await registeredTools(server).canix_get_token_prices!.handler(
+    { assetIds: [0, 31566704] },
+    {}
+  );
+
+  assert.equal(method, "POST");
+  assert.deepEqual(requestBody, { assetIds: [0, 31566704] });
+  assert.equal(paymentSignature, "");
+  assert.deepEqual(JSON.parse(result.content[0]!.text ?? ""), {
+    data: { prices: [] }
+  });
+
+  await server.close();
+});
+
 test("canix_list_execution_shapes does not call network", async () => {
   let fetchCalls = 0;
   const server = createCanixMcpServer({

@@ -31,3 +31,9 @@ export type {
   SwapTransactionsRequest,
   SwapTransactionsResponse
 } from "./swap-schema.js";
+export type { PricingRequest, PricingResponse } from "./pricing-schema.js";
+export {
+  PricingRequestSchema,
+  PricingResponseSchema,
+  TokenPriceSchema
+} from "./pricing-schema.js";

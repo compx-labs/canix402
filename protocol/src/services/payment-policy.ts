@@ -99,6 +99,16 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     tags: ["defi", "swaps", "haystack", "transactions", "wallet"]
   },
   {
+    id: "tokenPricing",
+    method: "POST",
+    pathPattern: "/pricing",
+    access: "free",
+    summary: "Fetch USD token prices for Algorand asset IDs",
+    description:
+      "Returns CompX USD oracle prices for the requested Algorand asset IDs. A null price indicates that CompX has no current price for that asset.",
+    tags: ["defi", "pricing", "compx", "agents"]
+  },
+  {
     id: "opportunities",
     method: "GET",
     pathPattern: "/opportunities",
@@ -262,7 +272,8 @@ const freePathMatchers = [
   /^\/\.well-known\/x402$/,
   /^\/\.well-known\/x402\.json$/,
   /^\/swaps\/quote$/,
-  /^\/swaps\/optin$/
+  /^\/swaps\/optin$/,
+  /^\/pricing$/
 ];
 
 export function classifyEndpointAccess(path: string): EndpointAccess {

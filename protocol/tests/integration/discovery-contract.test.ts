@@ -62,6 +62,7 @@ test("discovery includes every endpoint in policy matrix", async () => {
   const transactions = payload.data.endpoints.find(
     (endpoint) => endpoint.id === "haystackSwapTransactions"
   );
+  const pricing = payload.data.endpoints.find((endpoint) => endpoint.id === "tokenPricing");
   assert.equal(quote?.access, "free");
   assert.deepEqual(quote?.responseCodes, [200, 400, 429, 502]);
   assert.equal(optIn?.access, "free");
@@ -69,6 +70,8 @@ test("discovery includes every endpoint in policy matrix", async () => {
   assert.equal(transactions?.access, "paid");
   assert.deepEqual(transactions?.responseCodes, [200, 400, 402, 429, 502]);
   assert.equal(transactions?.x402?.requirementTemplate.maxAmountRequired, "0.005");
+  assert.equal(pricing?.access, "free");
+  assert.deepEqual(pricing?.responseCodes, [200, 400, 502]);
   assert.equal(payload.data.mcpServer?.transport, MCP_SERVER_TRANSPORT);
   assert.equal(payload.data.mcpServer?.url, MCP_SERVER_REMOTE_URL);
   assert.deepEqual(

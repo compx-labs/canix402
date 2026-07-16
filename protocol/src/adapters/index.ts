@@ -15,6 +15,7 @@ export {
 } from "./folksFinance.js";
 export {
   fetchCompXOpportunities,
+  fetchCompXTokenPrices,
   normalizeCompxLendingOpportunity,
   normalizeCompxStakingOpportunity,
   setCompXSdkDependenciesForTests,

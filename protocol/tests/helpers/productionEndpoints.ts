@@ -68,6 +68,14 @@ function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): Pro
     };
   }
 
+  if (entry.pathPattern === "/pricing") {
+    return {
+      ...base,
+      method: "POST",
+      body: { assetIds: [0, 31566704] }
+    };
+  }
+
   return base;
 }
 
