@@ -1,5 +1,5 @@
 export const MCP_SERVER_INSTALL_URL = "https://canix402.compx.io/x402#mcp" as const;
-export const MCP_SERVER_REMOTE_URL = "https://mcp.canix402.com/mcp" as const;
+export const MCP_SERVER_REMOTE_URL = "https://canix402-mcp.compx.io/mcp" as const;
 export const MCP_SERVER_TRANSPORT = "streamable-http" as const;
 
 /** Canonical MCP tool names — single source of truth for discovery + server registration tests. */

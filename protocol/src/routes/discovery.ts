@@ -117,6 +117,78 @@ export function registerDiscoveryRoutes(app: FastifyInstance) {
     },
     async () => buildX402Manifest()
   );
+
+  app.get(
+    "/llms.txt",
+    {
+      schema: {
+        response: {
+          200: Type.Any()
+        }
+      }
+    },
+    async (_request, reply) => reply.type("text/plain; charset=utf-8").send(buildLlmsText())
+  );
+
+  app.get(
+    "/llms-full.txt",
+    {
+      schema: {
+        response: {
+          200: Type.Any()
+        }
+      }
+    },
+    async (_request, reply) => reply.type("text/plain; charset=utf-8").send(buildLlmsText(true))
+  );
+
+  app.get(
+    "/robots.txt",
+    {
+      schema: {
+        response: {
+          200: Type.Any()
+        }
+      }
+    },
+    async (_request, reply) => reply.type("text/plain; charset=utf-8").send(buildRobotsTxt())
+  );
+
+  app.get(
+    "/.well-known/agent-card.json",
+    {
+      schema: {
+        response: {
+          200: Type.Any()
+        }
+      }
+    },
+    async () => buildAgentCard()
+  );
+
+  app.get(
+    "/.well-known/agent.json",
+    {
+      schema: {
+        response: {
+          200: Type.Any()
+        }
+      }
+    },
+    async () => buildAgentCard()
+  );
+
+  app.get(
+    "/.well-known/ai-plugin.json",
+    {
+      schema: {
+        response: {
+          200: Type.Any()
+        }
+      }
+    },
+    async () => buildAiPluginManifest()
+  );
 }
 
 function buildDiscoveryDocument(): DiscoveryDocument {
@@ -341,6 +413,156 @@ function buildX402Manifest(): X402DiscoveryManifest {
   };
 }
 
+function buildLlmsText(includeAllEndpoints = false): string {
+  const publicBaseUrl = getPublicBaseUrl();
+  const paidEndpoints = endpointPolicyMatrix.filter((endpoint) => endpoint.access === "paid");
+  const freeEndpoints = endpointPolicyMatrix.filter(
+    (endpoint) =>
+      endpoint.access === "free"
+      && ![
+        "health",
+        "metadata",
+        "faviconIco",
+        "faviconPng",
+        "llmsTxt",
+        "llmsFullTxt",
+        "robotsTxt"
+      ].includes(endpoint.id)
+  );
+  const endpoints = includeAllEndpoints
+    ? [...freeEndpoints, ...paidEndpoints]
+    : paidEndpoints;
+
+  const lines = [
+    "# CANIX402",
+    "",
+    "> x402-gated Algorand DeFi data and walletless transaction API for autonomous agents.",
+    "",
+    `Use the public Caddy gateway: ${publicBaseUrl}. The upstream API is private.`,
+    `Canonical documentation: ${getDocsSiteUrl()}.`,
+    `Full integration guide: ${getDocsSiteUrl()}/llms-full.txt.`,
+    "",
+    "## Machine-readable contracts",
+    "",
+    `- Discovery: ${publicBaseUrl}/discovery`,
+    `- OpenAPI: ${publicBaseUrl}/openapi.json`,
+    `- x402 manifest: ${publicBaseUrl}/.well-known/x402.json`,
+    `- MCP: ${getMcpUrl()}`,
+    "",
+    `## ${includeAllEndpoints ? "API endpoints" : "Paid endpoints"}`,
+    ""
+  ];
+
+  for (const endpoint of endpoints) {
+    const path = endpoint.pathPattern.replace(":protocol", "{protocol}");
+    const price =
+      endpoint.access === "paid"
+        ? ` — ${getX402EndpointMetadata(endpoint.priceUsdc).requirementTemplate.maxAmountRequired} USDC`
+        : " — free";
+    lines.push(`- ${endpoint.method} ${publicBaseUrl}${path}${price}: ${endpoint.summary}`);
+  }
+
+  lines.push(
+    "",
+    "Unpaid paid-route requests return HTTP 402 with PAYMENT-REQUIRED. Sign a USDC payment client-side and retry with PAYMENT-SIGNATURE. Canix never receives wallet keys or submits transactions."
+  );
+
+  return `${lines.join("\n")}\n`;
+}
+
+function buildRobotsTxt(): string {
+  const publicBaseUrl = getPublicBaseUrl();
+  const docsSiteUrl = getDocsSiteUrl();
+
+  return [
+    "User-agent: *",
+    "Allow: /",
+    "",
+    `# Canonical agent documentation: ${docsSiteUrl}/llms.txt`,
+    `# Gateway LLM index: ${publicBaseUrl}/llms.txt`,
+    `# Full reference: ${publicBaseUrl}/llms-full.txt`,
+    `# x402 service manifest: ${publicBaseUrl}/.well-known/x402.json`,
+    `# A2A-compatible capability card: ${publicBaseUrl}/.well-known/agent-card.json`,
+    `# OpenAPI specification: ${publicBaseUrl}/openapi.json`,
+    `# Discovery document: ${publicBaseUrl}/discovery`,
+    ""
+  ].join("\n");
+}
+
+function buildAgentCard() {
+  const publicBaseUrl = getPublicBaseUrl();
+  const docsSiteUrl = getDocsSiteUrl();
+
+  return {
+    protocolVersion: "0.3.0",
+    name: "canix402",
+    description:
+      "x402-gated Algorand DeFi data and walletless transaction API for agents. Paid requests settle in USDC through the public Caddy gateway; no API keys or server-side wallet access.",
+    url: publicBaseUrl,
+    preferredTransport: "HTTP+JSON",
+    version: getApiVersion(),
+    documentationUrl: `${docsSiteUrl}/llms.txt`,
+    provider: {
+      organization: "Neon Forge Ltd",
+      url: docsSiteUrl,
+      contact: "kieran@neonforge.ltd"
+    },
+    capabilities: {
+      streaming: false,
+      pushNotifications: false,
+      stateTransitionHistory: false
+    },
+    defaultInputModes: ["application/json"],
+    defaultOutputModes: ["application/json"],
+    skills: endpointPolicyMatrix
+      .filter((endpoint) => endpoint.access === "paid")
+      .map((endpoint) => {
+        const path = endpoint.pathPattern.replace(":protocol", "{protocol}");
+
+        return {
+          id: endpoint.id,
+          name: endpoint.summary,
+          description: endpoint.description ?? endpoint.summary,
+          tags: ["x402", "algorand", "defi", ...endpoint.tags],
+          examples: [`${endpoint.method} ${publicBaseUrl}${path}`]
+        };
+      }),
+    x402: {
+      protocol: "x402",
+      scheme: "exact",
+      network: getX402EndpointMetadata().requirementTemplate.network,
+      currency: "USDC",
+      facilitator: getX402EndpointMetadata().facilitator,
+      manifest: `${publicBaseUrl}/.well-known/x402.json`,
+      openapi: `${publicBaseUrl}/openapi.json`,
+      llmsTxt: `${docsSiteUrl}/llms.txt`,
+      note:
+        "Make a normal HTTP request. An unpaid paid-route request returns HTTP 402 with payment requirements; sign client-side and retry with PAYMENT-SIGNATURE."
+    }
+  };
+}
+
+function buildAiPluginManifest() {
+  const publicBaseUrl = getPublicBaseUrl();
+  const docsSiteUrl = getDocsSiteUrl();
+
+  return {
+    schema_version: "v1",
+    name_for_human: "canix402",
+    name_for_model: "canix402",
+    description_for_human:
+      "Algorand DeFi data and walletless transaction API for agents, paid per call with USDC using x402.",
+    description_for_model:
+      "Use this public Caddy gateway for Algorand DeFi opportunities, positions, pricing, swap preparation, and unsigned transaction quotes. Free discovery endpoints describe paid operations. An unpaid paid request returns HTTP 402 with PAYMENT-REQUIRED; sign the requested USDC payment client-side and retry with PAYMENT-SIGNATURE. The service never receives wallet keys or submits transactions.",
+    api: {
+      type: "openapi",
+      url: `${publicBaseUrl}/openapi.json`
+    },
+    legal_info_url: `${docsSiteUrl}/terms`,
+    contact_email: "kieran@neonforge.ltd"
+  };
+}
+
 function loadOpenApiDocument(): unknown {
   const filePath = resolve(
     dirname(fileURLToPath(import.meta.url)),
@@ -355,4 +577,24 @@ function getApiVersion(): string {
 
 function trimTrailingSlash(value: string): string {
   return value.replace(/\/+$/, "");
+}
+
+function getPublicBaseUrl(): string {
+  return trimTrailingSlash(
+    process.env.X402_PUBLIC_BASE_URL
+      ?? process.env.PUBLIC_GATEWAY_BASE_URL
+      ?? DEFAULT_PUBLIC_BASE_URL
+  );
+}
+
+function getDocsSiteUrl(): string {
+  return trimTrailingSlash(
+    process.env.X402_DOCS_SITE_URL
+      ?? process.env.PUBLIC_DOCS_SITE_URL
+      ?? "https://canix402.compx.io"
+  );
+}
+
+function getMcpUrl(): string {
+  return process.env.X402_MCP_SERVER_URL ?? process.env.MCP_SERVER_URL ?? MCP_SERVER_REMOTE_URL;
 }

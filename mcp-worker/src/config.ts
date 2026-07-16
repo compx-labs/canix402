@@ -11,7 +11,7 @@ export interface WorkerConfig {
 }
 
 const DEFAULT_GATEWAY_URL = "https://canix402-api.compx.io";
-const DEFAULT_PUBLIC_URL = "https://mcp.canix402.com/mcp";
+const DEFAULT_PUBLIC_URL = "https://canix402-mcp.compx.io/mcp";
 const DEFAULT_NETWORK = "algorand-mainnet";
 
 export function loadWorkerConfig(env: WorkerEnv, requestUrl?: string): WorkerConfig {

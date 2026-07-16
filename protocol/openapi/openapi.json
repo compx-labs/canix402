@@ -9,7 +9,7 @@
       "email": "kieran@neonforge.ltd",
       "url": "https://canix402.compx.io"
     },
-    "x-guidance": "Use the gateway base URL in servers[0]. Fetch /discovery and /openapi.json before integrating. Prefer the remote canix402 MCP server at https://mcp.canix402.com/mcp (streamable-http, walletless pass-through) for agent tool access. Paid routes return HTTP 402 with PAYMENT-REQUIRED; sign a USDC ASA transfer client-side and retry with PAYMENT-SIGNATURE. Haystack swaps follow quote -> opt-in if needed -> fresh quote -> paid transaction generation -> local signing/submission. Human and LLM docs: https://canix402.compx.io/llms.txt",
+    "x-guidance": "Use the gateway base URL in servers[0]. Fetch /discovery and /openapi.json before integrating. Prefer the remote canix402 MCP server at https://canix402-mcp.compx.io/mcp (streamable-http, walletless pass-through) for agent tool access. Paid routes return HTTP 402 with PAYMENT-REQUIRED; sign a USDC ASA transfer client-side and retry with PAYMENT-SIGNATURE. Haystack swaps follow quote -> opt-in if needed -> fresh quote -> paid transaction generation -> local signing/submission. Human and LLM docs: https://canix402.compx.io/llms.txt",
     "x-precision": {
       "fields": ["apy", "apr", "tvlUsd"],
       "defaultDecimalPlaces": 6,
@@ -26,7 +26,7 @@
     "docsUrl": "https://canix402.compx.io/x402",
     "llmsTxtUrl": "https://canix402.compx.io/llms.txt",
     "mcpInstall": "https://canix402.compx.io/x402#mcp",
-    "mcpUrl": "https://mcp.canix402.com/mcp",
+    "mcpUrl": "https://canix402-mcp.compx.io/mcp",
     "mcpTransport": "streamable-http"
   },
   "paths": {

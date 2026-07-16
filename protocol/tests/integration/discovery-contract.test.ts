@@ -192,3 +192,43 @@ test("well-known x402 fan-out lists paid resource URLs", async () => {
 
   await app.close();
 });
+
+test("gateway serves agent discovery metadata without payment", async () => {
+  const app = buildApp();
+  await app.ready();
+
+  const [llms, fullLlms, robots, agentCard, legacyAgentCard, aiPlugin] = await Promise.all([
+    app.inject({ method: "GET", url: "/llms.txt" }),
+    app.inject({ method: "GET", url: "/llms-full.txt" }),
+    app.inject({ method: "GET", url: "/robots.txt" }),
+    app.inject({ method: "GET", url: "/.well-known/agent-card.json" }),
+    app.inject({ method: "GET", url: "/.well-known/agent.json" }),
+    app.inject({ method: "GET", url: "/.well-known/ai-plugin.json" })
+  ]);
+
+  assert.equal(llms.statusCode, 200);
+  assert.match(llms.body, /Canonical documentation: https:\/\/canix402\.compx\.io/);
+  assert.match(llms.body, /https:\/\/canix402-api\.compx\.io\/\.well-known\/x402\.json/);
+  assert.equal(fullLlms.statusCode, 200);
+  assert.match(fullLlms.body, /POST https:\/\/canix402-api\.compx\.io\/pricing — free/);
+  assert.equal(robots.statusCode, 200);
+  assert.match(robots.body, /agent-card\.json/);
+
+  const card = agentCard.json() as {
+    documentationUrl: string;
+    provider: { url: string };
+    skills: Array<{ id: string }>;
+  };
+  assert.equal(agentCard.statusCode, 200);
+  assert.equal(legacyAgentCard.statusCode, 200);
+  assert.equal(card.documentationUrl, "https://canix402.compx.io/llms.txt");
+  assert.equal(card.provider.url, "https://canix402.compx.io");
+  assert.equal(card.skills.length, endpointPolicyMatrix.filter((endpoint) => endpoint.access === "paid").length);
+
+  const plugin = aiPlugin.json() as { api: { type: string; url: string } };
+  assert.equal(aiPlugin.statusCode, 200);
+  assert.equal(plugin.api.type, "openapi");
+  assert.equal(plugin.api.url, "https://canix402-api.compx.io/openapi.json");
+
+  await app.close();
+});
