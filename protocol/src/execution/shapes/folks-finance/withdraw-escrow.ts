@@ -193,6 +193,31 @@ export const folksFinanceWithdrawEscrowShape: TransactionShapeSpec<
 
     let withdrawTxn: Transaction;
     try {
+      console.log("Preparing Folks escrow withdraw transaction...", {
+        depositsAppId: dependencies.mainnetDepositsAppId,
+        poolAppId: poolState.pool.appId,
+        poolManagerAppId: dependencies.mainnetPoolManagerAppId,
+        userAddress: input.userAddress,
+        escrowAddress: escrow.escrowAddress,
+        receiverAddress: input.userAddress,
+        amount: withdrawParams.amount.toString(),
+        amountDenomination: input.amountDenomination,
+        isfAssetAmount: withdrawParams.isfAssetAmount,
+        remainDeposited: withdrawParams.remainDeposited,
+        escrowFAssetBalance: escrow.fAssetBalance.toString(),
+        suggestedParams: {
+          fee: params.fee.toString(),
+          minFee: params.minFee.toString(),
+          firstValid: params.firstValid.toString(),
+          lastValid: params.lastValid.toString(),
+          genesisID: params.genesisID,
+          genesisHash:
+            params.genesisHash === undefined
+              ? undefined
+              : Buffer.from(params.genesisHash).toString("base64"),
+          flatFee: params.flatFee
+        }
+      });
       withdrawTxn = dependencies.prepareWithdrawFromDepositEscrowInDeposits(
         dependencies.mainnetDepositsAppId,
         poolState.pool,

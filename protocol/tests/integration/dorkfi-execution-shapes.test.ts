@@ -83,6 +83,39 @@ function lendingMarketState(overrides?: Partial<DorkFiLendingMarketState>): Dork
   };
 }
 
+function cloneWithoutGroup(txn: algosdk.Transaction): algosdk.Transaction {
+  const clone = algosdk.decodeUnsignedTransaction(algosdk.encodeUnsignedTransaction(txn));
+  delete clone.group;
+  return clone;
+}
+
+function buildStaleGroupedTransactions(transactions: algosdk.Transaction[]): algosdk.Transaction[] {
+  const stale = transactions.map((txn) =>
+    algosdk.decodeUnsignedTransaction(algosdk.encodeUnsignedTransaction(txn))
+  );
+  algosdk.assignGroupID(stale);
+  stale[0]!.fee = BigInt(stale[0]!.fee) + 1n;
+  return stale;
+}
+
+function assertEncodedTransactionsHaveCanonicalGroup(encodedTransactions: readonly string[]): void {
+  const transactions = encodedTransactions.map((encoded) =>
+    algosdk.decodeUnsignedTransaction(Buffer.from(encoded, "base64"))
+  );
+  assert.ok(transactions.length > 0);
+
+  const embeddedGroups = transactions.map((txn) =>
+    txn.group === undefined ? "" : Buffer.from(txn.group).toString("base64")
+  );
+  assert.equal(new Set(embeddedGroups).size, 1);
+  assert.notEqual(embeddedGroups[0], "");
+
+  const canonicalTransactions = transactions.map((txn) => cloneWithoutGroup(txn));
+  algosdk.assignGroupID(canonicalTransactions);
+  const canonicalGroup = Buffer.from(canonicalTransactions[0]!.group!).toString("base64");
+  assert.equal(embeddedGroups[0], canonicalGroup);
+}
+
 test.afterEach(() => {
   setDorkFiLendingMarketStateDependenciesForTests(undefined);
   setDorkFiDepositAsaDependenciesForTests(undefined);
@@ -160,6 +193,43 @@ test("deposit shape builds and validates mocked group", async () => {
   assert.equal(validation.valid, true);
 });
 
+test("deposit shape clears stale builder group ids before encoding quote", async () => {
+  const state = lendingMarketState();
+  const amount = 100_000n;
+  const staleGroup = buildStaleGroupedTransactions(
+    buildMockDorkFiDepositGroup({
+      user: USER,
+      poolAppId: POOL_APP_ID,
+      marketAppId: MARKET_APP_ID,
+      assetId: USDC_ID,
+      amount,
+      suggestedParams: suggestedParams(20_000)
+    })
+  );
+
+  setDorkFiDepositAsaDependenciesForTests({
+    resolveMarketState: async () => state,
+    buildDepositTransactions: async () => staleGroup
+  });
+
+  const registry = new TransactionShapeRegistry();
+  registry.register(dorkfiDepositAsaShape);
+  const quote = await compileExecutableQuote(
+    registry,
+    dorkfiDepositAsaShape.key,
+    {
+      userAddress: USER_ADDRESS,
+      poolAppId: POOL_APP_ID,
+      marketAppId: MARKET_APP_ID,
+      assetId: USDC_ID,
+      amount: amount.toString()
+    },
+    buildContext()
+  );
+
+  assertEncodedTransactionsHaveCanonicalGroup(quote.encodedTransactions);
+});
+
 test("withdraw shape validates lending withdraw selector", () => {
   const state = lendingMarketState();
   const amount = 50_000n;
@@ -180,6 +250,44 @@ test("withdraw shape validates lending withdraw selector", () => {
     amount: amount.toString()
   });
   assert.equal(dorkfiWithdrawAsaShape.validate(group, input, state).valid, true);
+});
+
+test("withdraw shape clears stale builder group ids before encoding quote", async () => {
+  const state = lendingMarketState();
+  const amount = 50_000n;
+  const staleGroup = buildStaleGroupedTransactions(
+    buildMockDorkFiWithdrawGroup({
+      user: USER,
+      poolAppId: POOL_APP_ID,
+      marketAppId: MARKET_APP_ID,
+      assetId: USDC_ID,
+      nTokenAmount: amount,
+      suggestedParams: suggestedParams(20_000)
+    })
+  );
+
+  setDorkFiWithdrawAsaDependenciesForTests({
+    resolveMarketState: async () => state,
+    buildWithdrawTransactions: async () => staleGroup,
+    simulateWithdrawUnderlyingAmount: async () => 49_000n
+  });
+
+  const registry = new TransactionShapeRegistry();
+  registry.register(dorkfiWithdrawAsaShape);
+  const quote = await compileExecutableQuote(
+    registry,
+    dorkfiWithdrawAsaShape.key,
+    {
+      userAddress: USER_ADDRESS,
+      poolAppId: POOL_APP_ID,
+      marketAppId: MARKET_APP_ID,
+      assetId: USDC_ID,
+      amount: amount.toString()
+    },
+    buildContext()
+  );
+
+  assertEncodedTransactionsHaveCanonicalGroup(quote.encodedTransactions);
 });
 
 test("withdraw shape rejects ungrouped transactions", () => {

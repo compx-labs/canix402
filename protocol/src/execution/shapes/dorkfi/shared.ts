@@ -55,6 +55,13 @@ export function assertGroupedTransactions(
   }
 }
 
+export function assignCanonicalGroupID(transactions: algosdk.Transaction[]): void {
+  for (const txn of transactions) {
+    delete txn.group;
+  }
+  algosdk.assignGroupID(transactions);
+}
+
 export function decodeUnsignedTransactions(encoded: readonly string[]): algosdk.Transaction[] {
   return encoded.map((encodedTxn) => algosdk.decodeUnsignedTransaction(Buffer.from(encodedTxn, "base64")));
 }

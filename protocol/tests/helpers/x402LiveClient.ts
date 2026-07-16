@@ -286,14 +286,12 @@ export async function executePaidJsonRequest(
   input: ExecutePaidJsonRequestInput
 ): Promise<PaidJsonResult> {
   const requestUrl = buildProductionUrl(input.baseUrl, input.path);
-  console.log("ExecutePaidJsonRequest... requestUrl:", requestUrl);
   const method = input.method ?? "POST";
   const headers: Record<string, string> = {
     "content-type": "application/json",
     ...(input.headers ?? {})
   };
   const serializedBody = JSON.stringify(input.body);
-  console.log("ExecutePaidJsonRequest... serializedBody:", serializedBody);
   const preflight = await fetch(requestUrl, {
     method,
     headers,
@@ -317,7 +315,6 @@ export async function executePaidJsonRequest(
     clientMnemonic: input.clientMnemonic,
     algodUrl: input.algodUrl
   });
-  console.log("ExecutePaidJsonRequest... paymentSignature:", paymentSignature);
 
   const paidResponse = await fetch(requestUrl, {
     method,
@@ -328,7 +325,6 @@ export async function executePaidJsonRequest(
     body: serializedBody
   });
   const paidBody = await paidResponse.text();
-  console.log("ExecutePaidJsonRequest... paidBody:", paidBody);
 
   if (paidResponse.status !== 200) {
     throw new Error(
@@ -363,7 +359,6 @@ export async function fetchPaidExecutionQuote(
   });
 
   const parsed = result.body as Partial<ExecutionQuoteResponse>;
-  console.log("FetchPaidExecutionQuote... result:", result);
   if (typeof parsed !== "object" || parsed === null || parsed.data === undefined) {
     throw new Error("/execution/quotes: paid response missing data quote.");
   }

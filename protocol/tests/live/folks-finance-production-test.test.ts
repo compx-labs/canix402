@@ -45,6 +45,15 @@ type ExecutionScenario = "deposit" | "withdraw" | "roundtrip";
 
 const VALID_SCENARIOS: readonly ExecutionScenario[] = ["deposit", "withdraw", "roundtrip"];
 
+interface AssetTransferSearchTransaction {
+  assetTransferTransaction?: {
+    assetId?: bigint | number;
+    amount?: bigint | number;
+    receiver?: string;
+  };
+  innerTxns?: AssetTransferSearchTransaction[];
+}
+
 function isExecutionLiveEnabled(): boolean {
   return process.env.X402_FOLKS_EXECUTION_LIVE === "1";
 }
@@ -77,6 +86,48 @@ function skipUnlessScenario(t: test.TestContext, scenario: ExecutionScenario): b
 
 function serializeAmount(value: bigint): string {
   return value.toString();
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function lookupConfirmedTransaction(txId: string): Promise<AssetTransferSearchTransaction> {
+  const indexer = createExecutionIndexerClient();
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    try {
+      const response = await indexer.lookupTransactionByID(txId).do();
+      return response.transaction as AssetTransferSearchTransaction;
+    } catch (error) {
+      lastError = error;
+      await sleep(1_000);
+    }
+  }
+
+  throw lastError;
+}
+
+function sumAssetTransfersToReceiver(
+  transaction: AssetTransferSearchTransaction,
+  receiver: string,
+  assetId: number
+): bigint {
+  const transfer = transaction.assetTransferTransaction;
+  const ownAmount =
+    transfer?.receiver === receiver && Number(transfer.assetId) === assetId
+      ? BigInt(transfer.amount ?? 0)
+      : 0n;
+  return (
+    ownAmount +
+    (transaction.innerTxns ?? []).reduce(
+      (total, inner) => total + sumAssetTransfersToReceiver(inner, receiver, assetId),
+      0n
+    )
+  );
 }
 
 function resolveUsdcAssetId(): number {
@@ -298,6 +349,15 @@ async function runEscrowWithdraw(escrowAddress: string): Promise<void> {
   const poolAppId = resolveFolksPoolAppId();
 
   const usdcBalanceBefore = await getAssetBalance(algod, userAddress, assetId);
+  console.log("Running Folks escrow withdraw...", {
+    userAddress,
+    escrowAddress,
+    poolAppId,
+    assetId,
+    amount: WITHDRAW_USDC_MICRO_AMOUNT.toString(),
+    amountDenomination: "asset",
+    usdcBalanceBefore: usdcBalanceBefore.toString()
+  });
 
   const quoteResponse = await fetchPaidExecutionQuote({
     baseUrl,
@@ -314,6 +374,7 @@ async function runEscrowWithdraw(escrowAddress: string): Promise<void> {
   });
 
   assert.equal(quoteResponse.data.shapeKey, WITHDRAW_ESCROW_SHAPE);
+  console.log("Folks escrow withdraw quote metadata...", quoteResponse.data.metadata);
 
   const signed = signEncodedTransactionGroup(
     quoteResponse.data.encodedTransactions,
@@ -322,10 +383,22 @@ async function runEscrowWithdraw(escrowAddress: string): Promise<void> {
   const submission = await submitTransactionGroup(algod, signed);
   assert.ok(submission.confirmedRound > 0n);
 
+  const confirmedWithdraw = await lookupConfirmedTransaction(submission.txId);
+  const returnedAssetAmount = sumAssetTransfersToReceiver(
+    confirmedWithdraw,
+    userAddress,
+    assetId
+  );
   const usdcBalanceAfter = await getAssetBalance(algod, userAddress, assetId);
-  assert.ok(
-    usdcBalanceAfter > usdcBalanceBefore,
-    `Expected wallet USDC balance to increase after withdraw (before=${usdcBalanceBefore}, after=${usdcBalanceAfter}).`
+  console.log("USDC balance after withdraw...", {
+    returnedAssetAmount: returnedAssetAmount.toString(),
+    usdcBalanceAfter: usdcBalanceAfter.toString(),
+    usdcBalanceBefore: usdcBalanceBefore.toString()
+  });
+  assert.equal(
+    returnedAssetAmount,
+    WITHDRAW_USDC_MICRO_AMOUNT,
+    `Expected withdraw transaction to return ${WITHDRAW_USDC_MICRO_AMOUNT.toString()} base units to the wallet.`
   );
 }
 
