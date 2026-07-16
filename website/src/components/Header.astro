@@ -22,7 +22,18 @@ const links = [
     <img src="/brand/canix402-mark.png" alt="CANIX402 fox mark" width="42" height="42" />
     <span>CANIX402</span>
   </a>
-  <nav class="site-nav" aria-label="Primary">
+
+  <button
+    class="nav-toggle"
+    type="button"
+    aria-expanded="false"
+    aria-controls="site-nav"
+    aria-label="Open navigation"
+  >
+    <span class="nav-toggle-bars" aria-hidden="true"></span>
+  </button>
+
+  <nav class="site-nav" id="site-nav" aria-label="Primary">
     {
       links.map((link) => (
         <a href={link.href} aria-current={currentPath === link.href ? "page" : undefined}>
@@ -32,3 +43,36 @@ const links = [
     }
   </nav>
 </header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>(".nav-toggle");
+  const nav = document.querySelector<HTMLElement>("#site-nav");
+
+  if (toggle && nav) {
+    const setOpen = (open: boolean) => {
+      nav.classList.toggle("is-open", open);
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      toggle.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
+    };
+
+    toggle.addEventListener("click", () => {
+      setOpen(!nav.classList.contains("is-open"));
+    });
+
+    nav.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => setOpen(false));
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      if (window.matchMedia("(min-width: 901px)").matches) {
+        setOpen(false);
+      }
+    });
+  }
+</script>

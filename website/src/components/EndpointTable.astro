@@ -1,40 +1,165 @@
 ---
-import { formatEndpointPrice, type DiscoveryEndpoint } from "../lib/discovery";
+import {
+  formatEndpointPriceShort,
+  formatEndpointTitle,
+  type DiscoveryEndpoint
+} from "../lib/discovery";
+import { config } from "../lib/config";
 
 interface Props {
   endpoints: DiscoveryEndpoint[];
+  showFilters?: boolean;
+  limit?: number;
+  actionHref?: string;
+  actionLabel?: string;
 }
 
-const { endpoints } = Astro.props;
+const {
+  endpoints,
+  showFilters = true,
+  limit,
+  actionHref = config.openApiUrl,
+  actionLabel = "View details"
+} = Astro.props;
+
+const visible = typeof limit === "number" ? endpoints.slice(0, limit) : endpoints;
+const paidCount = endpoints.filter((endpoint) => endpoint.access === "paid").length;
+const freeCount = endpoints.length - paidCount;
+
+function endpointParams(endpoint: DiscoveryEndpoint): string[] {
+  return [...(endpoint.pathParams ?? []), ...(endpoint.queryParams ?? [])];
+}
 ---
 
-<div class="panel">
-  <table class="endpoint-table">
-    <thead>
-      <tr>
-        <th>Method</th>
-        <th>Path</th>
-        <th>Access</th>
-        <th>Summary</th>
-        <th>Pricing</th>
-      </tr>
-    </thead>
-    <tbody>
-      {
-        endpoints.map((endpoint) => (
-          <tr>
-            <td><code>{endpoint.method}</code></td>
-            <td><code>{endpoint.path}</code></td>
-            <td>
-              <span class={`badge ${endpoint.access === "paid" ? "badge-paid" : "badge-free"}`}>
-                {endpoint.access}
-              </span>
-            </td>
-            <td>{endpoint.summary}</td>
-            <td>{formatEndpointPrice(endpoint)}</td>
-          </tr>
-        ))
-      }
-    </tbody>
-  </table>
-</div>
+<section class="endpoint-catalog" data-endpoint-catalog>
+  {
+    showFilters && (
+      <div class="endpoint-toolbar">
+        <div class="endpoint-filters" role="group" aria-label="Filter endpoints">
+          <button class="endpoint-filter is-active" type="button" data-filter="all" aria-pressed="true">
+            All
+          </button>
+          <button class="endpoint-filter" type="button" data-filter="paid" aria-pressed="false">
+            Paid
+          </button>
+          <button class="endpoint-filter" type="button" data-filter="free" aria-pressed="false">
+            Free
+          </button>
+        </div>
+        <p class="endpoint-count" data-endpoint-count>
+          {endpoints.length} APIs · {paidCount} paid · {freeCount} free
+        </p>
+      </div>
+    )
+  }
+
+  <div class="endpoint-grid">
+    {
+      visible.map((endpoint) => {
+        const params = endpointParams(endpoint);
+        const tags = endpoint.tags?.length ? endpoint.tags.slice(0, 3) : [endpoint.access];
+        const price = formatEndpointPriceShort(endpoint);
+
+        return (
+          <article
+            class="endpoint-card"
+            data-access={endpoint.access}
+            data-endpoint-id={endpoint.id}
+          >
+            <div class="endpoint-card-top">
+              <div class="endpoint-card-tags">
+                {tags.map((tag) => (
+                  <span class="badge badge-tag">{tag}</span>
+                ))}
+              </div>
+              <div class="endpoint-card-meta">
+                <span class={`badge ${endpoint.access === "paid" ? "badge-price" : "badge-free"}`}>
+                  {price}
+                </span>
+                <span class="badge badge-method">{endpoint.method}</span>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="endpoint-card-title">{formatEndpointTitle(endpoint)}</h3>
+              <p class="endpoint-card-summary">{endpoint.summary}</p>
+            </div>
+
+            <div class="endpoint-path-box">
+              <code class="endpoint-path">{endpoint.path}</code>
+              {params.length > 0 && (
+                <div class="endpoint-params">
+                  {params.map((param) => (
+                    <span class="endpoint-param">{param}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <a class="button endpoint-card-action" href={actionHref}>
+              {actionLabel}
+              <span aria-hidden="true">→</span>
+            </a>
+          </article>
+        );
+      })
+    }
+  </div>
+
+  <p class="endpoint-empty" data-endpoint-empty>No endpoints match this filter.</p>
+</section>
+
+{
+  showFilters && (
+    <script>
+      const catalogs = document.querySelectorAll<HTMLElement>("[data-endpoint-catalog]");
+
+      catalogs.forEach((catalog) => {
+        const buttons = catalog.querySelectorAll<HTMLButtonElement>("[data-filter]");
+        const cards = catalog.querySelectorAll<HTMLElement>(".endpoint-card");
+        const empty = catalog.querySelector<HTMLElement>("[data-endpoint-empty]");
+        const count = catalog.querySelector<HTMLElement>("[data-endpoint-count]");
+
+        const applyFilter = (filter: string) => {
+          let visibleCount = 0;
+
+          cards.forEach((card) => {
+            const access = card.dataset.access ?? "free";
+            const matches = filter === "all" || access === filter;
+            card.hidden = !matches;
+            if (matches) {
+              visibleCount += 1;
+            }
+          });
+
+          if (empty) {
+            empty.classList.toggle("is-visible", visibleCount === 0);
+          }
+
+          if (count) {
+            const paid = [...cards].filter(
+              (card) => !card.hidden && card.dataset.access === "paid"
+            ).length;
+            const free = visibleCount - paid;
+            count.textContent =
+              filter === "all"
+                ? `${cards.length} APIs · ${paid} paid · ${free} free`
+                : `${visibleCount} ${filter} APIs`;
+          }
+
+          buttons.forEach((button) => {
+            const active = button.dataset.filter === filter;
+            button.classList.toggle("is-active", active);
+            button.setAttribute("aria-pressed", active ? "true" : "false");
+          });
+        };
+
+        buttons.forEach((button) => {
+          button.addEventListener("click", () => {
+            applyFilter(button.dataset.filter ?? "all");
+          });
+        });
+      });
+    </script>
+  )
+}
