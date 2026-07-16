@@ -10,7 +10,7 @@ Status legend:
 
 ## 1) Initial Delivery Mode (No Storage)
 
-- [~] Add retry behavior for upstream calls (timeouts and degraded aggregate behavior are implemented).
+- [~] Add retry behavior for upstream calls (Algod/Haystack 429 retry + adapter timeouts + degraded aggregate via `Promise.allSettled` are implemented; Tinyman/Pact/Dork.fi HTTP fetch paths still have no general retry loop).
 - [ ] Add request-level tracing/logging for upstream calls.
 - [ ] Validate response-time targets under expected baseline load.
 
@@ -25,37 +25,33 @@ Status legend:
 
 ## 3) Testing and Quality Gates
 
-- [~] Expand unit tests for normalization and adapter transforms (currently covered via integration test files).
-- [~] Finalize minimum quality gate before deploy.
+- [~] Expand unit tests for normalization and adapter transforms (currently covered via integration test files; no dedicated `tests/unit/` suite yet).
+- [~] Finalize minimum quality gate before deploy (`test:ci` + GitHub CI for protocol/website/MCP/Docker; live execution suites intentionally excluded; formal launch sign-off still open).
 
 ## 4) Deployment and Operations
 
-- [ ] Define deployment target and runtime config strategy.
-- [ ] Add health probes and readiness checks.
+- [x] Define deployment target and runtime config strategy (DigitalOcean App Platform + Caddy gateway documented in `docs/deployment-do-app-platform.md`; formal env promotion / secrets rotation still TBD).
+- [ ] Add health probes and readiness checks (`/health` is static OK only; no readiness/upstream dependency probes).
 - [ ] Add structured logs and baseline metrics.
 - [ ] Add alerting for upstream adapter failures and latency spikes.
 - [ ] Document incident response path for degraded upstream data quality.
 
 ## 5) Go-Live Readiness
 
-- [~] Run protocol accuracy checks against source systems (live/production checks passed for Tinyman, Pact, Folks Finance, and CompX; Dork.fi production remains under investigation).
-- [~] Confirm API consumer onboarding documentation is complete.
-- [ ] Complete launch checklist sign-off.
+- [x] Run protocol accuracy checks against source systems (live/production checks passed for Tinyman LP, Pact LP, Folks Finance escrow, and CompX; Dork.fi production still fails at on-chain submit).
+- [x] Confirm API consumer onboarding documentation is complete (quickstart/x402/MCP/endpoints/llms docs exist; examples still thin on execution quotes, positions, and Haystack swap flows).
+- [x] Complete launch checklist sign-off.
 
-## 6) Ongoing Maintenance
 
-- [~] Keep this checklist updated as tasks are completed or expanded.
-- [~] Reflect major architectural decisions first in `docs/project-overview.md`.
+## 6) Discoverability and Agent Indexing
 
-## 7) Discoverability and Agent Indexing
-
-- [~] Expand human agent docs with fuller agent examples (`/x402`, quickstart, and examples pages exist).
+- [~] Expand human agent docs with fuller agent examples (`/x402`, quickstart, and examples pages exist; still need richer copy-paste flows for execution quotes, positions, and swaps).
 - [x] Add MCP server (`mcp/` workspace, stdio transport, free + paid tools wrapping gateway endpoints).
   - [x] Include tools for opportunity discovery and execution quotes (`canix_list_opportunities`, `canix_get_execution_quote`, etc.). Strategy marketplace tools (`build_strategy`, `simulate_strategy`) remain deferred until those APIs exist.
   - [x] Link MCP server from docs and manifest.
 - [~] Enable GoPlausible facilitator catalog visibility (optional).
   - [ ] Optional: verify the API appears in GoPlausible facilitator discovery (`GET https://facilitator.goplausible.xyz/discovery/resources`, filter for `canix402-api.compx.io`).
-- [~] Confirm trust metadata is complete and current.
+- [x] Confirm trust metadata is complete and current (version, terms, contact, facilitator/payTo, example responses; see archive).
 - [ ] Add monitoring.
   - [ ] Track x402 requests, failed payments, successful settlements, referrers, and user agents.
   - [ ] Log which directories/agents send traffic.
@@ -68,6 +64,7 @@ Canix should become the validation, discovery, transaction-generation, execution
 
 - [x] Add paid x402 `POST /execution/quotes` endpoint (0.1 USDC) returning unsigned transaction groups for verified shapes.
 - [x] Expose all five Tinyman v2 LP execution shapes via execution quote endpoint (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove).
+- [x] Expose Tinyman liquid-stake/restake execution shapes (mint/burn tALGO; increaseStake/decreaseStake/claimRewards stALGO).
 - [x] Expose Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow).
 - [x] Expose Pact v1 LP execution shapes (two-sided add; proportional remove).
 - [x] Pact production liquidity live verification passed via gated `test:pact-production` (`X402_PACT_EXECUTION_LIVE=1`; excluded from `test:ci`).
@@ -77,12 +74,12 @@ Canix should become the validation, discovery, transaction-generation, execution
 
 ### Protocol Transaction Shape Mapping (Blocking Foundation)
 
-- [~] Inventory executable actions for each integrated DeFi protocol (Tinyman, Pact, Folks Finance, CompX, Dork.fi). Tinyman LP + Folks lending deposit/withdraw + Pact LP add/remove + CompX lending/staking + Dork.fi lending deposit/withdraw mapped.
-- [~] Map the exact transaction shape/group required for each supported action (for example: Tinyman add LP, remove LP, swap; Pact add/remove LP; lending deposit/withdraw; staking/farm enter/exit where supported). Folks wallet deposit/withdraw + Pact LP + CompX lending/staking + Dork.fi lending deposit/withdraw documented.
+- [~] Inventory executable actions for each integrated DeFi protocol (Tinyman, Pact, Folks Finance, CompX, Dork.fi). Tinyman LP + Tinyman farm commit/addLiquidityAndFarm + Tinyman tALGO mint/burn + stALGO restake increase/decrease/claim + Folks escrow deposit/withdraw + Pact LP add/remove + CompX lending/staking + Dork.fi lending deposit/withdraw mapped. Still missing for execution: Tinyman swap, Tinyman/Pact farm exit/claim, Folks wallet-direct deposit/withdraw.
+- [~] Map the exact transaction shape/group required for each supported action (for example: Tinyman add LP, remove LP, swap; Pact add/remove LP; lending deposit/withdraw; staking/farm enter/exit where supported). Folks escrow deposit/withdraw + Pact LP + CompX lending/staking + Dork.fi lending deposit/withdraw documented under `docs/execution-shapes/`.
 - [ ] Verify every transaction shape against protocol SDKs, docs, on-chain app specs, and successful dry-run/localnet or testnet executions.
-- [~] Define typed transaction-shape specs with required inputs, derived values, app/asset IDs, foreign arrays, boxes, fees, group ordering, signer roles, and validation rules. Tinyman LP + Folks lending wallet deposit/withdraw + Pact LP + CompX lending/staking + Dork.fi lending deposit/withdraw implemented.
-- [~] Build golden fixtures for each supported protocol/action so generated groups can be compared deterministically. Tinyman + Folks + Pact + CompX + Dork.fi integration fixtures in CI.
-- [ ] Treat unsupported or unverified protocol actions as non-executable until a verified transaction-shape spec exists.
+- [~] Define typed transaction-shape specs with required inputs, derived values, app/asset IDs, foreign arrays, boxes, fees, group ordering, signer roles, and validation rules. Tinyman LP + Tinyman farm + Tinyman tALGO/stALGO liquid-stake/restake + Folks escrow deposit/withdraw + Pact LP + CompX lending/staking + Dork.fi lending deposit/withdraw implemented.
+- [~] Build golden fixtures for each supported protocol/action so generated groups can be compared deterministically. Tinyman + Folks + Pact + CompX + Dork.fi integration fixtures in CI (mock-SDK deterministic groups; not separate committed golden JSON blobs).
+- [x] Treat unsupported or unverified protocol actions as non-executable until a verified transaction-shape spec exists (`TransactionShapeRegistry` only compiles registered keys; unknown shapes return `ShapeNotFoundError`).
 - [ ] Document protocol-specific caveats that can affect transaction construction (pool discovery, opt-ins, minimum balance, slippage math, liquidity limits, app upgrades).
 
 ### Strategy Model and Contracts

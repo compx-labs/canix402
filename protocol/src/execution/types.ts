@@ -146,6 +146,8 @@ export interface SerializedTransaction {
   sender: string;
   fee: string;
   groupPresent: boolean;
+  /** Base64-encoded transaction note, when present. */
+  noteBase64?: string;
   payment?: SerializedPaymentFields;
   assetTransfer?: SerializedAssetTransferFields;
   applicationCall?: SerializedApplicationCallFields;
@@ -192,6 +194,10 @@ export function serializeTransaction(txn: Transaction): SerializedTransaction {
     fee: txn.fee.toString(),
     groupPresent: txn.group !== undefined && txn.group.length > 0
   };
+
+  if (txn.note !== undefined && txn.note.length > 0) {
+    serialized.noteBase64 = Buffer.from(txn.note).toString("base64");
+  }
 
   if (txn.payment) {
     serialized.payment = {
