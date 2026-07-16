@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# LLM/agent catalog: https://canix402.compx.io/llms.txt
+# Full reference: https://canix402.compx.io/llms-full.txt
+# x402 service manifest: https://canix402-api.compx.io/.well-known/x402.json
+# A2A-compatible capability card: https://canix402-api.compx.io/.well-known/agent-card.json
+# OpenAPI spec: https://canix402-api.compx.io/openapi.json
+# Discovery document: https://canix402-api.compx.io/discovery

@@ -38,8 +38,8 @@ npm run dev
 3. Set Worker root directory to `mcp-worker`.
 4. Configure Worker variables:
    - `CANIX402_GATEWAY_URL=https://canix402-api.compx.io`
-   - Optional: `CANIX402_MCP_PUBLIC_URL=https://mcp.canix402.com/mcp`
-5. Deploy to `*.workers.dev` first, then attach custom domain `mcp.canix402.com`.
+   - Optional: `CANIX402_MCP_PUBLIC_URL=https://canix402-mcp.compx.io/mcp`
+5. Deploy to `*.workers.dev` first, then attach custom domain `canix402-mcp.compx.io`.
 
 ## Runtime Endpoints
 

@@ -8,6 +8,10 @@ const caddyfile = readFileSync(resolve(process.cwd(), "caddy/Caddyfile"), "utf-8
 test("Caddy keeps free POST routes outside x402 enforcement", () => {
   const freeMatcher = caddyfile.match(/@free path ([^\n]+)/)?.[1] ?? "";
 
+  assert.match(freeMatcher, /(?:^|\s)\/llms\.txt(?:\s|$)/);
+  assert.match(freeMatcher, /(?:^|\s)\/robots\.txt(?:\s|$)/);
+  assert.match(freeMatcher, /(?:^|\s)\/\.well-known\/agent-card\.json(?:\s|$)/);
+  assert.match(freeMatcher, /(?:^|\s)\/\.well-known\/ai-plugin\.json(?:\s|$)/);
   assert.match(freeMatcher, /(?:^|\s)\/swaps\/quote(?:\s|$)/);
   assert.match(freeMatcher, /(?:^|\s)\/swaps\/optin(?:\s|$)/);
   assert.match(freeMatcher, /(?:^|\s)\/pricing(?:\s|$)/);
