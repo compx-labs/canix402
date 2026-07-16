@@ -359,7 +359,6 @@ export async function fetchPaidExecutionQuote(
   });
 
   const parsed = result.body as Partial<ExecutionQuoteResponse>;
-  console.log("FetchPaidExecutionQuote... result:", result);
   if (typeof parsed !== "object" || parsed === null || parsed.data === undefined) {
     throw new Error("/execution/quotes: paid response missing data quote.");
   }

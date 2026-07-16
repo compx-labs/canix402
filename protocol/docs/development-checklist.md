@@ -38,7 +38,7 @@ Status legend:
 
 ## 5) Go-Live Readiness
 
-- [~] Run protocol accuracy checks against source systems (live smoke tests for Tinyman/Pact/Dork.fi; CompX/Folks pending broader coverage).
+- [~] Run protocol accuracy checks against source systems (live/production checks passed for Tinyman, Pact, Folks Finance, and CompX; Dork.fi production remains under investigation).
 - [~] Confirm API consumer onboarding documentation is complete.
 - [ ] Complete launch checklist sign-off.
 
@@ -70,9 +70,10 @@ Canix should become the validation, discovery, transaction-generation, execution
 - [x] Expose all five Tinyman v2 LP execution shapes via execution quote endpoint (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove).
 - [x] Expose Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow).
 - [x] Expose Pact v1 LP execution shapes (two-sided add; proportional remove).
+- [x] Pact production liquidity live verification passed via gated `test:pact-production` (`X402_PACT_EXECUTION_LIVE=1`; excluded from `test:ci`).
 - [x] Expose CompX v1 lending and staking execution shapes (deposit/withdraw ASA; stake/unstake/claim rewards).
 - [x] Expose Dork.fi v1 ASA lending execution shapes (deposit/withdraw ASA).
-- [~] Dork.fi production lending live verification via gated `test:dorkfi-production` (`X402_DORKFI_EXECUTION_LIVE=1`; excluded from `test:ci`).
+- [~] Dork.fi production lending live verification via gated `test:dorkfi-production` (`X402_DORKFI_EXECUTION_LIVE=1`; excluded from `test:ci`) currently fails at submit with an Algod incomplete-group rejection.
 
 ### Protocol Transaction Shape Mapping (Blocking Foundation)
 
