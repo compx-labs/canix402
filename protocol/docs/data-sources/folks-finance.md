@@ -8,6 +8,9 @@ This document defines the current Folks Finance adapter contract used by canix40
 - Adapter file: `src/adapters/folksFinance.ts`
 - SDK package: `@folks-finance/algorand-sdk`
 - Network: Mainnet
+- Lending: `MainnetPools` + pool manager / oracle reads
+- xALGO liquid staking: `getConsensusState` + shared consensus APR helper
+  (`src/services/consensus-staking-apr.ts`)
 
 ## Environment Variables
 
@@ -25,16 +28,18 @@ fields:
 Other emitted fields:
 
 - `protocol`
-- `opportunityType`
+- `opportunityType` (`lending` for pool markets; `staking` for xALGO)
 - `opportunityId`
 - `assetPair`
-- `yieldBasis` (always `apy` for Folks lending rows)
-- `apr` (optional)
+- `yieldBasis` (always `apy`)
+- `apr` (optional; for xALGO staking this is the pre-fee network consensus APR)
 - `sourceTimestamp`
 - `fetchedAt`
-- `notes` (only when source fields are missing and fallback identifiers are used)
+- `notes` (context / formula caveats)
 
 ## Field Mapping
+
+### Lending
 
 | Folks SDK field | Normalized field | Notes |
 |---|---|---|
@@ -44,7 +49,20 @@ Other emitted fields:
 | (adapter policy) | `yieldBasis` | Always `apy` |
 | `poolManagerInfo.pools[appId].depositInterestRate` | `apr` | 16-decimal fixed-point decimal fraction -> percentage points |
 | `poolInfo.interest.totalDeposits` + oracle price | `tvlUsd` | Computed via on-chain asset decimals and 14-decimal oracle price |
-| (adapter policy) | `opportunityType` | Always `lending` |
+| (adapter policy) | `opportunityType` | `lending` |
+
+### xALGO liquid staking (`opportunityType: staking`)
+
+| Source | Normalized field | Notes |
+|---|---|---|
+| (adapter policy) | `opportunityId` | Always `folks-staking-xalgo` |
+| (adapter policy) | `assetPair` / `assetIds` | `ALGO/xALGO`, `[0, xAlgoId]` |
+| Consensus APR helper | `apr` | `(bonus + 50% × avg fees) × blocks/year / onlineStake × 100` |
+| Consensus APR × (1 − fee) | `apy` | Folks `ConsensusState.fee` as 16-decimal fraction |
+| `ConsensusState.algoBalance` + ALGO oracle price | `tvlUsd` | Same 14-decimal oracle USD math as lending |
+
+Consensus APR uses algod `GET /v2/ledger/supply` (`onlineStake`) and a short sample of
+recent block headers (`bonus`, `feesCollected`).
 
 ## Decimals and Precision
 
@@ -53,15 +71,17 @@ Other emitted fields:
 - Native ALGO (asset id `0`) is not an ASA, so its decimals are hardcoded to `6`.
 - The SDK-provided `pool.assetDecimals` is no longer trusted for TVL math; the
   on-chain value is authoritative.
-- If an asset's decimals cannot be resolved, the row is dropped rather than
+- If an asset's decimals cannot be resolved, the lending row is dropped rather than
   guessed (see below).
 
 ## Error and Data Quality Behavior
 
 - Invalid Algod endpoint configuration or read failure -> adapter throws `FolksFinanceAdapterError`.
-- Missing pool manager state or oracle price for a pool -> row is filtered out.
-- Pool whose underlying asset decimals cannot be resolved from algod -> row is filtered out.
-- Rows missing APY or TVL (USD) are filtered out.
+- Missing pool manager state or oracle price for a pool -> lending row is filtered out.
+- Pool whose underlying asset decimals cannot be resolved from algod -> lending row is filtered out.
+- Lending rows missing APY or TVL (USD) are filtered out.
+- xALGO staking failures (consensus state / APR / oracle) omit the staking row only;
+  lending opportunities still return (adapter still requires ≥1 lending row).
 
 ## Rate-Limit and Reliability Notes
 
@@ -75,6 +95,9 @@ Other emitted fields:
 ## Known Caveats
 
 - SDK contract and mainnet constants can change over time with protocol upgrades.
-- `assetPair` currently uses the Folks mainnet pool symbol key and is not always a true pair string.
-- APY and TVL values are source-provided and will be cross-normalized further as
-  additional protocols are added.
+- `assetPair` for lending currently uses the Folks mainnet pool symbol key and is
+  not always a true pair string.
+- Consensus APR uses ledger online stake (not the stricter ≥30k eligible-stake
+  filter) and a short fee sample; treat as an estimate.
+- Folks delayed stake / stake-and-deposit are out of scope for discovery in this phase.
+- Lending APY/TVL are SDK-provided; xALGO staking APY/TVL are derived.

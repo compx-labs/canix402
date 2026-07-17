@@ -2,8 +2,23 @@ import assert from "node:assert/strict";
 import { createServer, Server } from "node:http";
 import test from "node:test";
 
-import { fetchTinymanOpportunities, normalizeTinymanPool } from "../../src/adapters/index.js";
+import {
+  fetchTinymanOpportunities,
+  normalizeTinymanPool,
+  normalizeTinymanTAlgoStakingOpportunity,
+  setTinymanAdapterDependenciesForTests,
+  TINYMAN_LIQUID_STAKE_PROTOCOL_FEE,
+  TINYMAN_TALGO_STAKING_OPPORTUNITY_ID
+} from "../../src/adapters/index.js";
 import { buildApp } from "../../src/app.js";
+
+function disableTinymanStakingForTests(): void {
+  setTinymanAdapterDependenciesForTests({
+    estimateConsensusApr: async () => {
+      throw new Error("staking disabled in this test");
+    }
+  });
+}
 
 test("normalizeTinymanPool maps APY and TVL USD fields", () => {
   const record = normalizeTinymanPool(
@@ -44,79 +59,175 @@ test("normalizeTinymanPool drops records without APY or TVL", () => {
   assert.equal(missingTvl, null);
 });
 
-test("fetchTinymanOpportunities maps API payload and ignores invalid rows", async () => {
-  const opportunities = await fetchTinymanOpportunities(async () => {
-    return {
-      ok: true,
-      json: async () => ({
-        results: [
-          {
-            address: "pool-1",
-            is_verified: true,
-            annual_percentage_yield: 0.092,
-            liquidity_in_usd: 1000,
-            asset_1: { unit_name: "ALGO" },
-            asset_2: { unit_name: "USDC" }
-          },
-          {
-            address: "bad-pool",
-            is_verified: true,
-            annual_percentage_yield: null,
-            liquidity_in_usd: 50
-          },
-          {
-            address: "unverified-pool",
-            is_verified: false,
-            annual_percentage_yield: 0.051,
-            liquidity_in_usd: 2000
-          }
-        ]
-      })
-    } as Response;
+test("normalizeTinymanTAlgoStakingOpportunity applies 8% protocol fee", () => {
+  const record = normalizeTinymanTAlgoStakingOpportunity({
+    consensusApr: 10,
+    circulatingSupply: 1_000_000_000_000n,
+    algoToTAlgoRatio: 1.05,
+    algoUsdPrice: 0.2,
+    sampleSize: 16,
+    fetchedAtIso: "2026-07-17T12:00:00.000Z"
   });
 
-  assert.equal(opportunities.length, 1);
-  assert.equal(opportunities[0]?.opportunityId, "pool-1:lp");
-  assert.equal(opportunities[0]?.apy, 9.2);
-  assert.equal(opportunities[0]?.tvlUsd, 1000);
+  assert.ok(record);
+  assert.equal(record?.opportunityType, "staking");
+  assert.equal(record?.opportunityId, TINYMAN_TALGO_STAKING_OPPORTUNITY_ID);
+  assert.equal(record?.assetPair, "ALGO/tALGO");
+  assert.equal(record?.apr, 10);
+  assert.equal(record?.apy, 10 * (1 - TINYMAN_LIQUID_STAKE_PROTOCOL_FEE));
+  // staked ALGO = 1e12 * 1.05 / 1e6 = 1.05e6; USD = 1.05e6 * 0.2 = 210_000
+  assert.equal(record?.tvlUsd, 210_000);
+  assert.ok(record?.notes?.includes("8%"));
+});
+
+test("normalizeTinymanTAlgoStakingOpportunity drops invalid inputs", () => {
+  assert.equal(
+    normalizeTinymanTAlgoStakingOpportunity({
+      consensusApr: 10,
+      circulatingSupply: 0n,
+      algoToTAlgoRatio: 1,
+      algoUsdPrice: 0.2,
+      sampleSize: 1,
+      fetchedAtIso: "2026-07-17T12:00:00.000Z"
+    }),
+    null
+  );
+});
+
+test("fetchTinymanOpportunities maps API payload and ignores invalid rows", async () => {
+  disableTinymanStakingForTests();
+  try {
+    const opportunities = await fetchTinymanOpportunities(async () => {
+      return {
+        ok: true,
+        json: async () => ({
+          results: [
+            {
+              address: "pool-1",
+              is_verified: true,
+              annual_percentage_yield: 0.092,
+              liquidity_in_usd: 1000,
+              asset_1: { unit_name: "ALGO" },
+              asset_2: { unit_name: "USDC" }
+            },
+            {
+              address: "bad-pool",
+              is_verified: true,
+              annual_percentage_yield: null,
+              liquidity_in_usd: 50
+            },
+            {
+              address: "unverified-pool",
+              is_verified: false,
+              annual_percentage_yield: 0.051,
+              liquidity_in_usd: 2000
+            }
+          ]
+        })
+      } as Response;
+    });
+
+    assert.equal(opportunities.length, 1);
+    assert.equal(opportunities[0]?.opportunityId, "pool-1:lp");
+    assert.equal(opportunities[0]?.apy, 9.2);
+    assert.equal(opportunities[0]?.tvlUsd, 1000);
+  } finally {
+    setTinymanAdapterDependenciesForTests(undefined);
+  }
 });
 
 test("fetchTinymanOpportunities emits separate LP and farm opportunities", async () => {
-  const opportunities = await fetchTinymanOpportunities(async () => {
-    return {
-      ok: true,
-      json: async () => ({
-        results: [
-          {
-            address: "pool-with-farm",
-            is_verified: true,
-            annual_percentage_rate: "0.041",
-            annual_percentage_yield: "0.052",
-            staking_total_annual_percentage_rate: "0.079",
-            staking_total_annual_percentage_yield: "0.081",
-            liquidity_in_usd: "15000",
-            asset_1: { unit_name: "ALGO" },
-            asset_2: { unit_name: "xALGO" }
-          }
-        ]
-      })
-    } as Response;
+  disableTinymanStakingForTests();
+  try {
+    const opportunities = await fetchTinymanOpportunities(async () => {
+      return {
+        ok: true,
+        json: async () => ({
+          results: [
+            {
+              address: "pool-with-farm",
+              is_verified: true,
+              annual_percentage_rate: "0.041",
+              annual_percentage_yield: "0.052",
+              staking_total_annual_percentage_rate: "0.079",
+              staking_total_annual_percentage_yield: "0.081",
+              liquidity_in_usd: "15000",
+              asset_1: { unit_name: "ALGO" },
+              asset_2: { unit_name: "xALGO" }
+            }
+          ]
+        })
+      } as Response;
+    });
+
+    assert.equal(opportunities.length, 2);
+    const lp = opportunities.find((opportunity) => opportunity.opportunityType === "lp");
+    const farm = opportunities.find((opportunity) => opportunity.opportunityType === "farm");
+    assert.ok(lp);
+    assert.ok(farm);
+    assert.equal(lp?.opportunityId, "pool-with-farm:lp");
+    assert.equal(farm?.opportunityId, "pool-with-farm:farm");
+    assert.equal(lp?.apy, 5.2);
+    assert.equal(lp?.yieldBasis, "apy");
+    assert.equal(farm?.apy, 8.1);
+    assert.equal(farm?.yieldBasis, "apy");
+  } finally {
+    setTinymanAdapterDependenciesForTests(undefined);
+  }
+});
+
+test("fetchTinymanOpportunities appends tALGO staking when dependencies succeed", async () => {
+  setTinymanAdapterDependenciesForTests({
+    estimateConsensusApr: async () => ({
+      apr: 5,
+      bonusMicroAlgos: 10_000_000n,
+      avgFeesCollected: 0n,
+      blockRewardMicroAlgos: 10_000_000,
+      onlineStake: 1_000_000_000_000_000n,
+      currentRound: 1,
+      blocksPerYear: 10_000_000,
+      sampleSize: 8,
+      sourceTimestamp: "2026-07-17T12:00:00.000Z"
+    }),
+    createAlgodClient: () => ({}) as never,
+    getTAlgoCirculatingSupply: async () => 1_000_000_000_000n,
+    getAlgoToTAlgoRatio: async () => 1,
+    fetchAlgoUsdPrice: async () => 0.1
   });
 
-  assert.equal(opportunities.length, 2);
-  const lp = opportunities.find((opportunity) => opportunity.opportunityType === "lp");
-  const farm = opportunities.find((opportunity) => opportunity.opportunityType === "farm");
-  assert.ok(lp);
-  assert.ok(farm);
-  assert.equal(lp?.opportunityId, "pool-with-farm:lp");
-  assert.equal(farm?.opportunityId, "pool-with-farm:farm");
-  assert.equal(lp?.apy, 5.2);
-  assert.equal(lp?.yieldBasis, "apy");
-  assert.equal(farm?.apy, 8.1);
-  assert.equal(farm?.yieldBasis, "apy");
+  try {
+    const opportunities = await fetchTinymanOpportunities(async () => {
+      return {
+        ok: true,
+        json: async () => ({
+          results: [
+            {
+              address: "pool-1",
+              is_verified: true,
+              annual_percentage_yield: 0.01,
+              liquidity_in_usd: 100,
+              asset_1: { unit_name: "ALGO" },
+              asset_2: { unit_name: "USDC" }
+            }
+          ]
+        })
+      } as Response;
+    });
+
+    assert.equal(opportunities.length, 2);
+    const staking = opportunities.find(
+      (opportunity) => opportunity.opportunityType === "staking"
+    );
+    assert.ok(staking);
+    assert.equal(staking?.opportunityId, TINYMAN_TALGO_STAKING_OPPORTUNITY_ID);
+    assert.equal(staking?.apy, 5 * (1 - TINYMAN_LIQUID_STAKE_PROTOCOL_FEE));
+  } finally {
+    setTinymanAdapterDependenciesForTests(undefined);
+  }
 });
 
 test("GET /protocols/tinyman/opportunities returns Tinyman normalized data", async () => {
+  disableTinymanStakingForTests();
   const mockServer = await startTinymanMockServer();
   process.env.TINYMAN_API_BASE_URL = mockServer.baseUrl;
 
@@ -142,6 +253,7 @@ test("GET /protocols/tinyman/opportunities returns Tinyman normalized data", asy
     await app.close();
     await mockServer.close();
     delete process.env.TINYMAN_API_BASE_URL;
+    setTinymanAdapterDependenciesForTests(undefined);
   }
 });
 

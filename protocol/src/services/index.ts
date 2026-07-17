@@ -75,6 +75,22 @@ export type {
   SourceTimestampOrigin
 } from "./source-metadata.js";
 export {
+  CONSENSUS_BLOCKS_PER_YEAR,
+  CONSENSUS_BONUS_BASE_MICRO_ALGOS,
+  CONSENSUS_BONUS_DECAY_INTERVAL,
+  CONSENSUS_PAYOUT_FEE_PERCENT,
+  DEFAULT_BLOCK_SAMPLE_SIZE,
+  ConsensusStakingAprError,
+  computeConsensusApr,
+  computeDecayedBonusMicroAlgos,
+  estimateConsensusStakingApr,
+  setConsensusStakingAprDependenciesForTests
+} from "./consensus-staking-apr.js";
+export type {
+  ConsensusStakingAprDependencies,
+  ConsensusStakingAprEstimate
+} from "./consensus-staking-apr.js";
+export {
   HaystackRouterError,
   createHaystackService
 } from "./haystack-router.js";

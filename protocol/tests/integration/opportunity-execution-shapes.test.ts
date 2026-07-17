@@ -166,3 +166,53 @@ test("LP positions expose exit shapes and staking positions expose unstake/claim
   assert.ok(staked.compatibleExitShapeKeys.some((key) => key.includes("unstake")));
   assert.ok(staked.compatibleManageShapeKeys.some((key) => key.includes("claim")));
 });
+
+test("Tinyman tALGO staking attaches mint only (not stALGO restake)", () => {
+  const record: OpportunityMarketRecord = {
+    protocol: "tinyman",
+    opportunityType: "staking",
+    opportunityId: "tinyman-staking-talgo",
+    assetPair: "ALGO/tALGO",
+    assetIds: [0, 2537013734],
+    apy: 4,
+    yieldBasis: "apy",
+    tvlUsd: 100_000,
+    sourceTimestamp: "2026-07-17T00:00:00.000Z",
+    fetchedAt: "2026-07-17T00:00:00.000Z"
+  };
+
+  const enriched = attachExecutionShapesToOpportunity(record, executionRegistry);
+  assert.equal(enriched.executionReady, true);
+  assert.equal(enriched.executionShapes.length, 1);
+  assert.equal(
+    enriched.executionShapes[0]?.shapeKey,
+    "mainnet:tinyman:liquid-stake-v1:mint:tAlgo"
+  );
+  assert.deepEqual(enriched.executionShapes[0]?.requiredAssetIds, [0]);
+  assert.equal(enriched.executionShapes[0]?.inputHints?.assetId, 0);
+});
+
+test("Folks xALGO staking attaches immediate stake only", () => {
+  const record: OpportunityMarketRecord = {
+    protocol: "folks-finance",
+    opportunityType: "staking",
+    opportunityId: "folks-staking-xalgo",
+    assetPair: "ALGO/xALGO",
+    assetIds: [0, 1134696561],
+    apy: 3.5,
+    yieldBasis: "apy",
+    tvlUsd: 1_000_000,
+    sourceTimestamp: "2026-07-17T00:00:00.000Z",
+    fetchedAt: "2026-07-17T00:00:00.000Z"
+  };
+
+  const enriched = attachExecutionShapesToOpportunity(record, executionRegistry);
+  assert.equal(enriched.executionReady, true);
+  assert.equal(enriched.executionShapes.length, 1);
+  assert.equal(
+    enriched.executionShapes[0]?.shapeKey,
+    "mainnet:folks-finance:xalgo-v1:stake:immediate"
+  );
+  assert.deepEqual(enriched.executionShapes[0]?.requiredAssetIds, [0]);
+  assert.equal(enriched.executionShapes[0]?.inputHints?.assetId, 0);
+});

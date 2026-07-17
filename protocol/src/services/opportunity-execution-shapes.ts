@@ -21,6 +21,11 @@ const PACT_FARM_STAKE = "mainnet:pact:v1:farm:stake";
 const PACT_ADD_LIQUIDITY_AND_FARM =
   "mainnet:pact:v1:addLiquidityAndFarm:twoSided";
 
+const TINYMAN_TALGO_STAKING_OPPORTUNITY_ID = "tinyman-staking-talgo";
+const FOLKS_XALGO_STAKING_OPPORTUNITY_ID = "folks-staking-xalgo";
+const TINYMAN_MINT_TALGO = "mainnet:tinyman:liquid-stake-v1:mint:tAlgo";
+const FOLKS_STAKE_IMMEDIATE = "mainnet:folks-finance:xalgo-v1:stake:immediate";
+
 /**
  * Folks lending opens require an ordered multi-step enter path.
  * Most other protocols treat enter shapes as alternatives (all order 0).
@@ -64,6 +69,20 @@ const PACT_FARM_ENTER_STEPS: ReadonlyArray<{
     prerequisiteShapeKeys: [PACT_FARM_DEPLOY_ESCROW]
   }
 ];
+
+/** Exclusive enter path for Tinyman tALGO (do not attach stALGO restake). */
+const TINYMAN_TALGO_STAKING_ENTER_STEPS: ReadonlyArray<{
+  shapeKey: string;
+  order: number;
+  prerequisiteShapeKeys?: readonly string[];
+}> = [{ shapeKey: TINYMAN_MINT_TALGO, order: 0 }];
+
+/** Exclusive enter path for Folks xALGO immediate stake. */
+const FOLKS_XALGO_STAKING_ENTER_STEPS: ReadonlyArray<{
+  shapeKey: string;
+  order: number;
+  prerequisiteShapeKeys?: readonly string[];
+}> = [{ shapeKey: FOLKS_STAKE_IMMEDIATE, order: 0 }];
 
 export function attachExecutionShapesToOpportunity(
   record: OpportunityMarketRecord,
@@ -131,6 +150,26 @@ function orderEnterShapes(
     return orderBySteps(shapes, PACT_FARM_ENTER_STEPS);
   }
 
+  if (
+    record.protocol === "tinyman" &&
+    record.opportunityType === "staking" &&
+    record.opportunityId === TINYMAN_TALGO_STAKING_OPPORTUNITY_ID
+  ) {
+    return orderBySteps(shapes, TINYMAN_TALGO_STAKING_ENTER_STEPS, {
+      exclusive: true
+    });
+  }
+
+  if (
+    record.protocol === "folks-finance" &&
+    record.opportunityType === "staking" &&
+    record.opportunityId === FOLKS_XALGO_STAKING_OPPORTUNITY_ID
+  ) {
+    return orderBySteps(shapes, FOLKS_XALGO_STAKING_ENTER_STEPS, {
+      exclusive: true
+    });
+  }
+
   return shapes.map((shape) => ({ shape, order: 0 }));
 }
 
@@ -140,7 +179,8 @@ function orderBySteps(
     shapeKey: string;
     order: number;
     prerequisiteShapeKeys?: readonly string[];
-  }>
+  }>,
+  options: { exclusive?: boolean } = {}
 ): OrderedEnterShape[] {
   const byKey = new Map(shapes.map((shape) => [shape.key, shape]));
   const ordered: OrderedEnterShape[] = [];
@@ -157,11 +197,13 @@ function orderBySteps(
         : {})
     });
   }
-  for (const shape of shapes) {
-    if (ordered.some((entry) => entry.shape.key === shape.key)) {
-      continue;
+  if (!options.exclusive) {
+    for (const shape of shapes) {
+      if (ordered.some((entry) => entry.shape.key === shape.key)) {
+        continue;
+      }
+      ordered.push({ shape, order: ordered.length });
     }
-    ordered.push({ shape, order: ordered.length });
   }
   return ordered;
 }
@@ -173,6 +215,13 @@ function buildInputHints(
   const assetIds = record.assetIds ?? [];
 
   if (record.protocol === "folks-finance") {
+    if (record.opportunityId === FOLKS_XALGO_STAKING_OPPORTUNITY_ID) {
+      if (assetIds[0] !== undefined) {
+        hints.assetId = assetIds[0];
+        hints.depositAssetId = assetIds[0];
+      }
+      return hints;
+    }
     const poolAppId = parseTrailingAppId(record.opportunityId, "folks-lending-");
     if (poolAppId !== null) {
       hints.poolAppId = poolAppId;
@@ -233,6 +282,16 @@ function buildInputHints(
   }
 
   if (record.protocol === "tinyman" || record.protocol === "pact") {
+    if (
+      record.protocol === "tinyman" &&
+      record.opportunityId === TINYMAN_TALGO_STAKING_OPPORTUNITY_ID
+    ) {
+      if (assetIds[0] !== undefined) {
+        hints.assetId = assetIds[0];
+        hints.depositAssetId = assetIds[0];
+      }
+      return hints;
+    }
     if (assetIds.length >= 2) {
       const assetAId = assetIds[0];
       const assetBId = assetIds[1];
