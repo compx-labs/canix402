@@ -49,8 +49,13 @@ export const ExecutionQuoteInputSchema = Type.Object({
 });
 
 export const ExecutionQuoteRequestSchema = Type.Object({
-  shapeKey: Type.String({ minLength: 1 }),
-  input: ExecutionQuoteInputSchema
+  quotes: Type.Array(
+    Type.Object({
+      shapeKey: Type.String({ minLength: 1 }),
+      input: ExecutionQuoteInputSchema
+    }),
+    { minItems: 1 }
+  )
 });
 
 export const SerializedPaymentFieldsSchema = Type.Object({
@@ -115,10 +120,11 @@ export const ExecutableQuoteSchema = Type.Object({
 });
 
 export const ExecutionQuoteResponseSchema = Type.Object({
-  data: ExecutableQuoteSchema,
+  data: Type.Array(ExecutableQuoteSchema, { minItems: 1 }),
   meta: Type.Object({
     paymentRequired: Type.Literal(true),
-    executionSubmitted: Type.Literal(false)
+    executionSubmitted: Type.Literal(false),
+    quoteCount: Type.Integer({ minimum: 1 })
   })
 });
 

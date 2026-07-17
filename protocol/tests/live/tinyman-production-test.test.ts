@@ -138,10 +138,10 @@ async function runFlexibleAddLiquidity(): Promise<{
 
   assert.equal(quoteResponse.meta.paymentRequired, true);
   assert.equal(quoteResponse.meta.executionSubmitted, false);
-  assert.equal(quoteResponse.data.shapeKey, FLEXIBLE_ADD_SHAPE);
+  assert.equal(quoteResponse.data[0].shapeKey, FLEXIBLE_ADD_SHAPE);
 
   const signed = signEncodedTransactionGroup(
-    quoteResponse.data.encodedTransactions,
+    quoteResponse.data[0].encodedTransactions,
     account.sk
   );
   const submission = await submitTransactionGroup(algod, signed);
@@ -191,10 +191,10 @@ async function runMultipleAssetsOutRemoveLiquidity(poolTokenAmount?: bigint): Pr
 
   assert.equal(quoteResponse.meta.paymentRequired, true);
   assert.equal(quoteResponse.meta.executionSubmitted, false);
-  assert.equal(quoteResponse.data.shapeKey, MULTIPLE_ASSETS_OUT_REMOVE_SHAPE);
+  assert.equal(quoteResponse.data[0].shapeKey, MULTIPLE_ASSETS_OUT_REMOVE_SHAPE);
 
   const signed = signEncodedTransactionGroup(
-    quoteResponse.data.encodedTransactions,
+    quoteResponse.data[0].encodedTransactions,
     account.sk
   );
   const submission = await submitTransactionGroup(algod, signed);
@@ -241,10 +241,10 @@ async function runSingleAssetAddLiquidity(): Promise<{
 
   assert.equal(quoteResponse.meta.paymentRequired, true);
   assert.equal(quoteResponse.meta.executionSubmitted, false);
-  assert.equal(quoteResponse.data.shapeKey, SINGLE_ASSET_ADD_SHAPE);
+  assert.equal(quoteResponse.data[0].shapeKey, SINGLE_ASSET_ADD_SHAPE);
 
   const signed = signEncodedTransactionGroup(
-    quoteResponse.data.encodedTransactions,
+    quoteResponse.data[0].encodedTransactions,
     account.sk
   );
   const submission = await submitTransactionGroup(algod, signed);
@@ -295,10 +295,10 @@ async function runSingleAssetOutRemoveLiquidity(poolTokenAmount?: bigint): Promi
 
   assert.equal(quoteResponse.meta.paymentRequired, true);
   assert.equal(quoteResponse.meta.executionSubmitted, false);
-  assert.equal(quoteResponse.data.shapeKey, SINGLE_ASSET_OUT_REMOVE_SHAPE);
+  assert.equal(quoteResponse.data[0].shapeKey, SINGLE_ASSET_OUT_REMOVE_SHAPE);
 
   const signed = signEncodedTransactionGroup(
-    quoteResponse.data.encodedTransactions,
+    quoteResponse.data[0].encodedTransactions,
     account.sk
   );
   const submission = await submitTransactionGroup(algod, signed);

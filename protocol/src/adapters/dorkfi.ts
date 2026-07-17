@@ -1,5 +1,5 @@
 import { buildSourceMetadata } from "../services/source-metadata.js";
-import { OpportunityRecordV1 } from "../types/opportunity.js";
+import { OpportunityMarketRecord } from "../types/opportunity.js";
 
 interface DorkFiOpportunityApiRecord {
   type?: string | null;
@@ -25,7 +25,7 @@ export class DorkFiAdapterError extends Error {
 
 export async function fetchDorkFiOpportunities(
   fetchImpl: typeof fetch = fetch
-): Promise<OpportunityRecordV1[]> {
+): Promise<OpportunityMarketRecord[]> {
   const baseUrl = process.env.DORKFI_API_BASE_URL;
   if (!baseUrl) {
     throw new DorkFiAdapterError("DORKFI_API_BASE_URL is not configured.");
@@ -74,7 +74,7 @@ export async function fetchDorkFiOpportunities(
 export function normalizeDorkFiOpportunity(
   record: DorkFiOpportunityApiRecord,
   fetchedAtIso: string = new Date().toISOString()
-): OpportunityRecordV1 | null {
+): OpportunityMarketRecord | null {
   if (!isAlgorandNetwork(record.network)) {
     return null;
   }
@@ -122,7 +122,7 @@ function isAlgorandNetwork(value: string | null | undefined): boolean {
 
 function toOpportunityType(
   value: string | null | undefined
-): OpportunityRecordV1["opportunityType"] | null {
+): OpportunityMarketRecord["opportunityType"] | null {
   if (!value) {
     return null;
   }

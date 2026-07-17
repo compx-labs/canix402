@@ -7,6 +7,7 @@ import {
   setPositionCollectorsForTests
 } from "../../src/services/aggregate-positions.js";
 import { normalizeDorkFiHealthRecords } from "../../src/services/protocol-positions.js";
+import type { PositionMarketRecord } from "../../src/services/position-execution-shapes.js";
 import type { PositionRecordV1 } from "../../src/types/position.js";
 
 const VALID_ADDRESS =
@@ -17,7 +18,7 @@ test.afterEach(() => {
 });
 
 test("aggregate returns every protocol status and preserves safe amounts", async () => {
-  const position: PositionRecordV1 = {
+  const position: PositionMarketRecord = {
     protocol: "tinyman",
     positionType: "lp",
     positionId: "tinyman:lp:99",
@@ -41,6 +42,10 @@ test("aggregate returns every protocol status and preserves safe amounts", async
   const response = await fetchWalletPositions(VALID_ADDRESS);
 
   assert.equal(response.data[0]?.amountRaw, "900719925474099312345");
+  assert.ok(
+    (response.data[0]?.compatibleExitShapeKeys.length ?? 0) > 0,
+    "LP positions should expose Tinyman remove-liquidity exit shapes"
+  );
   assert.deepEqual(response.totals, {
     suppliedUsd: null,
     borrowedUsd: null,
@@ -149,7 +154,7 @@ test("aggregate calculates complete supplied, borrowed, reward, and net totals",
   const position = (
     positionType: PositionRecordV1["positionType"],
     usdValue: number
-  ): PositionRecordV1 => ({
+  ): PositionMarketRecord => ({
     protocol: "tinyman",
     positionType,
     positionId: `${positionType}:1`,
@@ -275,7 +280,7 @@ test("GET /positions rejects invalid Algorand addresses", async () => {
 
 function setAllCollectors(
   collector: () => Promise<{
-    positions: PositionRecordV1[];
+    positions: PositionMarketRecord[];
     warnings: string[];
     coverage?: {
       suppliedUsdComplete: boolean;

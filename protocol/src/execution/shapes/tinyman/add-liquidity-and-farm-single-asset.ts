@@ -143,6 +143,7 @@ export const tinymanAddLiquidityAndFarmSingleAssetShape: TransactionShapeSpec<
     "the newly minted LP position to a Tinyman farm. LP tokens never leave the wallet; the farm " +
     "commit is a staking app call. Returns the combined, regrouped unsigned transaction group.",
   supportedOpportunityTypes: ["farm"],
+  opportunityRole: "enter",
   requiredInputs: [
     "userAddress",
     "assetAId",

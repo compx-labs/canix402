@@ -122,7 +122,7 @@ test("Haystack production staking stake/unstake roundtrip", async (t) => {
       clientMnemonic,
       algodUrl: env.algodUrl
     });
-    await submitQuote(algod, stakeQuote.data.encodedTransactions, account.sk);
+    await submitQuote(algod, stakeQuote.data[0].encodedTransactions, account.sk);
 
     // A second stake by an existing staker must omit the MBR payment (2-txn group).
     const stakerBoxName = createStakerBoxName(userAddress);
@@ -140,11 +140,11 @@ test("Haystack production staking stake/unstake roundtrip", async (t) => {
       algodUrl: env.algodUrl
     });
     assert.equal(
-      secondStakeQuote.data.transactions.length,
+      secondStakeQuote.data[0].transactions.length,
       2,
       "Returning-staker stake group must be 2 transactions (no MBR payment)."
     );
-    await submitQuote(algod, secondStakeQuote.data.encodedTransactions, account.sk);
+    await submitQuote(algod, secondStakeQuote.data[0].encodedTransactions, account.sk);
   }
 
   if (scenario === "unstake" || scenario === "roundtrip") {
@@ -166,7 +166,7 @@ test("Haystack production staking stake/unstake roundtrip", async (t) => {
       clientMnemonic,
       algodUrl: env.algodUrl
     });
-    await submitQuote(algod, unstakeQuote.data.encodedTransactions, account.sk);
+    await submitQuote(algod, unstakeQuote.data[0].encodedTransactions, account.sk);
   }
 });
 
@@ -205,7 +205,7 @@ test("Haystack production staking claim rewards", async (t) => {
     algodUrl: env.algodUrl
   });
 
-  await submitQuote(algod, quoteResponse.data.encodedTransactions, account.sk);
+  await submitQuote(algod, quoteResponse.data[0].encodedTransactions, account.sk);
 
   const usdcAfter = await getAssetBalance(algod, userAddress, USDC_ASSET_ID);
   const hayAfter = await getAssetBalance(algod, userAddress, HAY_ASSET_ID);

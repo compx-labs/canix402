@@ -91,6 +91,7 @@ export const compxUnstakeAsaShape: TransactionShapeSpec<
     "Unstakes ASA from a CompX staking pool via unstake(uint64)void. Optionally prefixes " +
     "a reward-asset opt-in when the user is not yet opted in.",
   supportedOpportunityTypes: ["staking"],
+  opportunityRole: "exit",
   requiredInputs: ["userAddress", "poolAppId", "amount"],
   sources: [
     {

@@ -210,7 +210,7 @@ async function runLendingDeposit(): Promise<{ marketAppId: number; lstMinted: bi
     algodUrl: env.algodUrl
   });
 
-  await submitCompXQuote(algod, quoteResponse.data.encodedTransactions, account.sk);
+  await submitCompXQuote(algod, quoteResponse.data[0].encodedTransactions, account.sk);
 
   const lstAfter = await getAssetBalance(algod, userAddress, lstTokenId);
   const lstMinted = lstAfter - lstBefore;
@@ -262,7 +262,7 @@ test("CompX production lending withdraw", async (t) => {
     algodUrl: env.algodUrl
   });
 
-  await submitCompXQuote(algod, quoteResponse.data.encodedTransactions, account.sk);
+  await submitCompXQuote(algod, quoteResponse.data[0].encodedTransactions, account.sk);
 });
 
 test("CompX production lending roundtrip", async (t) => {
@@ -293,7 +293,7 @@ test("CompX production lending roundtrip", async (t) => {
     algodUrl: env.algodUrl
   });
 
-  await submitCompXQuote(algod, quoteResponse.data.encodedTransactions, account.sk);
+  await submitCompXQuote(algod, quoteResponse.data[0].encodedTransactions, account.sk);
 });
 
 test("CompX production staking stake/unstake roundtrip", async (t) => {
@@ -341,7 +341,7 @@ test("CompX production staking stake/unstake roundtrip", async (t) => {
       clientMnemonic,
       algodUrl: env.algodUrl
     });
-    await submitCompXQuote(algod, stakeQuote.data.encodedTransactions, account.sk);
+    await submitCompXQuote(algod, stakeQuote.data[0].encodedTransactions, account.sk);
   }
 
   if (scenario === "unstake" || scenario === "roundtrip") {
@@ -364,7 +364,7 @@ test("CompX production staking stake/unstake roundtrip", async (t) => {
       clientMnemonic,
       algodUrl: env.algodUrl
     });
-    await submitCompXQuote(algod, unstakeQuote.data.encodedTransactions, account.sk);
+    await submitCompXQuote(algod, unstakeQuote.data[0].encodedTransactions, account.sk);
   }
 });
 
@@ -415,7 +415,7 @@ test("CompX production staking claim rewards", async (t) => {
     algodUrl: env.algodUrl
   });
 
-  await submitCompXQuote(algod, quoteResponse.data.encodedTransactions, account.sk);
+  await submitCompXQuote(algod, quoteResponse.data[0].encodedTransactions, account.sk);
 
   const rewardAfter = await getAssetBalance(algod, userAddress, pool.rewardAssetId);
   if (rewardAfter <= rewardBefore) {

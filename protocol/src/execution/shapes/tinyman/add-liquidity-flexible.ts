@@ -113,6 +113,7 @@ export const tinymanAddLiquidityFlexibleShape: TransactionShapeSpec<
     "Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, " +
     "add_liquidity app call) as unsigned transactions.",
   supportedOpportunityTypes: ["lp"],
+  opportunityRole: "enter",
   requiredInputs: [
     "userAddress",
     "assetAId",

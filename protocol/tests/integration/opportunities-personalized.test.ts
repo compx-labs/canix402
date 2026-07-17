@@ -9,7 +9,7 @@ import {
   setAccountAssetsDependenciesForTests,
   setAssetDecimalsDependenciesForTests
 } from "../../src/services/index.js";
-import { OpportunityRecordV1 } from "../../src/types/opportunity.js";
+import { OpportunityMarketRecord } from "../../src/types/opportunity.js";
 
 const VALID_ADDRESS =
   "RS7TLLQRXKBAQDAVTSZC2ZLMVMLNSCL3FOUOESJJZ5XSKFFL56UI6X33CI";
@@ -152,7 +152,7 @@ function stubFolksWithAssetIds(): void {
 }
 
 test("selectPersonalizedOpportunities keeps only opportunities holding a matching asset", () => {
-  const opportunities: OpportunityRecordV1[] = [
+  const opportunities: OpportunityMarketRecord[] = [
     opportunity("match-high", 9, 1000, [10, 999]),
     opportunity("match-low", 3, 2000, [11]),
     opportunity("no-match", 50, 9999, [777]),
@@ -288,7 +288,7 @@ function opportunity(
   apy: number,
   tvlUsd: number,
   assetIds: number[] | undefined
-): OpportunityRecordV1 {
+): OpportunityMarketRecord {
   return {
     protocol: "folks-finance",
     opportunityType: "lending",

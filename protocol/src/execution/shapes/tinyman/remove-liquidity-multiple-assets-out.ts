@@ -119,6 +119,7 @@ export const tinymanRemoveLiquidityMultipleAssetsOutShape: TransactionShapeSpec<
     "proportionally. Generates the documented 2-transaction group (pool token transfer, " +
     "remove_liquidity app call) as unsigned transactions.",
   supportedOpportunityTypes: ["lp"],
+  opportunityRole: "exit",
   requiredInputs: [
     "userAddress",
     "assetAId",

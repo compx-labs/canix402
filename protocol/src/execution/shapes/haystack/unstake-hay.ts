@@ -82,6 +82,7 @@ export const haystackUnstakeHayShape: TransactionShapeSpec<
     "unstakeHayAndClaim(uint64)(uint64,uint64). Prefixes a USDC opt-in when the user is not " +
     "yet opted into USDC.",
   supportedOpportunityTypes: ["staking"],
+  opportunityRole: "exit",
   requiredInputs: ["userAddress", "amount"],
   sources: [
     {

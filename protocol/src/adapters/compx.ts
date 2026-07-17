@@ -8,7 +8,7 @@ import {
   type StakingPoolState
 } from "@compx/sdk";
 
-import { OpportunityRecordV1 } from "../types/opportunity.js";
+import { OpportunityMarketRecord } from "../types/opportunity.js";
 import { resolveAssetDecimals } from "../services/asset-decimals.js";
 import {
   type RequestGate,
@@ -55,7 +55,7 @@ interface CompXSdkDependencies {
 }
 
 let compxSdkDependencyOverrides: Partial<CompXSdkDependencies> | undefined;
-let compxOpportunitiesInFlight: Promise<OpportunityRecordV1[]> | undefined;
+let compxOpportunitiesInFlight: Promise<OpportunityMarketRecord[]> | undefined;
 
 interface FetchCompXOpportunitiesOptions {
   algodRequestGate?: RequestGate;
@@ -70,7 +70,7 @@ export function setCompXSdkDependenciesForTests(
 
 export async function fetchCompXOpportunities(
   options: FetchCompXOpportunitiesOptions = {}
-): Promise<OpportunityRecordV1[]> {
+): Promise<OpportunityMarketRecord[]> {
   if (compxOpportunitiesInFlight !== undefined) {
     return compxOpportunitiesInFlight;
   }
@@ -100,7 +100,7 @@ export async function fetchCompXTokenPrices(
 
 async function fetchCompXOpportunitiesFromSource(
   options: FetchCompXOpportunitiesOptions
-): Promise<OpportunityRecordV1[]> {
+): Promise<OpportunityMarketRecord[]> {
   const dependencies = resolveDependencies();
   const fetchedAt = new Date().toISOString();
 
@@ -141,12 +141,12 @@ async function fetchCompXOpportunitiesFromSource(
           fetchedAtIso: fetchedAt
         })
       )
-      .filter((record): record is OpportunityRecordV1 => record !== null);
+      .filter((record): record is OpportunityMarketRecord => record !== null);
 
     const activePools = pools.filter((candidate) =>
       passesStakingActiveFilter(candidate, dependencies.onlyActive)
     );
-    const stakingOpportunitiesByIndex: Array<OpportunityRecordV1 | undefined> =
+    const stakingOpportunitiesByIndex: Array<OpportunityMarketRecord | undefined> =
       new Array(activePools.length);
     await mapWithThrottle(
       activePools.map((pool, index) => ({ pool, index })),
@@ -201,7 +201,7 @@ async function fetchCompXOpportunitiesFromSource(
       }
     );
     const stakingOpportunities = stakingOpportunitiesByIndex.filter(
-      (opportunity): opportunity is OpportunityRecordV1 =>
+      (opportunity): opportunity is OpportunityMarketRecord =>
         opportunity !== undefined
     );
 
@@ -229,7 +229,7 @@ interface NormalizeCompxLendingOpportunityInput {
 
 export function normalizeCompxLendingOpportunity(
   input: NormalizeCompxLendingOpportunityInput
-): OpportunityRecordV1 | null {
+): OpportunityMarketRecord | null {
   const { market, assetById, fetchedAtIso } = input;
   const apy = market.supplyApy;
   const tvlUsd = market.totalDepositsUSD;
@@ -272,7 +272,7 @@ interface NormalizeCompxStakingOpportunityInput {
 
 export function normalizeCompxStakingOpportunity(
   input: NormalizeCompxStakingOpportunityInput
-): OpportunityRecordV1 | null {
+): OpportunityMarketRecord | null {
   const {
     pool,
     apr,

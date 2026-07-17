@@ -15,7 +15,7 @@ import {
 import { rankOpportunitiesByApy } from "../services/opportunity-ranking.js";
 import { formatOpportunitiesForAgent } from "../services/precision.js";
 import { ApiSuccess } from "../types/index.js";
-import { OpportunityRecordV1 } from "../types/opportunity.js";
+import { OpportunityMarketRecord, OpportunityRecordV1 } from "../types/opportunity.js";
 import { OpportunitiesListResponseSchema } from "../types/opportunity-schema.js";
 import {
   PROTOCOL_OPPORTUNITIES_DEFAULT_LIMIT,
@@ -49,7 +49,7 @@ export function registerProtocolRoutes(app: FastifyInstance) {
         includeInactive = false
       } = request.query;
 
-      let data: OpportunityRecordV1[] = [];
+      let data: OpportunityMarketRecord[] = [];
       try {
         if (protocol === "tinyman") {
           data = await fetchTinymanOpportunities();

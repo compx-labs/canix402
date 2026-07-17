@@ -14,6 +14,8 @@ import {
   type ProtocolPositionsCollection,
   type PositionCollector
 } from "./protocol-positions.js";
+import { attachExecutionShapesToPositions } from "./position-execution-shapes.js";
+import type { PositionMarketRecord } from "./position-execution-shapes.js";
 import { createRequestGate, mapWithThrottle } from "./request-throttle.js";
 import {
   emptyWalletSnapshot,
@@ -88,7 +90,7 @@ export async function fetchWalletPositions(
       }
     }
   );
-  const data: WalletPositionsResponse["data"] = [];
+  const data: PositionMarketRecord[] = [];
   const protocols: ProtocolPositionResult[] = [];
   const coverage = {
     suppliedUsdComplete: true,
@@ -138,10 +140,12 @@ export async function fetchWalletPositions(
     throw new AllPositionSourcesUnavailableError();
   }
 
+  const enrichedData = attachExecutionShapesToPositions(data);
+
   return {
-    data,
+    data: enrichedData,
     protocols,
-    totals: calculateTotals(data, coverage),
+    totals: calculateTotals(enrichedData, coverage),
     meta: {
       address,
       fetchedAt: new Date().toISOString()
@@ -150,7 +154,7 @@ export async function fetchWalletPositions(
 }
 
 function calculateTotals(
-  positions: WalletPositionsResponse["data"],
+  positions: PositionMarketRecord[] | WalletPositionsResponse["data"],
   coverage: {
     suppliedUsdComplete: boolean;
     borrowedUsdComplete: boolean;
@@ -183,7 +187,7 @@ function calculateTotals(
 }
 
 function sumUsd(
-  positions: WalletPositionsResponse["data"],
+  positions: ReadonlyArray<{ usdValue: number | null }>,
   complete: boolean
 ): number | null {
   if (!complete || positions.some((position) => position.usdValue === null)) {

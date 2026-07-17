@@ -78,6 +78,7 @@ export const tinymanIncreaseStakeStAlgoShape: TransactionShapeSpec<
     "increaseStake group (optional rate-change / box MBR / stALGO opt-in, tALGO transfer, " +
     "increase_stake app call) as unsigned transactions.",
   supportedOpportunityTypes: ["staking"],
+  opportunityRole: "enter",
   requiredInputs: ["userAddress", "amount"],
   sources: [
     {

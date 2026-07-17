@@ -11,7 +11,7 @@ import {
   retrievePoolManagerInfo
 } from "@folks-finance/algorand-sdk";
 
-import { OpportunityRecordV1 } from "../types/opportunity.js";
+import { OpportunityMarketRecord } from "../types/opportunity.js";
 import { resolveAssetDecimals } from "../services/asset-decimals.js";
 import { buildSourceMetadata } from "../services/source-metadata.js";
 
@@ -47,7 +47,7 @@ export function setFolksFinanceSdkDependenciesForTests(
   folksFinanceSdkDependencyOverrides = overrides;
 }
 
-export async function fetchFolksFinanceOpportunities(): Promise<OpportunityRecordV1[]> {
+export async function fetchFolksFinanceOpportunities(): Promise<OpportunityMarketRecord[]> {
   const dependencies = resolveDependencies();
   const fetchedAt = new Date().toISOString();
 
@@ -91,7 +91,7 @@ export async function fetchFolksFinanceOpportunities(): Promise<OpportunityRecor
           fetchedAtIso: fetchedAt
         })
       )
-      .filter((record): record is OpportunityRecordV1 => record !== null);
+      .filter((record): record is OpportunityMarketRecord => record !== null);
 
     if (opportunities.length === 0) {
       throw new FolksFinanceAdapterError(
@@ -121,7 +121,7 @@ interface NormalizeFolksLendingOpportunityInput {
 
 export function normalizeFolksLendingOpportunity(
   input: NormalizeFolksLendingOpportunityInput
-): OpportunityRecordV1 | null {
+): OpportunityMarketRecord | null {
   const {
     symbol,
     pool,
@@ -137,7 +137,7 @@ export function normalizeFolksLendingOpportunity(
   }
 
   // The Folks SDK exposes yields as decimal fractions (0.051646 = 5.1646%).
-  // OpportunityRecordV1 uses percentage points, consistent with the Tinyman,
+  // OpportunityMarketRecord uses percentage points, consistent with the Tinyman,
   // Pact, and Dork.fi source values.
   const apy = toPercentagePoints(fromScaledValue(poolManagerState.depositInterestYield, 16));
   const apr = toPercentagePoints(fromScaledValue(poolManagerState.depositInterestRate, 16));

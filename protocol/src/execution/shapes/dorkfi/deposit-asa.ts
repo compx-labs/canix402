@@ -79,6 +79,7 @@ export const dorkfiDepositAsaShape: TransactionShapeSpec<
     "Deposits an ASA into a Dork.fi lending market by wrapping through nt200, approving the pool, " +
     "and calling lending.deposit. Amount is underlying ASA base units.",
   supportedOpportunityTypes: ["lending"],
+  opportunityRole: "enter",
   requiredInputs: ["userAddress", "poolAppId", "marketAppId", "assetId", "amount"],
   sources: [
     {

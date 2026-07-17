@@ -1,1 +1,7 @@
-export type { OpportunityRecordV1, YieldBasis } from "./opportunity-schema.js";
+export type {
+  OpportunityExecutionInputHints,
+  OpportunityExecutionShape,
+  OpportunityMarketRecord,
+  OpportunityRecordV1,
+  YieldBasis
+} from "./opportunity-schema.js";

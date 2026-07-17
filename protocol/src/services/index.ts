@@ -54,6 +54,15 @@ export {
   formatOpportunityForAgent
 } from "./precision.js";
 export {
+  attachExecutionShapesToOpportunities,
+  attachExecutionShapesToOpportunity
+} from "./opportunity-execution-shapes.js";
+export {
+  attachExecutionShapesToPositions,
+  attachExecutionShapesToPosition
+} from "./position-execution-shapes.js";
+export type { PositionMarketRecord } from "./position-execution-shapes.js";
+export {
   FALLBACK_IDENTIFIERS_NOTE,
   SOURCE_TIMESTAMP_FETCH_PROXY_NOTE,
   buildSourceMetadata,

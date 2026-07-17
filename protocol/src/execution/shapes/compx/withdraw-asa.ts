@@ -83,6 +83,7 @@ export const compxWithdrawAsaShape: TransactionShapeSpec<
     "LST-denominated. Wraps @compx/sdk buildWithdrawTransactions, including the optional " +
     "leading base-asset opt-in when needed.",
   supportedOpportunityTypes: ["lending"],
+  opportunityRole: "exit",
   requiredInputs: ["userAddress", "marketAppId", "amount"],
   sources: [
     {

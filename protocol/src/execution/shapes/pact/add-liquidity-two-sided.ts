@@ -114,6 +114,7 @@ export const pactAddLiquidityTwoSidedShape: TransactionShapeSpec<
     "3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) " +
     "as unsigned transactions.",
   supportedOpportunityTypes: ["lp"],
+  opportunityRole: "enter",
   requiredInputs: [
     "userAddress",
     "poolAppId",

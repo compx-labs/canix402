@@ -92,6 +92,7 @@ export const tinymanFarmCommitShape: TransactionShapeSpec<
     "LP tokens never leave the wallet; the commit is a staking app call that records the " +
     "committed amount, optionally followed by a log_balance call for a required asset.",
   supportedOpportunityTypes: ["farm"],
+  opportunityRole: "enter",
   requiredInputs: ["userAddress", "commitAmount"],
   sources: [
     {

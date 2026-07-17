@@ -84,6 +84,7 @@ export const haystackStakeHayShape: TransactionShapeSpec<
     "an optional staker-box MBR payment (first stake only), the HAY asset transfer (the ABI arg), " +
     "and the stakeHay app call.",
   supportedOpportunityTypes: ["staking"],
+  opportunityRole: "enter",
   requiredInputs: ["userAddress", "amount"],
   sources: [
     {

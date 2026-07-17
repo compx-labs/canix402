@@ -1,8 +1,8 @@
-import { OpportunityRecordV1 } from "../types/opportunity.js";
+import { OpportunityMarketRecord } from "../types/opportunity.js";
 
 export function rankOpportunitiesByApy(
-  data: readonly OpportunityRecordV1[]
-): OpportunityRecordV1[] {
+  data: readonly OpportunityMarketRecord[]
+): OpportunityMarketRecord[] {
   return [...data].sort((left, right) => {
     const apyDelta = right.apy - left.apy;
     if (apyDelta !== 0) {

@@ -55,15 +55,19 @@ function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): Pro
       ...base,
       method: "POST",
       body: {
-        shapeKey: "mainnet:tinyman:v2:addLiquidity:flexible",
-        input: {
-          userAddress: getProductionPersonalizedAddress(),
-          assetAId: 31566704,
-          assetAAmount: "1000000",
-          assetBId: 0,
-          assetBAmount: "1000000",
-          maxSlippageBps: 50
-        }
+        quotes: [
+          {
+            shapeKey: "mainnet:tinyman:v2:addLiquidity:flexible",
+            input: {
+              userAddress: getProductionPersonalizedAddress(),
+              assetAId: 31566704,
+              assetAAmount: "1000000",
+              assetBId: 0,
+              assetBAmount: "1000000",
+              maxSlippageBps: 50
+            }
+          }
+        ]
       }
     };
   }

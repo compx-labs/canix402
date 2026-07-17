@@ -86,6 +86,7 @@ export const compxDepositAsaShape: TransactionShapeSpec<
     "Deposits a base ASA into a CompX lending market and receives LST tokens. Wraps " +
     "@compx/sdk buildDepositTransactions, including the optional leading LST opt-in when needed.",
   supportedOpportunityTypes: ["lending"],
+  opportunityRole: "enter",
   requiredInputs: ["userAddress", "marketAppId", "amount"],
   sources: [
     {

@@ -92,6 +92,7 @@ export const folksFinanceSetupOptEscrowAssetShape: TransactionShapeSpec<
   description:
     "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
   supportedOpportunityTypes: ["lending"],
+  opportunityRole: "enter",
   requiredInputs: ["userAddress", "escrowAddress"],
   sources: [
     {
