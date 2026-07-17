@@ -47,7 +47,7 @@ Status legend:
 
 - [~] Expand human agent docs with fuller agent examples (`/x402`, quickstart, and examples pages exist; still need richer copy-paste flows for execution quotes, positions, and swaps).
 - [x] Add MCP server (`mcp/` workspace, stdio transport, free + paid tools wrapping gateway endpoints).
-  - [x] Include tools for opportunity discovery and execution quotes (`canix_list_opportunities`, `canix_get_execution_quote`, etc.). Strategy marketplace tools (`build_strategy`, `simulate_strategy`) remain deferred until those APIs exist.
+  - [x] Include tools for opportunity discovery, execution quotes, and strategy marketplace (`canix_list_opportunities`, `canix_get_execution_quote`, `canix_list_strategies`, `canix_publish_strategy`, `canix_revise_strategy`, `canix_compile_strategy`, etc.).
   - [x] Link MCP server from docs and manifest.
 - [~] Enable GoPlausible facilitator catalog visibility (optional).
   - [ ] Optional: verify the API appears in GoPlausible facilitator discovery (`GET https://facilitator.goplausible.xyz/discovery/resources`, filter for `canix402-api.compx.io`).
@@ -101,77 +101,61 @@ Canix should become the validation, discovery, transaction-generation, execution
 
 ### Strategy Model and Contracts
 
-- [ ] Define intent-based strategy schema (objective, risk profile, asset allocations, constraints, creator metadata, fee terms).
-- [ ] Explicitly reject raw/pre-built transaction groups in published strategy payloads.
-- [ ] Define strategy lifecycle states (`draft`, `validated`, `published`, `suspended`, `archived`).
-- [ ] Add versioning rules for strategy schema and published strategy revisions.
-- [ ] Publish API contract updates for strategy publish, validate, list, detail, compile, execute, and performance endpoints.
+Design SoT: [`docs/strategies.md`](strategies.md).
+
+- [x] Define **weight-based bound composition** schema (`legs[]` with `shapeKey` + venue pin + `weightBps`; no amounts). `strategyId` ≡ ASA id.
+- [x] Explicitly reject raw/pre-built transaction groups in published strategy payloads.
+- [x] Define lifecycle statuses (`published`, `suspended`, `degraded`, `archived`).
+- [x] In-place revise metadata: `createdAt` / `lastRevisedAt` (no revision in id/URL); 14-day cooldown per `strategyId`.
+- [x] Publish API contract: list/detail (free); publish `$100`; revise `$1`; compile `$0.1`.
 
 ### Publishing and Creator Identity
 
-- [ ] Add strategy publishing endpoint for external agents and human creators.
-- [ ] Define creator identity model (wallet address, agent identifier, display metadata, contact/support metadata).
-- [ ] Add strategy ownership and update permissions.
-- [ ] Add moderation/suspension path for unsafe, stale, or misleading strategies.
-- [ ] Add creator-facing documentation and examples for publishing strategies.
+- [x] Add strategy publishing endpoint (`POST /strategies`, 100 USDC x402).
+- [x] Provenance `creatorAddress` (immutable) + tradable ARC-3 NFT (fee rights + revise rights follow holder).
+- [x] Revise permissions: NFT holder only; `POST /strategies/{strategyId}` at 1 USDC; 14d per strategy.
+- [x] Suspension via Spaces `status: suspended` (blocks list/compile).
+- [x] Creator-facing design note in `docs/strategies.md`.
 
 ### Validation and Safety
 
-- [ ] Build validation pipeline that checks strategy intent maps only to verified protocol transaction-shape specs.
-- [ ] Validate asset support, allocation bounds, slippage constraints, minimum APY constraints, and diversification rules.
-- [ ] Add dry-run/simulation endpoint that returns expected transaction groups, warnings, and unmet constraints without requiring signing.
-- [ ] Add risk and caveat metadata to validated strategies.
-- [ ] Define failure modes when market conditions make a strategy temporarily non-executable.
+- [x] Validate legs map only to registered verified shape keys; weights sum to 10_000; reject raw txn groups.
+- [x] Fail-closed compile if any required leg cannot quote. Agents own swaps / multi-asset funding; strategies are weight-based allocation recipes only.
+- [ ] Dry-run/simulation endpoint without signing (optional follow-up).
+- [ ] Richer risk/caveat metadata on strategies.
+- [x] Degraded/suspended status when venues break or moderation applies.
 
 ### Marketplace Discovery
 
-- [ ] Add published strategy listing endpoint with filters for protocol, asset, risk profile, creator, estimated APY, and fee.
-- [ ] Add strategy detail endpoint with validation status, constraints, creator fee, performance summary, and caveats.
-- [ ] Add ranking/sorting inputs without implying Canix-created recommendations.
-- [ ] Include strategy marketplace resources in `/discovery`, `/openapi.json`, `.well-known/x402.json`, `/llms.txt`, and `/llms-full.txt`.
-- [ ] Add agent-readable marketplace examples.
+- [x] Published strategy listing (`GET /strategies`) and detail (`GET /strategies/{strategyId}`).
+- [x] Fee disclosure: fixed 50% of compile access fee to NFT holder (weekly).
+- [ ] Ranking/sorting beyond basic filters.
+- [x] Include strategy endpoints in payment-policy matrix (feeds discovery/OpenAPI/llms).
+- [ ] Agent-readable marketplace examples on website.
 
 ### Execution Compiler
 
-- [ ] Build strategy compiler that converts strategy intent into fresh transaction groups using only verified protocol transaction-shape specs.
-- [ ] Resolve current market data and opportunity data during compilation.
-- [ ] Select the correct protocol/action transaction template for each strategy leg.
-- [ ] Populate transaction inputs deterministically from current pool/app state, user address, allocation amounts, and strategy constraints.
-- [ ] Validate generated transaction groups against golden fixtures and protocol-specific invariants before returning them.
-- [ ] Enforce current slippage, allocation, liquidity, and APY constraints before returning transactions.
-- [ ] Include execution quote metadata, expiry, expected fees, and warnings with compiled transaction groups.
-- [ ] Prevent execution of stale compiled transaction groups.
-
-### User Signing and Execution Flow
-
-- [ ] Define unsigned transaction group response format for wallets and agents.
-- [ ] Add execution submission flow for signed transaction groups.
-- [ ] Track execution status from compiled quote through confirmation or failure.
-- [ ] Add idempotency keys for compile/execute requests.
-- [ ] Document wallet and agent signing expectations.
+- [x] Compile strategy via `POST /strategies/{strategyId}/compile` → scale weights → existing `/execution/quotes` machinery.
+- [x] Reject client-supplied composition; load Legs from Spaces only.
+- [ ] Richer opportunity-state refresh during compile beyond shape build.
+- [x] Unsigned groups only; Canix does not sign/submit (layer B mutability accepted in v1).
 
 ### Fee Sharing and Monetization
 
-- [ ] Define execution fee model and split between strategy creator and Canix.
-- [ ] Decide whether fees are collected through x402, transaction-group payments, protocol-level fees, or a hybrid model.
-- [ ] Add creator payout accounting and reporting.
-- [ ] Add fee disclosure fields to marketplace, quote, and execution responses.
-- [ ] Add tests for fee calculation, rounding, settlement, and failed execution handling.
+- [x] Fixed **50% NFT holder / 50% Canix** on strategy **compile** access fees; publish/revise Canix-only.
+- [x] Full x402 to Canix `payTo` (leaderboard); weekly redistribution from dedicated payout wallet.
+- [x] Tagged access notes `x402:v2:strategy:{strategyId}` for attribution; payout idempotency via payout-wallet outflows.
+- [x] Fee disclosure on strategy detail / compile meta.
+- [ ] Production smoke for weekly payout job.
 
 ### Performance Tracking
 
-- [ ] Track strategy executions, volume, fees, confirmation status, and execution failures.
-- [ ] Define performance metrics that can be computed from public chain data and Canix execution history.
-- [ ] Add creator and strategy analytics endpoints.
-- [ ] Add safeguards against misleading performance claims when data is incomplete.
-- [ ] Add monitoring for strategy execution errors and abnormal failure rates.
+- [ ] Track strategy compile volume and payouts from chain notes.
+- [ ] Creator/strategy analytics endpoints.
+- [ ] Safeguards against misleading performance claims.
 
 ### Tests and Quality Gates
 
-- [ ] Add transaction-shape fixture tests for every supported protocol/action before enabling marketplace execution.
-- [ ] Add contract tests for strategy schema, marketplace endpoints, quote responses, and execution responses.
-- [ ] Add integration tests for publish -> validate -> list -> compile -> execute flow.
-- [ ] Add negative tests for invalid strategy intent, unsupported assets, stale quotes, and raw transaction payload rejection.
-- [ ] Add negative tests for unsupported or unverified protocol actions.
-- [ ] Add simulation tests for fee sharing and creator payout accounting.
-- [ ] Add production smoke coverage for read-only marketplace and validation paths.
+- [x] Unit/integration coverage for strategy schema, store, validate, revise cooldown.
+- [ ] Broader publish → compile → payout E2E against mainnet/facilitator.
+- [x] Negative tests for invalid legs, weight sum, raw txn rejection, revise cooldown.

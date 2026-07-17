@@ -3,8 +3,19 @@
 }
 
 {$CADDY_SITE_ADDRESS} {
-	@free path /health /metadata /discovery /openapi.json /llms.txt /llms-full.txt /robots.txt /favicon.ico /favicon.png /.well-known/x402 /.well-known/x402.json /.well-known/agent-card.json /.well-known/agent.json /.well-known/ai-plugin.json /swaps/quote /swaps/optin /pricing
+	@free {
+		method GET
+		path /health /metadata /discovery /openapi.json /llms.txt /llms-full.txt /robots.txt /favicon.ico /favicon.png /.well-known/x402 /.well-known/x402.json /.well-known/agent-card.json /.well-known/agent.json /.well-known/ai-plugin.json /swaps/quote /swaps/optin /pricing /strategies /strategies/*
+	}
 	handle @free {
+		reverse_proxy {$UPSTREAM_API}
+	}
+
+	@free_post {
+		method POST
+		path /swaps/quote /swaps/optin /pricing
+	}
+	handle @free_post {
 		reverse_proxy {$UPSTREAM_API}
 	}
 
@@ -108,6 +119,69 @@
 			accept {
 				pay_to {$X402_PAY_TO}
 				price {$X402_PRICE_EXECUTION_QUOTE_USDC}
+				network {$X402_NETWORK}
+				scheme {$X402_SCHEME}
+			}
+		}
+
+		reverse_proxy {$UPSTREAM_API}
+	}
+
+	@paid_strategy_compile {
+		method POST
+		path_regexp strategy_compile ^/strategies/[0-9]+/compile$
+	}
+	handle @paid_strategy_compile {
+		x402 {
+			description "canix402 paid strategy compile endpoint"
+			mime_type application/json
+			facilitator_url {$FACILITATOR_URL}
+
+			accept {
+				pay_to {$X402_PAY_TO}
+				price {$X402_PRICE_STRATEGY_COMPILE_USDC}
+				network {$X402_NETWORK}
+				scheme {$X402_SCHEME}
+			}
+		}
+
+		reverse_proxy {$UPSTREAM_API}
+	}
+
+	@paid_strategy_publish {
+		method POST
+		path /strategies
+	}
+	handle @paid_strategy_publish {
+		x402 {
+			description "canix402 paid strategy publish endpoint"
+			mime_type application/json
+			facilitator_url {$FACILITATOR_URL}
+
+			accept {
+				pay_to {$X402_PAY_TO}
+				price {$X402_PRICE_STRATEGY_PUBLISH_USDC}
+				network {$X402_NETWORK}
+				scheme {$X402_SCHEME}
+			}
+		}
+
+		reverse_proxy {$UPSTREAM_API}
+	}
+
+	@paid_strategy_revise {
+		method POST
+		path_regexp strategy_revise ^/strategies/[0-9]+$
+	}
+	handle @paid_strategy_revise {
+		x402 {
+			description "canix402 paid strategy revise endpoint"
+			mime_type application/json
+			facilitator_url {$FACILITATOR_URL}
+
+			accept {
+				pay_to {$X402_PAY_TO}
+				price {$X402_PRICE_STRATEGY_REVISE_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
 			}
