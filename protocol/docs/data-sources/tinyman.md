@@ -6,8 +6,13 @@ This document defines the current Tinyman adapter contract used by canix402.
 
 - Mode: API-first
 - Adapter file: `src/adapters/tinyman.ts`
+- Positions collector: `src/services/protocol-positions.ts` (`collectTinymanPositions`)
 - Base URL: `TINYMAN_API_BASE_URL`
-- Endpoint used: `GET /pools/`
+- Endpoints used:
+  - Opportunities: `GET /pools/`
+  - Wallet LP positions: `GET /pools/?liquidity_asset_ids=…`
+  - Wallet farm commitments / unclaimed rewards: `GET /staking/pool-programs/?pooler_address=…&committed_only=true`
+  - Reward asset USD: `GET /assets/{asset_id}/` (`price_in_usd`)
 - Default query profile matches Tinyman app pool listing behavior:
   - `with_statistics=true`
   - `version__in=2.0` (override with `TINYMAN_POOL_VERSIONS`)
@@ -78,11 +83,19 @@ opportunities:
 - Wallet positions do not scan the opportunity catalog. `/positions` sends the
   positive ASA ids from its shared indexer snapshot as `liquidity_asset_ids` and
   values only the LP tokens returned by that targeted query.
+- Farm coverage uses a single `pool-programs` request scoped to the wallet
+  (`committed_only=true`). Farm commit does not escrow LP tokens: stake equals
+  the full wallet LP balance, so `/positions` does not emit a separate Tinyman
+  `staked` row. Pending unpaid rewards (`pooler.rewards.pending`) are emitted as
+  `reward` positions and priced with Tinyman asset USD; `rewardsUsdComplete` is
+  false only when the farm or price fetch fails (or a reward lacks a USD price).
 
 ## Known Caveats
 
 - Endpoint/field names are controlled by Tinyman and may evolve.
 - Pool endpoint data maps to `lp`; farming incentives are emitted as separate
   `farm` opportunities when staking fields are present.
+- Accruing-but-not-yet-claimable `pooler.rewards.potential` is not emitted;
+  only unpaid `pending` rewards are included in wallet reward totals.
 - `tvlUsd` and `apy` are trusted from source; cross-protocol normalization
   tolerances will be refined as additional adapters are added.

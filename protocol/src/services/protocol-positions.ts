@@ -10,13 +10,16 @@ import {
 } from "@folks-finance/algorand-sdk";
 import { makeFarmFromRawState } from "@pactfi/pactsdk";
 
-import { fetchCompXOpportunities } from "../adapters/index.js";
+import { CompXSDK, standardToMicro, type UserPosition } from "@compx/sdk";
+
+import { fetchCompXOpportunities, fetchCompXTokenPrices } from "../adapters/index.js";
 import {
   resolveCompXLendingMarketState
 } from "../execution/shapes/compx/market-state.js";
 import {
   resolveCompXStakingPoolState
 } from "../execution/shapes/compx/pool-state.js";
+import { createCompXBuilderAlgodClient } from "../execution/shapes/compx/shared.js";
 import {
   DORKFI_ALGORAND_ASA_MARKETS
 } from "../execution/shapes/dorkfi/market-catalog.js";
@@ -26,7 +29,8 @@ import {
 import { simulateWithdrawUnderlyingAmount } from "../execution/shapes/dorkfi/abi.js";
 import type { OpportunityMarketRecord } from "../types/opportunity.js";
 import type { PositionMarketRecord } from "./position-execution-shapes.js";
-import { resolveAssetDecimals } from "./asset-decimals.js";import {
+import { resolveAssetDecimals } from "./asset-decimals.js";
+import {
   createRequestGate,
   mapWithThrottle,
   type RequestGate,
@@ -60,96 +64,242 @@ export type PositionCollector = (
 ) => Promise<ProtocolPositionsCollection>;
 
 export async function collectTinymanPositions(
-  _address: string,
+  address: string,
   snapshot: WalletSnapshot
 ): Promise<ProtocolPositionsCollection> {
   const positions: PositionMarketRecord[] = [];
-  const warnings = [
-    "Tinyman farm staking and unclaimed rewards are not exposed by the installed SDK."
-  ];
+  const warnings: string[] = [];
   const heldAssetIds = getHeldWalletAssetIds(snapshot);
-  if (heldAssetIds.length === 0) {
-    return tinymanCollection(positions, warnings);
+
+  const [poolsResult, farmResult] = await Promise.allSettled([
+    heldAssetIds.length > 0
+      ? fetchTinymanPoolsForLiquidityAssets(heldAssetIds)
+      : Promise.resolve([] as TinymanPositionPool[]),
+    fetchTinymanCommittedFarmPrograms(address)
+  ]);
+
+  let farmPools: TinymanFarmPoolProgram[] = [];
+  let farmRewardsComplete = true;
+  if (farmResult.status === "fulfilled") {
+    farmPools = farmResult.value;
+  } else {
+    farmRewardsComplete = false;
+    warnings.push(
+      `Tinyman farm rewards unavailable: ${errorMessage(farmResult.reason)}`
+    );
   }
 
-  const pools = await fetchTinymanPoolsForLiquidityAssets(heldAssetIds);
-  for (const pool of pools) {
-    const liquidityAssetId = parseSafePositiveInteger(pool.liquidity_asset?.id);
-    if (liquidityAssetId === null) {
-      warnings.push(`${pool.address ?? "unknown pool"}: invalid LP asset id`);
+  const farmedLiquidityAssetIds = new Set<number>();
+  for (const farmPool of farmPools) {
+    if (!tinymanPoolHasActiveFarmCommitment(farmPool)) {
       continue;
     }
-    const lpBalance = getWalletAssetBalance(snapshot, liquidityAssetId);
-    if (lpBalance === 0n) {
-      continue;
+    const liquidityAssetId = parseSafePositiveInteger(
+      farmPool.liquidity_asset?.id
+    );
+    if (liquidityAssetId !== null) {
+      farmedLiquidityAssetIds.add(liquidityAssetId);
     }
-    const issued = parseUnsignedBigInt(pool.current_issued_liquidity_assets);
-    const tvlUsd = parseNullableNonNegativeNumber(pool.liquidity_in_usd);
-    const decimals = parseNonNegativeInteger(pool.liquidity_asset?.decimals) ?? 6;
-    const pair = tinymanPoolPair(pool);
-    positions.push({
-      protocol: "tinyman",
-      positionType: "lp",
-      positionId: `tinyman:lp:${liquidityAssetId}`,
-      opportunityId: pool.address ? `${pool.address}:lp` : null,
-      assetId: liquidityAssetId,
-      assetSymbol: `${pair} LP`,
-      amountRaw: lpBalance.toString(),
-      amount: formatUnits(lpBalance, decimals),
-      usdValue:
-        tvlUsd === null
-          ? null
-          : proportionalUsd(tvlUsd, lpBalance, issued),
-      notes: "LP-token claim; underlying reserve composition changes with pool state."
-    });
   }
 
-  return tinymanCollection(positions, warnings);
-}
+  if (poolsResult.status === "rejected") {
+    warnings.push(
+      `Tinyman LP positions unavailable: ${errorMessage(poolsResult.reason)}`
+    );
+  } else {
+    for (const pool of poolsResult.value) {
+      const liquidityAssetId = parseSafePositiveInteger(pool.liquidity_asset?.id);
+      if (liquidityAssetId === null) {
+        warnings.push(`${pool.address ?? "unknown pool"}: invalid LP asset id`);
+        continue;
+      }
+      const lpBalance = getWalletAssetBalance(snapshot, liquidityAssetId);
+      if (lpBalance === 0n) {
+        continue;
+      }
+      const issued = parseUnsignedBigInt(pool.current_issued_liquidity_assets);
+      const tvlUsd = parseNullableNonNegativeNumber(pool.liquidity_in_usd);
+      const decimals = parseNonNegativeInteger(pool.liquidity_asset?.decimals) ?? 6;
+      const pair = tinymanPoolPair(pool);
+      const isFarmed = farmedLiquidityAssetIds.has(liquidityAssetId);
+      positions.push({
+        protocol: "tinyman",
+        positionType: "lp",
+        positionId: `tinyman:lp:${liquidityAssetId}`,
+        opportunityId: pool.address ? `${pool.address}:lp` : null,
+        assetId: liquidityAssetId,
+        assetSymbol: `${pair} LP`,
+        amountRaw: lpBalance.toString(),
+        amount: formatUnits(lpBalance, decimals),
+        usdValue:
+          tvlUsd === null
+            ? null
+            : proportionalUsd(tvlUsd, lpBalance, issued),
+        notes: "LP-token claim; underlying reserve composition changes with pool state.",
+        ...(isFarmed
+          ? {
+              caveats: [
+                "Committed to Tinyman farm staking; farm stakes the full wallet LP balance."
+              ]
+            }
+          : {})
+      });
+    }
+  }
 
-function tinymanCollection(
-  positions: PositionMarketRecord[],
-  warnings: string[]
-): ProtocolPositionsCollection {
+  const pendingRewardAssets = new Map<number, TinymanSimpleAsset>();
+  for (const farmPool of farmPools) {
+    for (const program of farmPool.programs ?? []) {
+      const pendingRaw = parseUnsignedBigInt(program.pooler?.rewards?.pending);
+      if (pendingRaw === null || pendingRaw === 0n) {
+        continue;
+      }
+      const rewardAsset = program.staking_program?.reward_asset;
+      const rewardAssetId = parseSafeNonNegativeInteger(rewardAsset?.id);
+      if (rewardAssetId === null || rewardAsset === undefined) {
+        warnings.push(
+          `${farmPool.address ?? "unknown pool"}:farm: missing reward asset`
+        );
+        farmRewardsComplete = false;
+        continue;
+      }
+      pendingRewardAssets.set(rewardAssetId, rewardAsset);
+    }
+  }
+
+  let rewardPrices = new Map<number, number | null>();
+  if (pendingRewardAssets.size > 0) {
+    try {
+      rewardPrices = await fetchTinymanAssetUsdPrices([
+        ...pendingRewardAssets.keys()
+      ]);
+    } catch (error) {
+      farmRewardsComplete = false;
+      warnings.push(
+        `Tinyman farm reward USD pricing unavailable: ${errorMessage(error)}`
+      );
+    }
+  }
+
+  for (const farmPool of farmPools) {
+    const poolAddress = farmPool.address;
+    for (const program of farmPool.programs ?? []) {
+      const pendingRaw = parseUnsignedBigInt(program.pooler?.rewards?.pending);
+      if (pendingRaw === null || pendingRaw === 0n) {
+        continue;
+      }
+      const programId = parseSafePositiveInteger(program.staking_program?.id);
+      const rewardAsset = program.staking_program?.reward_asset;
+      const rewardAssetId = parseSafeNonNegativeInteger(rewardAsset?.id);
+      if (programId === null || rewardAssetId === null || rewardAsset === undefined) {
+        continue;
+      }
+      const decimals = parseNonNegativeInteger(rewardAsset.decimals) ?? 6;
+      const priceUsd = rewardPrices.get(rewardAssetId) ?? null;
+      positions.push({
+        protocol: "tinyman",
+        positionType: "reward",
+        positionId: `tinyman:reward:${poolAddress ?? "unknown"}:${programId}:${rewardAssetId}`,
+        opportunityId: poolAddress ? `${poolAddress}:farm` : null,
+        assetId: rewardAssetId,
+        assetSymbol: rewardAsset.unit_name ?? rewardAsset.name ?? null,
+        amountRaw: pendingRaw.toString(),
+        amount: formatUnits(pendingRaw, decimals),
+        usdValue: tokenUsdValue(pendingRaw, decimals, priceUsd),
+        caveats: ["Unclaimed Tinyman farm reward (pending / unpaid)."]
+      });
+    }
+  }
+
+  const hasUnpricedRewards = positions.some(
+    (position) =>
+      position.positionType === "reward" && position.usdValue === null
+  );
+  if (hasUnpricedRewards) {
+    if (farmRewardsComplete) {
+      warnings.push("Tinyman farm reward USD pricing is unavailable.");
+    }
+    farmRewardsComplete = false;
+  }
+
   return {
     positions,
     warnings,
     coverage: {
-      suppliedUsdComplete: positions.every((position) => position.usdValue !== null),
+      suppliedUsdComplete:
+        poolsResult.status === "fulfilled" &&
+        positions
+          .filter((position) => position.positionType === "lp")
+          .every((position) => position.usdValue !== null),
       borrowedUsdComplete: true,
-      rewardsUsdComplete: false
+      rewardsUsdComplete: farmRewardsComplete && !hasUnpricedRewards
     }
   };
 }
 
+interface TinymanSimpleAsset {
+  id?: number | string | null;
+  unit_name?: string | null;
+  name?: string | null;
+  decimals?: number | string | null;
+}
+
 interface TinymanPositionPool {
   address?: string;
-  asset_1?: {
-    id?: number | string | null;
-    unit_name?: string | null;
-    name?: string | null;
-  };
-  asset_2?: {
-    id?: number | string | null;
-    unit_name?: string | null;
-    name?: string | null;
-  };
-  liquidity_asset?: {
-    id?: number | string | null;
-    decimals?: number | string | null;
-  };
+  asset_1?: TinymanSimpleAsset;
+  asset_2?: TinymanSimpleAsset;
+  liquidity_asset?: TinymanSimpleAsset;
   current_issued_liquidity_assets?: number | string | null;
   liquidity_in_usd?: number | string | null;
   is_verified?: boolean | null;
 }
 
+interface TinymanFarmPoolProgram {
+  address?: string;
+  liquidity_asset?: TinymanSimpleAsset;
+  programs?: Array<{
+    staking_program?: {
+      id?: number | string | null;
+      reward_asset?: TinymanSimpleAsset;
+    };
+    pooler?: {
+      rewards?: {
+        pending?: number | string | null;
+      };
+      current_cycle_commitment?: unknown;
+      next_cycle_commitment?: unknown;
+    };
+  }>;
+}
+
+function tinymanPoolHasActiveFarmCommitment(
+  farmPool: TinymanFarmPoolProgram
+): boolean {
+  return (farmPool.programs ?? []).some(
+    (program) =>
+      program.pooler?.current_cycle_commitment != null ||
+      program.pooler?.next_cycle_commitment != null
+  );
+}
+
+function tinymanApiBaseUrl(): string {
+  return trimTrailingSlash(
+    process.env.TINYMAN_API_BASE_URL ??
+      "https://mainnet.analytics.tinyman.org/api/v1"
+  );
+}
+
+function tinymanRequestInit(): RequestInit {
+  const apiKey = process.env.TINYMAN_API_KEY;
+  if (!apiKey) {
+    return {};
+  }
+  return { headers: { authorization: `Bearer ${apiKey}` } };
+}
+
 async function fetchTinymanPoolsForLiquidityAssets(
   assetIds: readonly number[]
 ): Promise<TinymanPositionPool[]> {
-  const baseUrl =
-    process.env.TINYMAN_API_BASE_URL ??
-    "https://mainnet.analytics.tinyman.org/api/v1";
-  const apiKey = process.env.TINYMAN_API_KEY;
   const chunks = chunkValues(assetIds, 100);
   const poolsByChunk: TinymanPositionPool[][] = new Array(chunks.length);
   await mapWithThrottle(
@@ -168,13 +318,9 @@ async function fetchTinymanPoolsForLiquidityAssets(
         version__in: process.env.TINYMAN_POOL_VERSIONS ?? "1.1,2.0",
         liquidity_asset_ids: chunk.join(",")
       });
-      const requestInit: RequestInit = {};
-      if (apiKey) {
-        requestInit.headers = { authorization: `Bearer ${apiKey}` };
-      }
       const response = await fetch(
-        `${trimTrailingSlash(baseUrl)}/pools/?${query.toString()}`,
-        requestInit
+        `${tinymanApiBaseUrl()}/pools/?${query.toString()}`,
+        tinymanRequestInit()
       );
       if (!response.ok) {
         throw new Error(`Tinyman positions API returned HTTP ${response.status}.`);
@@ -188,6 +334,64 @@ async function fetchTinymanPoolsForLiquidityAssets(
     }
   );
   return poolsByChunk.flat();
+}
+
+async function fetchTinymanCommittedFarmPrograms(
+  poolerAddress: string
+): Promise<TinymanFarmPoolProgram[]> {
+  const query = new URLSearchParams({
+    limit: "all",
+    pooler_address: poolerAddress,
+    committed_only: "true"
+  });
+  const response = await fetch(
+    `${tinymanApiBaseUrl()}/staking/pool-programs/?${query.toString()}`,
+    tinymanRequestInit()
+  );
+  if (!response.ok) {
+    throw new Error(
+      `Tinyman farm pool-programs API returned HTTP ${response.status}.`
+    );
+  }
+  const payload = (await response.json()) as {
+    results?: TinymanFarmPoolProgram[];
+  };
+  return payload.results ?? [];
+}
+
+async function fetchTinymanAssetUsdPrices(
+  assetIds: readonly number[]
+): Promise<Map<number, number | null>> {
+  const prices = new Map<number, number | null>();
+  await mapWithThrottle(
+    [...new Set(assetIds)],
+    {
+      concurrency: readPositiveInteger(
+        process.env.POSITIONS_HTTP_CONCURRENCY,
+        2
+      ),
+      delayMs: 0
+    },
+    async (assetId) => {
+      const response = await fetch(
+        `${tinymanApiBaseUrl()}/assets/${assetId}/`,
+        tinymanRequestInit()
+      );
+      if (!response.ok) {
+        throw new Error(
+          `Tinyman asset price API returned HTTP ${response.status} for asset ${assetId}.`
+        );
+      }
+      const payload = (await response.json()) as {
+        price_in_usd?: number | string | null;
+      };
+      prices.set(
+        assetId,
+        parseNullableNonNegativeNumber(payload.price_in_usd)
+      );
+    }
+  );
+  return prices;
 }
 
 function tinymanPoolPair(pool: TinymanPositionPool): string {
@@ -589,9 +793,7 @@ export async function collectFolksFinancePositions(
     ])
   );
   const positions: PositionMarketRecord[] = [];
-  const warnings = [
-    "Folks Finance deposit-staking rewards are not included."
-  ];
+  const warnings: string[] = [];
 
   for (const deposit of deposits) {
     for (const holding of deposit.holdings) {
@@ -693,9 +895,26 @@ export async function collectFolksFinancePositions(
           )
           .every((position) => position.usdValue !== null),
       borrowedUsdComplete: failedLoanSources === 0,
-      rewardsUsdComplete: false
+      rewardsUsdComplete: true
     }
   };
+}
+
+interface CompXPositionCollectorDependencies {
+  getUserPosition: (
+    appId: number,
+    userAddress: string
+  ) => Promise<UserPosition>;
+}
+
+let compxPositionCollectorOverrides:
+  | Partial<CompXPositionCollectorDependencies>
+  | undefined;
+
+export function setCompXPositionCollectorDependenciesForTests(
+  overrides?: Partial<CompXPositionCollectorDependencies>
+): void {
+  compxPositionCollectorOverrides = overrides;
 }
 
 export async function collectCompXPositions(
@@ -712,10 +931,11 @@ export async function collectCompXPositions(
   );
   walletHoldings.set(0, snapshot.amount);
   const positions: PositionMarketRecord[] = [];
-  const warnings = [
-    "CompX per-user lending debt is not exposed by the installed SDK.",
-    "CompX pending staking rewards cannot be derived from the available staker state."
-  ];
+  const warnings: string[] = [];
+  let debtReadsFailed = false;
+  const getUserPosition = resolveCompXGetUserPosition(context);
+  const pendingRewardAssetIds = new Set<number>();
+  const rewardDecimalsByAssetId = new Map<number, number>();
 
   await mapPositionCandidates(
     uniqueOpportunities(opportunities),
@@ -726,13 +946,28 @@ export async function collectCompXPositions(
           if (appId === null) {
             throw new Error("invalid market application id");
           }
+
+          let userPosition: UserPosition | undefined;
+          try {
+            userPosition = await getUserPosition(appId, address);
+          } catch (error) {
+            debtReadsFailed = true;
+            warnings.push(
+              `${opportunity.opportunityId}:debt: ${errorMessage(error)}`
+            );
+          }
+
           const lstTokenId = opportunity.assetIds?.[1];
-          if (
-            lstTokenId !== undefined &&
-            getWalletAssetBalance(snapshot, lstTokenId) === 0n
-          ) {
+          const hasWalletLst =
+            lstTokenId === undefined ||
+            getWalletAssetBalance(snapshot, lstTokenId) > 0n;
+          const hasDebt =
+            userPosition !== undefined && userPosition.borrowed > 0;
+
+          if (!hasWalletLst && !hasDebt) {
             return;
           }
+
           const state = await resolveCompXLendingMarketState({
             network: "mainnet",
             algod,
@@ -740,7 +975,38 @@ export async function collectCompXPositions(
             userAddress: address,
             userAssetHoldings: walletHoldings
           });
-          if (state.userLstBalance === 0n) {
+
+          if (hasDebt) {
+            const decimals = state.market.baseTokenDecimals;
+            const borrowedRaw = standardToMicro(
+              userPosition!.borrowed,
+              decimals
+            );
+            const usdValue =
+              Number.isFinite(state.market.baseTokenPrice) &&
+              state.market.baseTokenPrice >= 0
+                ? userPosition!.borrowed * state.market.baseTokenPrice
+                : null;
+            const healthFactor = Number.isFinite(userPosition!.healthFactor)
+              ? userPosition!.healthFactor
+              : null;
+            positions.push({
+              protocol: "compx",
+              positionType: "debt",
+              positionId: `compx:debt:${appId}`,
+              opportunityId: opportunity.opportunityId,
+              assetId: state.baseTokenId,
+              assetSymbol: opportunity.assetPair,
+              amountRaw: borrowedRaw.toString(),
+              amount: formatUnits(borrowedRaw, decimals),
+              usdValue:
+                usdValue !== null && Number.isFinite(usdValue) ? usdValue : null,
+              healthFactor,
+              sourceTimestamp: opportunity.sourceTimestamp
+            });
+          }
+
+          if (!hasWalletLst || state.userLstBalance === 0n) {
             return;
           }
           const totalDeposits = BigInt(Math.trunc(state.market.totalDeposits));
@@ -764,7 +1030,8 @@ export async function collectCompXPositions(
               circulating
             ),
             sourceTimestamp: opportunity.sourceTimestamp,
-            notes: "Underlying claim derived from the cAsset share of circulating supply."
+            notes:
+              "Underlying claim derived from the cAsset share of circulating supply."
           });
           return;
         }
@@ -783,10 +1050,18 @@ export async function collectCompXPositions(
           if (state.staker.stake === 0n) {
             return;
           }
-          const decimals = (
-            await resolveAssetDecimals([state.stakedAssetId], algod)
-          ).get(state.stakedAssetId);
-          if (decimals === undefined) {
+          const assetIdsToResolve = [
+            state.stakedAssetId,
+            ...(state.rewardAssetId === state.stakedAssetId
+              ? []
+              : [state.rewardAssetId])
+          ];
+          const decimalsByAssetId = await resolveAssetDecimals(
+            assetIdsToResolve,
+            algod
+          );
+          const stakedDecimals = decimalsByAssetId.get(state.stakedAssetId);
+          if (stakedDecimals === undefined) {
             throw new Error("could not resolve staked asset decimals");
           }
           positions.push({
@@ -797,15 +1072,47 @@ export async function collectCompXPositions(
             assetId: state.stakedAssetId,
             assetSymbol: opportunity.assetPair.split("/")[0] ?? null,
             amountRaw: state.staker.stake.toString(),
-            amount: formatUnits(state.staker.stake, decimals),
+            amount: formatUnits(state.staker.stake, stakedDecimals),
             usdValue: proportionalUsd(
               opportunity.tvlUsd,
               state.staker.stake,
               state.pool.totalStaked
             ),
-            sourceTimestamp: opportunity.sourceTimestamp,
-            caveats: ["Pending rewards are not exposed by CompX staker state."]
+            sourceTimestamp: opportunity.sourceTimestamp
           });
+
+          const pendingRaw = compxPendingStakingRewardRaw(
+            state.staker.stake,
+            state.pool.rewardPerToken,
+            state.staker.rewardDebt
+          );
+          if (pendingRaw > 0n) {
+            const rewardDecimals =
+              decimalsByAssetId.get(state.rewardAssetId) ??
+              (state.rewardAssetId === 0 ? 6 : undefined);
+            if (rewardDecimals === undefined) {
+              throw new Error("could not resolve reward asset decimals");
+            }
+            pendingRewardAssetIds.add(state.rewardAssetId);
+            rewardDecimalsByAssetId.set(state.rewardAssetId, rewardDecimals);
+            positions.push({
+              protocol: "compx",
+              positionType: "reward",
+              positionId: `compx:reward:${appId}:${state.rewardAssetId}`,
+              opportunityId: opportunity.opportunityId,
+              assetId: state.rewardAssetId,
+              assetSymbol:
+                opportunity.assetPair.split("/")[1] ??
+                opportunity.assetPair.split("/")[0] ??
+                null,
+              amountRaw: pendingRaw.toString(),
+              amount: formatUnits(pendingRaw, rewardDecimals),
+              usdValue: null,
+              sourceTimestamp: opportunity.sourceTimestamp,
+              notes:
+                "Pending staking reward from stake * rewardPerToken / 1e15 - rewardDebt."
+            });
+          }
         }
       } catch (error) {
         warnings.push(`${opportunity.opportunityId}: ${errorMessage(error)}`);
@@ -813,7 +1120,51 @@ export async function collectCompXPositions(
     }
   );
 
-  const sourceWarnings = warnings.slice(2);
+  if (pendingRewardAssetIds.size > 0) {
+    try {
+      const priced = await fetchCompXTokenPrices([...pendingRewardAssetIds]);
+      for (const position of positions) {
+        if (
+          position.positionType !== "reward" ||
+          position.assetId === null ||
+          position.usdValue !== null
+        ) {
+          continue;
+        }
+        const priceUsd = priced[String(position.assetId)];
+        const decimals = rewardDecimalsByAssetId.get(position.assetId);
+        if (
+          priceUsd === undefined ||
+          decimals === undefined ||
+          !Number.isFinite(priceUsd) ||
+          priceUsd < 0
+        ) {
+          continue;
+        }
+        position.usdValue = tokenUsdValue(
+          BigInt(position.amountRaw),
+          decimals,
+          priceUsd
+        );
+      }
+    } catch (error) {
+      warnings.push(
+        `CompX staking reward USD pricing unavailable: ${errorMessage(error)}`
+      );
+    }
+  }
+
+  const sourceWarnings = [...warnings];
+  const hasUnpricedDebt = positions.some(
+    (position) => position.positionType === "debt" && position.usdValue === null
+  );
+  const hasUnpricedRewards = positions.some(
+    (position) =>
+      position.positionType === "reward" && position.usdValue === null
+  );
+  if (hasUnpricedRewards) {
+    warnings.push("CompX staking reward USD pricing is unavailable.");
+  }
   throwIfEveryCandidateFailed(
     "CompX",
     opportunities.length,
@@ -827,12 +1178,51 @@ export async function collectCompXPositions(
       suppliedUsdComplete:
         sourceWarnings.length === 0 &&
         positions
-          .filter((position) => position.positionType !== "reward")
+          .filter((position) =>
+            ["supplied", "lp", "staked"].includes(position.positionType)
+          )
           .every((position) => position.usdValue !== null),
-      borrowedUsdComplete: false,
-      rewardsUsdComplete: false
+      borrowedUsdComplete: !debtReadsFailed && !hasUnpricedDebt,
+      rewardsUsdComplete: !hasUnpricedRewards
     }
   };
+}
+
+/** CompX staking MasterChef precision (`PRECISION` in staking.algo.ts). */
+const COMPX_STAKING_REWARD_PRECISION = 1_000_000_000_000_000n;
+
+function compxPendingStakingRewardRaw(
+  stake: bigint,
+  rewardPerToken: bigint,
+  rewardDebt: bigint
+): bigint {
+  if (stake <= 0n || rewardPerToken < 0n || rewardDebt < 0n) {
+    return 0n;
+  }
+  const accrued = (stake * rewardPerToken) / COMPX_STAKING_REWARD_PRECISION;
+  return accrued > rewardDebt ? accrued - rewardDebt : 0n;
+}
+
+function resolveCompXGetUserPosition(
+  context: PositionCollectionContext
+): CompXPositionCollectorDependencies["getUserPosition"] {
+  if (compxPositionCollectorOverrides?.getUserPosition !== undefined) {
+    return compxPositionCollectorOverrides.getUserPosition;
+  }
+  const algod =
+    context.algodRequestGate === undefined
+      ? createCompXBuilderAlgodClient()
+      : (withAlgodRequestGate(
+          createCompXBuilderAlgodClient(),
+          context.algodRequestGate
+        ) as Algodv2);
+  const network =
+    process.env.COMPX_NETWORK?.trim().toLowerCase() === "testnet"
+      ? "testnet"
+      : "mainnet";
+  const sdk = new CompXSDK({ algodClient: algod, network });
+  return (appId, userAddress) =>
+    sdk.lending.getUserPosition(appId, userAddress);
 }
 
 export async function collectDorkFiPositions(
