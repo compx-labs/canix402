@@ -99,6 +99,7 @@ export const tinymanAddLiquiditySingleAssetShape: TransactionShapeSpec<
     "internal swap to balance the deposit and mints pool tokens. Generates the documented " +
     "2-transaction group (asset transfer/payment, add_liquidity app call) as unsigned transactions.",
   supportedOpportunityTypes: ["lp"],
+  opportunityRole: "enter",
   requiredInputs: [
     "userAddress",
     "assetAId",

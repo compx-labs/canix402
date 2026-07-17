@@ -29,6 +29,8 @@ export interface PositionRecordV1 {
   sourceTimestamp?: string;
   caveats?: string[];
   notes?: string;
+  compatibleExitShapeKeys: string[];
+  compatibleManageShapeKeys: string[];
 }
 
 export interface WalletPositionTotals {

@@ -80,6 +80,14 @@ export interface ShapeValidationResult {
 }
 
 /**
+ * How a shape relates to yield opportunities and wallet positions.
+ * - enter: open / deposit / stake into an opportunity
+ * - exit: reduce / close / withdraw / unstake
+ * - manage: claim rewards and similar non-entry/exit actions
+ */
+export type OpportunityRole = "enter" | "exit" | "manage";
+
+/**
  * A verified, versioned transaction-shape specification. Implementations must
  * be deterministic given resolved on-chain state: the same inputs and state
  * must always produce the same transaction group.
@@ -93,6 +101,8 @@ export interface TransactionShapeSpec<TInput = unknown, TState = unknown> {
   readonly description: string;
   /** Opportunity types this shape can execute (e.g. "lp"). */
   readonly supportedOpportunityTypes: readonly string[];
+  /** Whether this shape opens, exits, or manages a position/opportunity. */
+  readonly opportunityRole: OpportunityRole;
   /** Names of required input fields, for discovery and documentation. */
   readonly requiredInputs: readonly string[];
   /** Evidence sources used to verify the shape. */

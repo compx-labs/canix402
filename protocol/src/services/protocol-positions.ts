@@ -24,10 +24,9 @@ import {
   resolveDorkFiLendingMarketState
 } from "../execution/shapes/dorkfi/market-state.js";
 import { simulateWithdrawUnderlyingAmount } from "../execution/shapes/dorkfi/abi.js";
-import type { OpportunityRecordV1 } from "../types/opportunity.js";
-import type { PositionRecordV1 } from "../types/position.js";
-import { resolveAssetDecimals } from "./asset-decimals.js";
-import {
+import type { OpportunityMarketRecord } from "../types/opportunity.js";
+import type { PositionMarketRecord } from "./position-execution-shapes.js";
+import { resolveAssetDecimals } from "./asset-decimals.js";import {
   createRequestGate,
   mapWithThrottle,
   type RequestGate,
@@ -41,7 +40,7 @@ import {
 } from "./wallet-snapshot.js";
 
 export interface ProtocolPositionsCollection {
-  positions: PositionRecordV1[];
+  positions: PositionMarketRecord[];
   warnings: string[];
   coverage?: {
     suppliedUsdComplete: boolean;
@@ -64,7 +63,7 @@ export async function collectTinymanPositions(
   _address: string,
   snapshot: WalletSnapshot
 ): Promise<ProtocolPositionsCollection> {
-  const positions: PositionRecordV1[] = [];
+  const positions: PositionMarketRecord[] = [];
   const warnings = [
     "Tinyman farm staking and unclaimed rewards are not exposed by the installed SDK."
   ];
@@ -109,7 +108,7 @@ export async function collectTinymanPositions(
 }
 
 function tinymanCollection(
-  positions: PositionRecordV1[],
+  positions: PositionMarketRecord[],
   warnings: string[]
 ): ProtocolPositionsCollection {
   return {
@@ -216,7 +215,7 @@ export async function collectPactPositions(
   const algod = createAlgodClient(context.algodRequestGate);
   const catalog = await fetchPactPositionCatalog();
   const localAppIds = getWalletLocalAppIds(snapshot);
-  const positions: PositionRecordV1[] = [];
+  const positions: PositionMarketRecord[] = [];
   const warnings: string[] = [];
 
   for (const pool of catalog.pools) {
@@ -589,7 +588,7 @@ export async function collectFolksFinancePositions(
       { symbol, pool }
     ])
   );
-  const positions: PositionRecordV1[] = [];
+  const positions: PositionMarketRecord[] = [];
   const warnings = [
     "Folks Finance deposit-staking rewards are not included."
   ];
@@ -712,7 +711,7 @@ export async function collectCompXPositions(
     snapshot.assets.map((holding) => [holding.assetId, holding.amount])
   );
   walletHoldings.set(0, snapshot.amount);
-  const positions: PositionRecordV1[] = [];
+  const positions: PositionMarketRecord[] = [];
   const warnings = [
     "CompX per-user lending debt is not exposed by the installed SDK.",
     "CompX pending staking rewards cannot be derived from the available staker state."
@@ -874,7 +873,7 @@ export function normalizeDorkFiHealthRecords(
   if (!Array.isArray(records)) {
     throw new Error("Dork.fi health API returned non-array data.");
   }
-  const positions: PositionRecordV1[] = [];
+  const positions: PositionMarketRecord[] = [];
   const warnings: string[] = [];
 
   for (const raw of records) {
@@ -984,7 +983,7 @@ async function collectDorkFiOnChainSupply(
     snapshot.assets.map((holding) => [holding.assetId, holding.amount])
   );
   walletHoldings.set(0, snapshot.amount);
-  const positions: PositionRecordV1[] = [];
+  const positions: PositionMarketRecord[] = [];
   const warnings: string[] = [];
 
   await mapPositionCandidates(
@@ -1092,8 +1091,8 @@ function createIndexerClient(): algosdk.Indexer {
 }
 
 function uniqueOpportunities(
-  opportunities: OpportunityRecordV1[]
-): OpportunityRecordV1[] {
+  opportunities: OpportunityMarketRecord[]
+): OpportunityMarketRecord[] {
   return [
     ...new Map(
       opportunities.map((opportunity) => [
@@ -1243,7 +1242,7 @@ function errorMessage(error: unknown): string {
 function throwIfEveryCandidateFailed(
   protocolName: string,
   candidateCount: number,
-  positions: PositionRecordV1[],
+  positions: PositionMarketRecord[],
   warnings: string[]
 ): void {
   if (

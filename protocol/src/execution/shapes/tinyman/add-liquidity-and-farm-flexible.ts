@@ -150,6 +150,7 @@ export const tinymanAddLiquidityAndFarmFlexibleShape: TransactionShapeSpec<
     "the wallet; the farm commit is a staking app call. Returns the combined, regrouped " +
     "unsigned transaction group.",
   supportedOpportunityTypes: ["farm"],
+  opportunityRole: "enter",
   requiredInputs: [
     "userAddress",
     "assetAId",

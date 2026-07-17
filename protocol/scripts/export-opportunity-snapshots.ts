@@ -2,7 +2,7 @@ import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { formatOpportunitiesForAgent } from "../src/services/precision.js";
-import { OpportunityRecordV1 } from "../src/types/opportunity.js";
+import { OpportunityMarketRecord } from "../src/types/opportunity.js";
 
 /**
  * Regenerates the illustrative opportunity response samples used by the website
@@ -17,11 +17,11 @@ import { OpportunityRecordV1 } from "../src/types/opportunity.js";
 
 interface SampleFile {
   filename: string;
-  rows: OpportunityRecordV1[];
+  rows: OpportunityMarketRecord[];
   meta: Record<string, string | number | boolean>;
 }
 
-const tinymanLp: OpportunityRecordV1 = {
+const tinymanLp: OpportunityMarketRecord = {
   protocol: "tinyman",
   opportunityType: "lp",
   opportunityId: "tinyman:pool:1002541853",
@@ -35,7 +35,7 @@ const tinymanLp: OpportunityRecordV1 = {
   notes: "sourceTimestamp reflects fetch time; upstream does not expose a per-row update time."
 };
 
-const folksLendingUsdc: OpportunityRecordV1 = {
+const folksLendingUsdc: OpportunityMarketRecord = {
   protocol: "folks-finance",
   opportunityType: "lending",
   opportunityId: "folks:lending:31566704",
@@ -47,7 +47,7 @@ const folksLendingUsdc: OpportunityRecordV1 = {
   fetchedAt: "2026-07-06T09:00:00.000Z"
 };
 
-const folksLendingAlgo: OpportunityRecordV1 = {
+const folksLendingAlgo: OpportunityMarketRecord = {
   protocol: "folks-finance",
   opportunityType: "lending",
   opportunityId: "folks:lending:0",
@@ -60,7 +60,7 @@ const folksLendingAlgo: OpportunityRecordV1 = {
   fetchedAt: "2026-07-06T09:00:00.000Z"
 };
 
-const tinymanLpWithAssetIds: OpportunityRecordV1 = {
+const tinymanLpWithAssetIds: OpportunityMarketRecord = {
   ...tinymanLp,
   assetIds: [0, 31566704],
   notes: undefined
@@ -96,12 +96,12 @@ const files: SampleFile[] = [
   }
 ];
 
-function tinymanLp2(): OpportunityRecordV1 {
+function tinymanLp2(): OpportunityMarketRecord {
   return { ...tinymanLp, notes: undefined };
 }
 
-function stripUndefined(record: OpportunityRecordV1): OpportunityRecordV1 {
-  return JSON.parse(JSON.stringify(record)) as OpportunityRecordV1;
+function stripUndefined(record: OpportunityMarketRecord): OpportunityMarketRecord {
+  return JSON.parse(JSON.stringify(record)) as OpportunityMarketRecord;
 }
 
 function main(): void {

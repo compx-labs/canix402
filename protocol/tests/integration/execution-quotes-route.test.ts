@@ -953,26 +953,36 @@ function installDorkFiWithdrawMocks(): void {
 }
 
 const quoteRequestBody = {
-  shapeKey: tinymanAddLiquidityFlexibleShape.key,
-  input: {
-    userAddress: USER_ADDRESS,
-    assetAId: USDC_ID,
-    assetAAmount: "1000000",
-    assetBId: ALGO_ID,
-    assetBAmount: "2000000",
-    maxSlippageBps: 50
-  }
+  quotes: [
+    {
+      shapeKey: tinymanAddLiquidityFlexibleShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        assetAId: USDC_ID,
+        assetAAmount: "1000000",
+        assetBId: ALGO_ID,
+        assetBAmount: "2000000",
+        maxSlippageBps: 50
+      }
+    }
+  ]
 };
 
+const flexibleAddInput = quoteRequestBody.quotes[0]!.input;
+
 const removeQuoteRequestBody = {
-  shapeKey: tinymanRemoveLiquidityMultipleAssetsOutShape.key,
-  input: {
-    userAddress: USER_ADDRESS,
-    assetAId: USDC_ID,
-    assetBId: ALGO_ID,
-    poolTokenAmount: "500000",
-    maxSlippageBps: 50
-  }
+  quotes: [
+    {
+      shapeKey: tinymanRemoveLiquidityMultipleAssetsOutShape.key,
+      input: {
+        userAddress: USER_ADDRESS,
+        assetAId: USDC_ID,
+        assetBId: ALGO_ID,
+        poolTokenAmount: "500000",
+        maxSlippageBps: 50
+      }
+    }
+  ]
 };
 
 test.afterEach(() => {
@@ -1012,25 +1022,25 @@ test("POST /execution/quotes returns unsigned executable quote", async () => {
 
   assert.equal(response.statusCode, 200);
   const body = response.json() as {
-    data: {
+    data: Array<{
       shapeKey: string;
       encodedTransactions: string[];
       transactions: Array<{ type: string }>;
       expiresAt: string;
-    };
-    meta: { paymentRequired: boolean; executionSubmitted: boolean };
+    }>;
+    meta: { paymentRequired: boolean; executionSubmitted: boolean; quoteCount?: number };
   };
 
-  assert.equal(body.data.shapeKey, tinymanAddLiquidityFlexibleShape.key);
-  assert.equal(body.data.encodedTransactions.length, 3);
-  assert.equal(body.data.transactions.length, 3);
+  assert.equal(body.data[0].shapeKey, tinymanAddLiquidityFlexibleShape.key);
+  assert.equal(body.data[0].encodedTransactions.length, 3);
+  assert.equal(body.data[0].transactions.length, 3);
   assert.deepEqual(
-    body.data.transactions.map((txn) => txn.type),
+    body.data[0].transactions.map((txn) => txn.type),
     ["axfer", "pay", "appl"]
   );
   assert.equal(body.meta.paymentRequired, true);
   assert.equal(body.meta.executionSubmitted, false);
-  assert.ok(new Date(body.data.expiresAt).getTime() > Date.now() - 60_000);
+  assert.ok(new Date(body.data[0].expiresAt).getTime() > Date.now() - 60_000);
 
   await app.close();
 });
@@ -1048,18 +1058,18 @@ test("POST /execution/quotes returns remove-liquidity executable quote", async (
 
   assert.equal(response.statusCode, 200);
   const body = response.json() as {
-    data: {
+    data: Array<{
       shapeKey: string;
       encodedTransactions: string[];
       transactions: Array<{ type: string }>;
-    };
+    }>;
   };
 
-  assert.equal(body.data.shapeKey, tinymanRemoveLiquidityMultipleAssetsOutShape.key);
-  assert.equal(body.data.encodedTransactions.length, 2);
-  assert.equal(body.data.transactions.length, 2);
+  assert.equal(body.data[0].shapeKey, tinymanRemoveLiquidityMultipleAssetsOutShape.key);
+  assert.equal(body.data[0].encodedTransactions.length, 2);
+  assert.equal(body.data[0].transactions.length, 2);
   assert.deepEqual(
-    body.data.transactions.map((txn) => txn.type),
+    body.data[0].transactions.map((txn) => txn.type),
     ["axfer", "appl"]
   );
 
@@ -1074,6 +1084,7 @@ test("POST /execution/quotes returns 400 when remove-liquidity poolTokenAmount i
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: tinymanRemoveLiquidityMultipleAssetsOutShape.key,
       input: {
         userAddress: USER_ADDRESS,
@@ -1081,6 +1092,8 @@ test("POST /execution/quotes returns 400 when remove-liquidity poolTokenAmount i
         assetBId: ALGO_ID,
         maxSlippageBps: 50
       }
+    
+      }]
     }
   });
 
@@ -1099,17 +1112,20 @@ test("POST /execution/quotes returns initial add-liquidity executable quote", as
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: tinymanAddLiquidityInitialShape.key,
-      input: quoteRequestBody.input
+      input: flexibleAddInput
+    
+      }]
     }
   });
 
   assert.equal(response.statusCode, 200);
   const body = response.json() as {
-    data: { shapeKey: string; transactions: Array<{ type: string }> };
+    data: Array<{ shapeKey: string; transactions: Array<{ type: string }> }>;
   };
-  assert.equal(body.data.shapeKey, tinymanAddLiquidityInitialShape.key);
-  assert.equal(body.data.transactions.length, 3);
+  assert.equal(body.data[0].shapeKey, tinymanAddLiquidityInitialShape.key);
+  assert.equal(body.data[0].transactions.length, 3);
 
   await app.close();
 });
@@ -1123,6 +1139,7 @@ test("POST /execution/quotes returns single-asset add-liquidity executable quote
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: tinymanAddLiquiditySingleAssetShape.key,
       input: {
         userAddress: USER_ADDRESS,
@@ -1132,15 +1149,17 @@ test("POST /execution/quotes returns single-asset add-liquidity executable quote
         depositAmount: "1000000",
         maxSlippageBps: 50
       }
+    
+      }]
     }
   });
 
   assert.equal(response.statusCode, 200);
   const body = response.json() as {
-    data: { shapeKey: string; transactions: Array<{ type: string }> };
+    data: Array<{ shapeKey: string; transactions: Array<{ type: string }> }>;
   };
-  assert.equal(body.data.shapeKey, tinymanAddLiquiditySingleAssetShape.key);
-  assert.equal(body.data.transactions.length, 2);
+  assert.equal(body.data[0].shapeKey, tinymanAddLiquiditySingleAssetShape.key);
+  assert.equal(body.data[0].transactions.length, 2);
 
   await app.close();
 });
@@ -1154,6 +1173,7 @@ test("POST /execution/quotes returns single-asset-out remove-liquidity executabl
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: tinymanRemoveLiquiditySingleAssetOutShape.key,
       input: {
         userAddress: USER_ADDRESS,
@@ -1163,15 +1183,17 @@ test("POST /execution/quotes returns single-asset-out remove-liquidity executabl
         poolTokenAmount: "500000",
         maxSlippageBps: 50
       }
+    
+      }]
     }
   });
 
   assert.equal(response.statusCode, 200);
   const body = response.json() as {
-    data: { shapeKey: string; transactions: Array<{ type: string }> };
+    data: Array<{ shapeKey: string; transactions: Array<{ type: string }> }>;
   };
-  assert.equal(body.data.shapeKey, tinymanRemoveLiquiditySingleAssetOutShape.key);
-  assert.equal(body.data.transactions.length, 2);
+  assert.equal(body.data[0].shapeKey, tinymanRemoveLiquiditySingleAssetOutShape.key);
+  assert.equal(body.data[0].transactions.length, 2);
 
   await app.close();
 });
@@ -1185,6 +1207,7 @@ test("POST /execution/quotes returns Tinyman farm commit quote for an existing L
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: tinymanFarmCommitShape.key,
       input: {
         userAddress: USER_ADDRESS,
@@ -1193,21 +1216,23 @@ test("POST /execution/quotes returns Tinyman farm commit quote for an existing L
         programId: FARM_PROGRAM_ID,
         programAccount: FARM_PROGRAM_ACCOUNT
       }
+    
+      }]
     }
   });
 
   assert.equal(response.statusCode, 200);
   const body = response.json() as {
-    data: {
+    data: Array<{
       shapeKey: string;
       transactions: Array<{ type: string; applicationCall?: { appArgsText: (string | null)[] } }>;
       metadata: { committedAmount?: string; includesLogBalance?: boolean };
-    };
+    }>;
   };
-  assert.equal(body.data.shapeKey, tinymanFarmCommitShape.key);
-  assert.equal(body.data.transactions.length, 1);
-  assert.equal(body.data.transactions[0]?.type, "appl");
-  assert.equal(body.data.transactions[0]?.applicationCall?.appArgsText[0], "commit");
+  assert.equal(body.data[0].shapeKey, tinymanFarmCommitShape.key);
+  assert.equal(body.data[0].transactions.length, 1);
+  assert.equal(body.data[0].transactions[0]?.type, "appl");
+  assert.equal(body.data[0].transactions[0]?.applicationCall?.appArgsText[0], "commit");
 
   await app.close();
 });
@@ -1221,12 +1246,15 @@ test("POST /execution/quotes resolves Tinyman farm program metadata from the LP 
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: tinymanFarmCommitShape.key,
       input: {
         userAddress: USER_ADDRESS,
         liquidityAssetId: POOL_TOKEN_ID,
         commitAmount: "500000"
       }
+    
+      }]
     }
   });
 
@@ -1234,8 +1262,8 @@ test("POST /execution/quotes resolves Tinyman farm program metadata from the LP 
   const body = response.json() as {
     data: { metadata: { programId?: number; programAccount?: string } };
   };
-  assert.equal(body.data.metadata.programId, FARM_PROGRAM_ID);
-  assert.equal(body.data.metadata.programAccount, FARM_PROGRAM_ACCOUNT);
+  assert.equal(body.data[0].metadata.programId, FARM_PROGRAM_ID);
+  assert.equal(body.data[0].metadata.programAccount, FARM_PROGRAM_ACCOUNT);
 
   await app.close();
 });
@@ -1249,6 +1277,7 @@ test("POST /execution/quotes returns farm commit + log_balance when requiredAsse
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: tinymanFarmCommitShape.key,
       input: {
         userAddress: USER_ADDRESS,
@@ -1258,6 +1287,8 @@ test("POST /execution/quotes returns farm commit + log_balance when requiredAsse
         programAccount: FARM_PROGRAM_ACCOUNT,
         requiredAssetId: FARM_REQUIRED_ASSET_ID
       }
+    
+      }]
     }
   });
 
@@ -1267,9 +1298,9 @@ test("POST /execution/quotes returns farm commit + log_balance when requiredAsse
       transactions: Array<{ type: string; applicationCall?: { appArgsText: (string | null)[] } }>;
     };
   };
-  assert.equal(body.data.transactions.length, 2);
+  assert.equal(body.data[0].transactions.length, 2);
   assert.deepEqual(
-    body.data.transactions.map((txn) => txn.applicationCall?.appArgsText[0]),
+    body.data[0].transactions.map((txn) => txn.applicationCall?.appArgsText[0]),
     ["commit", "log_balance"]
   );
 
@@ -1284,6 +1315,7 @@ test("POST /execution/quotes returns 400 when farm commit is missing pool select
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: tinymanFarmCommitShape.key,
       input: {
         userAddress: USER_ADDRESS,
@@ -1291,6 +1323,8 @@ test("POST /execution/quotes returns 400 when farm commit is missing pool select
         programId: FARM_PROGRAM_ID,
         programAccount: FARM_PROGRAM_ACCOUNT
       }
+    
+      }]
     }
   });
 
@@ -1309,6 +1343,7 @@ test("POST /execution/quotes returns flexible add-liquidity-plus-farm atomic gro
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: tinymanAddLiquidityAndFarmFlexibleShape.key,
       input: {
         userAddress: USER_ADDRESS,
@@ -1320,26 +1355,28 @@ test("POST /execution/quotes returns flexible add-liquidity-plus-farm atomic gro
         programId: FARM_PROGRAM_ID,
         programAccount: FARM_PROGRAM_ACCOUNT
       }
+    
+      }]
     }
   });
 
   assert.equal(response.statusCode, 200);
   const body = response.json() as {
-    data: {
+    data: Array<{
       shapeKey: string;
       transactions: Array<{ type: string; groupPresent: boolean }>;
       metadata: { committedAmount?: string; commitAmountDefaulted?: boolean };
-    };
+    }>;
   };
-  assert.equal(body.data.shapeKey, tinymanAddLiquidityAndFarmFlexibleShape.key);
-  assert.equal(body.data.transactions.length, 4);
+  assert.equal(body.data[0].shapeKey, tinymanAddLiquidityAndFarmFlexibleShape.key);
+  assert.equal(body.data[0].transactions.length, 4);
   assert.deepEqual(
-    body.data.transactions.map((txn) => txn.type),
+    body.data[0].transactions.map((txn) => txn.type),
     ["axfer", "pay", "appl", "appl"]
   );
-  assert.ok(body.data.transactions.every((txn) => txn.groupPresent));
-  assert.equal(body.data.metadata.commitAmountDefaulted, true);
-  assert.equal(body.data.metadata.committedAmount, "1407142");
+  assert.ok(body.data[0].transactions.every((txn) => txn.groupPresent));
+  assert.equal(body.data[0].metadata.commitAmountDefaulted, true);
+  assert.equal(body.data[0].metadata.committedAmount, "1407142");
 
   await app.close();
 });
@@ -1353,6 +1390,7 @@ test("POST /execution/quotes returns single-asset add-liquidity-plus-farm atomic
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: tinymanAddLiquidityAndFarmSingleAssetShape.key,
       input: {
         userAddress: USER_ADDRESS,
@@ -1365,23 +1403,25 @@ test("POST /execution/quotes returns single-asset add-liquidity-plus-farm atomic
         programAccount: FARM_PROGRAM_ACCOUNT,
         commitAmount: "895500"
       }
+    
+      }]
     }
   });
 
   assert.equal(response.statusCode, 200);
   const body = response.json() as {
-    data: {
+    data: Array<{
       shapeKey: string;
       transactions: Array<{ type: string; groupPresent: boolean }>;
-    };
+    }>;
   };
-  assert.equal(body.data.shapeKey, tinymanAddLiquidityAndFarmSingleAssetShape.key);
-  assert.equal(body.data.transactions.length, 3);
+  assert.equal(body.data[0].shapeKey, tinymanAddLiquidityAndFarmSingleAssetShape.key);
+  assert.equal(body.data[0].transactions.length, 3);
   assert.deepEqual(
-    body.data.transactions.map((txn) => txn.type),
+    body.data[0].transactions.map((txn) => txn.type),
     ["axfer", "appl", "appl"]
   );
-  assert.ok(body.data.transactions.every((txn) => txn.groupPresent));
+  assert.ok(body.data[0].transactions.every((txn) => txn.groupPresent));
 
   await app.close();
 });
@@ -1395,6 +1435,7 @@ test("POST /execution/quotes returns Folks escrow deposit executable quote", asy
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: folksFinanceDepositEscrowShape.key,
       input: {
         userAddress: USER_ADDRESS,
@@ -1402,16 +1443,18 @@ test("POST /execution/quotes returns Folks escrow deposit executable quote", asy
         escrowAddress: ESCROW_ADDRESS,
         assetAmount: "1000000"
       }
+    
+      }]
     }
   });
 
   assert.equal(response.statusCode, 200);
   const body = response.json() as {
-    data: { shapeKey: string; transactions: Array<{ type: string }> };
+    data: Array<{ shapeKey: string; transactions: Array<{ type: string }> }>;
     meta: { executionSubmitted: boolean };
   };
-  assert.equal(body.data.shapeKey, folksFinanceDepositEscrowShape.key);
-  assert.equal(body.data.transactions.length, 3);
+  assert.equal(body.data[0].shapeKey, folksFinanceDepositEscrowShape.key);
+  assert.equal(body.data[0].transactions.length, 3);
   assert.equal(body.meta.executionSubmitted, false);
 
   await app.close();
@@ -1426,6 +1469,7 @@ test("POST /execution/quotes returns Folks escrow withdraw executable quote", as
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: folksFinanceWithdrawEscrowShape.key,
       input: {
         userAddress: USER_ADDRESS,
@@ -1434,15 +1478,17 @@ test("POST /execution/quotes returns Folks escrow withdraw executable quote", as
         amount: "500000",
         amountDenomination: "fAsset"
       }
+    
+      }]
     }
   });
 
   assert.equal(response.statusCode, 200);
   const body = response.json() as {
-    data: { shapeKey: string; transactions: Array<{ type: string }> };
+    data: Array<{ shapeKey: string; transactions: Array<{ type: string }> }>;
   };
-  assert.equal(body.data.shapeKey, folksFinanceWithdrawEscrowShape.key);
-  assert.equal(body.data.transactions.length, 1);
+  assert.equal(body.data[0].shapeKey, folksFinanceWithdrawEscrowShape.key);
+  assert.equal(body.data[0].transactions.length, 1);
 
   await app.close();
 });
@@ -1456,6 +1502,7 @@ test("POST /execution/quotes returns Pact two-sided add-liquidity executable quo
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: pactAddLiquidityTwoSidedShape.key,
       input: {
         userAddress: USER_ADDRESS,
@@ -1466,15 +1513,17 @@ test("POST /execution/quotes returns Pact two-sided add-liquidity executable quo
         assetBAmount: "50000",
         maxSlippageBps: 50
       }
+    
+      }]
     }
   });
 
   assert.equal(response.statusCode, 200);
   const body = response.json() as {
-    data: { shapeKey: string; transactions: Array<{ type: string }> };
+    data: Array<{ shapeKey: string; transactions: Array<{ type: string }> }>;
   };
-  assert.equal(body.data.shapeKey, pactAddLiquidityTwoSidedShape.key);
-  assert.equal(body.data.transactions.length, 3);
+  assert.equal(body.data[0].shapeKey, pactAddLiquidityTwoSidedShape.key);
+  assert.equal(body.data[0].transactions.length, 3);
 
   await app.close();
 });
@@ -1488,21 +1537,24 @@ test("POST /execution/quotes returns Pact proportional remove-liquidity executab
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: pactRemoveLiquidityProportionalShape.key,
       input: {
         userAddress: USER_ADDRESS,
         poolAppId: PACT_POOL_APP_ID,
         poolTokenAmount: "25000"
       }
+    
+      }]
     }
   });
 
   assert.equal(response.statusCode, 200);
   const body = response.json() as {
-    data: { shapeKey: string; transactions: Array<{ type: string }> };
+    data: Array<{ shapeKey: string; transactions: Array<{ type: string }> }>;
   };
-  assert.equal(body.data.shapeKey, pactRemoveLiquidityProportionalShape.key);
-  assert.equal(body.data.transactions.length, 2);
+  assert.equal(body.data[0].shapeKey, pactRemoveLiquidityProportionalShape.key);
+  assert.equal(body.data[0].transactions.length, 2);
 
   await app.close();
 });
@@ -1516,21 +1568,24 @@ test("POST /execution/quotes compiles CompX lending deposit shape", async () => 
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: compxDepositAsaShape.key,
       input: {
         userAddress: USER_ADDRESS,
         marketAppId: COMPX_MARKET_APP_ID,
         amount: "100000"
       }
+    
+      }]
     }
   });
 
   assert.equal(response.statusCode, 200);
   const body = response.json() as {
-    data: { shapeKey: string; transactions: Array<{ type: string }> };
+    data: Array<{ shapeKey: string; transactions: Array<{ type: string }> }>;
   };
-  assert.equal(body.data.shapeKey, compxDepositAsaShape.key);
-  assert.equal(body.data.transactions.length, 2);
+  assert.equal(body.data[0].shapeKey, compxDepositAsaShape.key);
+  assert.equal(body.data[0].transactions.length, 2);
 
   await app.close();
 });
@@ -1556,12 +1611,15 @@ test("POST /execution/quotes includes underlying shape build error cause", async
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: compxDepositAsaShape.key,
       input: {
         userAddress: USER_ADDRESS,
         marketAppId: COMPX_MARKET_APP_ID,
         amount: "100000"
       }
+    
+      }]
     }
   });
 
@@ -1599,21 +1657,24 @@ test("POST /execution/quotes compiles CompX staking stake shape", async () => {
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: compxStakeAsaShape.key,
       input: {
         userAddress: USER_ADDRESS,
         poolAppId: COMPX_STAKING_POOL_APP_ID,
         amount: "100000"
       }
+    
+      }]
     }
   });
 
   assert.equal(response.statusCode, 200);
   const body = response.json() as {
-    data: { shapeKey: string; transactions: Array<{ type: string }> };
+    data: Array<{ shapeKey: string; transactions: Array<{ type: string }> }>;
   };
-  assert.equal(body.data.shapeKey, compxStakeAsaShape.key);
-  assert.equal(body.data.transactions.length, 3);
+  assert.equal(body.data[0].shapeKey, compxStakeAsaShape.key);
+  assert.equal(body.data[0].transactions.length, 3);
 
   await app.close();
 });
@@ -1627,20 +1688,23 @@ test("POST /execution/quotes compiles Haystack HAY staking stake shape", async (
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: haystackStakeHayShape.key,
       input: {
         userAddress: USER_ADDRESS,
         amount: "100000000"
       }
+    
+      }]
     }
   });
 
   assert.equal(response.statusCode, 200);
   const body = response.json() as {
-    data: { shapeKey: string; transactions: Array<{ type: string }> };
+    data: Array<{ shapeKey: string; transactions: Array<{ type: string }> }>;
   };
-  assert.equal(body.data.shapeKey, haystackStakeHayShape.key);
-  assert.equal(body.data.transactions.length, 3);
+  assert.equal(body.data[0].shapeKey, haystackStakeHayShape.key);
+  assert.equal(body.data[0].transactions.length, 3);
 
   await app.close();
 });
@@ -1654,6 +1718,7 @@ test("POST /execution/quotes compiles Dork.fi lending deposit shape", async () =
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: dorkfiDepositAsaShape.key,
       input: {
         userAddress: USER_ADDRESS,
@@ -1662,15 +1727,17 @@ test("POST /execution/quotes compiles Dork.fi lending deposit shape", async () =
         assetId: DORKFI_MAINNET_USDC_ASA_ID,
         amount: "100000"
       }
+    
+      }]
     }
   });
 
   assert.equal(response.statusCode, 200);
   const body = response.json() as {
-    data: { shapeKey: string; transactions: Array<{ type: string }> };
+    data: Array<{ shapeKey: string; transactions: Array<{ type: string }> }>;
   };
-  assert.equal(body.data.shapeKey, dorkfiDepositAsaShape.key);
-  assert.equal(body.data.transactions.length, 2);
+  assert.equal(body.data[0].shapeKey, dorkfiDepositAsaShape.key);
+  assert.equal(body.data[0].transactions.length, 2);
 
   await app.close();
 });
@@ -1684,6 +1751,7 @@ test("POST /execution/quotes compiles Dork.fi lending withdraw shape", async () 
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: dorkfiWithdrawAsaShape.key,
       input: {
         userAddress: USER_ADDRESS,
@@ -1692,15 +1760,17 @@ test("POST /execution/quotes compiles Dork.fi lending withdraw shape", async () 
         assetId: DORKFI_MAINNET_USDC_ASA_ID,
         amount: "100000"
       }
+    
+      }]
     }
   });
 
   assert.equal(response.statusCode, 200);
   const body = response.json() as {
-    data: { shapeKey: string; transactions: Array<{ type: string }> };
+    data: Array<{ shapeKey: string; transactions: Array<{ type: string }> }>;
   };
-  assert.equal(body.data.shapeKey, dorkfiWithdrawAsaShape.key);
-  assert.equal(body.data.transactions.length, 2);
+  assert.equal(body.data[0].shapeKey, dorkfiWithdrawAsaShape.key);
+  assert.equal(body.data[0].transactions.length, 2);
 
   await app.close();
 });
@@ -1713,8 +1783,11 @@ test("POST /execution/quotes returns 404 for unknown shape key", async () => {
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: "mainnet:tinyman:v2:swap:fixedInput",
-      input: quoteRequestBody.input
+      input: flexibleAddInput
+    
+      }]
     }
   });
 
@@ -1732,16 +1805,118 @@ test("POST /execution/quotes returns 400 for invalid input", async () => {
     method: "POST",
     url: "/execution/quotes",
     payload: {
+      quotes: [{
       shapeKey: tinymanAddLiquidityFlexibleShape.key,
       input: {
-        ...quoteRequestBody.input,
+        ...flexibleAddInput,
         maxSlippageBps: 20_000
       }
+    
+      }]
     }
   });
 
   assert.equal(response.statusCode, 400);
   assert.equal(response.json().error.code, "VALIDATION_ERROR");
+
+  await app.close();
+});
+
+test("POST /execution/quotes compiles multiple independent quotes", async () => {
+  installTinymanMocks();
+  installCompXStakeMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      quotes: [
+        {
+          shapeKey: tinymanAddLiquidityFlexibleShape.key,
+          input: flexibleAddInput
+        },
+        {
+          shapeKey: compxStakeAsaShape.key,
+          input: {
+            userAddress: USER_ADDRESS,
+            poolAppId: COMPX_STAKING_POOL_APP_ID,
+            amount: "100000"
+          }
+        }
+      ]
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: Array<{ shapeKey: string; transactions: Array<{ type: string }> }>;
+    meta: { quoteCount: number };
+  };
+  assert.equal(body.data.length, 2);
+  assert.equal(body.meta.quoteCount, 2);
+  assert.equal(body.data[0]?.shapeKey, tinymanAddLiquidityFlexibleShape.key);
+  assert.equal(body.data[1]?.shapeKey, compxStakeAsaShape.key);
+  assert.equal(body.data[0]?.transactions.length, 3);
+  assert.equal(body.data[1]?.transactions.length, 3);
+
+  await app.close();
+});
+
+test("POST /execution/quotes correlates failures to quoteIndex", async () => {
+  installTinymanMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      quotes: [
+        {
+          shapeKey: tinymanAddLiquidityFlexibleShape.key,
+          input: flexibleAddInput
+        },
+        {
+          shapeKey: "mainnet:tinyman:v2:does-not-exist:nope",
+          input: { userAddress: USER_ADDRESS }
+        }
+      ]
+    }
+  });
+
+  assert.equal(response.statusCode, 404);
+  const body = response.json() as {
+    error: {
+      code: string;
+      details: { quoteIndex?: number; shapeKey?: string };
+    };
+  };
+  assert.equal(body.error.code, "NOT_FOUND");
+  assert.equal(body.error.details.quoteIndex, 1);
+  assert.equal(
+    body.error.details.shapeKey,
+    "mainnet:tinyman:v2:does-not-exist:nope"
+  );
+
+  await app.close();
+});
+
+test("POST /execution/quotes rejects legacy single-shape body", async () => {
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      shapeKey: tinymanAddLiquidityFlexibleShape.key,
+      input: flexibleAddInput
+    }
+  });
+
+  assert.equal(response.statusCode, 400);
 
   await app.close();
 });

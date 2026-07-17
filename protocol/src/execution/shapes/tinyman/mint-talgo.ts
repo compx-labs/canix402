@@ -78,6 +78,7 @@ export const tinymanMintTAlgoShape: TransactionShapeSpec<
     "Stakes ALGO into Tinyman's liquid-staking app and mints tALGO. Builds the SDK mint " +
     "group (optional tALGO opt-in, ALGO payment, mint app call) as unsigned transactions.",
   supportedOpportunityTypes: ["staking"],
+  opportunityRole: "enter",
   requiredInputs: ["userAddress", "amount"],
   sources: [
     {

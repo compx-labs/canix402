@@ -82,6 +82,7 @@ export const dorkfiWithdrawAsaShape: TransactionShapeSpec<
     "Withdraws supplied ASA from a Dork.fi lending market. Amount is nToken-denominated; the " +
     "builder unwraps nt200 after the lending.withdraw call.",
   supportedOpportunityTypes: ["lending"],
+  opportunityRole: "exit",
   requiredInputs: ["userAddress", "poolAppId", "marketAppId", "assetId", "amount"],
   sources: [
     {

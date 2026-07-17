@@ -78,6 +78,7 @@ export const tinymanDecreaseStakeStAlgoShape: TransactionShapeSpec<
     "decreaseStake group (optional rate-change / tALGO opt-in, decrease_stake app call) as " +
     "unsigned transactions.",
   supportedOpportunityTypes: ["staking"],
+  opportunityRole: "exit",
   requiredInputs: ["userAddress", "amount"],
   sources: [
     {

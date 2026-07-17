@@ -1,5 +1,5 @@
 import { buildSourceMetadata } from "../services/source-metadata.js";
-import { OpportunityRecordV1 } from "../types/opportunity.js";
+import { OpportunityMarketRecord } from "../types/opportunity.js";
 
 interface TinymanPoolApiRecord {
   address?: string;
@@ -33,7 +33,7 @@ export class TinymanAdapterError extends Error {
 
 export async function fetchTinymanOpportunities(
   fetchImpl: typeof fetch = fetch
-): Promise<OpportunityRecordV1[]> {
+): Promise<OpportunityMarketRecord[]> {
   const baseUrl =
     process.env.TINYMAN_API_BASE_URL ?? "https://mainnet.analytics.tinyman.org/api/v1";
   const apiKey = process.env.TINYMAN_API_KEY;
@@ -90,7 +90,7 @@ export async function fetchTinymanOpportunities(
 export function normalizeTinymanPool(
   record: TinymanPoolApiRecord,
   fetchedAtIso: string = new Date().toISOString()
-): OpportunityRecordV1 | null {
+): OpportunityMarketRecord | null {
   const sourceApy =
     toNumber(record.annual_percentage_yield) ??
     toNumber(record.total_annual_percentage_yield);
@@ -104,7 +104,7 @@ export function normalizeTinymanPool(
     toNumber(record.annual_percentage_rate) ??
     toNumber(record.total_annual_percentage_rate);
   // Tinyman's analytics API expresses annual yield/rate fields as decimal
-  // fractions (0.280425 = 28.0425%). OpportunityRecordV1 uses percentage
+  // fractions (0.280425 = 28.0425%). OpportunityMarketRecord uses percentage
   // points, consistent with the values displayed in Tinyman's UI.
   const apy = toPercentagePoints(sourceApy);
   const apr = sourceApr === null ? null : toPercentagePoints(sourceApr);
@@ -133,8 +133,8 @@ export function normalizeTinymanPool(
 function normalizeTinymanPoolOpportunities(
   record: TinymanPoolApiRecord,
   fetchedAtIso: string
-): OpportunityRecordV1[] {
-  const output: OpportunityRecordV1[] = [];
+): OpportunityMarketRecord[] {
+  const output: OpportunityMarketRecord[] = [];
   const lpOpportunity = normalizeTinymanPool(record, fetchedAtIso);
   if (lpOpportunity !== null) {
     output.push(lpOpportunity);
@@ -151,7 +151,7 @@ function normalizeTinymanPoolOpportunities(
 function normalizeTinymanFarm(
   record: TinymanPoolApiRecord,
   fetchedAtIso: string
-): OpportunityRecordV1 | null {
+): OpportunityMarketRecord | null {
   const sourceStakingApy = toNumber(record.staking_total_annual_percentage_yield);
   const sourceStakingApr = toNumber(record.staking_total_annual_percentage_rate);
   const tvlUsd = toNumber(record.liquidity_in_usd);

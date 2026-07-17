@@ -117,6 +117,7 @@ export const folksFinanceWithdrawEscrowShape: TransactionShapeSpec<
     "Withdraws underlying assets from a Folks Finance lending pool via a deposit " +
     "escrow. Generates the SDK deposits-app withdraw call; assets are sent to the user wallet.",
   supportedOpportunityTypes: ["lending"],
+  opportunityRole: "exit",
   requiredInputs: ["userAddress", "amount", "amountDenomination"],
   sources: [
     {

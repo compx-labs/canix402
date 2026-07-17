@@ -114,6 +114,7 @@ export const folksFinanceDepositEscrowShape: TransactionShapeSpec<
     "escrow. fAssets accrue in the escrow rather than the user's wallet. Generates " +
     "the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
   supportedOpportunityTypes: ["lending"],
+  opportunityRole: "enter",
   requiredInputs: ["userAddress", "assetAmount"],
   sources: [
     {

@@ -1,5 +1,5 @@
 import { buildSourceMetadata } from "../services/source-metadata.js";
-import { OpportunityRecordV1 } from "../types/opportunity.js";
+import { OpportunityMarketRecord } from "../types/opportunity.js";
 
 interface PactPoolApiRecord {
   id?: number | string;
@@ -48,7 +48,7 @@ export class PactAdapterError extends Error {
 
 export async function fetchPactOpportunities(
   fetchImpl: typeof fetch = fetch
-): Promise<OpportunityRecordV1[]> {
+): Promise<OpportunityMarketRecord[]> {
   const baseUrl = process.env.PACT_API_BASE_URL;
   if (!baseUrl) {
     throw new PactAdapterError("PACT_API_BASE_URL is not configured.");
@@ -103,7 +103,7 @@ export async function fetchPactOpportunities(
 export function normalizePactPool(
   record: PactPoolApiRecord,
   fetchedAtIso: string = new Date().toISOString()
-): OpportunityRecordV1 | null {
+): OpportunityMarketRecord | null {
   const sourceApy =
     toNumber(record.apr_7d_all) ??
     toNumber(record.apr_7d);
@@ -116,7 +116,7 @@ export function normalizePactPool(
     toNumber(record.apr_7d) ??
     toNumber(record.apr_7d_all);
   // Pact's API exposes APR metrics as decimal fractions (2.955135 = 295.5135%).
-  // OpportunityRecordV1 uses percentage points, matching the Pact UI.
+  // OpportunityMarketRecord uses percentage points, matching the Pact UI.
   const apy = toPercentagePoints(sourceApy);
   const apr = sourceApr === null ? null : toPercentagePoints(sourceApr);
   const id = getPoolId(record);
@@ -145,8 +145,8 @@ function normalizePactPoolOpportunities(
   pool: PactPoolApiRecord,
   farms: PactFarmApiRecord[],
   fetchedAtIso: string
-): OpportunityRecordV1[] {
-  const output: OpportunityRecordV1[] = [];
+): OpportunityMarketRecord[] {
+  const output: OpportunityMarketRecord[] = [];
   const lpOpportunity = normalizePactPool(pool, fetchedAtIso);
   if (lpOpportunity !== null) {
     output.push(lpOpportunity);
@@ -166,7 +166,7 @@ function normalizePactFarm(
   pool: PactPoolApiRecord,
   farm: PactFarmApiRecord,
   fetchedAtIso: string
-): OpportunityRecordV1 | null {
+): OpportunityMarketRecord | null {
   const sourceApr = toNumber(farm.apr);
   const sourceAverageApr = toNumber(farm.average_apr);
   const hasFarmIncentives =

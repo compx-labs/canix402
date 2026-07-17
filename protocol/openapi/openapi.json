@@ -11,7 +11,11 @@
     },
     "x-guidance": "Use the gateway base URL in servers[0]. Fetch /discovery and /openapi.json before integrating. Prefer the remote canix402 MCP server at https://canix402-mcp.compx.io/mcp (streamable-http, walletless pass-through) for agent tool access. Paid routes return HTTP 402 with PAYMENT-REQUIRED; sign a USDC ASA transfer client-side and retry with PAYMENT-SIGNATURE. Haystack swaps follow quote -> opt-in if needed -> fresh quote -> paid transaction generation -> local signing/submission. Human and LLM docs: https://canix402.compx.io/llms.txt",
     "x-precision": {
-      "fields": ["apy", "apr", "tvlUsd"],
+      "fields": [
+        "apy",
+        "apr",
+        "tvlUsd"
+      ],
       "defaultDecimalPlaces": 6,
       "maxDecimalPlaces": 12,
       "notes": "Values are rounded to 6 decimal places by default; precision is extended up to 12 decimal places when 6 would collapse a small non-zero value to zero."
@@ -33,16 +37,22 @@
     "/health": {
       "get": {
         "summary": "Service health check",
-        "tags": ["system"],
+        "tags": [
+          "system"
+        ],
         "security": [],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HealthResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                },
                 "examples": {
-                  "default": { "$ref": "#/components/examples/HealthResponseSample" }
+                  "default": {
+                    "$ref": "#/components/examples/HealthResponseSample"
+                  }
                 }
               }
             }
@@ -53,16 +63,23 @@
     "/metadata": {
       "get": {
         "summary": "Service metadata and policy surface",
-        "tags": ["system", "discovery"],
+        "tags": [
+          "system",
+          "discovery"
+        ],
         "security": [],
         "responses": {
           "200": {
             "description": "Metadata",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/MetadataResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/MetadataResponse"
+                },
                 "examples": {
-                  "default": { "$ref": "#/components/examples/MetadataResponseSample" }
+                  "default": {
+                    "$ref": "#/components/examples/MetadataResponseSample"
+                  }
                 }
               }
             }
@@ -73,16 +90,23 @@
     "/discovery": {
       "get": {
         "summary": "Machine-readable endpoint catalog for agents",
-        "tags": ["discovery", "agents"],
+        "tags": [
+          "discovery",
+          "agents"
+        ],
         "security": [],
         "responses": {
           "200": {
             "description": "Discovery document",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/DiscoveryResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/DiscoveryResponse"
+                },
                 "examples": {
-                  "default": { "$ref": "#/components/examples/DiscoveryResponseSample" }
+                  "default": {
+                    "$ref": "#/components/examples/DiscoveryResponseSample"
+                  }
                 }
               }
             }
@@ -93,14 +117,20 @@
     "/openapi.json": {
       "get": {
         "summary": "OpenAPI contract document",
-        "tags": ["discovery", "openapi"],
+        "tags": [
+          "discovery",
+          "openapi"
+        ],
         "security": [],
         "responses": {
           "200": {
             "description": "OpenAPI JSON",
             "content": {
               "application/json": {
-                "schema": { "type": "object", "description": "This OpenAPI 3.1 document." }
+                "schema": {
+                  "type": "object",
+                  "description": "This OpenAPI 3.1 document."
+                }
               }
             }
           }
@@ -110,7 +140,10 @@
     "/favicon.ico": {
       "get": {
         "summary": "API favicon for directory indexing",
-        "tags": ["system", "discovery"],
+        "tags": [
+          "system",
+          "discovery"
+        ],
         "security": [],
         "responses": {
           "200": {
@@ -130,7 +163,10 @@
     "/favicon.png": {
       "get": {
         "summary": "API favicon image",
-        "tags": ["system", "discovery"],
+        "tags": [
+          "system",
+          "discovery"
+        ],
         "security": [],
         "responses": {
           "200": {
@@ -150,7 +186,11 @@
     "/.well-known/x402.json": {
       "get": {
         "summary": "x402 discovery manifest for agent and directory indexing",
-        "tags": ["discovery", "agents", "x402"],
+        "tags": [
+          "discovery",
+          "agents",
+          "x402"
+        ],
         "security": [],
         "responses": {
           "200": {
@@ -174,31 +214,72 @@
                     "resources"
                   ],
                   "properties": {
-                    "service": { "type": "string", "const": "canix402" },
-                    "name": { "type": "string", "const": "canix402" },
-                    "version": { "type": "string" },
-                    "description": { "type": "string" },
-                    "x402Version": { "type": "integer", "const": 2 },
-                    "docsUrl": { "type": "string", "format": "uri" },
-                    "llmsTxtUrl": { "type": "string", "format": "uri" },
-                    "openapiUrl": { "type": "string", "format": "uri" },
-                    "discoveryUrl": { "type": "string", "format": "uri" },
-                    "facilitator": { "type": "string", "format": "uri" },
+                    "service": {
+                      "type": "string",
+                      "const": "canix402"
+                    },
+                    "name": {
+                      "type": "string",
+                      "const": "canix402"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "x402Version": {
+                      "type": "integer",
+                      "const": 2
+                    },
+                    "docsUrl": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "llmsTxtUrl": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "openapiUrl": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "discoveryUrl": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "facilitator": {
+                      "type": "string",
+                      "format": "uri"
+                    },
                     "chains": {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
-                          "namespace": { "type": "string", "const": "algorand" },
-                          "network": { "type": "string" },
+                          "namespace": {
+                            "type": "string",
+                            "const": "algorand"
+                          },
+                          "network": {
+                            "type": "string"
+                          },
                           "assets": {
                             "type": "array",
                             "items": {
                               "type": "object",
                               "properties": {
-                                "symbol": { "type": "string", "const": "USDC" },
-                                "assetId": { "type": "string" },
-                                "decimals": { "type": "integer", "const": 6 }
+                                "symbol": {
+                                  "type": "string",
+                                  "const": "USDC"
+                                },
+                                "assetId": {
+                                  "type": "string"
+                                },
+                                "decimals": {
+                                  "type": "integer",
+                                  "const": 6
+                                }
                               }
                             }
                           }
@@ -209,31 +290,72 @@
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "required": ["id", "method", "path", "url", "description", "price", "x402"],
+                        "required": [
+                          "id",
+                          "method",
+                          "path",
+                          "url",
+                          "description",
+                          "price",
+                          "x402"
+                        ],
                         "properties": {
-                          "id": { "type": "string" },
-                          "method": { "type": "string", "enum": ["GET", "POST"] },
-                          "path": { "type": "string" },
-                          "url": { "type": "string", "format": "uri" },
-                          "description": { "type": "string" },
-                          "tags": { "type": "array", "items": { "type": "string" } },
+                          "id": {
+                            "type": "string"
+                          },
+                          "method": {
+                            "type": "string",
+                            "enum": [
+                              "GET",
+                              "POST"
+                            ]
+                          },
+                          "path": {
+                            "type": "string"
+                          },
+                          "url": {
+                            "type": "string",
+                            "format": "uri"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
                           "price": {
                             "type": "object",
                             "properties": {
-                              "amount": { "type": "string" },
-                              "currency": { "type": "string", "const": "USDC" },
-                              "network": { "type": "string" },
-                              "asset": { "type": "string" }
+                              "amount": {
+                                "type": "string"
+                              },
+                              "currency": {
+                                "type": "string",
+                                "const": "USDC"
+                              },
+                              "network": {
+                                "type": "string"
+                              },
+                              "asset": {
+                                "type": "string"
+                              }
                             }
                           },
-                          "x402": { "type": "object" }
+                          "x402": {
+                            "type": "object"
+                          }
                         }
                       }
                     }
                   }
                 },
                 "examples": {
-                  "default": { "$ref": "#/components/examples/X402ManifestSample" }
+                  "default": {
+                    "$ref": "#/components/examples/X402ManifestSample"
+                  }
                 }
               }
             }
@@ -244,7 +366,11 @@
     "/.well-known/x402": {
       "get": {
         "summary": "x402 discovery fan-out document",
-        "tags": ["discovery", "agents", "x402"],
+        "tags": [
+          "discovery",
+          "agents",
+          "x402"
+        ],
         "security": [],
         "responses": {
           "200": {
@@ -253,12 +379,21 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["version", "resources"],
+                  "required": [
+                    "version",
+                    "resources"
+                  ],
                   "properties": {
-                    "version": { "type": "integer", "const": 1 },
+                    "version": {
+                      "type": "integer",
+                      "const": 1
+                    },
                     "resources": {
                       "type": "array",
-                      "items": { "type": "string", "format": "uri" }
+                      "items": {
+                        "type": "string",
+                        "format": "uri"
+                      }
                     }
                   }
                 }
@@ -272,35 +407,86 @@
       "get": {
         "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
         "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, and Dork.fi. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
-        "tags": ["defi", "opportunities"],
+        "tags": [
+          "defi",
+          "opportunities"
+        ],
         "parameters": [
-          { "name": "protocol", "in": "query", "schema": { "type": "string" } },
-          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 200, "default": 10 } },
-          { "name": "offset", "in": "query", "schema": { "type": "integer", "minimum": 0 } },
-          { "name": "includeInactive", "in": "query", "schema": { "type": "boolean" } }
+          {
+            "name": "protocol",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 10
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "includeInactive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
         ],
         "responses": {
           "200": {
             "description": "Opportunity list",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/OpportunitiesListResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunitiesListResponse"
+                },
                 "examples": {
-                  "default": { "$ref": "#/components/examples/AggregateOpportunitiesSample" }
+                  "default": {
+                    "$ref": "#/components/examples/AggregateOpportunitiesSample"
+                  }
                 }
               }
             }
           },
-          "402": { "$ref": "#/components/responses/PaymentRequired" },
-          "500": { "$ref": "#/components/responses/InternalError" }
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
         },
         "x-payment-info": {
-          "protocols": [{ "x402": {} }],
-          "price": { "mode": "fixed", "currency": "USD", "amount": "0.01" }
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ],
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.01"
+          }
         },
         "x-x402": {
           "protocolVersion": 2,
-          "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
           "requirementTemplate": {
             "scheme": "exact",
             "network": "algorand-mainnet",
@@ -315,7 +501,11 @@
       "get": {
         "summary": "Caller-filtered opportunities across supported platforms",
         "description": "Returns Algorand DeFi opportunities filtered by platform, opportunity type, APY range, and TVL threshold across supported sources. Use when an agent needs targeted discovery such as high-yield liquidity pools, lending markets, protocol-specific yield, or minimum-liquidity opportunities on Algorand. This endpoint provides normalized market data only; it does not build or submit transactions.",
-        "tags": ["defi", "opportunities", "search"],
+        "tags": [
+          "defi",
+          "opportunities",
+          "search"
+        ],
         "parameters": [
           {
             "name": "platform",
@@ -333,39 +523,96 @@
               "description": "Comma-separated list of opportunity types."
             }
           },
-          { "name": "minApy", "in": "query", "schema": { "type": "number" } },
-          { "name": "maxApy", "in": "query", "schema": { "type": "number" } },
-          { "name": "minTvlUsd", "in": "query", "schema": { "type": "number", "minimum": 0 } },
+          {
+            "name": "minApy",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxApy",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "minTvlUsd",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
           {
             "name": "limit",
             "in": "query",
-            "schema": { "type": "integer", "minimum": 1, "maximum": 200, "default": 25 }
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 25
+            }
           },
-          { "name": "offset", "in": "query", "schema": { "type": "integer", "minimum": 0 } },
-          { "name": "includeInactive", "in": "query", "schema": { "type": "boolean" } }
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "includeInactive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
         ],
         "responses": {
           "200": {
             "description": "Filtered opportunity list",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/OpportunitiesListResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunitiesListResponse"
+                },
                 "examples": {
-                  "default": { "$ref": "#/components/examples/FilteredOpportunitiesSample" }
+                  "default": {
+                    "$ref": "#/components/examples/FilteredOpportunitiesSample"
+                  }
                 }
               }
             }
           },
-          "402": { "$ref": "#/components/responses/PaymentRequired" },
-          "500": { "$ref": "#/components/responses/InternalError" }
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
         },
         "x-payment-info": {
-          "protocols": [{ "x402": {} }],
-          "price": { "mode": "fixed", "currency": "USD", "amount": "0.01" }
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ],
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.01"
+          }
         },
         "x-x402": {
           "protocolVersion": 2,
-          "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
           "requirementTemplate": {
             "scheme": "exact",
             "network": "algorand-mainnet",
@@ -380,42 +627,93 @@
       "get": {
         "summary": "Top opportunities tuned to a wallet's held assets",
         "description": "Returns Algorand DeFi opportunities whose underlying assets match a supplied wallet's holdings, including opted-in ASAs with positive balance and native ALGO when held. Use when an agent needs wallet-aware yield ideas based on assets the account already owns, with normalized APY/APR, TVL, asset ids, source freshness, and caveats. This endpoint provides normalized market data only; it does not build or submit transactions.",
-        "tags": ["defi", "opportunities", "personalized", "wallet"],
+        "tags": [
+          "defi",
+          "opportunities",
+          "personalized",
+          "wallet"
+        ],
         "parameters": [
           {
             "name": "address",
             "in": "query",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Algorand account address to personalize opportunities for."
           },
-          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 200, "default": 10 } },
-          { "name": "offset", "in": "query", "schema": { "type": "integer", "minimum": 0 } },
-          { "name": "includeInactive", "in": "query", "schema": { "type": "boolean" } }
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 10
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "includeInactive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
         ],
         "responses": {
           "200": {
             "description": "Personalized opportunity list",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/PersonalizedOpportunitiesListResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalizedOpportunitiesListResponse"
+                },
                 "examples": {
-                  "default": { "$ref": "#/components/examples/PersonalizedOpportunitiesSample" }
+                  "default": {
+                    "$ref": "#/components/examples/PersonalizedOpportunitiesSample"
+                  }
                 }
               }
             }
           },
-          "400": { "$ref": "#/components/responses/InvalidAddress" },
-          "402": { "$ref": "#/components/responses/PaymentRequired" },
-          "500": { "$ref": "#/components/responses/InternalError" }
+          "400": {
+            "$ref": "#/components/responses/InvalidAddress"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
         },
         "x-payment-info": {
-          "protocols": [{ "x402": {} }],
-          "price": { "mode": "fixed", "currency": "USD", "amount": "0.05" }
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ],
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.05"
+          }
         },
         "x-x402": {
           "protocolVersion": 2,
-          "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
           "requirementTemplate": {
             "scheme": "exact",
             "network": "algorand-mainnet",
@@ -430,13 +728,19 @@
       "get": {
         "summary": "Algorand DeFi positions held by a wallet",
         "description": "Returns normalized DeFi positions associated with a supplied Algorand wallet address across supported protocols. Use when an agent needs a wallet-level view of deposited, supplied, staked, or liquidity positions and their current values. This endpoint provides position data only; it does not build or submit transactions.",
-        "tags": ["defi", "positions", "wallet"],
+        "tags": [
+          "defi",
+          "positions",
+          "wallet"
+        ],
         "parameters": [
           {
             "name": "address",
             "in": "query",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Algorand account address whose DeFi positions should be returned."
           }
         ],
@@ -445,22 +749,44 @@
             "description": "Wallet position list",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/WalletPositionsResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/WalletPositionsResponse"
+                }
               }
             }
           },
-          "400": { "$ref": "#/components/responses/InvalidAddress" },
-          "402": { "$ref": "#/components/responses/PaymentRequired" },
-          "500": { "$ref": "#/components/responses/InternalError" },
-          "502": { "$ref": "#/components/responses/InternalError" }
+          "400": {
+            "$ref": "#/components/responses/InvalidAddress"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "502": {
+            "$ref": "#/components/responses/InternalError"
+          }
         },
         "x-payment-info": {
-          "protocols": [{ "x402": {} }],
-          "price": { "mode": "fixed", "currency": "USD", "amount": "0.005" }
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ],
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.005"
+          }
         },
         "x-x402": {
           "protocolVersion": 2,
-          "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
           "requirementTemplate": {
             "scheme": "exact",
             "network": "algorand-mainnet",
@@ -475,7 +801,11 @@
       "get": {
         "summary": "Top 25 DeFi opportunities for a single protocol ranked by APY",
         "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, or dorkfi. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
-        "tags": ["defi", "opportunities", "protocol"],
+        "tags": [
+          "defi",
+          "opportunities",
+          "protocol"
+        ],
         "parameters": [
           {
             "name": "protocol",
@@ -483,35 +813,83 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": ["tinyman", "pact", "folks-finance", "compx", "dorkfi"]
+              "enum": [
+                "tinyman",
+                "pact",
+                "folks-finance",
+                "compx",
+                "dorkfi"
+              ]
             }
           },
-          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 200, "default": 25 } },
-          { "name": "offset", "in": "query", "schema": { "type": "integer", "minimum": 0 } },
-          { "name": "includeInactive", "in": "query", "schema": { "type": "boolean" } }
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 25
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "includeInactive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
         ],
         "responses": {
           "200": {
             "description": "Protocol opportunity list",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/OpportunitiesListResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunitiesListResponse"
+                },
                 "examples": {
-                  "default": { "$ref": "#/components/examples/ProtocolOpportunitiesSample" }
+                  "default": {
+                    "$ref": "#/components/examples/ProtocolOpportunitiesSample"
+                  }
                 }
               }
             }
           },
-          "402": { "$ref": "#/components/responses/PaymentRequired" },
-          "500": { "$ref": "#/components/responses/InternalError" }
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
         },
         "x-payment-info": {
-          "protocols": [{ "x402": {} }],
-          "price": { "mode": "fixed", "currency": "USD", "amount": "0.01" }
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ],
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.01"
+          }
         },
         "x-x402": {
           "protocolVersion": 2,
-          "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
           "requirementTemplate": {
             "scheme": "exact",
             "network": "algorand-mainnet",
@@ -525,32 +903,78 @@
     "/execution/quotes": {
       "post": {
         "summary": "Compile a verified transaction shape into unsigned Algorand transactions",
-        "description": "Returns a fresh, validated, unsigned transaction group for a supported execution shape. Use when an agent has selected a DeFi action and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Pact v1 LP add/remove shapes, CompX v1 lending/staking shapes, Dork.fi v1 ASA lending deposit/withdraw shapes, and Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards). Canix does not sign or submit transactions in this endpoint.",
-        "tags": ["execution", "transactions", "x402", "agents"],
+        "description": "Compile one or more verified execution shapes into unsigned Algorand transaction groups. Request body is `{ quotes: [{ shapeKey, input }, ...] }` (min 1). Response `data` is an array of ExecutableQuote in request order \u2014 groups are never merged. On failure the whole request fails and `error.details` includes `quoteIndex` and `shapeKey`. x402 price is flat ~0.10 USDC per request (not per quote item). Canix never signs or submits transactions.",
+        "tags": [
+          "execution",
+          "transactions",
+          "x402",
+          "agents"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/ExecutionQuoteRequest" },
+              "schema": {
+                "$ref": "#/components/schemas/ExecutionQuoteRequest"
+              },
               "examples": {
-                "tinymanAddLiquidity": { "$ref": "#/components/examples/ExecutionQuoteRequestSample" },
-                "tinymanAddLiquidityInitial": { "$ref": "#/components/examples/ExecutionQuoteInitialAddLiquidityRequestSample" },
-                "tinymanAddLiquiditySingleAsset": { "$ref": "#/components/examples/ExecutionQuoteSingleAssetAddLiquidityRequestSample" },
-                "tinymanRemoveLiquidity": { "$ref": "#/components/examples/ExecutionQuoteRemoveLiquidityRequestSample" },
-                "tinymanRemoveLiquiditySingleAssetOut": { "$ref": "#/components/examples/ExecutionQuoteSingleAssetOutRemoveLiquidityRequestSample" },
-                "folksSetupDepositEscrow": { "$ref": "#/components/examples/ExecutionQuoteFolksSetupDepositEscrowRequestSample" },
-                "folksSetupOptEscrowAsset": { "$ref": "#/components/examples/ExecutionQuoteFolksSetupOptEscrowAssetRequestSample" },
-                "folksDepositEscrow": { "$ref": "#/components/examples/ExecutionQuoteFolksDepositEscrowRequestSample" },
-                "folksWithdrawEscrow": { "$ref": "#/components/examples/ExecutionQuoteFolksWithdrawEscrowRequestSample" },
-                "pactAddLiquidity": { "$ref": "#/components/examples/ExecutionQuotePactAddLiquidityRequestSample" },
-                "pactRemoveLiquidity": { "$ref": "#/components/examples/ExecutionQuotePactRemoveLiquidityRequestSample" },
-                "compxDepositAsa": { "$ref": "#/components/examples/ExecutionQuoteCompxDepositAsaRequestSample" },
-                "compxWithdrawAsa": { "$ref": "#/components/examples/ExecutionQuoteCompxWithdrawAsaRequestSample" },
-                "dorkfiDepositAsa": { "$ref": "#/components/examples/ExecutionQuoteDorkfiDepositAsaRequestSample" },
-                "dorkfiWithdrawAsa": { "$ref": "#/components/examples/ExecutionQuoteDorkfiWithdrawAsaRequestSample" },
-                "haystackStakeHay": { "$ref": "#/components/examples/ExecutionQuoteHaystackStakeHayRequestSample" },
-                "haystackUnstakeHay": { "$ref": "#/components/examples/ExecutionQuoteHaystackUnstakeHayRequestSample" },
-                "haystackClaimRewards": { "$ref": "#/components/examples/ExecutionQuoteHaystackClaimRewardsRequestSample" }
+                "tinymanAddLiquidity": {
+                  "$ref": "#/components/examples/ExecutionQuoteRequestSample"
+                },
+                "tinymanAddLiquidityInitial": {
+                  "$ref": "#/components/examples/ExecutionQuoteInitialAddLiquidityRequestSample"
+                },
+                "tinymanAddLiquiditySingleAsset": {
+                  "$ref": "#/components/examples/ExecutionQuoteSingleAssetAddLiquidityRequestSample"
+                },
+                "tinymanRemoveLiquidity": {
+                  "$ref": "#/components/examples/ExecutionQuoteRemoveLiquidityRequestSample"
+                },
+                "tinymanRemoveLiquiditySingleAssetOut": {
+                  "$ref": "#/components/examples/ExecutionQuoteSingleAssetOutRemoveLiquidityRequestSample"
+                },
+                "folksSetupDepositEscrow": {
+                  "$ref": "#/components/examples/ExecutionQuoteFolksSetupDepositEscrowRequestSample"
+                },
+                "folksSetupOptEscrowAsset": {
+                  "$ref": "#/components/examples/ExecutionQuoteFolksSetupOptEscrowAssetRequestSample"
+                },
+                "folksDepositEscrow": {
+                  "$ref": "#/components/examples/ExecutionQuoteFolksDepositEscrowRequestSample"
+                },
+                "folksWithdrawEscrow": {
+                  "$ref": "#/components/examples/ExecutionQuoteFolksWithdrawEscrowRequestSample"
+                },
+                "pactAddLiquidity": {
+                  "$ref": "#/components/examples/ExecutionQuotePactAddLiquidityRequestSample"
+                },
+                "pactRemoveLiquidity": {
+                  "$ref": "#/components/examples/ExecutionQuotePactRemoveLiquidityRequestSample"
+                },
+                "compxDepositAsa": {
+                  "$ref": "#/components/examples/ExecutionQuoteCompxDepositAsaRequestSample"
+                },
+                "compxWithdrawAsa": {
+                  "$ref": "#/components/examples/ExecutionQuoteCompxWithdrawAsaRequestSample"
+                },
+                "dorkfiDepositAsa": {
+                  "$ref": "#/components/examples/ExecutionQuoteDorkfiDepositAsaRequestSample"
+                },
+                "dorkfiWithdrawAsa": {
+                  "$ref": "#/components/examples/ExecutionQuoteDorkfiWithdrawAsaRequestSample"
+                },
+                "haystackStakeHay": {
+                  "$ref": "#/components/examples/ExecutionQuoteHaystackStakeHayRequestSample"
+                },
+                "haystackUnstakeHay": {
+                  "$ref": "#/components/examples/ExecutionQuoteHaystackUnstakeHayRequestSample"
+                },
+                "haystackClaimRewards": {
+                  "$ref": "#/components/examples/ExecutionQuoteHaystackClaimRewardsRequestSample"
+                },
+                "multiQuote": {
+                  "$ref": "#/components/examples/ExecutionQuoteMultiRequestSample"
+                }
               }
             }
           }
@@ -560,25 +984,49 @@
             "description": "Unsigned executable quote",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ExecutionQuoteResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionQuoteResponse"
+                },
                 "examples": {
-                  "default": { "$ref": "#/components/examples/ExecutionQuoteResponseSample" }
+                  "default": {
+                    "$ref": "#/components/examples/ExecutionQuoteResponseSample"
+                  }
                 }
               }
             }
           },
-          "400": { "$ref": "#/components/responses/ValidationError" },
-          "402": { "$ref": "#/components/responses/PaymentRequired" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "500": { "$ref": "#/components/responses/InternalError" }
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
         },
         "x-payment-info": {
-          "protocols": [{ "x402": {} }],
-          "price": { "mode": "fixed", "currency": "USD", "amount": "0.1" }
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ],
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.1"
+          }
         },
         "x-x402": {
           "protocolVersion": 2,
-          "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
           "requirementTemplate": {
             "scheme": "exact",
             "network": "algorand-mainnet",
@@ -593,16 +1041,28 @@
       "post": {
         "summary": "Fetch USD token prices for Algorand asset IDs",
         "description": "Returns CompX USD oracle prices for the requested Algorand asset IDs. A null price indicates that CompX has no current price for that asset.",
-        "tags": ["defi", "pricing", "compx", "agents"],
+        "tags": [
+          "defi",
+          "pricing",
+          "compx",
+          "agents"
+        ],
         "security": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/PricingRequest" },
+              "schema": {
+                "$ref": "#/components/schemas/PricingRequest"
+              },
               "examples": {
                 "algoAndUsdc": {
-                  "value": { "assetIds": [0, 31566704] }
+                  "value": {
+                    "assetIds": [
+                      0,
+                      31566704
+                    ]
+                  }
                 }
               }
             }
@@ -613,12 +1073,18 @@
             "description": "Current CompX USD prices for requested assets",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/PricingResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/PricingResponse"
+                }
               }
             }
           },
-          "400": { "$ref": "#/components/responses/ValidationError" },
-          "502": { "$ref": "#/components/responses/UpstreamError" }
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamError"
+          }
         }
       }
     },
@@ -626,13 +1092,20 @@
       "post": {
         "summary": "Fetch a walletless Haystack swap quote",
         "description": "Returns a short-lived, serializable Haystack route quote without signing or submitting transactions. Asset amounts are integer base units, not display-unit decimals. Use the returned quote unchanged with /swaps/optin and /swaps/transactions. If prerequisite opt-ins are submitted, fetch a fresh quote before building the swap group.",
-        "tags": ["defi", "swaps", "haystack", "agents"],
+        "tags": [
+          "defi",
+          "swaps",
+          "haystack",
+          "agents"
+        ],
         "security": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/HaystackSwapQuoteRequest" },
+              "schema": {
+                "$ref": "#/components/schemas/HaystackSwapQuoteRequest"
+              },
               "examples": {
                 "algoToUsdc": {
                   "value": {
@@ -652,13 +1125,21 @@
             "description": "Serializable Haystack quote and prerequisite identifiers",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HaystackSwapQuoteResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/HaystackSwapQuoteResponse"
+                }
               }
             }
           },
-          "400": { "$ref": "#/components/responses/ValidationError" },
-          "429": { "$ref": "#/components/responses/UpstreamRateLimited" },
-          "502": { "$ref": "#/components/responses/UpstreamError" }
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/UpstreamRateLimited"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamError"
+          }
         }
       }
     },
@@ -666,13 +1147,21 @@
       "post": {
         "summary": "Build prerequisite Haystack swap opt-ins",
         "description": "Checks the supplied Algorand account against the quote and returns a fresh unsigned group containing any missing output-asset and required application opt-ins. An empty transaction group means no opt-ins are required. canix402 is walletless: the caller signs and submits every returned opt-in transaction locally, waits for confirmation, and then refreshes the quote before requesting swap transactions. This route does not claim that returned opt-ins have executed.",
-        "tags": ["defi", "swaps", "haystack", "transactions", "wallet"],
+        "tags": [
+          "defi",
+          "swaps",
+          "haystack",
+          "transactions",
+          "wallet"
+        ],
         "security": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/HaystackSwapOptInRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/HaystackSwapOptInRequest"
+              }
             }
           }
         },
@@ -681,12 +1170,18 @@
             "description": "Unsigned prerequisite group, or an empty group when no opt-ins are missing",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HaystackSwapOptInResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/HaystackSwapOptInResponse"
+                }
               }
             }
           },
-          "400": { "$ref": "#/components/responses/ValidationError" },
-          "502": { "$ref": "#/components/responses/UpstreamError" }
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamError"
+          }
         }
       }
     },
@@ -694,12 +1189,21 @@
       "post": {
         "summary": "Build a walletless Haystack swap transaction group",
         "description": "Paid transaction-generation step for a fresh Haystack quote. The initial request may return 402 with PAYMENT-REQUIRED; satisfy the advertised 0.005 USDC requirement and retry with PAYMENT-SIGNATURE. On success, the response preserves transaction order, identifies caller members in userSignIndexes, and includes Haystack pre-signed members. Sign only the userSignIndexes members, combine them with the pre-signed members in the original order, and submit the complete atomic group through your own Algod client. canix402 never receives wallet keys and never submits the swap. The 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee (including referral split), DEX fees, route price impact, and Algorand network transaction fees.",
-        "tags": ["defi", "swaps", "haystack", "transactions", "x402", "agents"],
+        "tags": [
+          "defi",
+          "swaps",
+          "haystack",
+          "transactions",
+          "x402",
+          "agents"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/HaystackSwapTransactionsRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/HaystackSwapTransactionsRequest"
+              }
             }
           }
         },
@@ -708,22 +1212,44 @@
             "description": "Ordered, walletless Haystack swap group ready for caller signing",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HaystackSwapTransactionsResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/HaystackSwapTransactionsResponse"
+                }
               }
             }
           },
-          "400": { "$ref": "#/components/responses/ValidationError" },
-          "402": { "$ref": "#/components/responses/PaymentRequired" },
-          "429": { "$ref": "#/components/responses/UpstreamRateLimited" },
-          "502": { "$ref": "#/components/responses/UpstreamError" }
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/UpstreamRateLimited"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamError"
+          }
         },
         "x-payment-info": {
-          "protocols": [{ "x402": {} }],
-          "price": { "mode": "fixed", "currency": "USD", "amount": "0.005" }
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ],
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.005"
+          }
         },
         "x-x402": {
           "protocolVersion": 2,
-          "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
           "requirementTemplate": {
             "scheme": "exact",
             "network": "algorand-mainnet",
@@ -739,11 +1265,16 @@
     "schemas": {
       "ApiError": {
         "type": "object",
-        "required": ["error"],
+        "required": [
+          "error"
+        ],
         "properties": {
           "error": {
             "type": "object",
-            "required": ["code", "message"],
+            "required": [
+              "code",
+              "message"
+            ],
             "properties": {
               "code": {
                 "type": "string",
@@ -757,7 +1288,9 @@
                   "EXPIRED_PAYMENT_PROOF"
                 ]
               },
-              "message": { "type": "string" },
+              "message": {
+                "type": "string"
+              },
               "details": {
                 "description": "Optional structured context for the error."
               }
@@ -776,17 +1309,30 @@
           "yieldBasis",
           "tvlUsd",
           "sourceTimestamp",
-          "fetchedAt"
+          "fetchedAt",
+          "executionReady",
+          "executionShapes"
         ],
         "properties": {
           "protocol": {
             "type": "string",
             "description": "Source platform name.",
-            "enum": ["tinyman", "pact", "folks-finance", "compx", "dorkfi"]
+            "enum": [
+              "tinyman",
+              "pact",
+              "folks-finance",
+              "compx",
+              "dorkfi"
+            ]
           },
           "opportunityType": {
             "type": "string",
-            "enum": ["lp", "farm", "staking", "lending"]
+            "enum": [
+              "lp",
+              "farm",
+              "staking",
+              "lending"
+            ]
           },
           "opportunityId": {
             "type": "string",
@@ -798,7 +1344,9 @@
           },
           "assetIds": {
             "type": "array",
-            "items": { "type": "integer" },
+            "items": {
+              "type": "integer"
+            },
             "description": "On-chain Algorand asset ids backing the opportunity. Native ALGO is asset id 0."
           },
           "apy": {
@@ -807,7 +1355,10 @@
           },
           "yieldBasis": {
             "type": "string",
-            "enum": ["apy", "apr"],
+            "enum": [
+              "apy",
+              "apr"
+            ],
             "description": "Indicates whether the apy field reflects a compound APY or an APR-derived value."
           },
           "apr": {
@@ -831,6 +1382,17 @@
           "notes": {
             "type": "string",
             "description": "Caveats about timestamp provenance, fallback identifiers, or yield estimates."
+          },
+          "executionReady": {
+            "type": "boolean",
+            "description": "True when at least one enter execution shape is available. When false and executionShapes is empty, treat as research-only and do not invent shape keys."
+          },
+          "executionShapes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpportunityExecutionShape"
+            },
+            "description": "Enter-only shapes for opening this yield opportunity. Empty means research-only."
           }
         }
       },
@@ -839,20 +1401,38 @@
       },
       "OpportunitiesListMeta": {
         "type": "object",
-        "required": ["limit", "offset", "includeInactive", "paymentRequired"],
+        "required": [
+          "limit",
+          "offset",
+          "includeInactive",
+          "paymentRequired"
+        ],
         "properties": {
-          "limit": { "type": "integer" },
-          "offset": { "type": "integer" },
-          "includeInactive": { "type": "boolean" },
-          "paymentRequired": { "type": "boolean" }
+          "limit": {
+            "type": "integer"
+          },
+          "offset": {
+            "type": "integer"
+          },
+          "includeInactive": {
+            "type": "boolean"
+          },
+          "paymentRequired": {
+            "type": "boolean"
+          }
         }
       },
       "PersonalizedOpportunitiesListMeta": {
         "allOf": [
-          { "$ref": "#/components/schemas/OpportunitiesListMeta" },
+          {
+            "$ref": "#/components/schemas/OpportunitiesListMeta"
+          },
           {
             "type": "object",
-            "required": ["address", "heldAssetCount"],
+            "required": [
+              "address",
+              "heldAssetCount"
+            ],
             "properties": {
               "address": {
                 "type": "string",
@@ -868,24 +1448,36 @@
       },
       "OpportunitiesListResponse": {
         "type": "object",
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
           "data": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/OpportunityRecord" }
+            "items": {
+              "$ref": "#/components/schemas/OpportunityRecord"
+            }
           },
-          "meta": { "$ref": "#/components/schemas/OpportunitiesListMeta" }
+          "meta": {
+            "$ref": "#/components/schemas/OpportunitiesListMeta"
+          }
         }
       },
       "PersonalizedOpportunitiesListResponse": {
         "type": "object",
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
           "data": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/PersonalizedOpportunityRecord" }
+            "items": {
+              "$ref": "#/components/schemas/PersonalizedOpportunityRecord"
+            }
           },
-          "meta": { "$ref": "#/components/schemas/PersonalizedOpportunitiesListMeta" }
+          "meta": {
+            "$ref": "#/components/schemas/PersonalizedOpportunitiesListMeta"
+          }
         }
       },
       "PositionRecord": {
@@ -900,30 +1492,53 @@
           "assetSymbol",
           "amountRaw",
           "amount",
-          "usdValue"
+          "usdValue",
+          "compatibleExitShapeKeys",
+          "compatibleManageShapeKeys"
         ],
         "properties": {
           "protocol": {
             "type": "string",
-            "enum": ["tinyman", "pact", "folks-finance", "compx", "dorkfi"]
+            "enum": [
+              "tinyman",
+              "pact",
+              "folks-finance",
+              "compx",
+              "dorkfi"
+            ]
           },
           "positionType": {
             "type": "string",
-            "enum": ["supplied", "lp", "staked", "debt", "reward"]
+            "enum": [
+              "supplied",
+              "lp",
+              "staked",
+              "debt",
+              "reward"
+            ]
           },
           "positionId": {
             "type": "string",
             "minLength": 1
           },
           "opportunityId": {
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "assetId": {
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "minimum": 0
           },
           "assetSymbol": {
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "amountRaw": {
             "type": "string",
@@ -934,11 +1549,17 @@
             "pattern": "^[0-9]+(?:\\.[0-9]+)?$"
           },
           "usdValue": {
-            "type": ["number", "null"],
+            "type": [
+              "number",
+              "null"
+            ],
             "minimum": 0
           },
           "healthFactor": {
-            "type": ["number", "null"],
+            "type": [
+              "number",
+              "null"
+            ],
             "minimum": 0,
             "description": "Protocol-reported collateral health ratio when applicable."
           },
@@ -948,66 +1569,151 @@
           },
           "caveats": {
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
           },
-          "notes": { "type": "string" }
+          "notes": {
+            "type": "string"
+          },
+          "compatibleExitShapeKeys": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Exit shape keys compatible with this position. Empty means do not invent keys."
+          },
+          "compatibleManageShapeKeys": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Manage/claim shape keys compatible with this position."
+          }
         }
       },
       "ProtocolPositionResult": {
         "type": "object",
-        "required": ["protocol", "status", "positionCount", "message"],
+        "required": [
+          "protocol",
+          "status",
+          "positionCount",
+          "message"
+        ],
         "properties": {
           "protocol": {
             "type": "string",
-            "enum": ["tinyman", "pact", "folks-finance", "compx", "dorkfi"]
+            "enum": [
+              "tinyman",
+              "pact",
+              "folks-finance",
+              "compx",
+              "dorkfi"
+            ]
           },
           "status": {
             "type": "string",
-            "enum": ["ok", "partial", "unavailable"]
+            "enum": [
+              "ok",
+              "partial",
+              "unavailable"
+            ]
           },
-          "positionCount": { "type": "integer", "minimum": 0 },
-          "message": { "type": ["string", "null"] }
+          "positionCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "WalletPositionsResponse": {
         "type": "object",
-        "required": ["data", "protocols", "totals", "meta"],
+        "required": [
+          "data",
+          "protocols",
+          "totals",
+          "meta"
+        ],
         "properties": {
           "data": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/PositionRecord" }
+            "items": {
+              "$ref": "#/components/schemas/PositionRecord"
+            }
           },
           "protocols": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/ProtocolPositionResult" }
+            "items": {
+              "$ref": "#/components/schemas/ProtocolPositionResult"
+            }
           },
           "totals": {
             "type": "object",
             "description": "Aggregate USD totals. A null value means at least one relevant protocol or position could not be valued completely; null must not be interpreted as zero.",
-            "required": ["suppliedUsd", "borrowedUsd", "rewardsUsd", "netUsd"],
+            "required": [
+              "suppliedUsd",
+              "borrowedUsd",
+              "rewardsUsd",
+              "netUsd"
+            ],
             "properties": {
-              "suppliedUsd": { "type": ["number", "null"] },
-              "borrowedUsd": { "type": ["number", "null"] },
-              "rewardsUsd": { "type": ["number", "null"] },
-              "netUsd": { "type": ["number", "null"] }
+              "suppliedUsd": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "borrowedUsd": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "rewardsUsd": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "netUsd": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
             }
           },
           "meta": {
             "type": "object",
-            "required": ["address", "fetchedAt"],
+            "required": [
+              "address",
+              "fetchedAt"
+            ],
             "properties": {
               "address": {
                 "type": "string",
                 "description": "Algorand address whose positions were queried."
               },
-              "fetchedAt": { "type": "string", "format": "date-time" }
+              "fetchedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
             }
           }
         }
       },
       "ExecutionQuoteInput": {
         "type": "object",
-        "required": ["userAddress"],
+        "required": [
+          "userAddress"
+        ],
         "properties": {
           "userAddress": {
             "type": "string",
@@ -1063,7 +1769,10 @@
           },
           "amountDenomination": {
             "type": "string",
-            "enum": ["asset", "fAsset"],
+            "enum": [
+              "asset",
+              "fAsset"
+            ],
             "description": "Whether Folks withdraw amount is expressed in underlying asset or fAsset units."
           },
           "includeOpUp": {
@@ -1082,62 +1791,128 @@
       },
       "ExecutionQuoteRequest": {
         "type": "object",
-        "required": ["shapeKey", "input"],
+        "required": [
+          "quotes"
+        ],
         "properties": {
-          "shapeKey": {
-            "type": "string",
-            "description": "Registered transaction shape key.",
-            "example": "mainnet:tinyman:v2:addLiquidity:flexible"
-          },
-          "input": { "$ref": "#/components/schemas/ExecutionQuoteInput" }
+          "quotes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/ExecutionQuoteItem"
+            },
+            "description": "One or more independent quote requests. Each item compiles to its own unsigned transaction group; groups are never merged. Price is flat per request (not per item)."
+          }
         }
       },
       "SerializedTransaction": {
         "type": "object",
-        "required": ["type", "sender", "fee", "groupPresent"],
+        "required": [
+          "type",
+          "sender",
+          "fee",
+          "groupPresent"
+        ],
         "properties": {
-          "type": { "type": "string" },
-          "sender": { "type": "string" },
-          "fee": { "type": "string" },
-          "groupPresent": { "type": "boolean" },
+          "type": {
+            "type": "string"
+          },
+          "sender": {
+            "type": "string"
+          },
+          "fee": {
+            "type": "string"
+          },
+          "groupPresent": {
+            "type": "boolean"
+          },
           "payment": {
             "type": "object",
             "properties": {
-              "receiver": { "type": "string" },
-              "amount": { "type": "string" },
-              "closeRemainderTo": { "type": "string" }
+              "receiver": {
+                "type": "string"
+              },
+              "amount": {
+                "type": "string"
+              },
+              "closeRemainderTo": {
+                "type": "string"
+              }
             }
           },
           "assetTransfer": {
             "type": "object",
             "properties": {
-              "assetIndex": { "type": "string" },
-              "amount": { "type": "string" },
-              "receiver": { "type": "string" },
-              "assetSender": { "type": "string" },
-              "closeRemainderTo": { "type": "string" }
+              "assetIndex": {
+                "type": "string"
+              },
+              "amount": {
+                "type": "string"
+              },
+              "receiver": {
+                "type": "string"
+              },
+              "assetSender": {
+                "type": "string"
+              },
+              "closeRemainderTo": {
+                "type": "string"
+              }
             }
           },
           "applicationCall": {
             "type": "object",
             "properties": {
-              "appIndex": { "type": "string" },
-              "onComplete": { "type": "integer" },
-              "appArgsBase64": { "type": "array", "items": { "type": "string" } },
+              "appIndex": {
+                "type": "string"
+              },
+              "onComplete": {
+                "type": "integer"
+              },
+              "appArgsBase64": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
               "appArgsText": {
                 "type": "array",
-                "items": { "type": ["string", "null"] }
+                "items": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
               },
-              "accounts": { "type": "array", "items": { "type": "string" } },
-              "foreignApps": { "type": "array", "items": { "type": "string" } },
-              "foreignAssets": { "type": "array", "items": { "type": "string" } },
+              "accounts": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "foreignApps": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "foreignAssets": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
               "boxes": {
                 "type": "array",
                 "items": {
                   "type": "object",
                   "properties": {
-                    "appIndex": { "type": "string" },
-                    "nameBase64": { "type": "string" }
+                    "appIndex": {
+                      "type": "string"
+                    },
+                    "nameBase64": {
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -1159,24 +1934,56 @@
           "metadata"
         ],
         "properties": {
-          "shapeKey": { "type": "string" },
-          "shapeVersion": { "type": "string" },
+          "shapeKey": {
+            "type": "string"
+          },
+          "shapeVersion": {
+            "type": "string"
+          },
           "identity": {
             "type": "object",
-            "required": ["network", "protocol", "protocolVersion", "action", "variant"],
+            "required": [
+              "network",
+              "protocol",
+              "protocolVersion",
+              "action",
+              "variant"
+            ],
             "properties": {
-              "network": { "type": "string", "enum": ["mainnet", "testnet"] },
-              "protocol": { "type": "string" },
-              "protocolVersion": { "type": "string" },
-              "action": { "type": "string" },
-              "variant": { "type": "string" }
+              "network": {
+                "type": "string",
+                "enum": [
+                  "mainnet",
+                  "testnet"
+                ]
+              },
+              "protocol": {
+                "type": "string"
+              },
+              "protocolVersion": {
+                "type": "string"
+              },
+              "action": {
+                "type": "string"
+              },
+              "variant": {
+                "type": "string"
+              }
             }
           },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "expiresAt": { "type": "string", "format": "date-time" },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
           "transactions": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/SerializedTransaction" }
+            "items": {
+              "$ref": "#/components/schemas/SerializedTransaction"
+            }
           },
           "encodedTransactions": {
             "type": "array",
@@ -1185,21 +1992,57 @@
               "description": "Base64-encoded unsigned Algorand transaction (msgpack)."
             }
           },
-          "warnings": { "type": "array", "items": { "type": "string" } },
-          "metadata": { "type": "object", "additionalProperties": true }
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true
+          }
         }
       },
       "ExecutionQuoteResponse": {
         "type": "object",
-        "required": ["data", "meta"],
+        "required": [
+          "data",
+          "meta"
+        ],
         "properties": {
-          "data": { "$ref": "#/components/schemas/ExecutableQuote" },
+          "data": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/ExecutableQuote"
+            },
+            "description": "Compiled quotes in the same order as request.quotes."
+          },
           "meta": {
             "type": "object",
-            "required": ["paymentRequired", "executionSubmitted"],
+            "required": [
+              "paymentRequired",
+              "executionSubmitted",
+              "quoteCount"
+            ],
             "properties": {
-              "paymentRequired": { "type": "boolean", "enum": [true] },
-              "executionSubmitted": { "type": "boolean", "enum": [false] }
+              "paymentRequired": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
+              },
+              "executionSubmitted": {
+                "type": "boolean",
+                "enum": [
+                  false
+                ]
+              },
+              "quoteCount": {
+                "type": "integer",
+                "minimum": 1
+              }
             }
           }
         }
@@ -1207,14 +2050,22 @@
       "AlgorandBaseUnitAmount": {
         "description": "Positive integer amount in the asset's base units. A decimal string is preferred to preserve precision.",
         "oneOf": [
-          { "type": "string", "pattern": "^[1-9][0-9]*$" },
-          { "type": "integer", "minimum": 1 }
+          {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          {
+            "type": "integer",
+            "minimum": 1
+          }
         ]
       },
       "PricingRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["assetIds"],
+        "required": [
+          "assetIds"
+        ],
         "properties": {
           "assetIds": {
             "type": "array",
@@ -1230,34 +2081,70 @@
       },
       "TokenPrice": {
         "type": "object",
-        "required": ["assetId", "priceUsd"],
+        "required": [
+          "assetId",
+          "priceUsd"
+        ],
         "properties": {
-          "assetId": { "type": "string", "pattern": "^[0-9]+$" },
-          "priceUsd": { "type": ["number", "null"], "minimum": 0 }
+          "assetId": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "priceUsd": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          }
         }
       },
       "PricingResponse": {
         "type": "object",
-        "required": ["data", "meta"],
+        "required": [
+          "data",
+          "meta"
+        ],
         "properties": {
           "data": {
             "type": "object",
-            "required": ["prices", "source", "fetchedAt"],
+            "required": [
+              "prices",
+              "source",
+              "fetchedAt"
+            ],
             "properties": {
               "prices": {
                 "type": "array",
-                "items": { "$ref": "#/components/schemas/TokenPrice" }
+                "items": {
+                  "$ref": "#/components/schemas/TokenPrice"
+                }
               },
-              "source": { "type": "string", "const": "compx" },
-              "fetchedAt": { "type": "string", "format": "date-time" }
+              "source": {
+                "type": "string",
+                "const": "compx"
+              },
+              "fetchedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
             }
           },
           "meta": {
             "type": "object",
-            "required": ["paymentRequired", "executionSubmitted"],
+            "required": [
+              "paymentRequired",
+              "executionSubmitted"
+            ],
             "properties": {
-              "paymentRequired": { "type": "boolean", "const": false },
-              "executionSubmitted": { "type": "boolean", "const": false }
+              "paymentRequired": {
+                "type": "boolean",
+                "const": false
+              },
+              "executionSubmitted": {
+                "type": "boolean",
+                "const": false
+              }
             }
           }
         }
@@ -1265,7 +2152,12 @@
       "HaystackSwapQuoteRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["address", "fromAssetId", "toAssetId", "amount"],
+        "required": [
+          "address",
+          "fromAssetId",
+          "toAssetId",
+          "amount"
+        ],
         "properties": {
           "address": {
             "type": "string",
@@ -1274,28 +2166,52 @@
           "fromAssetId": {
             "description": "Input ASA id; use 0 for ALGO.",
             "oneOf": [
-              { "type": "integer", "minimum": 0 },
-              { "type": "string", "pattern": "^[0-9]+$" }
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              }
             ]
           },
           "toAssetId": {
             "description": "Output ASA id; use 0 for ALGO.",
             "oneOf": [
-              { "type": "integer", "minimum": 0 },
-              { "type": "string", "pattern": "^[0-9]+$" }
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              }
             ]
           },
-          "amount": { "$ref": "#/components/schemas/AlgorandBaseUnitAmount" },
+          "amount": {
+            "$ref": "#/components/schemas/AlgorandBaseUnitAmount"
+          },
           "type": {
             "type": "string",
-            "enum": ["fixed-input", "fixed-output"],
+            "enum": [
+              "fixed-input",
+              "fixed-output"
+            ],
             "default": "fixed-input"
           },
           "disabledProtocols": {
             "type": "array",
             "items": {
               "type": "string",
-              "enum": ["TinymanV2", "Algofi", "Algomint", "Pact", "Folks", "TAlgo"]
+              "enum": [
+                "TinymanV2",
+                "Algofi",
+                "Algomint",
+                "Pact",
+                "Folks",
+                "TAlgo"
+              ]
             },
             "uniqueItems": true
           },
@@ -1314,11 +2230,21 @@
         }
       },
       "HaystackTransactionPayload": {
-        "type": ["object", "null"],
-        "required": ["iv", "data"],
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "iv",
+          "data"
+        ],
         "properties": {
-          "iv": { "type": "string" },
-          "data": { "type": "string" }
+          "iv": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
+          }
         }
       },
       "HaystackSwapQuote": {
@@ -1340,13 +2266,27 @@
           "protocolFees"
         ],
         "properties": {
-          "address": { "type": "string" },
-          "fromAssetId": { "type": "string", "pattern": "^[0-9]+$" },
-          "toAssetId": { "type": "string", "pattern": "^[0-9]+$" },
-          "amount": { "type": "string", "pattern": "^[1-9][0-9]*$" },
+          "address": {
+            "type": "string"
+          },
+          "fromAssetId": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "toAssetId": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
           "type": {
             "type": "string",
-            "enum": ["fixed-input", "fixed-output"]
+            "enum": [
+              "fixed-input",
+              "fixed-output"
+            ]
           },
           "quotedAmount": {
             "type": "string",
@@ -1362,36 +2302,77 @@
             "format": "date-time",
             "description": "Reject the quote after this time and fetch a fresh one."
           },
-          "priceBaseline": { "type": "number" },
-          "userPriceImpact": { "type": "number" },
-          "marketPriceImpact": { "type": "number" },
-          "usdIn": { "type": "number" },
-          "usdOut": { "type": "number" },
-          "route": { "type": "array", "items": { "type": "object" } },
-          "quotes": { "type": "array", "items": { "type": "object" } },
+          "priceBaseline": {
+            "type": "number"
+          },
+          "userPriceImpact": {
+            "type": "number"
+          },
+          "marketPriceImpact": {
+            "type": "number"
+          },
+          "usdIn": {
+            "type": "number"
+          },
+          "usdOut": {
+            "type": "number"
+          },
+          "route": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "quotes": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
           "requiredAppOptIns": {
             "type": "array",
-            "items": { "type": "string", "pattern": "^[1-9][0-9]*$" }
+            "items": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$"
+            }
           },
-          "txnPayload": { "$ref": "#/components/schemas/HaystackTransactionPayload" },
+          "txnPayload": {
+            "$ref": "#/components/schemas/HaystackTransactionPayload"
+          },
           "protocolFees": {
             "type": "object",
-            "additionalProperties": { "type": "number" }
+            "additionalProperties": {
+              "type": "number"
+            }
           }
         },
         "additionalProperties": true
       },
       "HaystackSwapQuoteResponse": {
         "type": "object",
-        "required": ["data", "meta"],
+        "required": [
+          "data",
+          "meta"
+        ],
         "properties": {
-          "data": { "$ref": "#/components/schemas/HaystackSwapQuote" },
+          "data": {
+            "$ref": "#/components/schemas/HaystackSwapQuote"
+          },
           "meta": {
             "type": "object",
-            "required": ["paymentRequired", "executionSubmitted"],
+            "required": [
+              "paymentRequired",
+              "executionSubmitted"
+            ],
             "properties": {
-              "paymentRequired": { "type": "boolean", "const": false },
-              "executionSubmitted": { "type": "boolean", "const": false }
+              "paymentRequired": {
+                "type": "boolean",
+                "const": false
+              },
+              "executionSubmitted": {
+                "type": "boolean",
+                "const": false
+              }
             }
           }
         }
@@ -1399,19 +2380,34 @@
       "HaystackSwapOptInRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["address", "quote"],
+        "required": [
+          "address",
+          "quote"
+        ],
         "properties": {
-          "address": { "type": "string" },
-          "quote": { "$ref": "#/components/schemas/HaystackSwapQuote" }
+          "address": {
+            "type": "string"
+          },
+          "quote": {
+            "$ref": "#/components/schemas/HaystackSwapQuote"
+          }
         }
       },
       "HaystackSwapTransactionsRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["address", "quote", "slippage"],
+        "required": [
+          "address",
+          "quote",
+          "slippage"
+        ],
         "properties": {
-          "address": { "type": "string" },
-          "quote": { "$ref": "#/components/schemas/HaystackSwapQuote" },
+          "address": {
+            "type": "string"
+          },
+          "quote": {
+            "$ref": "#/components/schemas/HaystackSwapQuote"
+          },
           "slippage": {
             "type": "number",
             "minimum": 0,
@@ -1422,9 +2418,16 @@
       },
       "WalletlessTransaction": {
         "type": "object",
-        "required": ["index", "encodedTransaction", "signer"],
+        "required": [
+          "index",
+          "encodedTransaction",
+          "signer"
+        ],
         "properties": {
-          "index": { "type": "integer", "minimum": 0 },
+          "index": {
+            "type": "integer",
+            "minimum": 0
+          },
           "encodedTransaction": {
             "type": "string",
             "contentEncoding": "base64",
@@ -1437,137 +2440,301 @@
           },
           "signer": {
             "type": "string",
-            "enum": ["user", "haystack"],
+            "enum": [
+              "user",
+              "haystack"
+            ],
             "description": "Who supplies the signature for this group member."
           }
         }
       },
       "HaystackOptInTransaction": {
         "type": "object",
-        "required": ["index", "kind", "encodedTransaction", "signer"],
+        "required": [
+          "index",
+          "kind",
+          "encodedTransaction",
+          "signer"
+        ],
         "properties": {
-          "index": { "type": "integer", "minimum": 0 },
+          "index": {
+            "type": "integer",
+            "minimum": 0
+          },
           "kind": {
             "type": "string",
-            "enum": ["asset-opt-in", "application-opt-in"]
+            "enum": [
+              "asset-opt-in",
+              "application-opt-in"
+            ]
           },
           "encodedTransaction": {
             "type": "string",
             "contentEncoding": "base64"
           },
-          "signer": { "type": "string", "const": "user" },
-          "assetId": { "type": "string", "pattern": "^[1-9][0-9]*$" },
-          "appId": { "type": "string", "pattern": "^[1-9][0-9]*$" }
+          "signer": {
+            "type": "string",
+            "const": "user"
+          },
+          "assetId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "appId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          }
         }
       },
       "WalletlessTransactionGroup": {
         "type": "object",
-        "required": ["transactions", "userSignIndexes", "createdAt", "quoteExpiresAt"],
+        "required": [
+          "transactions",
+          "userSignIndexes",
+          "createdAt",
+          "quoteExpiresAt"
+        ],
         "properties": {
           "transactions": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/WalletlessTransaction" },
+            "items": {
+              "$ref": "#/components/schemas/WalletlessTransaction"
+            },
             "description": "Atomic-group order. Do not reorder members."
           },
           "userSignIndexes": {
             "type": "array",
-            "items": { "type": "integer", "minimum": 0 },
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            },
             "description": "Indexes the caller wallet must sign. Preserve Haystack-signed members unchanged."
           },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "quoteExpiresAt": { "type": "string", "format": "date-time" }
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "quoteExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "HaystackSwapOptInResponse": {
         "type": "object",
-        "required": ["data", "meta"],
+        "required": [
+          "data",
+          "meta"
+        ],
         "properties": {
           "data": {
             "type": "object",
-            "required": ["required", "transactions", "userSignIndexes", "createdAt", "expiresAt"],
+            "required": [
+              "required",
+              "transactions",
+              "userSignIndexes",
+              "createdAt",
+              "expiresAt"
+            ],
             "properties": {
-              "required": { "type": "boolean" },
+              "required": {
+                "type": "boolean"
+              },
               "transactions": {
                 "type": "array",
-                "items": { "$ref": "#/components/schemas/HaystackOptInTransaction" }
+                "items": {
+                  "$ref": "#/components/schemas/HaystackOptInTransaction"
+                }
               },
               "userSignIndexes": {
                 "type": "array",
-                "items": { "type": "integer", "minimum": 0 }
+                "items": {
+                  "type": "integer",
+                  "minimum": 0
+                }
               },
-              "createdAt": { "type": "string", "format": "date-time" },
-              "expiresAt": { "type": "string", "format": "date-time" }
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time"
+              }
             }
           },
           "meta": {
             "type": "object",
-            "required": ["paymentRequired", "executionSubmitted"],
+            "required": [
+              "paymentRequired",
+              "executionSubmitted"
+            ],
             "properties": {
-              "paymentRequired": { "type": "boolean", "const": false },
-              "executionSubmitted": { "type": "boolean", "const": false }
+              "paymentRequired": {
+                "type": "boolean",
+                "const": false
+              },
+              "executionSubmitted": {
+                "type": "boolean",
+                "const": false
+              }
             }
           }
         }
       },
       "HaystackSwapTransactionsResponse": {
         "type": "object",
-        "required": ["data", "meta"],
+        "required": [
+          "data",
+          "meta"
+        ],
         "properties": {
-          "data": { "$ref": "#/components/schemas/WalletlessTransactionGroup" },
+          "data": {
+            "$ref": "#/components/schemas/WalletlessTransactionGroup"
+          },
           "meta": {
             "type": "object",
-            "required": ["paymentRequired", "executionSubmitted"],
+            "required": [
+              "paymentRequired",
+              "executionSubmitted"
+            ],
             "properties": {
-              "paymentRequired": { "type": "boolean", "const": true },
-              "executionSubmitted": { "type": "boolean", "const": false }
+              "paymentRequired": {
+                "type": "boolean",
+                "const": true
+              },
+              "executionSubmitted": {
+                "type": "boolean",
+                "const": false
+              }
             }
           }
         }
       },
       "HealthResponse": {
         "type": "object",
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
           "data": {
             "type": "object",
-            "required": ["service", "status"],
+            "required": [
+              "service",
+              "status"
+            ],
             "properties": {
-              "service": { "type": "string", "enum": ["canix402"] },
-              "status": { "type": "string", "enum": ["ok"] }
+              "service": {
+                "type": "string",
+                "enum": [
+                  "canix402"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ok"
+                ]
+              }
             }
           }
         }
       },
       "EndpointPolicyEntry": {
         "type": "object",
-        "required": ["id", "method", "pathPattern", "access", "summary", "tags"],
+        "required": [
+          "id",
+          "method",
+          "pathPattern",
+          "access",
+          "summary",
+          "tags"
+        ],
         "properties": {
-          "id": { "type": "string" },
-          "method": { "type": "string", "enum": ["GET", "POST"] },
-          "pathPattern": { "type": "string" },
-          "access": { "type": "string", "enum": ["free", "paid"] },
-          "summary": { "type": "string" },
-          "description": { "type": "string" },
-          "tags": { "type": "array", "items": { "type": "string" } },
-          "pathParams": { "type": "array", "items": { "type": "string" } },
-          "queryParams": { "type": "array", "items": { "type": "string" } },
-          "priceUsdc": { "type": "string" }
+          "id": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "GET",
+              "POST"
+            ]
+          },
+          "pathPattern": {
+            "type": "string"
+          },
+          "access": {
+            "type": "string",
+            "enum": [
+              "free",
+              "paid"
+            ]
+          },
+          "summary": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pathParams": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "queryParams": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "priceUsdc": {
+            "type": "string"
+          }
         }
       },
       "MetadataResponse": {
         "type": "object",
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
           "data": {
             "type": "object",
-            "required": ["service", "environment", "supportedProtocols", "endpointPolicy"],
+            "required": [
+              "service",
+              "environment",
+              "supportedProtocols",
+              "endpointPolicy"
+            ],
             "properties": {
-              "service": { "type": "string", "enum": ["canix402"] },
-              "environment": { "type": "string" },
-              "supportedProtocols": { "type": "array", "items": { "type": "string" } },
+              "service": {
+                "type": "string",
+                "enum": [
+                  "canix402"
+                ]
+              },
+              "environment": {
+                "type": "string"
+              },
+              "supportedProtocols": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
               "endpointPolicy": {
                 "type": "array",
-                "items": { "$ref": "#/components/schemas/EndpointPolicyEntry" }
+                "items": {
+                  "$ref": "#/components/schemas/EndpointPolicyEntry"
+                }
               }
             }
           }
@@ -1575,7 +2742,9 @@
       },
       "DiscoveryResponse": {
         "type": "object",
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
           "data": {
             "type": "object",
@@ -1589,14 +2758,184 @@
               "errorCatalog"
             ],
             "properties": {
-              "service": { "type": "string", "enum": ["canix402"] },
-              "apiVersion": { "type": "string" },
-              "discoveryVersion": { "type": "string" },
-              "capabilities": { "type": "array", "items": { "type": "string" } },
-              "x402ProtocolVersion": { "type": "integer", "enum": [2] },
-              "endpoints": { "type": "array", "items": { "type": "object" } },
-              "errorCatalog": { "type": "array", "items": { "type": "object" } }
+              "service": {
+                "type": "string",
+                "enum": [
+                  "canix402"
+                ]
+              },
+              "apiVersion": {
+                "type": "string"
+              },
+              "discoveryVersion": {
+                "type": "string"
+              },
+              "capabilities": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "x402ProtocolVersion": {
+                "type": "integer",
+                "enum": [
+                  2
+                ]
+              },
+              "endpoints": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
+              "errorCatalog": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
             }
+          }
+        }
+      },
+      "OpportunityExecutionInputHints": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Allowlisted selector hints derived from the opportunity. Amounts never appear.",
+        "properties": {
+          "assetId": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "assetAId": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "assetBId": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "depositAssetId": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "poolAppId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "marketAppId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "poolId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "programId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "liquidityAssetId": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "escrowAddress": {
+            "type": "string",
+            "minLength": 58,
+            "maxLength": 58
+          }
+        }
+      },
+      "OpportunityExecutionShape": {
+        "type": "object",
+        "required": [
+          "shapeKey",
+          "protocol",
+          "protocolVersion",
+          "action",
+          "variant",
+          "title",
+          "summary",
+          "order",
+          "requiredInputs",
+          "requiredAssetIds"
+        ],
+        "properties": {
+          "shapeKey": {
+            "type": "string",
+            "minLength": 1
+          },
+          "protocol": {
+            "type": "string",
+            "minLength": 1
+          },
+          "protocolVersion": {
+            "type": "string",
+            "minLength": 1
+          },
+          "action": {
+            "type": "string",
+            "minLength": 1
+          },
+          "variant": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Execution order for multi-step opens. Alternatives share order 0."
+          },
+          "prerequisiteShapeKeys": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Shape keys that must be completed before this step."
+          },
+          "requiredInputs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "requiredAssetIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "ASA ids the wallet must hold (or acquire) before entry. ALGO is 0."
+          },
+          "inputHints": {
+            "$ref": "#/components/schemas/OpportunityExecutionInputHints"
+          }
+        }
+      },
+      "ExecutionQuoteItem": {
+        "type": "object",
+        "required": [
+          "shapeKey",
+          "input"
+        ],
+        "properties": {
+          "shapeKey": {
+            "type": "string",
+            "description": "Registered transaction shape key.",
+            "example": "mainnet:tinyman:v2:addLiquidity:flexible"
+          },
+          "input": {
+            "$ref": "#/components/schemas/ExecutionQuoteInput"
           }
         }
       }
@@ -1607,16 +2946,26 @@
         "headers": {
           "PAYMENT-REQUIRED": {
             "description": "Base64-encoded JSON x402 payment requirements the client must satisfy before retrying.",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         },
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/ApiError" },
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            },
             "examples": {
-              "missingPayment": { "$ref": "#/components/examples/MissingPaymentSignatureError" },
-              "malformedPayment": { "$ref": "#/components/examples/MalformedPaymentSignatureError" },
-              "expiredProof": { "$ref": "#/components/examples/ExpiredPaymentProofError" }
+              "missingPayment": {
+                "$ref": "#/components/examples/MissingPaymentSignatureError"
+              },
+              "malformedPayment": {
+                "$ref": "#/components/examples/MalformedPaymentSignatureError"
+              },
+              "expiredProof": {
+                "$ref": "#/components/examples/ExpiredPaymentProofError"
+              }
             }
           }
         }
@@ -1625,9 +2974,13 @@
         "description": "Request validation failed.",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/ApiError" },
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            },
             "examples": {
-              "invalidAddress": { "$ref": "#/components/examples/InvalidAddressError" }
+              "invalidAddress": {
+                "$ref": "#/components/examples/InvalidAddressError"
+              }
             }
           }
         }
@@ -1636,9 +2989,13 @@
         "description": "Request validation failed.",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/ApiError" },
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            },
             "examples": {
-              "validationError": { "$ref": "#/components/examples/ValidationErrorSample" }
+              "validationError": {
+                "$ref": "#/components/examples/ValidationErrorSample"
+              }
             }
           }
         }
@@ -1647,9 +3004,13 @@
         "description": "Requested resource or shape was not found.",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/ApiError" },
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            },
             "examples": {
-              "shapeNotFound": { "$ref": "#/components/examples/ShapeNotFoundError" }
+              "shapeNotFound": {
+                "$ref": "#/components/examples/ShapeNotFoundError"
+              }
             }
           }
         }
@@ -1658,9 +3019,13 @@
         "description": "Internal error.",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/ApiError" },
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            },
             "examples": {
-              "internalError": { "$ref": "#/components/examples/InternalError" }
+              "internalError": {
+                "$ref": "#/components/examples/InternalError"
+              }
             }
           }
         }
@@ -1669,7 +3034,9 @@
         "description": "The Haystack upstream rate limit was exceeded. Retry after the interval advertised by the response when available.",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/ApiError" }
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
           }
         }
       },
@@ -1677,7 +3044,9 @@
         "description": "Haystack or an Algorand network dependency was unavailable.",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/ApiError" }
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
           }
         }
       }
@@ -1685,7 +3054,12 @@
     "examples": {
       "HealthResponseSample": {
         "summary": "Healthy service",
-        "value": { "data": { "service": "canix402", "status": "ok" } }
+        "value": {
+          "data": {
+            "service": "canix402",
+            "status": "ok"
+          }
+        }
       },
       "MetadataResponseSample": {
         "summary": "Service metadata (endpoint policy trimmed)",
@@ -1693,7 +3067,13 @@
           "data": {
             "service": "canix402",
             "environment": "production",
-            "supportedProtocols": ["tinyman", "pact", "folks-finance", "compx", "dorkfi"],
+            "supportedProtocols": [
+              "tinyman",
+              "pact",
+              "folks-finance",
+              "compx",
+              "dorkfi"
+            ],
             "endpointPolicy": [
               {
                 "id": "opportunities",
@@ -1702,8 +3082,16 @@
                 "access": "paid",
                 "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
                 "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, and Dork.fi. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
-                "tags": ["defi", "opportunities"],
-                "queryParams": ["protocol", "limit", "offset", "includeInactive"]
+                "tags": [
+                  "defi",
+                  "opportunities"
+                ],
+                "queryParams": [
+                  "protocol",
+                  "limit",
+                  "offset",
+                  "includeInactive"
+                ]
               }
             ]
           }
@@ -1733,13 +3121,29 @@
                 "access": "paid",
                 "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
                 "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, and Dork.fi. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
-                "tags": ["defi", "opportunities"],
+                "tags": [
+                  "defi",
+                  "opportunities"
+                ],
                 "pathParams": [],
-                "queryParams": ["protocol", "limit", "offset", "includeInactive"],
-                "responseCodes": [200, 402, 500],
+                "queryParams": [
+                  "protocol",
+                  "limit",
+                  "offset",
+                  "includeInactive"
+                ],
+                "responseCodes": [
+                  200,
+                  402,
+                  500
+                ],
                 "x402": {
                   "protocolVersion": 2,
-                  "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
+                  "requiredHeaders": [
+                    "PAYMENT-REQUIRED",
+                    "PAYMENT-SIGNATURE",
+                    "PAYMENT-RESPONSE"
+                  ],
                   "facilitator": "https://facilitator.goplausible.xyz",
                   "requirementTemplate": {
                     "scheme": "exact",
@@ -1794,7 +3198,10 @@
               "path": "/opportunities",
               "url": "https://canix402-api.compx.io/opportunities",
               "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, and Dork.fi. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
-              "tags": ["defi", "opportunities"],
+              "tags": [
+                "defi",
+                "opportunities"
+              ],
               "price": {
                 "amount": "0.01",
                 "currency": "USDC",
@@ -1803,7 +3210,11 @@
               },
               "x402": {
                 "protocolVersion": 2,
-                "requiredHeaders": ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"],
+                "requiredHeaders": [
+                  "PAYMENT-REQUIRED",
+                  "PAYMENT-SIGNATURE",
+                  "PAYMENT-RESPONSE"
+                ],
                 "facilitator": "https://facilitator.goplausible.xyz",
                 "requirementTemplate": {
                   "scheme": "exact",
@@ -1888,7 +3299,9 @@
               "opportunityType": "lending",
               "opportunityId": "folks:lending:0",
               "assetPair": "ALGO",
-              "assetIds": [0],
+              "assetIds": [
+                0
+              ],
               "apy": 4.25,
               "yieldBasis": "apy",
               "tvlUsd": 1875000.25,
@@ -1900,7 +3313,10 @@
               "opportunityType": "lp",
               "opportunityId": "tinyman:pool:1002541853",
               "assetPair": "ALGO/USDC",
-              "assetIds": [0, 31566704],
+              "assetIds": [
+                0,
+                31566704
+              ],
               "apr": 10.512,
               "apy": 12.5,
               "yieldBasis": "apy",
@@ -2001,292 +3417,381 @@
       "ExecutionQuoteRequestSample": {
         "summary": "Tinyman v2 flexible add-liquidity quote request",
         "value": {
-          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "assetAId": 31566704,
-            "assetAAmount": "1000000",
-            "assetBId": 0,
-            "assetBAmount": "2000000",
-            "maxSlippageBps": 50
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "assetAId": 31566704,
+                "assetAAmount": "1000000",
+                "assetBId": 0,
+                "assetBAmount": "2000000",
+                "maxSlippageBps": 50
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteRemoveLiquidityRequestSample": {
         "summary": "Tinyman v2 remove-liquidity (multiple assets out) quote request",
         "value": {
-          "shapeKey": "mainnet:tinyman:v2:removeLiquidity:multipleAssetsOut",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "assetAId": 31566704,
-            "assetBId": 0,
-            "poolTokenAmount": "500000",
-            "maxSlippageBps": 50
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:tinyman:v2:removeLiquidity:multipleAssetsOut",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "assetAId": 31566704,
+                "assetBId": 0,
+                "poolTokenAmount": "500000",
+                "maxSlippageBps": 50
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteInitialAddLiquidityRequestSample": {
         "summary": "Tinyman v2 initial add-liquidity quote request",
         "value": {
-          "shapeKey": "mainnet:tinyman:v2:addLiquidity:initial",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "assetAId": 31566704,
-            "assetAAmount": "1000000",
-            "assetBId": 0,
-            "assetBAmount": "2000000",
-            "maxSlippageBps": 50
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:tinyman:v2:addLiquidity:initial",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "assetAId": 31566704,
+                "assetAAmount": "1000000",
+                "assetBId": 0,
+                "assetBAmount": "2000000",
+                "maxSlippageBps": 50
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteSingleAssetAddLiquidityRequestSample": {
         "summary": "Tinyman v2 single-asset add-liquidity quote request",
         "value": {
-          "shapeKey": "mainnet:tinyman:v2:addLiquidity:singleAsset",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "assetAId": 31566704,
-            "assetBId": 0,
-            "depositAssetId": 31566704,
-            "depositAmount": "1000000",
-            "maxSlippageBps": 50
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:tinyman:v2:addLiquidity:singleAsset",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "assetAId": 31566704,
+                "assetBId": 0,
+                "depositAssetId": 31566704,
+                "depositAmount": "1000000",
+                "maxSlippageBps": 50
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteSingleAssetOutRemoveLiquidityRequestSample": {
         "summary": "Tinyman v2 remove-liquidity (single asset out) quote request",
         "value": {
-          "shapeKey": "mainnet:tinyman:v2:removeLiquidity:singleAssetOut",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "assetAId": 31566704,
-            "assetBId": 0,
-            "outputAssetId": 31566704,
-            "poolTokenAmount": "500000",
-            "maxSlippageBps": 50
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:tinyman:v2:removeLiquidity:singleAssetOut",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "assetAId": 31566704,
+                "assetBId": 0,
+                "outputAssetId": 31566704,
+                "poolTokenAmount": "500000",
+                "maxSlippageBps": 50
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteFolksSetupDepositEscrowRequestSample": {
         "summary": "Folks Finance v2 add deposit escrow quote request",
         "value": {
-          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteFolksSetupOptEscrowAssetRequestSample": {
         "summary": "Folks Finance v2 opt escrow into pool fAsset quote request",
         "value": {
-          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "escrowAddress": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-            "poolAppId": 971372237
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "escrowAddress": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "poolAppId": 971372237
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteFolksDepositEscrowRequestSample": {
         "summary": "Folks Finance v2 escrow deposit quote request",
         "value": {
-          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "escrowAddress": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-            "poolAppId": 971372237,
-            "assetAmount": "1000000",
-            "poolId": "folks-lending-971372237"
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "escrowAddress": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "poolAppId": 971372237,
+                "assetAmount": "1000000",
+                "poolId": "folks-lending-971372237"
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteFolksWithdrawEscrowRequestSample": {
         "summary": "Folks Finance v2 escrow withdraw quote request",
         "value": {
-          "shapeKey": "mainnet:folks-finance:v2:withdraw:escrow",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "escrowAddress": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-            "poolAppId": 971372237,
-            "amount": "500000",
-            "amountDenomination": "fAsset"
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:folks-finance:v2:withdraw:escrow",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "escrowAddress": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "poolAppId": 971372237,
+                "amount": "500000",
+                "amountDenomination": "fAsset"
+              }
+            }
+          ]
         }
       },
       "ExecutionQuotePactAddLiquidityRequestSample": {
         "summary": "Pact v1 two-sided add-liquidity quote request",
         "value": {
-          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "poolAppId": 1072843805,
-            "assetAId": 31566704,
-            "assetAAmount": "100000",
-            "assetBId": 0,
-            "assetBAmount": "50000",
-            "maxSlippageBps": 50
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "poolAppId": 1072843805,
+                "assetAId": 31566704,
+                "assetAAmount": "100000",
+                "assetBId": 0,
+                "assetBAmount": "50000",
+                "maxSlippageBps": 50
+              }
+            }
+          ]
         }
       },
       "ExecutionQuotePactRemoveLiquidityRequestSample": {
         "summary": "Pact v1 proportional remove-liquidity quote request",
         "value": {
-          "shapeKey": "mainnet:pact:v1:removeLiquidity:proportional",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "poolAppId": 1072843805,
-            "poolTokenAmount": "50000"
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:pact:v1:removeLiquidity:proportional",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "poolAppId": 1072843805,
+                "poolTokenAmount": "50000"
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteCompxDepositAsaRequestSample": {
         "summary": "CompX v1 ASA lending deposit quote request",
         "value": {
-          "shapeKey": "mainnet:compx:v1:deposit:asa",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "marketAppId": 3491050310,
-            "amount": "100000"
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:compx:v1:deposit:asa",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "marketAppId": 3491050310,
+                "amount": "100000"
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteCompxWithdrawAsaRequestSample": {
         "summary": "CompX v1 ASA lending withdraw quote request",
         "value": {
-          "shapeKey": "mainnet:compx:v1:withdraw:asa",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "marketAppId": 3491050310,
-            "amount": "100000"
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:compx:v1:withdraw:asa",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "marketAppId": 3491050310,
+                "amount": "100000"
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteCompxStakeAsaRequestSample": {
         "summary": "CompX v1 ASA staking deposit quote request",
         "value": {
-          "shapeKey": "mainnet:compx:v1:stake:asa",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "poolAppId": 3500000001,
-            "amount": "100000"
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:compx:v1:stake:asa",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "poolAppId": 3500000001,
+                "amount": "100000"
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteCompxUnstakeAsaRequestSample": {
         "summary": "CompX v1 ASA staking withdraw quote request",
         "value": {
-          "shapeKey": "mainnet:compx:v1:unstake:asa",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "poolAppId": 3500000001,
-            "amount": "100000"
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:compx:v1:unstake:asa",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "poolAppId": 3500000001,
+                "amount": "100000"
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteCompxClaimRewardsRequestSample": {
         "summary": "CompX v1 staking reward claim quote request",
         "value": {
-          "shapeKey": "mainnet:compx:v1:claim:rewards",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "poolAppId": 3500000001
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:compx:v1:claim:rewards",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "poolAppId": 3500000001
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteDorkfiDepositAsaRequestSample": {
         "summary": "Dork.fi v1 ASA lending deposit quote request",
         "value": {
-          "shapeKey": "mainnet:dorkfi:v1:deposit:asa",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "poolAppId": 3333688282,
-            "marketAppId": 3210682240,
-            "assetId": 31566704,
-            "amount": "100000"
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:dorkfi:v1:deposit:asa",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "poolAppId": 3333688282,
+                "marketAppId": 3210682240,
+                "assetId": 31566704,
+                "amount": "100000"
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteDorkfiWithdrawAsaRequestSample": {
         "summary": "Dork.fi v1 ASA lending withdraw quote request",
         "value": {
-          "shapeKey": "mainnet:dorkfi:v1:withdraw:asa",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "poolAppId": 3333688282,
-            "marketAppId": 3210682240,
-            "assetId": 31566704,
-            "amount": "100000"
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:dorkfi:v1:withdraw:asa",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "poolAppId": 3333688282,
+                "marketAppId": 3210682240,
+                "assetId": 31566704,
+                "amount": "100000"
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteHaystackStakeHayRequestSample": {
         "summary": "Haystack v1 HAY staking deposit quote request",
         "value": {
-          "shapeKey": "mainnet:haystack:v1:stake:hay",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "amount": "100000000"
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:haystack:v1:stake:hay",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "amount": "100000000"
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteHaystackUnstakeHayRequestSample": {
         "summary": "Haystack v1 HAY unstake-and-claim quote request",
         "value": {
-          "shapeKey": "mainnet:haystack:v1:unstake:hay",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-            "amount": "100000000"
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:haystack:v1:unstake:hay",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "amount": "100000000"
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteHaystackClaimRewardsRequestSample": {
         "summary": "Haystack v1 staking reward claim quote request",
         "value": {
-          "shapeKey": "mainnet:haystack:v1:claim:rewards",
-          "input": {
-            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
-          }
+          "quotes": [
+            {
+              "shapeKey": "mainnet:haystack:v1:claim:rewards",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+              }
+            }
+          ]
         }
       },
       "ExecutionQuoteResponseSample": {
         "summary": "Unsigned executable quote (transactions trimmed)",
         "value": {
-          "data": {
-            "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
-            "shapeVersion": "1.0.0",
-            "identity": {
-              "network": "mainnet",
-              "protocol": "tinyman",
-              "protocolVersion": "v2",
-              "action": "addLiquidity",
-              "variant": "flexible"
-            },
-            "createdAt": "2026-07-08T20:00:00.000Z",
-            "expiresAt": "2026-07-08T20:00:30.000Z",
-            "transactions": [
-              {
-                "type": "axfer",
-                "sender": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-                "fee": "1000",
-                "groupPresent": true,
-                "assetTransfer": {
-                  "assetIndex": "31566704",
-                  "amount": "1000000",
-                  "receiver": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+          "data": [
+            {
+              "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+              "shapeVersion": "1.0.0",
+              "identity": {
+                "network": "mainnet",
+                "protocol": "tinyman",
+                "protocolVersion": "v2",
+                "action": "addLiquidity",
+                "variant": "flexible"
+              },
+              "createdAt": "2026-07-08T20:00:00.000Z",
+              "expiresAt": "2026-07-08T20:00:30.000Z",
+              "transactions": [
+                {
+                  "type": "axfer",
+                  "sender": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                  "fee": "1000",
+                  "groupPresent": true,
+                  "assetTransfer": {
+                    "assetIndex": "31566704",
+                    "amount": "1000000",
+                    "receiver": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+                  }
                 }
+              ],
+              "encodedTransactions": [
+                "base64-encoded-unsigned-txn"
+              ],
+              "warnings": [],
+              "metadata": {
+                "poolAddress": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "poolTokenId": 900001,
+                "minPoolTokenOut": "1407142"
               }
-            ],
-            "encodedTransactions": ["base64-encoded-unsigned-txn"],
-            "warnings": [],
-            "metadata": {
-              "poolAddress": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-              "poolTokenId": 900001,
-              "minPoolTokenOut": "1407142"
             }
-          },
+          ],
           "meta": {
             "paymentRequired": true,
-            "executionSubmitted": false
+            "executionSubmitted": false,
+            "quoteCount": 1
           }
         }
       },
@@ -2297,6 +3802,33 @@
             "code": "INTERNAL_ERROR",
             "message": "Internal server error."
           }
+        }
+      },
+      "ExecutionQuoteMultiRequestSample": {
+        "summary": "Batch Folks deposit setup + Tinyman LP add (two independent groups)",
+        "value": {
+          "quotes": [
+            {
+              "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "assetId": 31566704,
+                "assetAmount": "1000000",
+                "poolAppId": 971372237
+              }
+            },
+            {
+              "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "assetAId": 31566704,
+                "assetAAmount": "1000000",
+                "assetBId": 0,
+                "assetBAmount": "2000000",
+                "maxSlippageBps": 50
+              }
+            }
+          ]
         }
       }
     }

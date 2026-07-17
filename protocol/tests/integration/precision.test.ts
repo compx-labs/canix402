@@ -7,7 +7,7 @@ import {
   formatDecimalForAgent,
   formatOpportunityForAgent
 } from "../../src/services/precision.js";
-import { OpportunityRecordV1 } from "../../src/types/opportunity.js";
+import { OpportunityMarketRecord } from "../../src/types/opportunity.js";
 
 test("formatDecimalForAgent keeps clean values unchanged", () => {
   assert.equal(formatDecimalForAgent(0.055), 0.055);
@@ -48,7 +48,7 @@ test("default and max precision constants match the agent contract", () => {
 });
 
 test("formatOpportunityForAgent formats apy, apr, and tvlUsd only", () => {
-  const record: OpportunityRecordV1 = {
+  const record: OpportunityMarketRecord = {
     protocol: "folks-finance",
     opportunityType: "lending",
     opportunityId: "folks-lending-42",
@@ -69,10 +69,17 @@ test("formatOpportunityForAgent formats apy, apr, and tvlUsd only", () => {
   assert.equal(formatted.tvlUsd, 275);
   assert.equal(formatted.opportunityId, "folks-lending-42");
   assert.deepEqual(formatted.assetIds, [0]);
+  assert.equal(formatted.executionReady, true);
+  assert.ok(formatted.executionShapes.length >= 3);
+  assert.equal(formatted.executionShapes[0]?.order, 0);
+  assert.equal(
+    formatted.executionShapes[2]?.prerequisiteShapeKeys?.[0],
+    "mainnet:folks-finance:v2:setup:optEscrowAsset"
+  );
 });
 
 test("formatOpportunityForAgent omits apr when absent", () => {
-  const record: OpportunityRecordV1 = {
+  const record: OpportunityMarketRecord = {
     protocol: "tinyman",
     opportunityType: "lp",
     opportunityId: "x:lp",
@@ -88,4 +95,9 @@ test("formatOpportunityForAgent omits apr when absent", () => {
 
   assert.equal("apr" in formatted, false);
   assert.equal(formatted.apy, 1.234568);
+  assert.equal(formatted.executionReady, true);
+  assert.equal(formatted.executionShapes.length, 3);
+  assert.ok(
+    formatted.executionShapes.every((shape) => shape.order === 0)
+  );
 });

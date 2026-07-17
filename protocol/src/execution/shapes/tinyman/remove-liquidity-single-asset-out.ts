@@ -113,6 +113,7 @@ export const tinymanRemoveLiquiditySingleAssetOutShape: TransactionShapeSpec<
     "pool asset via an internal swap. Generates the documented 2-transaction group " +
     "(pool token transfer, remove_liquidity app call) as unsigned transactions.",
   supportedOpportunityTypes: ["lp"],
+  opportunityRole: "exit",
   requiredInputs: [
     "userAddress",
     "assetAId",

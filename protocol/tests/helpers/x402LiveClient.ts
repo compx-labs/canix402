@@ -115,10 +115,11 @@ export interface FetchPaidExecutionQuoteInput {
 }
 
 export interface ExecutionQuoteResponse {
-  data: ExecutableQuote;
+  data: ExecutableQuote[];
   meta: {
     paymentRequired: boolean;
     executionSubmitted: boolean;
+    quoteCount: number;
   };
 }
 
@@ -375,16 +376,25 @@ export async function fetchPaidExecutionQuote(
     path: "/execution/quotes",
     method: "POST",
     body: {
-      shapeKey: input.shapeKey,
-      input: input.input
+      quotes: [
+        {
+          shapeKey: input.shapeKey,
+          input: input.input
+        }
+      ]
     },
     clientMnemonic: input.clientMnemonic,
     algodUrl: input.algodUrl
   });
 
   const parsed = result.body as Partial<ExecutionQuoteResponse>;
-  if (typeof parsed !== "object" || parsed === null || parsed.data === undefined) {
-    throw new Error("/execution/quotes: paid response missing data quote.");
+  if (
+    typeof parsed !== "object" ||
+    parsed === null ||
+    !Array.isArray(parsed.data) ||
+    parsed.data.length < 1
+  ) {
+    throw new Error("/execution/quotes: paid response missing data quotes array.");
   }
   if (parsed.meta?.executionSubmitted !== false) {
     throw new Error("/execution/quotes: expected meta.executionSubmitted to be false.");

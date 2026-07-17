@@ -2,12 +2,25 @@ import { ShapeBuildError, ShapeNotFoundError, ShapeStateError, ShapeValidationEr
 import {
   DEFAULT_QUOTE_TTL_MS,
   ExecutableQuote,
+  OpportunityRole,
   ShapeBuildContext,
   TransactionShapeKey,
   TransactionShapeSpec,
   encodeUnsignedTransactionBase64,
   serializeTransaction
 } from "./types.js";
+
+/**
+ * Map wallet position types onto opportunity types used by shape specs.
+ * `staked` matches both staking and farm shapes; callers filter by role.
+ */
+const POSITION_TYPE_TO_OPPORTUNITY_TYPES: Record<string, readonly string[]> = {
+  lp: ["lp"],
+  staked: ["staking", "farm"],
+  supplied: ["lending"],
+  reward: ["staking", "farm", "lending"],
+  debt: []
+};
 
 /**
  * In-memory registry of verified transaction-shape specs. This is the single
@@ -46,6 +59,43 @@ export class TransactionShapeRegistry {
 
   public keys(): TransactionShapeKey[] {
     return [...this.shapes.keys()];
+  }
+
+  /**
+   * Enter shapes for a protocol + opportunity type. Ordering/prerequisites are
+   * applied by the opportunity enricher (e.g. Folks multi-step opens).
+   */
+  public listForOpportunity(
+    protocol: string,
+    opportunityType: string
+  ): TransactionShapeSpec[] {
+    return this.list().filter(
+      (shape) =>
+        shape.identity.protocol === protocol &&
+        shape.opportunityRole === "enter" &&
+        shape.supportedOpportunityTypes.includes(opportunityType)
+    );
+  }
+
+  /**
+   * Exit and manage shapes compatible with a wallet position type.
+   */
+  public listForPosition(
+    protocol: string,
+    positionType: string,
+    roles: readonly OpportunityRole[] = ["exit", "manage"]
+  ): TransactionShapeSpec[] {
+    const opportunityTypes = POSITION_TYPE_TO_OPPORTUNITY_TYPES[positionType] ?? [];
+    if (opportunityTypes.length === 0) {
+      return [];
+    }
+    const roleSet = new Set(roles);
+    return this.list().filter(
+      (shape) =>
+        shape.identity.protocol === protocol &&
+        roleSet.has(shape.opportunityRole) &&
+        shape.supportedOpportunityTypes.some((type) => opportunityTypes.includes(type))
+    );
   }
 }
 

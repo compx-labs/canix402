@@ -77,6 +77,7 @@ export const haystackClaimRewardsShape: TransactionShapeSpec<
     "Claims accrued USDC and HAY staking rewards via claim()(uint64,uint64). Prefixes a USDC " +
     "opt-in transfer when the user is not yet opted into USDC.",
   supportedOpportunityTypes: ["staking"],
+  opportunityRole: "manage",
   requiredInputs: ["userAddress"],
   sources: [
     {

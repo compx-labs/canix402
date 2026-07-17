@@ -128,7 +128,7 @@ async function runLendingDeposit(): Promise<{ nTokenMinted: bigint }> {
 
   assert.equal(quoteResponse.meta.paymentRequired, true);
   const signed = signEncodedTransactionGroup(
-    quoteResponse.data.encodedTransactions,
+    quoteResponse.data[0].encodedTransactions,
     account.sk
   );
   await submitTransactionGroup(algod, signed);
@@ -195,7 +195,7 @@ test("Dork.fi production lending withdraw", async (t) => {
   });
 
   const signed = signEncodedTransactionGroup(
-    quoteResponse.data.encodedTransactions,
+    quoteResponse.data[0].encodedTransactions,
     account.sk
   );
   await submitTransactionGroup(algod, signed);
@@ -244,7 +244,7 @@ test("Dork.fi production lending roundtrip", async (t) => {
   });
 
   const signed = signEncodedTransactionGroup(
-    quoteResponse.data.encodedTransactions,
+    quoteResponse.data[0].encodedTransactions,
     account.sk
   );
   await submitTransactionGroup(algod, signed);

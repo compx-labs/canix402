@@ -1,4 +1,8 @@
-import { OpportunityRecordV1 } from "../types/opportunity.js";
+import type {
+  OpportunityMarketRecord,
+  OpportunityRecordV1
+} from "../types/opportunity.js";
+import { attachExecutionShapesToOpportunity } from "./opportunity-execution-shapes.js";
 
 // Agents receive a bounded-precision view of yield/USD figures. The standard is
 // 6 decimal places (the common Algorand ASA decimal count), but we allow up to
@@ -27,18 +31,25 @@ export function formatDecimalForAgent(
 }
 
 export function formatOpportunityForAgent(
-  record: OpportunityRecordV1
+  record: OpportunityMarketRecord | OpportunityRecordV1
 ): OpportunityRecordV1 {
+  const withShapes =
+    "executionShapes" in record && Array.isArray(record.executionShapes)
+      ? (record as OpportunityRecordV1)
+      : attachExecutionShapesToOpportunity(record as OpportunityMarketRecord);
+
   return {
-    ...record,
-    apy: formatDecimalForAgent(record.apy),
-    tvlUsd: formatDecimalForAgent(record.tvlUsd),
-    ...(record.apr !== undefined ? { apr: formatDecimalForAgent(record.apr) } : {})
+    ...withShapes,
+    apy: formatDecimalForAgent(withShapes.apy),
+    tvlUsd: formatDecimalForAgent(withShapes.tvlUsd),
+    ...(withShapes.apr !== undefined
+      ? { apr: formatDecimalForAgent(withShapes.apr) }
+      : {})
   };
 }
 
 export function formatOpportunitiesForAgent(
-  records: readonly OpportunityRecordV1[]
+  records: readonly (OpportunityMarketRecord | OpportunityRecordV1)[]
 ): OpportunityRecordV1[] {
   return records.map(formatOpportunityForAgent);
 }

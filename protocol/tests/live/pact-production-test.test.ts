@@ -121,10 +121,10 @@ async function runTwoSidedAddLiquidity(): Promise<{
 
   assert.equal(quoteResponse.meta.paymentRequired, true);
   assert.equal(quoteResponse.meta.executionSubmitted, false);
-  assert.equal(quoteResponse.data.shapeKey, TWO_SIDED_ADD_SHAPE);
+  assert.equal(quoteResponse.data[0].shapeKey, TWO_SIDED_ADD_SHAPE);
 
   const signed = signEncodedTransactionGroup(
-    quoteResponse.data.encodedTransactions,
+    quoteResponse.data[0].encodedTransactions,
     account.sk
   );
   const submission = await submitTransactionGroup(algod, signed);
@@ -177,10 +177,10 @@ async function runProportionalRemoveLiquidity(params: {
 
   assert.equal(quoteResponse.meta.paymentRequired, true);
   assert.equal(quoteResponse.meta.executionSubmitted, false);
-  assert.equal(quoteResponse.data.shapeKey, PROPORTIONAL_REMOVE_SHAPE);
+  assert.equal(quoteResponse.data[0].shapeKey, PROPORTIONAL_REMOVE_SHAPE);
 
   const signed = signEncodedTransactionGroup(
-    quoteResponse.data.encodedTransactions,
+    quoteResponse.data[0].encodedTransactions,
     account.sk
   );
   const submission = await submitTransactionGroup(algod, signed);

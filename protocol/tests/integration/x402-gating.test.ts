@@ -139,15 +139,19 @@ test("execution quote route requires payment signature", async () => {
     method: "POST",
     url: "/execution/quotes",
     payload: {
-      shapeKey: "mainnet:tinyman:v2:addLiquidity:flexible",
-      input: {
-        userAddress: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-        assetAId: 31566704,
-        assetAAmount: "1000000",
-        assetBId: 0,
-        assetBAmount: "2000000",
-        maxSlippageBps: 50
-      }
+      quotes: [
+        {
+          shapeKey: "mainnet:tinyman:v2:addLiquidity:flexible",
+          input: {
+            userAddress: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+            assetAId: 31566704,
+            assetAAmount: "1000000",
+            assetBId: 0,
+            assetBAmount: "2000000",
+            maxSlippageBps: 50
+          }
+        }
+      ]
     }
   });
 

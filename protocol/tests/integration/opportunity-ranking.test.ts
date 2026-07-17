@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { buildApp } from "../../src/app.js";
 import { rankOpportunitiesByApy } from "../../src/services/opportunity-ranking.js";
-import { OpportunityRecordV1 } from "../../src/types/opportunity.js";
+import { OpportunityMarketRecord } from "../../src/types/opportunity.js";
 
 test("rankOpportunitiesByApy sorts by APY descending then TVL descending", () => {
   const ranked = rankOpportunitiesByApy([
@@ -59,7 +59,7 @@ function opportunity(
   opportunityId: string,
   apy: number,
   tvlUsd: number
-): OpportunityRecordV1 {
+): OpportunityMarketRecord {
   return {
     protocol: "tinyman",
     opportunityType: "lp",

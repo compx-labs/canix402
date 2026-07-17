@@ -80,6 +80,7 @@ export const folksFinanceSetupDepositEscrowShape: TransactionShapeSpec<
     "Creates and funds a new Folks Finance deposit escrow for the user. Returns a " +
     "3-transaction group that must be signed by both the user and the generated escrow account.",
   supportedOpportunityTypes: ["lending"],
+  opportunityRole: "enter",
   requiredInputs: ["userAddress"],
   sources: [
     {

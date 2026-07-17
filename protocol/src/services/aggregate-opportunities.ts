@@ -10,7 +10,7 @@ import {
   PactAdapterError,
   TinymanAdapterError
 } from "../adapters/index.js";
-import { OpportunityRecordV1 } from "../types/opportunity.js";
+import { OpportunityMarketRecord } from "../types/opportunity.js";
 import type { Protocol } from "../routes/schemas.js";
 
 /**
@@ -26,7 +26,7 @@ export const SUPPORTED_AGGREGATE_PROTOCOLS = [
 ] as const;
 
 export interface AggregateFetchResult {
-  data: OpportunityRecordV1[];
+  data: OpportunityMarketRecord[];
   errors: Array<{ protocol: Protocol; message: string }>;
 }
 
@@ -39,7 +39,7 @@ export interface AggregateFetchResult {
  */
 export async function fetchOpportunitiesForProtocols(
   protocols: readonly Protocol[]
-): Promise<OpportunityRecordV1[]> {
+): Promise<OpportunityMarketRecord[]> {
   const { data, errors } = await fetchOpportunitiesWithErrors(protocols);
   if (data.length === 0 && errors.length > 0 && errors.length === protocols.length) {
     throw new Error(errors[0]?.message ?? "All opportunity adapters failed.");
@@ -59,7 +59,7 @@ export async function fetchOpportunitiesWithErrors(
     protocols.map((protocol) => fetchOpportunitiesForProtocol(protocol))
   );
 
-  const data: OpportunityRecordV1[] = [];
+  const data: OpportunityMarketRecord[] = [];
   const errors: Array<{ protocol: Protocol; message: string }> = [];
 
   results.forEach((result, index) => {
@@ -78,7 +78,7 @@ export async function fetchOpportunitiesWithErrors(
 
 export async function fetchOpportunitiesForProtocol(
   protocol: Protocol
-): Promise<OpportunityRecordV1[]> {
+): Promise<OpportunityMarketRecord[]> {
   try {
     if (protocol === "tinyman") {
       return await fetchTinymanOpportunities();

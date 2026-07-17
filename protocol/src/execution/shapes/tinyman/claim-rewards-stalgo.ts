@@ -75,6 +75,7 @@ export const tinymanClaimRewardsStAlgoShape: TransactionShapeSpec<
     "claimRewards group (optional rate-change / TINY opt-in, claim_rewards app call) as " +
     "unsigned transactions.",
   supportedOpportunityTypes: ["staking"],
+  opportunityRole: "manage",
   requiredInputs: ["userAddress"],
   sources: [
     {

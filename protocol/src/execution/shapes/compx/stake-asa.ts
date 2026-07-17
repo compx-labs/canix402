@@ -95,6 +95,7 @@ export const compxStakeAsaShape: TransactionShapeSpec<
     "Stakes an ASA into a CompX staking pool. Builds stake(axfer,uint64,pay)void from the " +
     "ARC-56 spec: staked-asset transfer, optional staker-box MBR payment, and stake app call.",
   supportedOpportunityTypes: ["staking"],
+  opportunityRole: "enter",
   requiredInputs: ["userAddress", "poolAppId", "amount"],
   sources: [
     {

@@ -126,28 +126,38 @@ invent, omit, or rewrite facilitator fields.
 
 For `canix_get_execution_quote`:
 
-1. Use `canix_list_execution_shapes` first and supply the shape's required
-   inputs in base units.
-2. Complete the x402 payment workflow above.
-3. Require `meta.executionSubmitted === false`.
-4. Before signing, review:
-   - `data.expiresAt` has not passed
-   - every warning in `data.warnings`
+1. Prefer `executionShapes` from opportunity responses (enter-only). Use
+   `canix_list_execution_shapes` or position `compatibleExitShapeKeys` /
+   `compatibleManageShapeKeys` for exit/manage. Never invent `shapeKey`s when
+   `executionReady` is false.
+2. Call with `quotes: [{ shapeKey, input }, ...]` (min 1). Response `data` is an
+   `ExecutableQuote[]` in the same order — each item is an independent unsigned
+   group; groups are never merged. Price is flat ~0.10 USDC **per request**, not
+   per quote item. On failure, `error.details.quoteIndex` and `shapeKey` identify
+   the failing item.
+3. Complete the x402 payment workflow above.
+4. Require `meta.executionSubmitted === false`.
+5. For each quote in `data`, before signing, review:
+   - `expiresAt` has not passed
+   - every warning in `warnings`
    - every sender, receiver, amount, asset ID, app ID, fee, and group member in
-     `data.transactions`
+     `transactions`
    - the group still matches the user's stated intent and spending limits
-5. Decode each item in `data.encodedTransactions` as an unsigned Algorand
+6. Decode each item in that quote's `encodedTransactions` as an unsigned Algorand
    transaction and sign it with the key for that transaction's sender.
-6. Preserve order and group IDs. Do not rebuild, regroup, or modify quoted
-   transactions after validation.
-7. Submit all signed blobs atomically before expiry. If expired, request and
+7. Preserve order and group IDs within each quote. Do not rebuild, regroup, or
+   modify quoted transactions after validation. Submit each quote's group
+   separately (and in `order` / prerequisite sequence when opening multi-step
+   opportunities such as Folks).
+8. Submit all signed blobs atomically before expiry. If expired, request and
    pay for a fresh quote unless the service explicitly supports refreshing it
    without another payment.
 
-Example for a single user signer:
+Example for a single user signer on the first quote:
 
 ```typescript
-const signed = quote.data.encodedTransactions.map((encoded: string) => {
+const quote = response.data[0];
+const signed = quote.encodedTransactions.map((encoded: string) => {
   const txn = algosdk.decodeUnsignedTransaction(
     Buffer.from(encoded, "base64"),
   );

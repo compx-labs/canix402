@@ -77,6 +77,7 @@ export const tinymanBurnTAlgoShape: TransactionShapeSpec<
     "Burns tALGO to redeem ALGO from Tinyman's liquid-staking app. Builds the SDK burn " +
     "group (tALGO transfer, burn app call) as unsigned transactions.",
   supportedOpportunityTypes: ["staking"],
+  opportunityRole: "exit",
   requiredInputs: ["userAddress", "amount"],
   sources: [
     {

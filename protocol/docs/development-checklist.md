@@ -71,6 +71,9 @@ Canix should become the validation, discovery, transaction-generation, execution
 - [x] Expose CompX v1 lending and staking execution shapes (deposit/withdraw ASA; stake/unstake/claim rewards).
 - [x] Expose Dork.fi v1 ASA lending execution shapes (deposit/withdraw ASA).
 - [x] Expose Haystack v1 single-token HAY staking execution shapes (stake HAY; unstake-and-claim via `unstakeHayAndClaim`; claim USDC+HAY rewards) against mainnet app `3321763884`. Gated live verification via `test:haystack-staking-production` (`X402_HAYSTACK_STAKING_LIVE=1`; excluded from `test:ci`).
+- [x] Attach ordered enter-only `executionShapes` (+ `executionReady`, `requiredAssetIds`, typed `inputHints`) to every opportunity response; empty array means research-only.
+- [x] Attach `compatibleExitShapeKeys` / `compatibleManageShapeKeys` on position records.
+- [x] Break `POST /execution/quotes` to batch `{ quotes: [{ shapeKey, input }, ...] }` → `data: ExecutableQuote[]` (flat 0.1 USDC per request; correlated `quoteIndex`/`shapeKey` on failure; no group merging).
 - [~] Dork.fi production lending live verification via gated `test:dorkfi-production` (`X402_DORKFI_EXECUTION_LIVE=1`; excluded from `test:ci`) currently fails at submit with an Algod incomplete-group rejection.
 
 ### Protocol Transaction Shape Mapping (Blocking Foundation)

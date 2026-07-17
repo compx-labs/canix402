@@ -236,16 +236,16 @@ async function runSetupDepositEscrow(userAddress: string): Promise<string> {
     algodUrl: env.algodUrl
   });
 
-  assert.equal(quoteResponse.data.shapeKey, SETUP_DEPOSIT_ESCROW_SHAPE);
+  assert.equal(quoteResponse.data[0].shapeKey, SETUP_DEPOSIT_ESCROW_SHAPE);
 
-  const escrowAddress = quoteResponse.data.metadata.escrowAddress;
-  const escrowPrivateKeyBase64 = quoteResponse.data.metadata.escrowPrivateKeyBase64;
+  const escrowAddress = quoteResponse.data[0].metadata.escrowAddress;
+  const escrowPrivateKeyBase64 = quoteResponse.data[0].metadata.escrowPrivateKeyBase64;
   assert.equal(typeof escrowAddress, "string");
   assert.equal(typeof escrowPrivateKeyBase64, "string");
 
   const escrowSecretKey = Buffer.from(escrowPrivateKeyBase64 as string, "base64");
   const signed = signEncodedTransactionGroupByIndex(
-    quoteResponse.data.encodedTransactions,
+    quoteResponse.data[0].encodedTransactions,
     (index) => (index === 2 ? escrowSecretKey : account.sk)
   );
   const submission = await submitTransactionGroup(algod, signed);
@@ -277,10 +277,10 @@ async function runSetupOptEscrowAsset(
     algodUrl: env.algodUrl
   });
 
-  assert.equal(quoteResponse.data.shapeKey, SETUP_OPT_ESCROW_ASSET_SHAPE);
+  assert.equal(quoteResponse.data[0].shapeKey, SETUP_OPT_ESCROW_ASSET_SHAPE);
 
   const signed = signEncodedTransactionGroup(
-    quoteResponse.data.encodedTransactions,
+    quoteResponse.data[0].encodedTransactions,
     account.sk
   );
   const submission = await submitTransactionGroup(algod, signed);
@@ -320,10 +320,10 @@ async function runEscrowDeposit(escrowAddress: string): Promise<bigint> {
     algodUrl: env.algodUrl
   });
 
-  assert.equal(quoteResponse.data.shapeKey, DEPOSIT_ESCROW_SHAPE);
+  assert.equal(quoteResponse.data[0].shapeKey, DEPOSIT_ESCROW_SHAPE);
 
   const signed = signEncodedTransactionGroup(
-    quoteResponse.data.encodedTransactions,
+    quoteResponse.data[0].encodedTransactions,
     account.sk
   );
   const submission = await submitTransactionGroup(algod, signed);
@@ -373,11 +373,11 @@ async function runEscrowWithdraw(escrowAddress: string): Promise<void> {
     algodUrl: env.algodUrl
   });
 
-  assert.equal(quoteResponse.data.shapeKey, WITHDRAW_ESCROW_SHAPE);
-  console.log("Folks escrow withdraw quote metadata...", quoteResponse.data.metadata);
+  assert.equal(quoteResponse.data[0].shapeKey, WITHDRAW_ESCROW_SHAPE);
+  console.log("Folks escrow withdraw quote metadata...", quoteResponse.data[0].metadata);
 
   const signed = signEncodedTransactionGroup(
-    quoteResponse.data.encodedTransactions,
+    quoteResponse.data[0].encodedTransactions,
     account.sk
   );
   const submission = await submitTransactionGroup(algod, signed);

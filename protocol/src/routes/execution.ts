@@ -22,7 +22,7 @@ import type { ExecutableQuote } from "../execution/types.js";
 export function registerExecutionRoutes(app: FastifyInstance) {
   app.post<{
     Body: ExecutionQuoteRequest;
-    Reply: ApiSuccess<ExecutableQuote> | ApiError;
+    Reply: ApiSuccess<ExecutableQuote[]> | ApiError;
   }>(
     "/execution/quotes",
     {
@@ -34,41 +34,61 @@ export function registerExecutionRoutes(app: FastifyInstance) {
       }
     },
     async (request, reply) => {
-      const { shapeKey, input } = request.body;
+      const { quotes: quoteRequests } = request.body;
+      const quotes: ExecutableQuote[] = [];
+      const context = {
+        network: "mainnet" as const,
+        algod: createExecutionAlgodClient()
+      };
 
-      try {
-        const quote = await compileExecutableQuote(
-          executionRegistry,
-          shapeKey,
-          input,
-          {
-            network: "mainnet",
-            algod: createExecutionAlgodClient()
-          }
-        );
-
-        return reply.send({
-          data: quote,
-          meta: {
-            paymentRequired: true,
-            executionSubmitted: false
-          }
-        });
-      } catch (error) {
-        mapExecutionError(reply, error);
-        return;
+      for (let quoteIndex = 0; quoteIndex < quoteRequests.length; quoteIndex += 1) {
+        const item = quoteRequests[quoteIndex]!;
+        try {
+          quotes.push(
+            await compileExecutableQuote(
+              executionRegistry,
+              item.shapeKey,
+              item.input,
+              context
+            )
+          );
+        } catch (error) {
+          mapExecutionError(reply, error, {
+            quoteIndex,
+            shapeKey: item.shapeKey
+          });
+          return;
+        }
       }
+
+      return reply.send({
+        data: quotes,
+        meta: {
+          paymentRequired: true,
+          executionSubmitted: false,
+          quoteCount: quotes.length
+        }
+      });
     }
   );
 }
 
-function mapExecutionError(reply: FastifyReply, error: unknown): void {
+function mapExecutionError(
+  reply: FastifyReply,
+  error: unknown,
+  correlation: { quoteIndex: number; shapeKey: string }
+): void {
+  const correlationDetails = {
+    quoteIndex: correlation.quoteIndex,
+    shapeKey: correlation.shapeKey
+  };
+
   if (error instanceof ShapeNotFoundError) {
     reply.status(404).send({
       error: {
         code: "NOT_FOUND",
         message: error.message,
-        details: error.details
+        details: mergeErrorDetails(error.details, correlationDetails)
       }
     });
     return;
@@ -79,7 +99,7 @@ function mapExecutionError(reply: FastifyReply, error: unknown): void {
       error: {
         code: "VALIDATION_ERROR",
         message: error.message,
-        details: error.details
+        details: mergeErrorDetails(error.details, correlationDetails)
       }
     });
     return;
@@ -90,7 +110,7 @@ function mapExecutionError(reply: FastifyReply, error: unknown): void {
       error: {
         code: "INTERNAL_ERROR",
         message: error.message,
-        details: executionErrorDetails(error)
+        details: mergeErrorDetails(executionErrorDetails(error), correlationDetails)
       }
     });
     return;
@@ -101,7 +121,7 @@ function mapExecutionError(reply: FastifyReply, error: unknown): void {
       error: {
         code: "INTERNAL_ERROR",
         message: error.message,
-        details: executionErrorDetails(error)
+        details: mergeErrorDetails(executionErrorDetails(error), correlationDetails)
       }
     });
     return;
@@ -110,9 +130,23 @@ function mapExecutionError(reply: FastifyReply, error: unknown): void {
   reply.status(500).send({
     error: {
       code: "INTERNAL_ERROR",
-      message: "Failed to compile execution quote."
+      message: "Failed to compile execution quote.",
+      details: correlationDetails
     }
   });
+}
+
+function mergeErrorDetails(
+  existing: unknown,
+  correlation: { quoteIndex: number; shapeKey: string }
+): Record<string, unknown> {
+  if (existing === undefined) {
+    return { ...correlation };
+  }
+  if (isRecord(existing) && !Array.isArray(existing)) {
+    return { ...existing, ...correlation };
+  }
+  return { details: existing, ...correlation };
 }
 
 function executionErrorDetails(error: ExecutionError): unknown {

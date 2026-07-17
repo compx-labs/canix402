@@ -89,6 +89,7 @@ export const compxClaimRewardsShape: TransactionShapeSpec<
     "Claims accrued staking rewards via claimRewards()void. Optionally prefixes a " +
     "reward-asset opt-in when the user is not yet opted in.",
   supportedOpportunityTypes: ["staking"],
+  opportunityRole: "manage",
   requiredInputs: ["userAddress", "poolAppId"],
   sources: [
     {

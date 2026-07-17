@@ -98,6 +98,7 @@ export const pactRemoveLiquidityProportionalShape: TransactionShapeSpec<
     "Removes liquidity from an existing Pact AMM pool proportionally. Generates the documented " +
     "2-transaction group (LP token deposit, REMLIQ app call) as unsigned transactions.",
   supportedOpportunityTypes: ["lp"],
+  opportunityRole: "exit",
   requiredInputs: ["userAddress", "poolAppId", "poolTokenAmount"],
   sources: [
     {

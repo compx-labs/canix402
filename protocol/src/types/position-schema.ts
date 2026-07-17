@@ -22,7 +22,9 @@ export const PositionRecordSchema = Type.Object({
   ),
   sourceTimestamp: Type.Optional(Type.String({ format: "date-time" })),
   caveats: Type.Optional(Type.Array(Type.String())),
-  notes: Type.Optional(Type.String())
+  notes: Type.Optional(Type.String()),
+  compatibleExitShapeKeys: Type.Array(Type.String({ minLength: 1 })),
+  compatibleManageShapeKeys: Type.Array(Type.String({ minLength: 1 }))
 });
 
 export const ProtocolPositionStatusSchema = Type.Union([

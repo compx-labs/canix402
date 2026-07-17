@@ -349,27 +349,39 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_get_execution_quote",
     {
       description:
-        "Compile an unsigned Algorand transaction group for a verified execution shape (POST /execution/quotes). Paid ~0.10 USDC.",
+        "Compile one or more unsigned Algorand transaction groups (POST /execution/quotes). Pass quotes: [{ shapeKey, input }, ...]. Response data is an ExecutableQuote array. Paid flat ~0.10 USDC per request (not per item). On failure, error.details includes quoteIndex and shapeKey.",
       inputSchema: {
-        shapeKey: z.string().min(1),
-        input: z.object({
-          userAddress: z.string().min(1),
-          assetAId: z.union([z.number().int().min(0), z.string()]),
-          assetAAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
-          assetBId: z.union([z.number().int().min(0), z.string()]),
-          assetBAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
-          poolTokenAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
-          maxSlippageBps: z.union([z.number().int().min(0).max(10_000), z.string()]),
-          poolId: z.string().min(1).optional()
-        }),
+        quotes: z
+          .array(
+            z.object({
+              shapeKey: z.string().min(1),
+              input: z
+                .object({
+                  userAddress: z.string().min(1),
+                  assetAId: z.union([z.number().int().min(0), z.string()]).optional(),
+                  assetAAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
+                  assetBId: z.union([z.number().int().min(0), z.string()]).optional(),
+                  assetBAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
+                  poolTokenAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
+                  maxSlippageBps: z
+                    .union([z.number().int().min(0).max(10_000), z.string()])
+                    .optional(),
+                  poolId: z.string().min(1).optional(),
+                  amount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
+                  poolAppId: z.union([z.number().int().min(1), z.string()]).optional(),
+                  marketAppId: z.union([z.number().int().min(1), z.string()]).optional()
+                })
+                .passthrough()
+            })
+          )
+          .min(1),
         paymentSignature: paymentSignatureArgSchema()
       }
     },
     async (args) => {
       try {
         const body = {
-          shapeKey: args.shapeKey,
-          input: args.input
+          quotes: args.quotes
         };
         const result = await client.fetchPaid("/execution/quotes", {
           method: "POST",
