@@ -26,6 +26,8 @@
     "test:pact-execution-live": "npm run test:pact-production",
     "test:folks-production": "tsx --test tests/live/folks-finance-production-test.test.ts",
     "test:folks-execution-live": "npm run test:folks-production",
+    "test:folks-xalgo-production": "tsx --test tests/live/folks-xalgo-production-test.test.ts",
+    "test:folks-xalgo-execution-live": "npm run test:folks-xalgo-production",
     "test:compx-production": "tsx --test tests/live/compx-production-test.test.ts",
     "test:compx-execution-live": "npm run test:compx-production",
     "test:dorkfi-production": "tsx --test tests/live/dorkfi-production-test.test.ts",
