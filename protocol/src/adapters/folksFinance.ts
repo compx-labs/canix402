@@ -141,7 +141,9 @@ export function normalizeFolksLendingOpportunity(
   // Pact, and Dork.fi source values.
   const apy = toPercentagePoints(fromScaledValue(poolManagerState.depositInterestYield, 16));
   const apr = toPercentagePoints(fromScaledValue(poolManagerState.depositInterestRate, 16));
-  const tvlUsd = calcTvlUsd(poolInfo.interest.totalDeposits, assetDecimals, oraclePrice);
+  // Folks oracle prices are already scaled as USD * 10^(14 - assetDecimals), so
+  // USD = baseUnits * price / 1e14. Do not also divide deposits by asset decimals.
+  const tvlUsd = calcTvlUsd(poolInfo.interest.totalDeposits, oraclePrice);
 
   if (!Number.isFinite(apy) || !Number.isFinite(tvlUsd)) {
     return null;
@@ -207,10 +209,10 @@ function toPercentagePoints(value: number): number {
   return value * 100;
 }
 
-function calcTvlUsd(totalDeposits: bigint, assetDecimals: number, oraclePrice: bigint): number {
-  const depositUnits = fromScaledValue(totalDeposits, assetDecimals);
-  const assetPriceUsd = fromScaledValue(oraclePrice, 14);
-  return depositUnits * assetPriceUsd;
+function calcTvlUsd(totalDeposits: bigint, oraclePrice: bigint): number {
+  // Matches Folks SDK calcAssetDollarValue(amount 0dp, price 14dp): deposits are
+  // asset base units and the oracle price already embeds 10^(14 - decimals).
+  return fromScaledValue(totalDeposits * oraclePrice, 14);
 }
 
 function trimTrailingSlash(value: string): string {

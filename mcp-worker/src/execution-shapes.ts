@@ -130,6 +130,56 @@ export const EXECUTION_SHAPES = [
     priceUsdc: "0.10"
   },
   {
+    shapeKey: "mainnet:pact:v1:farm:deployEscrow",
+    protocol: "pact",
+    protocolVersion: "v1",
+    action: "farm",
+    variant: "deployEscrow",
+    summary: "Deploy a per-user Pact farm escrow and opt into the farm app",
+    docsPath: "protocol/docs/execution-shapes/pact-farm-deploy-escrow.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:pact:v1:farm:stake",
+    protocol: "pact",
+    protocolVersion: "v1",
+    action: "farm",
+    variant: "stake",
+    summary: "Stake existing Pact LP into farm escrow (LP leaves the wallet)",
+    docsPath: "protocol/docs/execution-shapes/pact-farm-stake.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:pact:v1:farm:unstake",
+    protocol: "pact",
+    protocolVersion: "v1",
+    action: "farm",
+    variant: "unstake",
+    summary: "Unstake Pact LP from farm escrow back to the wallet",
+    docsPath: "protocol/docs/execution-shapes/pact-farm-unstake.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:pact:v1:farm:claimRewards",
+    protocol: "pact",
+    protocolVersion: "v1",
+    action: "farm",
+    variant: "claimRewards",
+    summary: "Claim accrued Pact farm reward ASAs",
+    docsPath: "protocol/docs/execution-shapes/pact-farm-claim-rewards.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:pact:v1:addLiquidityAndFarm:twoSided",
+    protocol: "pact",
+    protocolVersion: "v1",
+    action: "addLiquidityAndFarm",
+    variant: "twoSided",
+    summary: "Add two-sided Pact LP and stake minted LP into an existing farm escrow",
+    docsPath: "protocol/docs/execution-shapes/pact-add-liquidity-and-farm-two-sided.md",
+    priceUsdc: "0.10"
+  },
+  {
     shapeKey: "mainnet:compx:v1:deposit:asa",
     protocol: "compx",
     protocolVersion: "v1",

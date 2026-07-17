@@ -97,6 +97,46 @@ test("Folks lending enter shapes are ordered with prerequisites", () => {
   assert.deepEqual(enriched.executionShapes[2]?.requiredAssetIds, [31566704]);
 });
 
+test("Pact farm enter shapes are ordered deploy then stake/addLiquidityAndFarm", () => {
+  const record: OpportunityMarketRecord = {
+    protocol: "pact",
+    opportunityType: "farm",
+    opportunityId: "3625283323:farm",
+    assetPair: "USDC/ALGO",
+    assetIds: [31566704, 0],
+    apy: 12,
+    yieldBasis: "apr",
+    tvlUsd: 50_000,
+    sourceTimestamp: "2026-07-01T00:00:00.000Z",
+    fetchedAt: "2026-07-01T00:00:00.000Z"
+  };
+
+  const enriched = attachExecutionShapesToOpportunity(record, executionRegistry);
+  assert.equal(enriched.executionReady, true);
+  assert.equal(enriched.executionShapes.length, 3);
+  assert.deepEqual(
+    enriched.executionShapes.map((shape) => shape.shapeKey),
+    [
+      "mainnet:pact:v1:farm:deployEscrow",
+      "mainnet:pact:v1:farm:stake",
+      "mainnet:pact:v1:addLiquidityAndFarm:twoSided"
+    ]
+  );
+  assert.deepEqual(
+    enriched.executionShapes.map((shape) => shape.order),
+    [0, 1, 1]
+  );
+  assert.equal(enriched.executionShapes[0]?.prerequisiteShapeKeys, undefined);
+  assert.deepEqual(enriched.executionShapes[1]?.prerequisiteShapeKeys, [
+    "mainnet:pact:v1:farm:deployEscrow"
+  ]);
+  assert.deepEqual(enriched.executionShapes[2]?.prerequisiteShapeKeys, [
+    "mainnet:pact:v1:farm:deployEscrow"
+  ]);
+  assert.equal(enriched.executionShapes[0]?.inputHints?.farmAppId, 3625283323);
+  assert.equal(enriched.executionShapes[0]?.inputHints?.poolId, "3625283323");
+});
+
 test("LP positions expose exit shapes and staking positions expose unstake/claim", () => {
   const lp = attachExecutionShapesToPosition({
     protocol: "tinyman",

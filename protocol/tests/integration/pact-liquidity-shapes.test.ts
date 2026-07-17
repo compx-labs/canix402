@@ -393,10 +393,16 @@ test("add shape builds real Pact mainnet SDK transaction group", async () => {
   assert.equal(quote.transactions.every((txn) => txn.groupPresent), true);
 });
 
-test("registry includes both Pact liquidity shapes", () => {
+test("registry includes Pact liquidity and farm shapes", () => {
   const registry = createExecutionRegistry();
   assert.equal(registry.has("mainnet:pact:v1:addLiquidity:twoSided"), true);
   assert.equal(registry.has("mainnet:pact:v1:removeLiquidity:proportional"), true);
+  assert.equal(registry.has("mainnet:pact:v1:farm:deployEscrow"), true);
+  assert.equal(registry.has("mainnet:pact:v1:farm:stake"), true);
+  assert.equal(registry.has("mainnet:pact:v1:farm:unstake"), true);
+  assert.equal(registry.has("mainnet:pact:v1:farm:claimRewards"), true);
+  assert.equal(registry.has("mainnet:pact:v1:addLiquidityAndFarm:twoSided"), true);
+  assert.equal(registry.listForOpportunity("pact", "farm").length, 3);
 });
 
 function buildPactSdkV3AlgodStub(): Algodv2 {

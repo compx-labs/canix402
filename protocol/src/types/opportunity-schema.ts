@@ -28,7 +28,9 @@ export const OpportunityExecutionInputHintsSchema = Type.Object(
     poolId: Type.Optional(Type.String({ minLength: 1 })),
     programId: Type.Optional(Type.Integer({ minimum: 1 })),
     liquidityAssetId: Type.Optional(Type.Integer({ minimum: 0 })),
-    escrowAddress: Type.Optional(Type.String({ minLength: 58, maxLength: 58 }))
+    escrowAddress: Type.Optional(Type.String({ minLength: 58, maxLength: 58 })),
+    farmAppId: Type.Optional(Type.Integer({ minimum: 1 })),
+    escrowAppId: Type.Optional(Type.Integer({ minimum: 1 }))
   },
   { additionalProperties: false }
 );

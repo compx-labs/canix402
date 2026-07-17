@@ -1,0 +1,1315 @@
+{
+  "data": [
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks-lending-971372237",
+      "assetPair": "USDC",
+      "apy": 13.745332,
+      "yieldBasis": "apy",
+      "tvlUsd": 4.051081,
+      "sourceTimestamp": "2026-07-17T12:41:02.000Z",
+      "fetchedAt": "2026-07-17T12:41:17.272Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "depositEscrow",
+          "title": "Folks Finance v2 add deposit escrow",
+          "summary": "Creates and funds a new Folks Finance deposit escrow for the user. Returns a 3-transaction group that must be signed by both the user and the generated escrow account.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "poolAppId": 971372237
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "optEscrowAsset",
+          "title": "Folks Finance v2 opt deposit escrow into pool fAsset",
+          "summary": "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+          "order": 1,
+          "requiredInputs": [
+            "userAddress",
+            "escrowAddress"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:depositEscrow"
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "poolAppId": 971372237
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "deposit",
+          "variant": "escrow",
+          "title": "Folks Finance v2 escrow deposit",
+          "summary": "Deposits an underlying asset into a Folks Finance lending pool via a deposit escrow. fAssets accrue in the escrow rather than the user's wallet. Generates the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
+          "order": 2,
+          "requiredInputs": [
+            "userAddress",
+            "assetAmount"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:optEscrowAsset"
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "poolAppId": 971372237
+          }
+        }
+      ],
+      "assetIds": [
+        31566704
+      ],
+      "apr": 12.879278,
+      "notes": "Folks mainnet lending pool 971372237."
+    },
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks-lending-3184325123",
+      "assetPair": "ISOLATED_TINY",
+      "apy": 13.460196,
+      "yieldBasis": "apy",
+      "tvlUsd": 0.021004,
+      "sourceTimestamp": "2026-07-17T12:41:02.000Z",
+      "fetchedAt": "2026-07-17T12:41:17.272Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "depositEscrow",
+          "title": "Folks Finance v2 add deposit escrow",
+          "summary": "Creates and funds a new Folks Finance deposit escrow for the user. Returns a 3-transaction group that must be signed by both the user and the generated escrow account.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress"
+          ],
+          "requiredAssetIds": [
+            2200000000
+          ],
+          "inputHints": {
+            "assetId": 2200000000,
+            "poolAppId": 3184325123
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "optEscrowAsset",
+          "title": "Folks Finance v2 opt deposit escrow into pool fAsset",
+          "summary": "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+          "order": 1,
+          "requiredInputs": [
+            "userAddress",
+            "escrowAddress"
+          ],
+          "requiredAssetIds": [
+            2200000000
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:depositEscrow"
+          ],
+          "inputHints": {
+            "assetId": 2200000000,
+            "poolAppId": 3184325123
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "deposit",
+          "variant": "escrow",
+          "title": "Folks Finance v2 escrow deposit",
+          "summary": "Deposits an underlying asset into a Folks Finance lending pool via a deposit escrow. fAssets accrue in the escrow rather than the user's wallet. Generates the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
+          "order": 2,
+          "requiredInputs": [
+            "userAddress",
+            "assetAmount"
+          ],
+          "requiredAssetIds": [
+            2200000000
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:optEscrowAsset"
+          ],
+          "inputHints": {
+            "assetId": 2200000000,
+            "poolAppId": 3184325123
+          }
+        }
+      ],
+      "assetIds": [
+        2200000000
+      ],
+      "apr": 12.62828,
+      "notes": "Folks mainnet lending pool 3184325123."
+    },
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks-lending-3184324594",
+      "assetPair": "ISOLATED_USDC",
+      "apy": 4.536954,
+      "yieldBasis": "apy",
+      "tvlUsd": 0.013323,
+      "sourceTimestamp": "2026-07-17T12:41:02.000Z",
+      "fetchedAt": "2026-07-17T12:41:17.272Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "depositEscrow",
+          "title": "Folks Finance v2 add deposit escrow",
+          "summary": "Creates and funds a new Folks Finance deposit escrow for the user. Returns a 3-transaction group that must be signed by both the user and the generated escrow account.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "poolAppId": 3184324594
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "optEscrowAsset",
+          "title": "Folks Finance v2 opt deposit escrow into pool fAsset",
+          "summary": "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+          "order": 1,
+          "requiredInputs": [
+            "userAddress",
+            "escrowAddress"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:depositEscrow"
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "poolAppId": 3184324594
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "deposit",
+          "variant": "escrow",
+          "title": "Folks Finance v2 escrow deposit",
+          "summary": "Deposits an underlying asset into a Folks Finance lending pool via a deposit escrow. fAssets accrue in the escrow rather than the user's wallet. Generates the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
+          "order": 2,
+          "requiredInputs": [
+            "userAddress",
+            "assetAmount"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:optEscrowAsset"
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "poolAppId": 3184324594
+          }
+        }
+      ],
+      "assetIds": [
+        31566704
+      ],
+      "apr": 4.437056,
+      "notes": "Folks mainnet lending pool 3184324594."
+    },
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks-lending-971368268",
+      "assetPair": "ALGO",
+      "apy": 2.041139,
+      "yieldBasis": "apy",
+      "tvlUsd": 9.852901,
+      "sourceTimestamp": "2026-07-17T12:41:02.000Z",
+      "fetchedAt": "2026-07-17T12:41:17.272Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "depositEscrow",
+          "title": "Folks Finance v2 add deposit escrow",
+          "summary": "Creates and funds a new Folks Finance deposit escrow for the user. Returns a 3-transaction group that must be signed by both the user and the generated escrow account.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress"
+          ],
+          "requiredAssetIds": [
+            0
+          ],
+          "inputHints": {
+            "assetId": 0,
+            "poolAppId": 971368268
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "optEscrowAsset",
+          "title": "Folks Finance v2 opt deposit escrow into pool fAsset",
+          "summary": "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+          "order": 1,
+          "requiredInputs": [
+            "userAddress",
+            "escrowAddress"
+          ],
+          "requiredAssetIds": [
+            0
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:depositEscrow"
+          ],
+          "inputHints": {
+            "assetId": 0,
+            "poolAppId": 971368268
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "deposit",
+          "variant": "escrow",
+          "title": "Folks Finance v2 escrow deposit",
+          "summary": "Deposits an underlying asset into a Folks Finance lending pool via a deposit escrow. fAssets accrue in the escrow rather than the user's wallet. Generates the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
+          "order": 2,
+          "requiredInputs": [
+            "userAddress",
+            "assetAmount"
+          ],
+          "requiredAssetIds": [
+            0
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:optEscrowAsset"
+          ],
+          "inputHints": {
+            "assetId": 0,
+            "poolAppId": 971368268
+          }
+        }
+      ],
+      "assetIds": [
+        0
+      ],
+      "apr": 2.02059,
+      "notes": "Folks mainnet lending pool 971368268."
+    },
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks-lending-3514794123",
+      "assetPair": "WBTC_NTT",
+      "apy": 0.208971,
+      "yieldBasis": "apy",
+      "tvlUsd": 0.000594,
+      "sourceTimestamp": "2026-07-17T12:41:02.000Z",
+      "fetchedAt": "2026-07-17T12:41:17.272Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "depositEscrow",
+          "title": "Folks Finance v2 add deposit escrow",
+          "summary": "Creates and funds a new Folks Finance deposit escrow for the user. Returns a 3-transaction group that must be signed by both the user and the generated escrow account.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress"
+          ],
+          "requiredAssetIds": [
+            3495558025
+          ],
+          "inputHints": {
+            "assetId": 3495558025,
+            "poolAppId": 3514794123
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "optEscrowAsset",
+          "title": "Folks Finance v2 opt deposit escrow into pool fAsset",
+          "summary": "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+          "order": 1,
+          "requiredInputs": [
+            "userAddress",
+            "escrowAddress"
+          ],
+          "requiredAssetIds": [
+            3495558025
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:depositEscrow"
+          ],
+          "inputHints": {
+            "assetId": 3495558025,
+            "poolAppId": 3514794123
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "deposit",
+          "variant": "escrow",
+          "title": "Folks Finance v2 escrow deposit",
+          "summary": "Deposits an underlying asset into a Folks Finance lending pool via a deposit escrow. fAssets accrue in the escrow rather than the user's wallet. Generates the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
+          "order": 2,
+          "requiredInputs": [
+            "userAddress",
+            "assetAmount"
+          ],
+          "requiredAssetIds": [
+            3495558025
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:optEscrowAsset"
+          ],
+          "inputHints": {
+            "assetId": 3495558025,
+            "poolAppId": 3514794123
+          }
+        }
+      ],
+      "assetIds": [
+        3495558025
+      ],
+      "apr": 0.208753,
+      "notes": "Folks mainnet lending pool 3514794123."
+    },
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks-lending-1044267181",
+      "assetPair": "OPUL",
+      "apy": 0.093901,
+      "yieldBasis": "apy",
+      "tvlUsd": 0,
+      "sourceTimestamp": "2026-07-17T12:41:02.000Z",
+      "fetchedAt": "2026-07-17T12:41:17.272Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "depositEscrow",
+          "title": "Folks Finance v2 add deposit escrow",
+          "summary": "Creates and funds a new Folks Finance deposit escrow for the user. Returns a 3-transaction group that must be signed by both the user and the generated escrow account.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress"
+          ],
+          "requiredAssetIds": [
+            287867876
+          ],
+          "inputHints": {
+            "assetId": 287867876,
+            "poolAppId": 1044267181
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "optEscrowAsset",
+          "title": "Folks Finance v2 opt deposit escrow into pool fAsset",
+          "summary": "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+          "order": 1,
+          "requiredInputs": [
+            "userAddress",
+            "escrowAddress"
+          ],
+          "requiredAssetIds": [
+            287867876
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:depositEscrow"
+          ],
+          "inputHints": {
+            "assetId": 287867876,
+            "poolAppId": 1044267181
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "deposit",
+          "variant": "escrow",
+          "title": "Folks Finance v2 escrow deposit",
+          "summary": "Deposits an underlying asset into a Folks Finance lending pool via a deposit escrow. fAssets accrue in the escrow rather than the user's wallet. Generates the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
+          "order": 2,
+          "requiredInputs": [
+            "userAddress",
+            "assetAmount"
+          ],
+          "requiredAssetIds": [
+            287867876
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:optEscrowAsset"
+          ],
+          "inputHints": {
+            "assetId": 287867876,
+            "poolAppId": 1044267181
+          }
+        }
+      ],
+      "assetIds": [
+        287867876
+      ],
+      "apr": 0.093857,
+      "notes": "Folks mainnet lending pool 1044267181."
+    },
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks-lending-1258515734",
+      "assetPair": "GOLD",
+      "apy": 0.072669,
+      "yieldBasis": "apy",
+      "tvlUsd": 1.099217,
+      "sourceTimestamp": "2026-07-17T12:41:02.000Z",
+      "fetchedAt": "2026-07-17T12:41:17.272Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "depositEscrow",
+          "title": "Folks Finance v2 add deposit escrow",
+          "summary": "Creates and funds a new Folks Finance deposit escrow for the user. Returns a 3-transaction group that must be signed by both the user and the generated escrow account.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress"
+          ],
+          "requiredAssetIds": [
+            246516580
+          ],
+          "inputHints": {
+            "assetId": 246516580,
+            "poolAppId": 1258515734
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "optEscrowAsset",
+          "title": "Folks Finance v2 opt deposit escrow into pool fAsset",
+          "summary": "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+          "order": 1,
+          "requiredInputs": [
+            "userAddress",
+            "escrowAddress"
+          ],
+          "requiredAssetIds": [
+            246516580
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:depositEscrow"
+          ],
+          "inputHints": {
+            "assetId": 246516580,
+            "poolAppId": 1258515734
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "deposit",
+          "variant": "escrow",
+          "title": "Folks Finance v2 escrow deposit",
+          "summary": "Deposits an underlying asset into a Folks Finance lending pool via a deposit escrow. fAssets accrue in the escrow rather than the user's wallet. Generates the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
+          "order": 2,
+          "requiredInputs": [
+            "userAddress",
+            "assetAmount"
+          ],
+          "requiredAssetIds": [
+            246516580
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:optEscrowAsset"
+          ],
+          "inputHints": {
+            "assetId": 246516580,
+            "poolAppId": 1258515734
+          }
+        }
+      ],
+      "assetIds": [
+        246516580
+      ],
+      "apr": 0.072642,
+      "notes": "Folks mainnet lending pool 1258515734."
+    },
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks-lending-971373361",
+      "assetPair": "goBTC",
+      "apy": 0.065981,
+      "yieldBasis": "apy",
+      "tvlUsd": 0.010352,
+      "sourceTimestamp": "2026-07-17T12:41:02.000Z",
+      "fetchedAt": "2026-07-17T12:41:17.272Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "depositEscrow",
+          "title": "Folks Finance v2 add deposit escrow",
+          "summary": "Creates and funds a new Folks Finance deposit escrow for the user. Returns a 3-transaction group that must be signed by both the user and the generated escrow account.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress"
+          ],
+          "requiredAssetIds": [
+            386192725
+          ],
+          "inputHints": {
+            "assetId": 386192725,
+            "poolAppId": 971373361
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "optEscrowAsset",
+          "title": "Folks Finance v2 opt deposit escrow into pool fAsset",
+          "summary": "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+          "order": 1,
+          "requiredInputs": [
+            "userAddress",
+            "escrowAddress"
+          ],
+          "requiredAssetIds": [
+            386192725
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:depositEscrow"
+          ],
+          "inputHints": {
+            "assetId": 386192725,
+            "poolAppId": 971373361
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "deposit",
+          "variant": "escrow",
+          "title": "Folks Finance v2 escrow deposit",
+          "summary": "Deposits an underlying asset into a Folks Finance lending pool via a deposit escrow. fAssets accrue in the escrow rather than the user's wallet. Generates the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
+          "order": 2,
+          "requiredInputs": [
+            "userAddress",
+            "assetAmount"
+          ],
+          "requiredAssetIds": [
+            386192725
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:optEscrowAsset"
+          ],
+          "inputHints": {
+            "assetId": 386192725,
+            "poolAppId": 971373361
+          }
+        }
+      ],
+      "assetIds": [
+        386192725
+      ],
+      "apr": 0.065959,
+      "notes": "Folks mainnet lending pool 971373361."
+    },
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks-lending-3184317016",
+      "assetPair": "ISOLATED_ALGO",
+      "apy": 0.064124,
+      "yieldBasis": "apy",
+      "tvlUsd": 0.053211,
+      "sourceTimestamp": "2026-07-17T12:41:02.000Z",
+      "fetchedAt": "2026-07-17T12:41:17.272Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "depositEscrow",
+          "title": "Folks Finance v2 add deposit escrow",
+          "summary": "Creates and funds a new Folks Finance deposit escrow for the user. Returns a 3-transaction group that must be signed by both the user and the generated escrow account.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress"
+          ],
+          "requiredAssetIds": [
+            0
+          ],
+          "inputHints": {
+            "assetId": 0,
+            "poolAppId": 3184317016
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "optEscrowAsset",
+          "title": "Folks Finance v2 opt deposit escrow into pool fAsset",
+          "summary": "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+          "order": 1,
+          "requiredInputs": [
+            "userAddress",
+            "escrowAddress"
+          ],
+          "requiredAssetIds": [
+            0
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:depositEscrow"
+          ],
+          "inputHints": {
+            "assetId": 0,
+            "poolAppId": 3184317016
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "deposit",
+          "variant": "escrow",
+          "title": "Folks Finance v2 escrow deposit",
+          "summary": "Deposits an underlying asset into a Folks Finance lending pool via a deposit escrow. fAssets accrue in the escrow rather than the user's wallet. Generates the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
+          "order": 2,
+          "requiredInputs": [
+            "userAddress",
+            "assetAmount"
+          ],
+          "requiredAssetIds": [
+            0
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:optEscrowAsset"
+          ],
+          "inputHints": {
+            "assetId": 0,
+            "poolAppId": 3184317016
+          }
+        }
+      ],
+      "assetIds": [
+        0
+      ],
+      "apr": 0.064104,
+      "notes": "Folks mainnet lending pool 3184317016."
+    },
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks-lending-971373611",
+      "assetPair": "goETH",
+      "apy": 0.026936,
+      "yieldBasis": "apy",
+      "tvlUsd": 0.003622,
+      "sourceTimestamp": "2026-07-17T12:41:02.000Z",
+      "fetchedAt": "2026-07-17T12:41:17.272Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "depositEscrow",
+          "title": "Folks Finance v2 add deposit escrow",
+          "summary": "Creates and funds a new Folks Finance deposit escrow for the user. Returns a 3-transaction group that must be signed by both the user and the generated escrow account.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress"
+          ],
+          "requiredAssetIds": [
+            386195940
+          ],
+          "inputHints": {
+            "assetId": 386195940,
+            "poolAppId": 971373611
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "optEscrowAsset",
+          "title": "Folks Finance v2 opt deposit escrow into pool fAsset",
+          "summary": "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+          "order": 1,
+          "requiredInputs": [
+            "userAddress",
+            "escrowAddress"
+          ],
+          "requiredAssetIds": [
+            386195940
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:depositEscrow"
+          ],
+          "inputHints": {
+            "assetId": 386195940,
+            "poolAppId": 971373611
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "deposit",
+          "variant": "escrow",
+          "title": "Folks Finance v2 escrow deposit",
+          "summary": "Deposits an underlying asset into a Folks Finance lending pool via a deposit escrow. fAssets accrue in the escrow rather than the user's wallet. Generates the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
+          "order": 2,
+          "requiredInputs": [
+            "userAddress",
+            "assetAmount"
+          ],
+          "requiredAssetIds": [
+            386195940
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:optEscrowAsset"
+          ],
+          "inputHints": {
+            "assetId": 386195940,
+            "poolAppId": 971373611
+          }
+        }
+      ],
+      "assetIds": [
+        386195940
+      ],
+      "apr": 0.026933,
+      "notes": "Folks mainnet lending pool 971373611."
+    },
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks-lending-1166982094",
+      "assetPair": "WMPL",
+      "apy": 0.019436,
+      "yieldBasis": "apy",
+      "tvlUsd": 2.6023e-8,
+      "sourceTimestamp": "2026-07-17T12:41:02.000Z",
+      "fetchedAt": "2026-07-17T12:41:17.272Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "depositEscrow",
+          "title": "Folks Finance v2 add deposit escrow",
+          "summary": "Creates and funds a new Folks Finance deposit escrow for the user. Returns a 3-transaction group that must be signed by both the user and the generated escrow account.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress"
+          ],
+          "requiredAssetIds": [
+            1163259470
+          ],
+          "inputHints": {
+            "assetId": 1163259470,
+            "poolAppId": 1166982094
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "optEscrowAsset",
+          "title": "Folks Finance v2 opt deposit escrow into pool fAsset",
+          "summary": "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+          "order": 1,
+          "requiredInputs": [
+            "userAddress",
+            "escrowAddress"
+          ],
+          "requiredAssetIds": [
+            1163259470
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:depositEscrow"
+          ],
+          "inputHints": {
+            "assetId": 1163259470,
+            "poolAppId": 1166982094
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "deposit",
+          "variant": "escrow",
+          "title": "Folks Finance v2 escrow deposit",
+          "summary": "Deposits an underlying asset into a Folks Finance lending pool via a deposit escrow. fAssets accrue in the escrow rather than the user's wallet. Generates the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
+          "order": 2,
+          "requiredInputs": [
+            "userAddress",
+            "assetAmount"
+          ],
+          "requiredAssetIds": [
+            1163259470
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:optEscrowAsset"
+          ],
+          "inputHints": {
+            "assetId": 1163259470,
+            "poolAppId": 1166982094
+          }
+        }
+      ],
+      "assetIds": [
+        1163259470
+      ],
+      "apr": 0.019434,
+      "notes": "Folks mainnet lending pool 1166982094."
+    },
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks-lending-1258524099",
+      "assetPair": "SILVER",
+      "apy": 0.015293,
+      "yieldBasis": "apy",
+      "tvlUsd": 1.531917,
+      "sourceTimestamp": "2026-07-17T12:41:02.000Z",
+      "fetchedAt": "2026-07-17T12:41:17.272Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "depositEscrow",
+          "title": "Folks Finance v2 add deposit escrow",
+          "summary": "Creates and funds a new Folks Finance deposit escrow for the user. Returns a 3-transaction group that must be signed by both the user and the generated escrow account.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress"
+          ],
+          "requiredAssetIds": [
+            246519683
+          ],
+          "inputHints": {
+            "assetId": 246519683,
+            "poolAppId": 1258524099
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "optEscrowAsset",
+          "title": "Folks Finance v2 opt deposit escrow into pool fAsset",
+          "summary": "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+          "order": 1,
+          "requiredInputs": [
+            "userAddress",
+            "escrowAddress"
+          ],
+          "requiredAssetIds": [
+            246519683
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:depositEscrow"
+          ],
+          "inputHints": {
+            "assetId": 246519683,
+            "poolAppId": 1258524099
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "deposit",
+          "variant": "escrow",
+          "title": "Folks Finance v2 escrow deposit",
+          "summary": "Deposits an underlying asset into a Folks Finance lending pool via a deposit escrow. fAssets accrue in the escrow rather than the user's wallet. Generates the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
+          "order": 2,
+          "requiredInputs": [
+            "userAddress",
+            "assetAmount"
+          ],
+          "requiredAssetIds": [
+            246519683
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:optEscrowAsset"
+          ],
+          "inputHints": {
+            "assetId": 246519683,
+            "poolAppId": 1258524099
+          }
+        }
+      ],
+      "assetIds": [
+        246519683
+      ],
+      "apr": 0.015292,
+      "notes": "Folks mainnet lending pool 1258524099."
+    },
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks-lending-1060585819",
+      "assetPair": "GARD",
+      "apy": 0.011425,
+      "yieldBasis": "apy",
+      "tvlUsd": 0.001056,
+      "sourceTimestamp": "2026-07-17T12:41:02.000Z",
+      "fetchedAt": "2026-07-17T12:41:17.272Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "depositEscrow",
+          "title": "Folks Finance v2 add deposit escrow",
+          "summary": "Creates and funds a new Folks Finance deposit escrow for the user. Returns a 3-transaction group that must be signed by both the user and the generated escrow account.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress"
+          ],
+          "requiredAssetIds": [
+            684649988
+          ],
+          "inputHints": {
+            "assetId": 684649988,
+            "poolAppId": 1060585819
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "optEscrowAsset",
+          "title": "Folks Finance v2 opt deposit escrow into pool fAsset",
+          "summary": "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+          "order": 1,
+          "requiredInputs": [
+            "userAddress",
+            "escrowAddress"
+          ],
+          "requiredAssetIds": [
+            684649988
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:depositEscrow"
+          ],
+          "inputHints": {
+            "assetId": 684649988,
+            "poolAppId": 1060585819
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "deposit",
+          "variant": "escrow",
+          "title": "Folks Finance v2 escrow deposit",
+          "summary": "Deposits an underlying asset into a Folks Finance lending pool via a deposit escrow. fAssets accrue in the escrow rather than the user's wallet. Generates the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
+          "order": 2,
+          "requiredInputs": [
+            "userAddress",
+            "assetAmount"
+          ],
+          "requiredAssetIds": [
+            684649988
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:optEscrowAsset"
+          ],
+          "inputHints": {
+            "assetId": 684649988,
+            "poolAppId": 1060585819
+          }
+        }
+      ],
+      "assetIds": [
+        684649988
+      ],
+      "apr": 0.011424,
+      "notes": "Folks mainnet lending pool 1060585819."
+    },
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks-lending-971372700",
+      "assetPair": "USDt",
+      "apy": 0.00869,
+      "yieldBasis": "apy",
+      "tvlUsd": 0.064421,
+      "sourceTimestamp": "2026-07-17T12:41:02.000Z",
+      "fetchedAt": "2026-07-17T12:41:17.272Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "depositEscrow",
+          "title": "Folks Finance v2 add deposit escrow",
+          "summary": "Creates and funds a new Folks Finance deposit escrow for the user. Returns a 3-transaction group that must be signed by both the user and the generated escrow account.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress"
+          ],
+          "requiredAssetIds": [
+            312769
+          ],
+          "inputHints": {
+            "assetId": 312769,
+            "poolAppId": 971372700
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "optEscrowAsset",
+          "title": "Folks Finance v2 opt deposit escrow into pool fAsset",
+          "summary": "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+          "order": 1,
+          "requiredInputs": [
+            "userAddress",
+            "escrowAddress"
+          ],
+          "requiredAssetIds": [
+            312769
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:depositEscrow"
+          ],
+          "inputHints": {
+            "assetId": 312769,
+            "poolAppId": 971372700
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "deposit",
+          "variant": "escrow",
+          "title": "Folks Finance v2 escrow deposit",
+          "summary": "Deposits an underlying asset into a Folks Finance lending pool via a deposit escrow. fAssets accrue in the escrow rather than the user's wallet. Generates the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
+          "order": 2,
+          "requiredInputs": [
+            "userAddress",
+            "assetAmount"
+          ],
+          "requiredAssetIds": [
+            312769
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:optEscrowAsset"
+          ],
+          "inputHints": {
+            "assetId": 312769,
+            "poolAppId": 971372700
+          }
+        }
+      ],
+      "assetIds": [
+        312769
+      ],
+      "apr": 0.008689,
+      "notes": "Folks mainnet lending pool 971372700."
+    },
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks-lending-3514795114",
+      "assetPair": "WETH_NTT",
+      "apy": 0.004198,
+      "yieldBasis": "apy",
+      "tvlUsd": 0.000097,
+      "sourceTimestamp": "2026-07-17T12:41:02.000Z",
+      "fetchedAt": "2026-07-17T12:41:17.272Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "depositEscrow",
+          "title": "Folks Finance v2 add deposit escrow",
+          "summary": "Creates and funds a new Folks Finance deposit escrow for the user. Returns a 3-transaction group that must be signed by both the user and the generated escrow account.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress"
+          ],
+          "requiredAssetIds": [
+            3495722210
+          ],
+          "inputHints": {
+            "assetId": 3495722210,
+            "poolAppId": 3514795114
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "optEscrowAsset",
+          "title": "Folks Finance v2 opt deposit escrow into pool fAsset",
+          "summary": "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+          "order": 1,
+          "requiredInputs": [
+            "userAddress",
+            "escrowAddress"
+          ],
+          "requiredAssetIds": [
+            3495722210
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:depositEscrow"
+          ],
+          "inputHints": {
+            "assetId": 3495722210,
+            "poolAppId": 3514795114
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "deposit",
+          "variant": "escrow",
+          "title": "Folks Finance v2 escrow deposit",
+          "summary": "Deposits an underlying asset into a Folks Finance lending pool via a deposit escrow. fAssets accrue in the escrow rather than the user's wallet. Generates the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
+          "order": 2,
+          "requiredInputs": [
+            "userAddress",
+            "assetAmount"
+          ],
+          "requiredAssetIds": [
+            3495722210
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:optEscrowAsset"
+          ],
+          "inputHints": {
+            "assetId": 3495722210,
+            "poolAppId": 3514795114
+          }
+        }
+      ],
+      "assetIds": [
+        3495722210
+      ],
+      "apr": 0.004197,
+      "notes": "Folks mainnet lending pool 3514795114."
+    }
+  ],
+  "meta": {
+    "limit": 15,
+    "offset": 0,
+    "includeInactive": false,
+    "paymentRequired": true
+  }
+}

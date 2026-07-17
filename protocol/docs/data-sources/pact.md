@@ -86,3 +86,8 @@ One pool can emit multiple opportunities:
   represented via average windows.
 - APY and TVL values are source-provided and will be cross-normalized further as
   more protocols are added.
+- **Farm custody:** when LP is farmed, tokens leave the wallet into a per-user
+  Pact farm escrow (unlike Tinyman, where farm commit keeps LP in-wallet).
+  Executable farm shapes are `farm:deployEscrow` → `farm:stake` /
+  `addLiquidityAndFarm:twoSided`, plus `farm:unstake` and `farm:claimRewards`
+  (see `docs/execution-shapes/pact-farm-*.md`).

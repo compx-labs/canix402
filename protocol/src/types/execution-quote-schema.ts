@@ -45,7 +45,10 @@ export const ExecutionQuoteInputSchema = Type.Object({
   programAccount: Type.Optional(Type.String({ minLength: 58, maxLength: 58 })),
   liquidityAssetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
   commitAmount: Type.Optional(BaseUnitAmountSchema),
-  requiredAssetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()]))
+  requiredAssetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
+  // Pact farm fields (validated per shape)
+  farmAppId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
+  escrowAppId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()]))
 });
 
 export const ExecutionQuoteRequestSchema = Type.Object({
