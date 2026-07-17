@@ -26,6 +26,9 @@ export async function buildPaymentSignature(
   const suggested = await algod.getTransactionParams().do();
   const feePayer = getFeePayer(accepted);
 
+  const note =
+    input.paymentNote !== undefined ? { note: input.paymentNote } : {};
+
   const payment = feePayer
     ? buildFeePayerPayment({
         account,
@@ -33,14 +36,14 @@ export async function buildPaymentSignature(
         amountMicroUsdc,
         suggested,
         feePayer,
-        note: input.paymentNote
+        ...note
       })
     : buildDirectPayment({
         account,
         accepted,
         amountMicroUsdc,
         suggested,
-        note: input.paymentNote
+        ...note
       });
 
   const normalizedAmount = rawAmount.includes(".") ? usdcToMicro(rawAmount) : rawAmount;
