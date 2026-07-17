@@ -30,7 +30,21 @@ export default {
       return new Response("not found", { status: 404 });
     }
 
-    const transport = new WebStandardStreamableHTTPServerTransport();
+    // Stateless Workers cannot usefully hold a standalone GET SSE stream: the
+    // ReadableStream never receives events, so Cloudflare cancels the request
+    // as hung ("would never generate a response"). The Streamable HTTP spec
+    // allows declining GET with 405 when the server does not offer SSE.
+    if (request.method === "GET") {
+      return new Response(null, {
+        status: 405,
+        headers: { Allow: "POST, DELETE" }
+      });
+    }
+
+    const transport = new WebStandardStreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+      enableJsonResponse: true
+    });
     const server = createCanixWorkerMcpServer({ config });
     await server.connect(transport);
     return transport.handleRequest(request);
