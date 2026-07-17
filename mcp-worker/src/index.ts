@@ -42,7 +42,6 @@ export default {
     }
 
     const transport = new WebStandardStreamableHTTPServerTransport({
-      sessionIdGenerator: undefined,
       enableJsonResponse: true
     });
     const server = createCanixWorkerMcpServer({ config });
