@@ -1,0 +1,178 @@
+{
+  "data": [
+    {
+      "protocol": "compx",
+      "opportunityType": "lending",
+      "opportunityId": "compx-lending-3491050310",
+      "assetPair": "USDC",
+      "apy": 0.054936,
+      "yieldBasis": "apr",
+      "tvlUsd": 137.181191,
+      "sourceTimestamp": "2026-07-14T20:47:17.000Z",
+      "fetchedAt": "2026-07-17T12:41:14.931Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:compx:v1:deposit:asa",
+          "protocol": "compx",
+          "protocolVersion": "v1",
+          "action": "deposit",
+          "variant": "asa",
+          "title": "CompX v1 ASA lending deposit",
+          "summary": "Deposits a base ASA into a CompX lending market and receives LST tokens. Wraps @compx/sdk buildDepositTransactions, including the optional leading LST opt-in when needed.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "marketAppId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "marketAppId": 3491050310
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3491050538
+      ],
+      "apr": 1.4,
+      "notes": "CompX lending market 3491050310; util=4.4%; APR-derived yields."
+    },
+    {
+      "protocol": "compx",
+      "opportunityType": "lending",
+      "opportunityId": "compx-lending-3607827540",
+      "assetPair": "U",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 1790.235,
+      "sourceTimestamp": "2026-06-26T16:26:25.000Z",
+      "fetchedAt": "2026-07-17T12:41:14.931Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:compx:v1:deposit:asa",
+          "protocol": "compx",
+          "protocolVersion": "v1",
+          "action": "deposit",
+          "variant": "asa",
+          "title": "CompX v1 ASA lending deposit",
+          "summary": "Deposits a base ASA into a CompX lending market and receives LST tokens. Wraps @compx/sdk buildDepositTransactions, including the optional leading LST opt-in when needed.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "marketAppId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            3081853135
+          ],
+          "inputHints": {
+            "assetId": 3081853135,
+            "marketAppId": 3607827540
+          }
+        }
+      ],
+      "assetIds": [
+        3081853135,
+        3607827779
+      ],
+      "apr": 1,
+      "notes": "CompX lending market 3607827540; util=0.0%; APR-derived yields."
+    },
+    {
+      "protocol": "compx",
+      "opportunityType": "lending",
+      "opportunityId": "compx-lending-3607871733",
+      "assetPair": "COMPX",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 35.924928,
+      "sourceTimestamp": "2026-07-14T21:14:48.000Z",
+      "fetchedAt": "2026-07-17T12:41:14.931Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:compx:v1:deposit:asa",
+          "protocol": "compx",
+          "protocolVersion": "v1",
+          "action": "deposit",
+          "variant": "asa",
+          "title": "CompX v1 ASA lending deposit",
+          "summary": "Deposits a base ASA into a CompX lending market and receives LST tokens. Wraps @compx/sdk buildDepositTransactions, including the optional leading LST opt-in when needed.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "marketAppId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            1732165149
+          ],
+          "inputHints": {
+            "assetId": 1732165149,
+            "marketAppId": 3607871733
+          }
+        }
+      ],
+      "assetIds": [
+        1732165149,
+        3607871927
+      ],
+      "apr": 1,
+      "notes": "CompX lending market 3607871733; util=0.0%; APR-derived yields."
+    },
+    {
+      "protocol": "compx",
+      "opportunityType": "lending",
+      "opportunityId": "compx-lending-3491064319",
+      "assetPair": "SILVER$",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.341585,
+      "sourceTimestamp": "2026-05-26T11:17:34.000Z",
+      "fetchedAt": "2026-07-17T12:41:14.931Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:compx:v1:deposit:asa",
+          "protocol": "compx",
+          "protocolVersion": "v1",
+          "action": "deposit",
+          "variant": "asa",
+          "title": "CompX v1 ASA lending deposit",
+          "summary": "Deposits a base ASA into a CompX lending market and receives LST tokens. Wraps @compx/sdk buildDepositTransactions, including the optional leading LST opt-in when needed.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "marketAppId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            246519683
+          ],
+          "inputHints": {
+            "assetId": 246519683,
+            "marketAppId": 3491064319
+          }
+        }
+      ],
+      "assetIds": [
+        246519683,
+        3491064540
+      ],
+      "apr": 1,
+      "notes": "CompX lending market 3491064319; util=0.0%; APR-derived yields."
+    }
+  ],
+  "meta": {
+    "limit": 15,
+    "offset": 0,
+    "includeInactive": false,
+    "paymentRequired": true
+  }
+}

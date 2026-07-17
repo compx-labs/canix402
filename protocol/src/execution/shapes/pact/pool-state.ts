@@ -203,6 +203,13 @@ export function createPactCompatibleAlgodClient(algod: Algodv2): Algodv2 {
         };
       }
 
+      if (property === "accountInformation") {
+        return (...args: unknown[]) => {
+          const request = (target.accountInformation as AlgodMethod).apply(target, args);
+          return wrapAlgodRequest(request, normalizeAccountResponseForPact);
+        };
+      }
+
       return Reflect.get(target, property, receiver);
     }
   });
@@ -267,6 +274,60 @@ function normalizeAssetResponseForPact<T>(response: T): T {
       "unit-name": params["unit-name"] ?? params.unitName
     }
   } as T;
+}
+
+/**
+ * Pact farming reads wallet local state with algosdk v2 field names
+ * (`apps-local-state`, base64 keys). algosdk v3 returns camelCase + bytes.
+ */
+function normalizeAccountResponseForPact<T>(response: T): T {
+  if (!isRecordLike(response)) {
+    return response;
+  }
+
+  const appsLocalState = response["apps-local-state"] ?? response.appsLocalState;
+  const assets = response.assets;
+
+  return {
+    ...response,
+    "apps-local-state": normalizeAppsLocalState(appsLocalState),
+    ...(assets === undefined
+      ? {}
+      : {
+          assets: Array.isArray(assets)
+            ? assets.map((holding) => {
+                if (!isRecordLike(holding)) {
+                  return holding;
+                }
+                return {
+                  ...holding,
+                  "asset-id": holding["asset-id"] ?? holding.assetId,
+                  amount:
+                    typeof holding.amount === "bigint"
+                      ? Number(holding.amount)
+                      : holding.amount
+                };
+              })
+            : assets
+        })
+  } as T;
+}
+
+function normalizeAppsLocalState(value: unknown): unknown {
+  if (!Array.isArray(value)) {
+    return value;
+  }
+  return value.map((entry) => {
+    if (!isRecordLike(entry)) {
+      return entry;
+    }
+    const keyValue = entry["key-value"] ?? entry.keyValue;
+    return {
+      ...entry,
+      id: typeof entry.id === "bigint" ? Number(entry.id) : entry.id,
+      "key-value": normalizeStateEntries(keyValue)
+    };
+  });
 }
 
 function normalizeStateEntries(value: unknown): unknown {

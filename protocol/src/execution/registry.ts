@@ -132,7 +132,7 @@ export async function compileExecutableQuote(
   try {
     buildResult = await shape.build(context, input, state);
   } catch (error) {
-    if (error instanceof ShapeBuildError) {
+    if (error instanceof ShapeBuildError || error instanceof ShapeStateError) {
       throw error;
     }
     throw new ShapeBuildError(`Failed to build transaction group for shape "${key}".`, {

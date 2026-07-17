@@ -90,6 +90,26 @@ export const EXECUTION_SHAPES = [
     priceUsdc: "0.10"
   },
   {
+    shapeKey: "mainnet:folks-finance:xalgo-v1:stake:immediate",
+    protocol: "folks-finance",
+    protocolVersion: "xalgo-v1",
+    action: "stake",
+    variant: "immediate",
+    summary: "Stake ALGO into Folks Finance liquid staking and mint xALGO immediately",
+    docsPath: "protocol/docs/execution-shapes/folks-finance-stake-immediate.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:folks-finance:xalgo-v1:unstake:immediate",
+    protocol: "folks-finance",
+    protocolVersion: "xalgo-v1",
+    action: "unstake",
+    variant: "immediate",
+    summary: "Burn xALGO to redeem ALGO from Folks Finance liquid staking immediately",
+    docsPath: "protocol/docs/execution-shapes/folks-finance-unstake-immediate.md",
+    priceUsdc: "0.10"
+  },
+  {
     shapeKey: "mainnet:pact:v1:addLiquidity:twoSided",
     protocol: "pact",
     protocolVersion: "v1",

@@ -95,7 +95,8 @@ test("normalizeFolksLendingOpportunity maps APY and TVL fields from SDK values",
         }
       }
     },
-    oraclePrice: 22000000000000n,
+    // Folks oracle scale for 6dp assets: USD * 10^(14-6). $0.22 → 22_000_000.
+    oraclePrice: 22_000_000n,
     assetDecimals: 6,
     fetchedAtIso: "2026-06-17T21:05:00.000Z"
   });
@@ -267,7 +268,7 @@ test("normalizeFolksLendingOpportunity drops rows when on-chain decimals are una
           }
         }
       },
-      oraclePrice: 22000000000000n,
+      oraclePrice: 22_000_000n,
       assetDecimals: undefined,
       fetchedAtIso: "2026-06-17T21:05:00.000Z"
     }),
@@ -298,7 +299,8 @@ test("fetchFolksFinanceOpportunities maps SDK responses and filters invalid rows
     }),
     getOraclePricesFn: async () => ({
       prices: {
-        0: { price: 22000000000000n, timestamp: 0n }
+        // $0.22 for a 6-decimal asset → 0.22 * 10^8
+        0: { price: 22_000_000n, timestamp: 0n }
       }
     }),
     mainnetPools: {
@@ -409,7 +411,8 @@ test("GET /protocols/folks-finance/opportunities returns Folks normalized data",
     }),
     getOraclePricesFn: async () => ({
       prices: {
-        0: { price: 100000000000000n, timestamp: 0n }
+        // $1.00 for a 6-decimal asset → 1 * 10^8
+        0: { price: 100_000_000n, timestamp: 0n }
       }
     }),
     mainnetPools: {

@@ -95,6 +95,48 @@ export function parseOptionalEscrowAddress(value: unknown): string | undefined {
   return parseAddress(value, "escrowAddress");
 }
 
+export function parseOptionalReceiverAddress(value: unknown): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  return parseAddress(value, "receiverAddress");
+}
+
+/** Non-negative base-unit amount; allows 0 (e.g. Folks minReceivedAmount default). */
+export function parseNonNegativeBaseUnitAmount(value: unknown, field: string): bigint {
+  let result: bigint;
+  if (typeof value === "bigint") {
+    result = value;
+  } else if (typeof value === "number") {
+    if (!Number.isInteger(value)) {
+      throw new InvalidShapeInputError(`${field} must be an integer amount in base units.`, {
+        [field]: value
+      });
+    }
+    result = BigInt(value);
+  } else if (typeof value === "string" && /^\d+$/.test(value)) {
+    result = BigInt(value);
+  } else {
+    throw new InvalidShapeInputError(
+      `${field} must be a non-negative integer amount in base units.`,
+      { [field]: value }
+    );
+  }
+  if (result < 0n) {
+    throw new InvalidShapeInputError(`${field} must be greater than or equal to zero.`, {
+      [field]: value
+    });
+  }
+  return result;
+}
+
+export function parseOptionalMinReceivedAmount(value: unknown): bigint {
+  if (value === undefined) {
+    return 0n;
+  }
+  return parseNonNegativeBaseUnitAmount(value, "minReceivedAmount");
+}
+
 export function parseRequiredEscrowAddress(value: unknown): string {
   if (value === undefined) {
     throw new InvalidShapeInputError("escrowAddress is required.");

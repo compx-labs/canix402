@@ -16,6 +16,11 @@ const FOLKS_SETUP_OPT_ESCROW_ASSET =
   "mainnet:folks-finance:v2:setup:optEscrowAsset";
 const FOLKS_DEPOSIT_ESCROW = "mainnet:folks-finance:v2:deposit:escrow";
 
+const PACT_FARM_DEPLOY_ESCROW = "mainnet:pact:v1:farm:deployEscrow";
+const PACT_FARM_STAKE = "mainnet:pact:v1:farm:stake";
+const PACT_ADD_LIQUIDITY_AND_FARM =
+  "mainnet:pact:v1:addLiquidityAndFarm:twoSided";
+
 /**
  * Folks lending opens require an ordered multi-step enter path.
  * Most other protocols treat enter shapes as alternatives (all order 0).
@@ -35,6 +40,28 @@ const FOLKS_LENDING_ENTER_STEPS: ReadonlyArray<{
     shapeKey: FOLKS_DEPOSIT_ESCROW,
     order: 2,
     prerequisiteShapeKeys: [FOLKS_SETUP_OPT_ESCROW_ASSET]
+  }
+];
+
+/**
+ * Pact farms require a per-user escrow before stake / addLiquidityAndFarm.
+ * Escrow app id is only known after deploy confirms, so deploy is a separate step.
+ */
+const PACT_FARM_ENTER_STEPS: ReadonlyArray<{
+  shapeKey: string;
+  order: number;
+  prerequisiteShapeKeys?: readonly string[];
+}> = [
+  { shapeKey: PACT_FARM_DEPLOY_ESCROW, order: 0 },
+  {
+    shapeKey: PACT_FARM_STAKE,
+    order: 1,
+    prerequisiteShapeKeys: [PACT_FARM_DEPLOY_ESCROW]
+  },
+  {
+    shapeKey: PACT_ADD_LIQUIDITY_AND_FARM,
+    order: 1,
+    prerequisiteShapeKeys: [PACT_FARM_DEPLOY_ESCROW]
   }
 ];
 
@@ -97,32 +124,46 @@ function orderEnterShapes(
     record.protocol === "folks-finance" &&
     record.opportunityType === "lending"
   ) {
-    const byKey = new Map(shapes.map((shape) => [shape.key, shape]));
-    const ordered: OrderedEnterShape[] = [];
-    for (const step of FOLKS_LENDING_ENTER_STEPS) {
-      const shape = byKey.get(step.shapeKey);
-      if (!shape) {
-        continue;
-      }
-      ordered.push({
-        shape,
-        order: step.order,
-        ...(step.prerequisiteShapeKeys !== undefined
-          ? { prerequisiteShapeKeys: step.prerequisiteShapeKeys }
-          : {})
-      });
-    }
-    // Include any unexpected enter shapes at the end without prerequisites.
-    for (const shape of shapes) {
-      if (ordered.some((entry) => entry.shape.key === shape.key)) {
-        continue;
-      }
-      ordered.push({ shape, order: ordered.length });
-    }
-    return ordered;
+    return orderBySteps(shapes, FOLKS_LENDING_ENTER_STEPS);
+  }
+
+  if (record.protocol === "pact" && record.opportunityType === "farm") {
+    return orderBySteps(shapes, PACT_FARM_ENTER_STEPS);
   }
 
   return shapes.map((shape) => ({ shape, order: 0 }));
+}
+
+function orderBySteps(
+  shapes: readonly TransactionShapeSpec[],
+  steps: ReadonlyArray<{
+    shapeKey: string;
+    order: number;
+    prerequisiteShapeKeys?: readonly string[];
+  }>
+): OrderedEnterShape[] {
+  const byKey = new Map(shapes.map((shape) => [shape.key, shape]));
+  const ordered: OrderedEnterShape[] = [];
+  for (const step of steps) {
+    const shape = byKey.get(step.shapeKey);
+    if (!shape) {
+      continue;
+    }
+    ordered.push({
+      shape,
+      order: step.order,
+      ...(step.prerequisiteShapeKeys !== undefined
+        ? { prerequisiteShapeKeys: step.prerequisiteShapeKeys }
+        : {})
+    });
+  }
+  for (const shape of shapes) {
+    if (ordered.some((entry) => entry.shape.key === shape.key)) {
+      continue;
+    }
+    ordered.push({ shape, order: ordered.length });
+  }
+  return ordered;
 }
 
 function buildInputHints(
@@ -211,6 +252,12 @@ function buildInputHints(
     const poolId = stripOpportunityTypeSuffix(record.opportunityId);
     if (poolId.length > 0) {
       hints.poolId = poolId;
+    }
+    if (record.protocol === "pact" && record.opportunityType === "farm") {
+      const farmAppId = Number(poolId);
+      if (Number.isInteger(farmAppId) && farmAppId >= 1) {
+        hints.farmAppId = farmAppId;
+      }
     }
     return hints;
   }

@@ -64,9 +64,10 @@ function stubFolksWithAssetIds(): void {
     }),
     getOraclePricesFn: async () => ({
       prices: {
-        10: { price: 100000000000000n, timestamp: 0n },
-        11: { price: 100000000000000n, timestamp: 0n },
-        12: { price: 100000000000000n, timestamp: 0n }
+        // $1.00 for 6-decimal assets → 1 * 10^(14-6)
+        10: { price: 100_000_000n, timestamp: 0n },
+        11: { price: 100_000_000n, timestamp: 0n },
+        12: { price: 100_000_000n, timestamp: 0n }
       }
     }),
     mainnetPools: {
