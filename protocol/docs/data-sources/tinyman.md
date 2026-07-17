@@ -4,15 +4,18 @@ This document defines the current Tinyman adapter contract used by canix402.
 
 ## Source Strategy
 
-- Mode: API-first
+- Mode: API-first (pools) + on-chain consensus APR (tALGO liquid staking)
 - Adapter file: `src/adapters/tinyman.ts`
 - Positions collector: `src/services/protocol-positions.ts` (`collectTinymanPositions`)
 - Base URL: `TINYMAN_API_BASE_URL`
 - Endpoints used:
   - Opportunities: `GET /pools/`
+  - ALGO USD for tALGO TVL: `GET /assets/0/` (`price_in_usd`)
   - Wallet LP positions: `GET /pools/?liquidity_asset_ids=…`
   - Wallet farm commitments / unclaimed rewards: `GET /staking/pool-programs/?pooler_address=…&committed_only=true`
   - Reward asset USD: `GET /assets/{asset_id}/` (`price_in_usd`)
+- tALGO staking also reads algod ledger supply, recent block headers (bonus + fees), and
+  Tinyman stake-app state via `@tinymanorg/tinyman-js-sdk` `TinymanTAlgoClient`
 - Default query profile matches Tinyman app pool listing behavior:
   - `with_statistics=true`
   - `version__in=2.0` (override with `TINYMAN_POOL_VERSIONS`)
@@ -26,6 +29,7 @@ This document defines the current Tinyman adapter contract used by canix402.
 - `TINYMAN_POOL_VERSIONS` (optional CSV, default `2.0`)
 - `TINYMAN_ONLY_VERIFIED` (optional boolean, default `true`)
 - `TINYMAN_POOL_LIMIT` (optional integer-like string, default `100`)
+- `X402_ALGOD_URL` / `X402_ALGOD_TOKEN` (shared; used for tALGO staking APR/TVL)
 
 ## Normalized Output Fields
 
@@ -41,17 +45,22 @@ Other emitted fields:
 - `opportunityType`
 - `opportunityId`
 - `assetPair`
-- `yieldBasis` (`apy` for both LP and farm outputs)
-- `apr` (optional when upstream provides it)
+- `yieldBasis` (`apy` for LP, farm, and staking outputs)
+- `apr` (optional when upstream provides it; for tALGO staking this is the
+  pre-fee network consensus APR)
 - `sourceTimestamp`
 - `fetchedAt`
-- `notes` (only when fallback identifiers are used)
+- `notes` (fallback identifiers and/or staking formula caveats)
 
 When farm incentives are present, one upstream pool can emit **two** normalized
 opportunities:
 
 - `lp` for the base pool position
 - `farm` for staking/farming incentives on that same pair
+
+Additionally, the adapter may emit one liquid-staking row:
+
+- `staking` for Tinyman tALGO (`opportunityId: tinyman-staking-talgo`)
 
 ## Field Mapping
 
@@ -65,15 +74,30 @@ opportunities:
 | `liquidity_in_usd` | `tvlUsd` | Required; record dropped when invalid |
 | `annual_percentage_rate` | `apr` (`lp`) | Decimal fraction -> percentage points; optional |
 | `staking_total_annual_percentage_rate` | `apr` (`farm`) | Decimal fraction -> percentage points; optional |
-| fetch timestamp | `sourceTimestamp` | Source currently does not expose per-row update timestamp |
+| fetch timestamp | `sourceTimestamp` | Source currently does not expose a per-row update timestamp |
 | incentive presence (`staking_total_annual_percentage_*`) | `opportunityType` | Emits `farm` in addition to `lp` |
+
+### tALGO liquid staking (`opportunityType: staking`)
+
+| Source | Normalized field | Notes |
+|---|---|---|
+| (adapter policy) | `opportunityId` | Always `tinyman-staking-talgo` |
+| (adapter policy) | `assetPair` / `assetIds` | `ALGO/tALGO`, `[0, 2537013734]` |
+| Consensus APR helper | `apr` | `(bonus + 50% × avg fees) × blocks/year / onlineStake × 100` |
+| Consensus APR × (1 − 0.08) | `apy` | Tinyman 8% protocol fee on block rewards |
+| `minted_talgo` × ALGO/tALGO ratio × ALGO USD | `tvlUsd` | Circulating tALGO × ratio from stake app; USD from `GET /assets/0/` |
+
+Consensus APR uses algod `GET /v2/ledger/supply` (`onlineStake`) and a short sample of
+recent block headers (`bonus`, `feesCollected`). See `src/services/consensus-staking-apr.ts`.
 
 ## Error and Data Quality Behavior
 
-- Non-2xx response from Tinyman API -> adapter throws `TinymanAdapterError`.
-- Invalid JSON/transport timeout -> adapter throws `TinymanAdapterError`.
+- Non-2xx response from Tinyman pools API -> adapter throws `TinymanAdapterError`.
+- Invalid JSON/transport timeout on pools -> adapter throws `TinymanAdapterError`.
 - Rows missing either APY or TVL (USD) are filtered out, not partially emitted.
 - Rows are filtered to verified pools by default (`TINYMAN_ONLY_VERIFIED=true`).
+- tALGO staking failures (algod / price / stake-app) omit the staking row only;
+  pool opportunities still return.
 
 ## Rate-Limit and Reliability Notes
 
@@ -97,5 +121,7 @@ opportunities:
   `farm` opportunities when staking fields are present.
 - Accruing-but-not-yet-claimable `pooler.rewards.potential` is not emitted;
   only unpaid `pending` rewards are included in wallet reward totals.
-- `tvlUsd` and `apy` are trusted from source; cross-protocol normalization
-  tolerances will be refined as additional adapters are added.
+- Consensus APR uses ledger online stake (not the stricter ≥30k eligible-stake
+  filter) and a short fee sample; treat as an estimate.
+- Tinyman stALGO restake is not listed as a separate opportunity in this phase.
+- `tvlUsd` and `apy` for LP/farm are trusted from source; tALGO staking is derived.

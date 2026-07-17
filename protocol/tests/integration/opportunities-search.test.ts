@@ -30,6 +30,12 @@ test("opportunities search applies platform, type, APY, and TVL filters", async 
   });
   setFolksFinanceSdkDependenciesForTests({
     createAlgodClient: () => ({}) as never,
+    getConsensusStateFn: async () => {
+      throw new Error("consensus disabled in this test");
+    },
+    estimateConsensusApr: async () => {
+      throw new Error("consensus APR disabled in this test");
+    },
     retrievePoolManagerInfoFn: async () => ({
       adminAddress: "ADMIN",
       pools: {

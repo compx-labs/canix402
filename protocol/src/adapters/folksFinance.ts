@@ -1,11 +1,14 @@
 import algosdk, { Algodv2 } from "algosdk";
 import {
+  ConsensusState,
+  MainnetConsensusConfig,
   MainnetOracle,
   MainnetPoolManagerAppId,
   MainnetPools,
   Pool,
   PoolInfo,
   PoolManagerInfo,
+  getConsensusState,
   getOraclePrices,
   retrievePoolInfo,
   retrievePoolManagerInfo
@@ -13,7 +16,16 @@ import {
 
 import { OpportunityMarketRecord } from "../types/opportunity.js";
 import { resolveAssetDecimals } from "../services/asset-decimals.js";
+import {
+  CONSENSUS_PAYOUT_FEE_PERCENT,
+  estimateConsensusStakingApr,
+  type ConsensusStakingAprEstimate
+} from "../services/consensus-staking-apr.js";
 import { buildSourceMetadata } from "../services/source-metadata.js";
+
+export const FOLKS_XALGO_STAKING_OPPORTUNITY_ID = "folks-staking-xalgo";
+/** Folks stores protocol fee as a 16-decimal fixed-point fraction. */
+const FOLKS_FEE_SCALE = 1e16;
 
 export class FolksFinanceAdapterError extends Error {
   public readonly cause?: unknown;
@@ -28,15 +40,19 @@ export class FolksFinanceAdapterError extends Error {
 type RetrievePoolManagerInfoFn = typeof retrievePoolManagerInfo;
 type RetrievePoolInfoFn = typeof retrievePoolInfo;
 type GetOraclePricesFn = typeof getOraclePrices;
+type GetConsensusStateFn = typeof getConsensusState;
 
 interface FolksFinanceSdkDependencies {
   createAlgodClient: () => Algodv2;
   retrievePoolManagerInfoFn: RetrievePoolManagerInfoFn;
   retrievePoolInfoFn: RetrievePoolInfoFn;
   getOraclePricesFn: GetOraclePricesFn;
+  getConsensusStateFn: GetConsensusStateFn;
+  estimateConsensusApr: (algod: Algodv2) => Promise<ConsensusStakingAprEstimate>;
   mainnetPools: typeof MainnetPools;
   mainnetPoolManagerAppId: number;
   mainnetOracle: typeof MainnetOracle;
+  mainnetConsensusConfig: typeof MainnetConsensusConfig;
 }
 
 let folksFinanceSdkDependencyOverrides: Partial<FolksFinanceSdkDependencies> | undefined;
@@ -53,13 +69,24 @@ export async function fetchFolksFinanceOpportunities(): Promise<OpportunityMarke
 
   try {
     const algodClient = dependencies.createAlgodClient();
-    const [poolManagerInfo, oraclePrices] = await Promise.all([
-      dependencies.retrievePoolManagerInfoFn(
-        algodClient,
-        dependencies.mainnetPoolManagerAppId
-      ),
-      dependencies.getOraclePricesFn(algodClient, dependencies.mainnetOracle)
-    ]);
+    const [poolManagerInfo, oraclePrices, consensusStateResult, consensusAprResult] =
+      await Promise.all([
+        dependencies.retrievePoolManagerInfoFn(
+          algodClient,
+          dependencies.mainnetPoolManagerAppId
+        ),
+        dependencies.getOraclePricesFn(algodClient, dependencies.mainnetOracle),
+        dependencies
+          .getConsensusStateFn(algodClient, dependencies.mainnetConsensusConfig)
+          .then(
+            (state) => ({ ok: true as const, state }),
+            () => ({ ok: false as const })
+          ),
+        dependencies.estimateConsensusApr(algodClient).then(
+          (estimate) => ({ ok: true as const, estimate }),
+          () => ({ ok: false as const })
+        )
+      ]);
 
     const poolEntries = Object.entries(dependencies.mainnetPools);
     const poolAssetIds = poolEntries.map(([, pool]) => Number(pool.assetId));
@@ -73,7 +100,7 @@ export async function fetchFolksFinanceOpportunities(): Promise<OpportunityMarke
       )
     ]);
 
-    const opportunities = poolInfos
+    const lendingOpportunities = poolInfos
       .filter(
         (
           result
@@ -93,10 +120,25 @@ export async function fetchFolksFinanceOpportunities(): Promise<OpportunityMarke
       )
       .filter((record): record is OpportunityMarketRecord => record !== null);
 
-    if (opportunities.length === 0) {
+    if (lendingOpportunities.length === 0) {
       throw new FolksFinanceAdapterError(
         "Folks Finance SDK returned no valid lending opportunities."
       );
+    }
+
+    const opportunities = [...lendingOpportunities];
+    if (consensusStateResult.ok && consensusAprResult.ok) {
+      const staking = normalizeFolksXAlgoStakingOpportunity({
+        consensusState: consensusStateResult.state,
+        consensusApr: consensusAprResult.estimate.apr,
+        oraclePrice: oraclePrices.prices[0]?.price,
+        xAlgoId: dependencies.mainnetConsensusConfig.xAlgoId,
+        sampleSize: consensusAprResult.estimate.sampleSize,
+        fetchedAtIso: fetchedAt
+      });
+      if (staking !== null) {
+        opportunities.push(staking);
+      }
     }
 
     return opportunities;
@@ -167,15 +209,77 @@ export function normalizeFolksLendingOpportunity(
   };
 }
 
+export function normalizeFolksXAlgoStakingOpportunity(input: {
+  consensusState: Pick<ConsensusState, "algoBalance" | "fee">;
+  consensusApr: number;
+  oraclePrice: bigint | undefined;
+  xAlgoId: number;
+  sampleSize: number;
+  fetchedAtIso: string;
+}): OpportunityMarketRecord | null {
+  const {
+    consensusState,
+    consensusApr,
+    oraclePrice,
+    xAlgoId,
+    sampleSize,
+    fetchedAtIso
+  } = input;
+
+  if (
+    !Number.isFinite(consensusApr) ||
+    consensusApr < 0 ||
+    oraclePrice === undefined ||
+    consensusState.algoBalance <= 0n
+  ) {
+    return null;
+  }
+
+  const protocolFeeFraction = Number(consensusState.fee) / FOLKS_FEE_SCALE;
+  if (!Number.isFinite(protocolFeeFraction) || protocolFeeFraction < 0 || protocolFeeFraction >= 1) {
+    return null;
+  }
+
+  const tvlUsd = calcTvlUsd(consensusState.algoBalance, oraclePrice);
+  const apy = consensusApr * (1 - protocolFeeFraction);
+  if (!Number.isFinite(apy) || !Number.isFinite(tvlUsd) || tvlUsd <= 0) {
+    return null;
+  }
+
+  return {
+    protocol: "folks-finance",
+    opportunityType: "staking",
+    opportunityId: FOLKS_XALGO_STAKING_OPPORTUNITY_ID,
+    assetPair: "ALGO/xALGO",
+    assetIds: [0, xAlgoId],
+    apy,
+    yieldBasis: "apy",
+    tvlUsd,
+    apr: consensusApr,
+    ...buildSourceMetadata({
+      fetchedAtIso,
+      contextNotes: [
+        "Folks Finance xALGO liquid staking (immediate). APY from Algorand consensus rewards " +
+          `(Foundation bonus + ${CONSENSUS_PAYOUT_FEE_PERCENT}% of fees) / online stake, ` +
+          `net of Folks protocol fee ${(protocolFeeFraction * 100).toFixed(2)}%. ` +
+          `Fee share averaged over ${sampleSize} recent blocks.`
+      ]
+    })
+  };
+}
+
 function resolveDependencies(): FolksFinanceSdkDependencies {
   return {
     createAlgodClient: createFolksAlgodClient,
     retrievePoolManagerInfoFn: retrievePoolManagerInfo,
     retrievePoolInfoFn: retrievePoolInfo,
     getOraclePricesFn: getOraclePrices,
+    getConsensusStateFn: getConsensusState,
+    estimateConsensusApr: (algod) => estimateConsensusStakingApr(algod),
     mainnetPools: MainnetPools,
     mainnetPoolManagerAppId: MainnetPoolManagerAppId,
     mainnetOracle: MainnetOracle,
+    mainnetConsensusConfig: MainnetConsensusConfig,
     ...folksFinanceSdkDependencyOverrides
   };
 }
