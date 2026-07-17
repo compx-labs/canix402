@@ -183,10 +183,21 @@ test("well-known x402 fan-out lists paid resource URLs", async () => {
 
   const payload = response.json() as { version: 1; resources: string[] };
   assert.equal(payload.version, 1);
-  assert.equal(payload.resources.length, 7);
+  const expectedPaidCount = endpointPolicyMatrix.filter(
+    (endpoint) => endpoint.access === "paid"
+  ).length;
+  assert.equal(payload.resources.length, expectedPaidCount);
   assert.ok(payload.resources.includes("https://canix402-api.compx.io/positions"));
   assert.ok(
     payload.resources.includes("https://canix402-api.compx.io/swaps/transactions")
+  );
+  assert.ok(
+    payload.resources.includes("https://canix402-api.compx.io/strategies")
+  );
+  assert.ok(
+    payload.resources.includes(
+      "https://canix402-api.compx.io/strategies/{strategyId}/compile"
+    )
   );
   assert.equal(payload.resources.every((url) => url.startsWith("https://canix402-api.compx.io/")), true);
 

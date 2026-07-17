@@ -50,11 +50,13 @@
     "test:live:execution": "tsx --test tests/live/tinyman-production-test.test.ts",
     "test:live:folks-execution": "tsx --test tests/live/folks-finance-production-test.test.ts",
     "snapshot:discovery": "tsx --env-file-if-exists=.env scripts/export-discovery-snapshot.ts",
-    "snapshot:responses": "tsx --env-file-if-exists=.env scripts/export-opportunity-snapshots.ts"
+    "snapshot:responses": "tsx --env-file-if-exists=.env scripts/export-opportunity-snapshots.ts",
+    "strategy:payouts": "tsx --env-file-if-exists=.env scripts/strategy-weekly-payouts.ts"
   },
   "dependencies": {
     "@algorandfoundation/algokit-utils": "^9.2.0",
-    "@compx/sdk": "^2.1.1",
+    "@aws-sdk/client-s3": "^3.1090.0",
+    "@compx/sdk": "^2.1.5",
     "@fastify/type-provider-typebox": "^6.1.0",
     "@folks-finance/algorand-sdk": "^0.2.6",
     "@pactfi/pactsdk": "^0.8.1",

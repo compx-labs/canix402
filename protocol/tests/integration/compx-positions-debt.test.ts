@@ -129,6 +129,56 @@ test("CompX collector marks borrowedUsdComplete false when getUserPosition fails
   assert.match(result.warnings.join("; "), /:debt: box read failed/);
 });
 
+test("CompX collector treats missing deposit/loan boxes as empty debt, not a failure", async () => {
+  setAssetDecimalsDependenciesForTests({
+    createAlgodClient: () => ({}) as never,
+    getAssetById: async () => ({ params: { decimals: 6 } })
+  });
+  setCompXSdkDependenciesForTests({
+    getAllMarketsFn: async () => [marketData()],
+    getAllPoolsFn: async () => [],
+    getAssetsInfoFn: async () => [
+      {
+        id: USDC_ID,
+        name: "USDC",
+        unitName: "USDC",
+        decimals: 6,
+        total: 0n,
+        frozen: false
+      }
+    ],
+    getPoolAprFn: async () => null,
+    getTokenPricesFn: async () => ({})
+  });
+  setCompXLendingMarketStateDependenciesForTests({
+    getMarket: async () => marketData()
+  });
+  setCompXPositionCollectorDependenciesForTests({
+    getUserPosition: async () => {
+      const error = new Error(
+        "Network request error. Received status 404 (Not Found): box not found"
+      ) as Error & { status: number };
+      error.status = 404;
+      throw error;
+    }
+  });
+
+  const result = await collectCompXPositions(
+    ADDRESS,
+    walletSnapshot([{ assetId: LST_ID, amount: 1_000_000n }])
+  );
+
+  assert.equal(result.coverage?.borrowedUsdComplete, true);
+  assert.equal(
+    result.positions.some((position) => position.positionType === "debt"),
+    false
+  );
+  assert.equal(
+    result.warnings.some((warning) => warning.includes(":debt:")),
+    false
+  );
+});
+
 test("CompX collector emits pending staking rewards from rewardPerToken and rewardDebt", async () => {
   setAssetDecimalsDependenciesForTests({
     createAlgodClient: () => ({}) as never,

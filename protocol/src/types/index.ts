@@ -37,3 +37,25 @@ export {
   PricingResponseSchema,
   TokenPriceSchema
 } from "./pricing-schema.js";
+export type {
+  StrategyCompileBody,
+  StrategyDocument,
+  StrategyLeg,
+  StrategyListQuery,
+  StrategyPublishBody,
+  StrategyReviseBody,
+  StrategyStatus
+} from "./strategy-schema.js";
+export {
+  STRATEGY_HOLDER_FEE_SHARE_BPS,
+  STRATEGY_REVISE_COOLDOWN_MS,
+  STRATEGY_WEIGHT_BPS_TOTAL,
+  StrategyCompileBodySchema,
+  StrategyDocumentSchema,
+  StrategyIdParamsSchema,
+  StrategyLegSchema,
+  StrategyListQuerySchema,
+  StrategyPublishBodySchema,
+  StrategyReviseBodySchema,
+  StrategyStatusSchema
+} from "./strategy-schema.js";

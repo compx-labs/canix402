@@ -68,9 +68,13 @@ test("openapi paths match policy matrix routes", async () => {
 
   const openapi = response.json() as OpenApiDocument;
   const openapiPaths = Object.keys(openapi.paths).sort();
-  const policyPaths = endpointPolicyMatrix
-    .map((endpoint) => endpoint.pathPattern.replace(":protocol", "{protocol}"))
-    .sort();
+  const policyPaths = [
+    ...new Set(
+      endpointPolicyMatrix.map((endpoint) =>
+        endpoint.pathPattern.replace(":protocol", "{protocol}")
+      )
+    )
+  ].sort();
 
   assert.deepEqual(openapiPaths, policyPaths);
 

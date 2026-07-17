@@ -186,7 +186,7 @@ async function buildEdgeGatedApp(): Promise<FastifyInstance> {
   const app = buildApp();
 
   app.addHook("onRequest", async (request, reply) => {
-    if (!isPaidEndpoint(request.url.split("?")[0])) {
+    if (!isPaidEndpoint(request.url.split("?")[0], request.method)) {
       return;
     }
 
