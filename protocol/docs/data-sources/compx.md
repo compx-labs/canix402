@@ -94,6 +94,12 @@ Other emitted fields:
 
 - Current mode is on-demand fetch per request.
 - `getAllMarkets()` performs multiple on-chain reads (and may simulate APR) per market.
+- Wallet positions call `sdk.lending.getUserPosition(appId, address)` per lending
+  opportunity to read `UserPosition.borrowed` (and related health fields). Markets
+  with neither wallet LST nor debt are skipped after that read.
+- CompX staking pending rewards are derived MasterChef-style as
+  `stake * rewardPerToken / 1e15 - rewardDebt` from pool + staker box state, then
+  priced with `sdk.pricing.getTokenPrices`.
 - No retry loop is implemented in this phase.
 - Asset-decimal lookups are cached for the process lifetime and batched with
   bounded concurrency to limit algod request pressure.
@@ -104,3 +110,6 @@ Other emitted fields:
 - CompX lending `supplyApy`/`borrowApy` are APR-derived values, not compound APY.
 - Staking yield is reported as APR; cross-asset pools require CompX SDK USD pricing.
 - `COMPX_ONLY_ACTIVE=true` skips inactive/migrating lending markets and inactive/expired staking pools.
+- Pending staking reward math uses the stored on-chain `reward_per_token` (same as
+  a claim before `updatePool` accrual); live claimable can be slightly higher
+  after the contract accrues to the current timestamp.

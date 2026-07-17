@@ -56,6 +56,16 @@ Status legend:
   - [ ] Track x402 requests, failed payments, successful settlements, referrers, and user agents.
   - [ ] Log which directories/agents send traffic.
 
+## 7) Wallet Positions Coverage (`GET /positions`)
+
+Collectors in `src/services/protocol-positions.ts` still emit always-on partial caveats that force protocol `status: "partial"` and null `totals.rewardsUsd` / `netUsd` (and CompX `borrowedUsd`). Close the real gaps, then stop warning once coverage is accurate.
+
+- [x] **Tinyman farm staking / unclaimed rewards.** Farm commit keeps LP in the wallet and stakes the full LP balance (no partial stake), so farmed stake is already known from the LP position (annotated when committed). Unclaimed farm rewards come from `GET /staking/pool-programs/?pooler_address=…&committed_only=true` (`pooler.rewards.pending`), priced via Tinyman asset `price_in_usd`; `rewardsUsdComplete` is true only when that farm fetch + pricing succeed.
+- [x] **CompX per-user lending debt.** CompX collector reads `sdk.lending.getUserPosition(appId, address)` and emits `debt` rows from `UserPosition.borrowed` (USD via market `baseTokenPrice`); `borrowedUsdComplete` is true when those reads/prices succeed.
+- [x] **CompX pending staking rewards.** Pending = `stake * rewardPerToken / 1e15 - rewardDebt` (MasterChef); emitted as `reward` positions and priced via CompX pricing API; `rewardsUsdComplete` is true when those rewards are priced (or none exist).
+- [ ] After the above, stop hardcoding `rewardsUsdComplete: false` / `borrowedUsdComplete: false` for protocols whose coverage is complete, so aggregate totals are only `null` when a real gap or pricing failure remains.
+- [ ] Add/extend positions integration tests so always-on caveats cannot regress once a protocol’s coverage is marked complete.
+
 ## 8) Strategy Marketplace and Execution Layer
 
 Canix should become the validation, discovery, transaction-generation, execution, fee-sharing, and performance-tracking layer for third-party strategies. External AI agents or human creators are responsible for creating strategies; Canix should not generate strategies itself.
