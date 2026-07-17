@@ -951,10 +951,16 @@ export async function collectCompXPositions(
           try {
             userPosition = await getUserPosition(appId, address);
           } catch (error) {
-            debtReadsFailed = true;
-            warnings.push(
-              `${opportunity.opportunityId}:debt: ${errorMessage(error)}`
-            );
+            // Missing deposit/loan boxes are expected for wallets with no
+            // activity in a market — treat as an empty position, not a failure.
+            if (isMissingCompXPositionBoxError(error)) {
+              userPosition = emptyCompXUserPosition(appId, address);
+            } else {
+              debtReadsFailed = true;
+              warnings.push(
+                `${opportunity.opportunityId}:debt: ${errorMessage(error)}`
+              );
+            }
           }
 
           const lstTokenId = opportunity.assetIds?.[1];
@@ -1223,6 +1229,42 @@ function resolveCompXGetUserPosition(
   const sdk = new CompXSDK({ algodClient: algod, network });
   return (appId, userAddress) =>
     sdk.lending.getUserPosition(appId, userAddress);
+}
+
+function isMissingCompXPositionBoxError(error: unknown): boolean {
+  const status =
+    (error as { status?: number; statusCode?: number } | undefined) ?? undefined;
+  if (status?.status === 404 || status?.statusCode === 404) {
+    return true;
+  }
+  const message = errorMessage(error).toLowerCase();
+  return (
+    message.includes("box not found") ||
+    message.includes("no application box") ||
+    message.includes("no deposit record") ||
+    message.includes("no loan record")
+  );
+}
+
+function emptyCompXUserPosition(
+  appId: number,
+  userAddress: string
+): UserPosition {
+  return {
+    address: userAddress,
+    appId,
+    supplied: 0,
+    lstBalance: 0,
+    borrowed: 0,
+    collateral: 0,
+    collateralAssetId: 0,
+    userIndexWad: 0n,
+    principal: 0n,
+    lastDebtChange: 0,
+    healthFactor: Infinity,
+    maxBorrow: 0,
+    isLiquidatable: false
+  };
 }
 
 export async function collectDorkFiPositions(

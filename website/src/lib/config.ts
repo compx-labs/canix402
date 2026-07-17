@@ -59,6 +59,11 @@ export const mcpToolNames = [
   "canix_get_protocol_opportunities",
   "canix_get_positions",
   "canix_get_execution_quote",
+  "canix_list_strategies",
+  "canix_get_strategy",
+  "canix_publish_strategy",
+  "canix_revise_strategy",
+  "canix_compile_strategy",
   "canix_get_quote",
   "canix_optin",
   "canix_swap"

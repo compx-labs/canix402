@@ -6,6 +6,8 @@ export interface BuildPaymentSignatureInput {
   requestUrl: string;
   clientMnemonic: string;
   algodUrl: string;
+  /** Optional ASA transfer note; defaults to x402-payment-v2. */
+  paymentNote?: string;
 }
 
 export async function buildPaymentSignature(
@@ -30,13 +32,15 @@ export async function buildPaymentSignature(
         accepted,
         amountMicroUsdc,
         suggested,
-        feePayer
+        feePayer,
+        note: input.paymentNote
       })
     : buildDirectPayment({
         account,
         accepted,
         amountMicroUsdc,
-        suggested
+        suggested,
+        note: input.paymentNote
       });
 
   const normalizedAmount = rawAmount.includes(".") ? usdcToMicro(rawAmount) : rawAmount;
@@ -73,11 +77,16 @@ interface PaymentBuildInput {
   accepted: PaymentRequestAccept;
   amountMicroUsdc: bigint;
   suggested: algosdk.SuggestedParams;
+  note?: string;
 }
 
 interface BuiltPayment {
   paymentGroup: string[];
   paymentIndex: number;
+}
+
+function paymentNoteBytes(note?: string): Uint8Array {
+  return new TextEncoder().encode(note?.trim() || "x402-payment-v2");
 }
 
 function buildDirectPayment(input: PaymentBuildInput): BuiltPayment {
@@ -91,7 +100,7 @@ function buildDirectPayment(input: PaymentBuildInput): BuiltPayment {
       flatFee: true,
       fee: 1_000
     },
-    note: new TextEncoder().encode("x402-payment-v2")
+    note: paymentNoteBytes(input.note)
   });
 
   const signed = algosdk.signTransaction(transfer, input.account.sk);
@@ -129,7 +138,7 @@ function buildFeePayerPayment(
       flatFee: true,
       fee: 0
     },
-    note: new TextEncoder().encode("x402-payment-v2")
+    note: paymentNoteBytes(input.note)
   });
 
   algosdk.assignGroupID([feePayerTxn, transfer]);
