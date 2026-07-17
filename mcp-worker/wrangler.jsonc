@@ -1,0 +1,25 @@
+{
+  "name": "canix402-mcp",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-09",
+  "workers_dev": true,
+  "vars": {
+    "CANIX402_GATEWAY_URL": "https://canix402-api.compx.io",
+    "CANIX402_MCP_PUBLIC_URL": "https://canix402-mcp.compx.io/mcp"
+  },
+  "observability": {
+    "enabled": false,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": false,
+      "persist": true,
+      "head_sampling_rate": 1
+    }
+  }
+}
