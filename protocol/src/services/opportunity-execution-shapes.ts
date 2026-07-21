@@ -24,7 +24,16 @@ const PACT_ADD_LIQUIDITY_AND_FARM =
 const TINYMAN_TALGO_STAKING_OPPORTUNITY_ID = "tinyman-staking-talgo";
 const FOLKS_XALGO_STAKING_OPPORTUNITY_ID = "folks-staking-xalgo";
 const TINYMAN_MINT_TALGO = "mainnet:tinyman:liquid-stake-v1:mint:tAlgo";
+const TINYMAN_BURN_TALGO = "mainnet:tinyman:liquid-stake-v1:burn:tAlgo";
 const FOLKS_STAKE_IMMEDIATE = "mainnet:folks-finance:xalgo-v1:stake:immediate";
+const FOLKS_UNSTAKE_IMMEDIATE =
+  "mainnet:folks-finance:xalgo-v1:unstake:immediate";
+
+type ShapeStep = {
+  shapeKey: string;
+  order: number;
+  prerequisiteShapeKeys?: readonly string[];
+};
 
 /**
  * Folks lending opens require an ordered multi-step enter path.
@@ -71,18 +80,24 @@ const PACT_FARM_ENTER_STEPS: ReadonlyArray<{
 ];
 
 /** Exclusive enter path for Tinyman tALGO (do not attach stALGO restake). */
-const TINYMAN_TALGO_STAKING_ENTER_STEPS: ReadonlyArray<{
-  shapeKey: string;
-  order: number;
-  prerequisiteShapeKeys?: readonly string[];
-}> = [{ shapeKey: TINYMAN_MINT_TALGO, order: 0 }];
+const TINYMAN_TALGO_STAKING_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: TINYMAN_MINT_TALGO, order: 0 }
+];
 
 /** Exclusive enter path for Folks xALGO immediate stake. */
-const FOLKS_XALGO_STAKING_ENTER_STEPS: ReadonlyArray<{
-  shapeKey: string;
-  order: number;
-  prerequisiteShapeKeys?: readonly string[];
-}> = [{ shapeKey: FOLKS_STAKE_IMMEDIATE, order: 0 }];
+const FOLKS_XALGO_STAKING_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: FOLKS_STAKE_IMMEDIATE, order: 0 }
+];
+
+/** Liquid-staking exit path for Tinyman tALGO burn. */
+const TINYMAN_TALGO_STAKING_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: TINYMAN_BURN_TALGO, order: 0 }
+];
+
+/** Liquid-staking exit path for Folks xALGO immediate unstake. */
+const FOLKS_XALGO_STAKING_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: FOLKS_UNSTAKE_IMMEDIATE, order: 0 }
+];
 
 export function attachExecutionShapesToOpportunity(
   record: OpportunityMarketRecord,
@@ -96,7 +111,47 @@ export function attachExecutionShapesToOpportunity(
   const inputHints = buildInputHints(record);
   const requiredAssetIds = buildRequiredAssetIds(record);
 
-  const executionShapes: OpportunityExecutionShape[] = ordered.map((entry) => ({
+  const executionShapes: OpportunityExecutionShape[] = ordered.map((entry) =>
+    toOpportunityExecutionShape(entry, requiredAssetIds, inputHints)
+  );
+
+  const exitOrdered = orderExitShapes(record, registry);
+  const exitInputHints = buildExitInputHints(record);
+  const exitRequiredAssetIds = buildExitRequiredAssetIds(record);
+  const compatibleExitShapes: OpportunityExecutionShape[] = exitOrdered.map(
+    (entry) =>
+      toOpportunityExecutionShape(entry, exitRequiredAssetIds, exitInputHints)
+  );
+
+  return {
+    ...record,
+    executionReady: executionShapes.length > 0,
+    executionShapes,
+    compatibleExitShapes
+  };
+}
+
+export function attachExecutionShapesToOpportunities(
+  records: readonly OpportunityMarketRecord[],
+  registry: TransactionShapeRegistry = executionRegistry
+): OpportunityRecordV1[] {
+  return records.map((record) =>
+    attachExecutionShapesToOpportunity(record, registry)
+  );
+}
+
+interface OrderedShape {
+  shape: TransactionShapeSpec;
+  order: number;
+  prerequisiteShapeKeys?: readonly string[];
+}
+
+function toOpportunityExecutionShape(
+  entry: OrderedShape,
+  requiredAssetIds: readonly number[],
+  inputHints: OpportunityExecutionInputHints
+): OpportunityExecutionShape {
+  return {
     shapeKey: entry.shape.key,
     protocol: entry.shape.identity.protocol,
     protocolVersion: entry.shape.identity.protocolVersion,
@@ -111,34 +166,13 @@ export function attachExecutionShapesToOpportunity(
     requiredInputs: [...entry.shape.requiredInputs],
     requiredAssetIds: [...requiredAssetIds],
     ...(Object.keys(inputHints).length > 0 ? { inputHints } : {})
-  }));
-
-  return {
-    ...record,
-    executionReady: executionShapes.length > 0,
-    executionShapes
   };
-}
-
-export function attachExecutionShapesToOpportunities(
-  records: readonly OpportunityMarketRecord[],
-  registry: TransactionShapeRegistry = executionRegistry
-): OpportunityRecordV1[] {
-  return records.map((record) =>
-    attachExecutionShapesToOpportunity(record, registry)
-  );
-}
-
-interface OrderedEnterShape {
-  shape: TransactionShapeSpec;
-  order: number;
-  prerequisiteShapeKeys?: readonly string[];
 }
 
 function orderEnterShapes(
   record: OpportunityMarketRecord,
   shapes: readonly TransactionShapeSpec[]
-): OrderedEnterShape[] {
+): OrderedShape[] {
   if (
     record.protocol === "folks-finance" &&
     record.opportunityType === "lending"
@@ -173,17 +207,62 @@ function orderEnterShapes(
   return shapes.map((shape) => ({ shape, order: 0 }));
 }
 
+/**
+ * Exit shapes are looked up by key (not listForOpportunity, which is enter-only).
+ * Only liquid-staking opportunities attach exits today.
+ */
+function orderExitShapes(
+  record: OpportunityMarketRecord,
+  registry: TransactionShapeRegistry
+): OrderedShape[] {
+  const steps = resolveExitSteps(record);
+  if (steps.length === 0) {
+    return [];
+  }
+  const ordered: OrderedShape[] = [];
+  for (const step of steps) {
+    const shape = registry.get(step.shapeKey);
+    if (!shape) {
+      continue;
+    }
+    ordered.push({
+      shape,
+      order: step.order,
+      ...(step.prerequisiteShapeKeys !== undefined
+        ? { prerequisiteShapeKeys: step.prerequisiteShapeKeys }
+        : {})
+    });
+  }
+  return ordered;
+}
+
+function resolveExitSteps(
+  record: OpportunityMarketRecord
+): ReadonlyArray<ShapeStep> {
+  if (
+    record.protocol === "tinyman" &&
+    record.opportunityType === "staking" &&
+    record.opportunityId === TINYMAN_TALGO_STAKING_OPPORTUNITY_ID
+  ) {
+    return TINYMAN_TALGO_STAKING_EXIT_STEPS;
+  }
+  if (
+    record.protocol === "folks-finance" &&
+    record.opportunityType === "staking" &&
+    record.opportunityId === FOLKS_XALGO_STAKING_OPPORTUNITY_ID
+  ) {
+    return FOLKS_XALGO_STAKING_EXIT_STEPS;
+  }
+  return [];
+}
+
 function orderBySteps(
   shapes: readonly TransactionShapeSpec[],
-  steps: ReadonlyArray<{
-    shapeKey: string;
-    order: number;
-    prerequisiteShapeKeys?: readonly string[];
-  }>,
+  steps: ReadonlyArray<ShapeStep>,
   options: { exclusive?: boolean } = {}
-): OrderedEnterShape[] {
+): OrderedShape[] {
   const byKey = new Map(shapes.map((shape) => [shape.key, shape]));
-  const ordered: OrderedEnterShape[] = [];
+  const ordered: OrderedShape[] = [];
   for (const step of steps) {
     const shape = byKey.get(step.shapeKey);
     if (!shape) {
@@ -361,6 +440,39 @@ function buildRequiredAssetIds(record: OpportunityMarketRecord): number[] {
   }
 
   return [];
+}
+
+/** Receipt token (xALGO / tALGO) for liquid-staking exits. */
+function buildExitRequiredAssetIds(record: OpportunityMarketRecord): number[] {
+  if (!isLiquidStakingOpportunity(record)) {
+    return [];
+  }
+  const receipt = record.assetIds?.[1];
+  return receipt !== undefined ? [receipt] : [];
+}
+
+function buildExitInputHints(
+  record: OpportunityMarketRecord
+): OpportunityExecutionInputHints {
+  if (!isLiquidStakingOpportunity(record)) {
+    return {};
+  }
+  const hints: OpportunityExecutionInputHints = {};
+  const receipt = record.assetIds?.[1];
+  if (receipt !== undefined) {
+    hints.assetId = receipt;
+    hints.depositAssetId = receipt;
+  }
+  return hints;
+}
+
+function isLiquidStakingOpportunity(record: OpportunityMarketRecord): boolean {
+  return (
+    (record.protocol === "tinyman" &&
+      record.opportunityId === TINYMAN_TALGO_STAKING_OPPORTUNITY_ID) ||
+    (record.protocol === "folks-finance" &&
+      record.opportunityId === FOLKS_XALGO_STAKING_OPPORTUNITY_ID)
+  );
 }
 
 function parseTrailingAppId(opportunityId: string, prefix: string): number | null {

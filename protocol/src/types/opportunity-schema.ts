@@ -80,7 +80,8 @@ export const OpportunityRecordSchema = Type.Object({
   fetchedAt: Type.String({ format: "date-time" }),
   notes: Type.Optional(Type.String()),
   executionReady: Type.Boolean(),
-  executionShapes: Type.Array(OpportunityExecutionShapeSchema)
+  executionShapes: Type.Array(OpportunityExecutionShapeSchema),
+  compatibleExitShapes: Type.Array(OpportunityExecutionShapeSchema)
 });
 
 export const OpportunitiesListMetaSchema = Type.Object({

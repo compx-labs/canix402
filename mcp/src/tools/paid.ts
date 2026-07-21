@@ -268,7 +268,7 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
     "canix_get_execution_quote",
     {
       description:
-        "Compile one or more unsigned Algorand transaction groups for verified execution shapes (POST /execution/quotes). Pass quotes: [{ shapeKey, input }, ...] (min 1). Response data is an ExecutableQuote array in the same order — groups are never merged. Paid: flat ~0.10 USDC via x402 per request (not per quote item), so batching Folks setup+deposit or multiple opportunities is one payment. On failure, error.details includes quoteIndex and shapeKey. Canix does not sign or submit transactions. Prefer executionShapes from opportunity responses; use canix_list_execution_shapes for exit/manage shapes.",
+        "Compile one or more unsigned Algorand transaction groups for verified execution shapes (POST /execution/quotes). Pass quotes: [{ shapeKey, input }, ...] (min 1). Response data is an ExecutableQuote array in the same order — groups are never merged. Paid: flat ~0.10 USDC via x402 per request (not per quote item), so batching Folks setup+deposit or multiple opportunities is one payment. On failure, error.details includes quoteIndex and shapeKey. Canix does not sign or submit transactions. Prefer executionShapes (enter) and compatibleExitShapes (when present) from opportunity responses; otherwise use positions or canix_list_execution_shapes for exit/manage shapes.",
       inputSchema: {
         quotes: z
           .array(

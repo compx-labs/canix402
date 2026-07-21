@@ -1745,7 +1745,8 @@
           "sourceTimestamp",
           "fetchedAt",
           "executionReady",
-          "executionShapes"
+          "executionShapes",
+          "compatibleExitShapes"
         ],
         "properties": {
           "protocol": {
@@ -1827,6 +1828,13 @@
               "$ref": "#/components/schemas/OpportunityExecutionShape"
             },
             "description": "Enter-only shapes for opening this yield opportunity. Empty means research-only."
+          },
+          "compatibleExitShapes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpportunityExecutionShape"
+            },
+            "description": "Exit shapes for closing this opportunity when known (e.g. Folks xALGO unstake, Tinyman tALGO burn). Empty means discover exits via positions or canix_list_execution_shapes / the shape catalog."
           }
         }
       },

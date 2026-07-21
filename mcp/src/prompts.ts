@@ -24,6 +24,7 @@ export function registerPrompts(server: McpServer): void {
                 "Analyze this Algorand DeFi opportunity from canix402.",
                 "Evaluate APY/APR quality, TVL depth, protocol risk, asset exposure, and execution readiness.",
                 "Use opportunity.executionShapes (enter-only) and opportunity.executionReady. If executionReady is false or executionShapes is empty, treat as research-only and do not invent shapeKey values.",
+                "When present, opportunity.compatibleExitShapes lists known exits (e.g. Folks xALGO unstake, Tinyman tALGO burn). Otherwise discover exits via positions or canix_list_execution_shapes.",
                 "For multi-step opens (e.g. Folks), respect order and prerequisiteShapeKeys. Use requiredAssetIds to decide whether a swap is needed before quoting.",
                 "Do not invent on-chain state. If data is missing, say what additional canix402 tool calls would help.",
                 "",

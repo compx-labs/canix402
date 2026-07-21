@@ -126,7 +126,8 @@ invent, omit, or rewrite facilitator fields.
 
 For `canix_get_execution_quote`:
 
-1. Prefer `executionShapes` from opportunity responses (enter-only). Use
+1. Prefer `executionShapes` from opportunity responses (enter-only). When present,
+   use `compatibleExitShapes` for known liquid-staking exits; otherwise use
    `canix_list_execution_shapes` or position `compatibleExitShapeKeys` /
    `compatibleManageShapeKeys` for exit/manage. Never invent `shapeKey`s when
    `executionReady` is false.
