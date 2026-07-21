@@ -18,6 +18,8 @@ interface X402Manifest {
   llmsTxtUrl: string;
   openapiUrl: string;
   discoveryUrl: string;
+  logoUrl: string;
+  bannerUrl: string;
   facilitator: string;
   chains: Array<{
     network: string;
@@ -106,6 +108,8 @@ test("well-known x402 manifest lists paid resources and indexing links", async (
   assert.equal(manifest.x402Version, 2);
   assert.equal(manifest.openapiUrl, "https://canix402-api.compx.io/openapi.json");
   assert.equal(manifest.discoveryUrl, "https://canix402-api.compx.io/discovery");
+  assert.equal(manifest.logoUrl, "https://canix402-api.compx.io/logo.png");
+  assert.equal(manifest.bannerUrl, "https://canix402-api.compx.io/banner.png");
   assert.equal(manifest.docsUrl, "https://canix402.compx.io/x402");
   assert.equal(manifest.llmsTxtUrl, "https://canix402.compx.io/llms.txt");
   assert.equal((manifest as { mcpTransport?: string }).mcpTransport, MCP_SERVER_TRANSPORT);
@@ -204,6 +208,31 @@ test("well-known x402 fan-out lists paid resource URLs", async () => {
   await app.close();
 });
 
+test("API root serves branding HTML with social metadata", async () => {
+  const app = buildApp();
+  await app.ready();
+
+  const [root, logo, banner] = await Promise.all([
+    app.inject({ method: "GET", url: "/" }),
+    app.inject({ method: "GET", url: "/logo.png" }),
+    app.inject({ method: "GET", url: "/banner.png" })
+  ]);
+
+  assert.equal(root.statusCode, 200);
+  assert.match(root.headers["content-type"] ?? "", /text\/html/);
+  assert.match(root.body, /og:title/);
+  assert.match(root.body, /og:image/);
+  assert.match(root.body, /og:description/);
+  assert.match(root.body, /\/logo\.png/);
+  assert.match(root.body, /\/banner\.png/);
+  assert.equal(logo.statusCode, 200);
+  assert.equal(banner.statusCode, 200);
+  assert.ok(logo.rawPayload.length > 0);
+  assert.ok(banner.rawPayload.length > 0);
+
+  await app.close();
+});
+
 test("gateway serves agent discovery metadata without payment", async () => {
   const app = buildApp();
   await app.ready();
@@ -228,11 +257,16 @@ test("gateway serves agent discovery metadata without payment", async () => {
   const card = agentCard.json() as {
     documentationUrl: string;
     provider: { url: string };
+    iconUrl?: string;
     skills: Array<{ id: string }>;
+    x402?: { logoUrl?: string; bannerUrl?: string };
   };
   assert.equal(agentCard.statusCode, 200);
   assert.equal(legacyAgentCard.statusCode, 200);
   assert.equal(card.documentationUrl, "https://canix402.compx.io/llms.txt");
+  assert.equal(card.iconUrl, "https://canix402-api.compx.io/logo.png");
+  assert.equal(card.x402?.logoUrl, "https://canix402-api.compx.io/logo.png");
+  assert.equal(card.x402?.bannerUrl, "https://canix402-api.compx.io/banner.png");
   assert.equal(card.provider.url, "https://canix402.compx.io");
   assert.equal(card.skills.length, endpointPolicyMatrix.filter((endpoint) => endpoint.access === "paid").length);
 

@@ -17,6 +17,7 @@ const defaultDescription =
 const defaultKeywords =
   "Canix402, x402, Algorand DeFi, APY, APR, autonomous agents, OpenAPI, USDC payments, yield opportunities, Tinyman, Pact, Folks Finance";
 const defaultImage = "/brand/canix402-banner.png";
+const logoPath = "/brand/canix402-mark.png";
 
 const {
   title,
@@ -28,6 +29,7 @@ const {
 
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
 const imageUrl = new URL(image, Astro.site).href;
+const logoUrl = new URL(logoPath, Astro.site).href;
 ---
 
 <!doctype html>
@@ -41,7 +43,11 @@ const imageUrl = new URL(image, Astro.site).href;
     <link rel="canonical" href={canonicalUrl} />
     <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM documentation index" />
     <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="logo" href={logoUrl} />
+    <meta name="logo" content={logoUrl} />
+    <meta name="banner" content={imageUrl} />
     <title>{title}</title>
 
     <meta property="og:type" content={ogType} />
@@ -50,11 +56,25 @@ const imageUrl = new URL(image, Astro.site).href;
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="CANIX402 — x402-paid Algorand DeFi API" />
+    <meta property="og:locale" content="en_US" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={imageUrl} />
+
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: siteName,
+      url: Astro.site?.href ?? "https://canix402.compx.io/",
+      logo: logoUrl,
+      description,
+      sameAs: ["https://canix402-api.compx.io/"]
+    })} />
   </head>
   <body>
     <Header currentPath={Astro.url.pathname} />

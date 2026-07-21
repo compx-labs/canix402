@@ -53,6 +53,10 @@ type PaymentOption struct {
 	// (algorand-mainnet, algorand-testnet, solana-mainnet, solana-devnet,
 	// base, base-sepolia) or a raw CAIP-2 string.
 	Network string `json:"network"`
+
+	// Extra is optional metadata merged into payment requirements
+	// (e.g. {"tag": "x402-global-challenge"} for facilitator discovery filters).
+	Extra map[string]interface{} `json:"extra,omitempty"`
 }
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
@@ -201,6 +205,7 @@ func (x *X402) Provision(ctx caddy.Context) error {
 			PayTo:   a.PayTo,
 			Price:   a.Price,
 			Network: network,
+			Extra:   a.Extra,
 		})
 
 		// Register one scheme server per unique network.

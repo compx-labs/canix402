@@ -85,7 +85,7 @@ func (x *X402) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.
 		return next.ServeHTTP(w, r)
 
 	case x402http.ResultPaymentError:
-		writeSDKResponse(w, result.Response)
+		writeSDKResponse(w, enrichPaymentRequiredExtra(result.Response, x.Accepts))
 		return nil
 
 	case x402http.ResultPaymentVerified:
@@ -540,6 +540,91 @@ func (rc *responseCapture) flush(w http.ResponseWriter, extraHeaders map[string]
 }
 
 // ─── SDK response writer ──────────────────────────────────────────────────────
+
+// enrichPaymentRequiredExtra merges configured accept Extra fields into the
+// PAYMENT-REQUIRED payload. The upstream SDK exposes PaymentOption.Extra but
+// currently drops it when building requirements (v0.5.1), so facilitators never
+// see discovery tags like x402-global-challenge without this patch.
+func enrichPaymentRequiredExtra(
+	resp *x402http.HTTPResponseInstructions,
+	accepts []PaymentOption,
+) *x402http.HTTPResponseInstructions {
+	if resp == nil || len(accepts) == 0 {
+		return resp
+	}
+
+	mergedExtra := map[string]interface{}{}
+	for _, opt := range accepts {
+		for k, v := range opt.Extra {
+			mergedExtra[k] = v
+		}
+	}
+	if len(mergedExtra) == 0 {
+		return resp
+	}
+
+	headerKey := ""
+	var encoded string
+	for k, v := range resp.Headers {
+		if http.CanonicalHeaderKey(k) == "Payment-Required" {
+			headerKey = k
+			encoded = v
+			break
+		}
+	}
+	if headerKey == "" || encoded == "" {
+		return resp
+	}
+
+	raw, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		raw, err = base64.RawStdEncoding.DecodeString(encoded)
+		if err != nil {
+			return resp
+		}
+	}
+
+	var payload map[string]any
+	if err := json.Unmarshal(raw, &payload); err != nil {
+		return resp
+	}
+
+	acceptList, ok := payload["accepts"].([]any)
+	if !ok {
+		return resp
+	}
+	changed := false
+	for _, item := range acceptList {
+		entry, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		extra, _ := entry["extra"].(map[string]any)
+		if extra == nil {
+			extra = map[string]any{}
+		}
+		for k, v := range mergedExtra {
+			if _, exists := extra[k]; !exists {
+				extra[k] = v
+				changed = true
+			}
+		}
+		entry["extra"] = extra
+	}
+	if !changed {
+		return resp
+	}
+
+	updated, err := json.Marshal(payload)
+	if err != nil {
+		return resp
+	}
+	if resp.Headers == nil {
+		resp.Headers = map[string]string{}
+	}
+	resp.Headers[headerKey] = base64.StdEncoding.EncodeToString(updated)
+	return resp
+}
 
 // writeSDKResponse translates an SDK HTTPResponseInstructions into a real HTTP response.
 func writeSDKResponse(w http.ResponseWriter, resp *x402http.HTTPResponseInstructions) {

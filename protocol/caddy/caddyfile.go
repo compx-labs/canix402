@@ -30,6 +30,9 @@ func parseCaddyfile(h httpcaddyfile.Helper) (caddyhttp.MiddlewareHandler, error)
 //	        price    <amount>       # e.g. 0.01 or $0.01
 //	        network  <network>      # e.g. algorand-mainnet, base, solana-mainnet
 //	        scheme   <scheme>       # optional, default: exact
+//	        extra {                 # optional payment-requirements metadata
+//	            tag x402-global-challenge
+//	        }
 //	    }
 //	    accept { ... }             # repeat for each additional accepted network
 //
@@ -90,6 +93,17 @@ func (x *X402) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 						return d.ArgErr()
 					}
 					opt.Scheme = d.Val()
+				case "extra":
+					if opt.Extra == nil {
+						opt.Extra = map[string]interface{}{}
+					}
+					for d.NextBlock(2) {
+						key := d.Val()
+						if !d.NextArg() {
+							return d.ArgErr()
+						}
+						opt.Extra[key] = d.Val()
+					}
 				default:
 					return d.Errf("unknown accept option: %q", d.Val())
 				}

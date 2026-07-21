@@ -9,8 +9,15 @@ single source directory.
 
 ## Route Access Policy
 
-- Free routes: `GET /health`, `GET /metadata`, `GET /discovery`, `GET /openapi.json`,
-  `POST /swaps/quote`, `POST /swaps/optin`
+- Free routes: `GET /`, `GET /logo.png`, `GET /banner.png`, `GET /health`,
+  `GET /metadata`, `GET /discovery`, `GET /openapi.json`, `POST /swaps/quote`,
+  `POST /swaps/optin`
+- Paid routes emit `accepts[].extra.tag = x402-global-challenge` for facilitator
+  Global Hackathon discovery filtering.
+  - Caddyfile `accept { extra { tag ... } }` is parsed into the plugin config.
+  - Because x402-avm Go `v0.5.1` drops `PaymentOption.Extra` when building 402s,
+    the middleware merges configured Extra into the `PAYMENT-REQUIRED` header
+    before responding (see `enrichPaymentRequiredExtra` in `handler.go`).
 - Paid routes:
   - `GET /opportunities`
   - `GET /opportunities/search`
