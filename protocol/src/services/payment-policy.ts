@@ -13,7 +13,17 @@ export interface EndpointPolicyDefinition {
   priceUsdc?: string;
 }
 
+const HACKATHON_TAG = "x402-global-challenge";
+
 export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
+  {
+    id: "root",
+    method: "GET",
+    pathPattern: "/",
+    access: "free",
+    summary: "API root branding and social metadata page",
+    tags: ["system", "discovery"]
+  },
   {
     id: "health",
     method: "GET",
@@ -60,6 +70,22 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     pathPattern: "/favicon.png",
     access: "free",
     summary: "API favicon image",
+    tags: ["system", "discovery"]
+  },
+  {
+    id: "logoPng",
+    method: "GET",
+    pathPattern: "/logo.png",
+    access: "free",
+    summary: "Service logo for directory and social indexing",
+    tags: ["system", "discovery"]
+  },
+  {
+    id: "bannerPng",
+    method: "GET",
+    pathPattern: "/banner.png",
+    access: "free",
+    summary: "Service banner for directory and social indexing",
     tags: ["system", "discovery"]
   },
   {
@@ -116,7 +142,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     summary: "Top 10 aggregated DeFi opportunities ranked by APY",
     description:
       "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, and Dork.fi. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
-    tags: ["defi", "opportunities"],
+    tags: ["defi", "opportunities", HACKATHON_TAG],
     queryParams: ["protocol", "limit", "offset", "includeInactive"]
   },
   {
@@ -127,7 +153,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     summary: "Top 25 DeFi opportunities for a single protocol ranked by APY",
     description:
       "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, or dorkfi. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
-    tags: ["defi", "opportunities", "protocol"],
+    tags: ["defi", "opportunities", "protocol", HACKATHON_TAG],
     pathParams: ["protocol"],
     queryParams: ["limit", "offset", "includeInactive"]
   },
@@ -139,7 +165,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     summary: "Caller-filtered opportunities across supported platforms",
     description:
       "Returns Algorand DeFi opportunities filtered by platform, opportunity type, APY range, and TVL threshold across supported sources. Use when an agent needs targeted discovery such as high-yield liquidity pools, lending markets, protocol-specific yield, or minimum-liquidity opportunities on Algorand. This endpoint provides normalized market data only; it does not build or submit transactions.",
-    tags: ["defi", "opportunities", "search"],
+    tags: ["defi", "opportunities", "search", HACKATHON_TAG],
     queryParams: [
       "platform",
       "type",
@@ -159,7 +185,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     summary: "Top opportunities tuned to a wallet's held assets",
     description:
       "Returns Algorand DeFi opportunities whose underlying assets match a supplied wallet's holdings, including opted-in ASAs with positive balance and native ALGO when held. Use when an agent needs wallet-aware yield ideas based on assets the account already owns, with normalized APY/APR, TVL, asset ids, source freshness, and caveats. This endpoint provides normalized market data only; it does not build or submit transactions.",
-    tags: ["defi", "opportunities", "personalized", "wallet"],
+    tags: ["defi", "opportunities", "personalized", "wallet", HACKATHON_TAG],
     queryParams: ["address", "limit", "offset", "includeInactive"],
     priceUsdc: process.env.X402_PRICE_PERSONALIZED_USDC ?? "0.05"
   },
@@ -171,7 +197,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     summary: "Algorand DeFi positions held by a wallet",
     description:
       "Returns normalized DeFi positions associated with a supplied Algorand wallet address across supported protocols. Use when an agent needs a wallet-level view of deposited, supplied, staked, or liquidity positions and their current values. This endpoint provides position data only; it does not build or submit transactions.",
-    tags: ["defi", "positions", "wallet"],
+    tags: ["defi", "positions", "wallet", HACKATHON_TAG],
     queryParams: ["address"],
     priceUsdc: process.env.X402_PRICE_POSITIONS_USDC ?? "0.005"
   },
@@ -183,7 +209,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     summary: "Build a walletless Haystack swap transaction group",
     description:
       "Returns an ordered Algorand swap group for a fresh Haystack quote, including signer indexes and any Haystack pre-signed members. The caller signs only the designated transactions and submits the complete group locally. The 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee, DEX fees, price impact, and Algorand network fees.",
-    tags: ["defi", "swaps", "haystack", "transactions", "x402", "agents"],
+    tags: ["defi", "swaps", "haystack", "transactions", "x402", "agents", HACKATHON_TAG],
     priceUsdc: process.env.X402_PRICE_HAYSTACK_SWAP_USDC ?? "0.005"
   },
   {
@@ -194,7 +220,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     summary: "Compile one or more verified transaction shapes into unsigned Algorand transaction groups",
     description:
       "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman farm shapes (staking-v1 farm:commit for an existing LP position; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, CompX v1 lending/staking shapes, Dork.fi v1 ASA lending deposit/withdraw shapes, and Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards). Canix does not sign or submit transactions in this endpoint.",
-    tags: ["execution", "transactions", "x402", "agents"],
+    tags: ["execution", "transactions", "x402", "agents", HACKATHON_TAG],
     priceUsdc: process.env.X402_PRICE_EXECUTION_QUOTE_USDC ?? "0.1"
   },
   {
@@ -227,7 +253,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     summary: "Publish a new strategy (mints NFT, writes Spaces JSON)",
     description:
       "Creates a tradable ARC-3 strategy NFT and stores the weight-based composition. Price 100 USDC (Canix-only; no holder share). Rejects raw transaction groups.",
-    tags: ["strategies", "marketplace", "x402", "agents"],
+    tags: ["strategies", "marketplace", "x402", "agents", HACKATHON_TAG],
     priceUsdc: process.env.X402_PRICE_STRATEGY_PUBLISH_USDC ?? "100"
   },
   {
@@ -238,7 +264,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     summary: "Revise a strategy composition (NFT holder only, 14-day cooldown)",
     description:
       "In-place update of legs/display fields for strategyId. Price 1 USDC (Canix-only). Caller must be the current NFT holder. At most one successful revise per 14 days per strategyId.",
-    tags: ["strategies", "marketplace", "x402", "agents"],
+    tags: ["strategies", "marketplace", "x402", "agents", HACKATHON_TAG],
     pathParams: ["strategyId"],
     priceUsdc: process.env.X402_PRICE_STRATEGY_REVISE_USDC ?? "1"
   },
@@ -250,7 +276,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     summary: "Compile a strategy into unsigned execution quotes",
     description:
       "Loads the strategy document, scales capital across legs by weightBps, and returns ExecutableQuote[]. Price 0.1 USDC. 50% of this access fee is paid weekly to the strategy NFT holder. Payment note must be x402:v2:strategy:{strategyId}.",
-    tags: ["strategies", "execution", "x402", "agents"],
+    tags: ["strategies", "execution", "x402", "agents", HACKATHON_TAG],
     pathParams: ["strategyId"],
     priceUsdc: process.env.X402_PRICE_STRATEGY_COMPILE_USDC ?? "0.1"
   }
@@ -321,6 +347,7 @@ const paidPathMatchers = [
 ];
 
 const freePathMatchers = [
+  /^\/$/,
   /^\/health$/,
   /^\/metadata$/,
   /^\/discovery$/,
@@ -330,6 +357,8 @@ const freePathMatchers = [
   /^\/robots\.txt$/,
   /^\/favicon\.ico$/,
   /^\/favicon\.png$/,
+  /^\/logo\.png$/,
+  /^\/banner\.png$/,
   /^\/\.well-known\/x402$/,
   /^\/\.well-known\/x402\.json$/,
   /^\/\.well-known\/agent-card\.json$/,

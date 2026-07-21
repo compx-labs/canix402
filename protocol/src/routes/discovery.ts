@@ -54,6 +54,8 @@ const x402ManifestReplySchema = Type.Object({
   llmsTxtUrl: Type.String(),
   openapiUrl: Type.String(),
   discoveryUrl: Type.String(),
+  logoUrl: Type.String(),
+  bannerUrl: Type.String(),
   mcpInstall: Type.Optional(Type.String()),
   mcpUrl: Type.Optional(Type.String()),
   mcpTransport: Type.Optional(Type.String()),
@@ -298,6 +300,8 @@ interface X402DiscoveryManifest {
   llmsTxtUrl: string;
   openapiUrl: string;
   discoveryUrl: string;
+  logoUrl: string;
+  bannerUrl: string;
   mcpInstall: string;
   mcpUrl: string;
   mcpTransport: string;
@@ -373,6 +377,8 @@ function buildX402Manifest(): X402DiscoveryManifest {
     llmsTxtUrl,
     openapiUrl: `${publicBaseUrl}/openapi.json`,
     discoveryUrl: `${publicBaseUrl}/discovery`,
+    logoUrl: `${publicBaseUrl}/logo.png`,
+    bannerUrl: `${publicBaseUrl}/banner.png`,
     mcpInstall: MCP_SERVER_INSTALL_URL,
     mcpUrl,
     mcpTransport: MCP_SERVER_TRANSPORT,
@@ -422,8 +428,11 @@ function buildLlmsText(includeAllEndpoints = false): string {
       && ![
         "health",
         "metadata",
+        "root",
         "faviconIco",
         "faviconPng",
+        "logoPng",
+        "bannerPng",
         "llmsTxt",
         "llmsFullTxt",
         "robotsTxt"
@@ -502,6 +511,7 @@ function buildAgentCard() {
     preferredTransport: "HTTP+JSON",
     version: getApiVersion(),
     documentationUrl: `${docsSiteUrl}/llms.txt`,
+    iconUrl: `${publicBaseUrl}/logo.png`,
     provider: {
       organization: "Neon Forge Ltd",
       url: docsSiteUrl,
@@ -536,6 +546,8 @@ function buildAgentCard() {
       manifest: `${publicBaseUrl}/.well-known/x402.json`,
       openapi: `${publicBaseUrl}/openapi.json`,
       llmsTxt: `${docsSiteUrl}/llms.txt`,
+      logoUrl: `${publicBaseUrl}/logo.png`,
+      bannerUrl: `${publicBaseUrl}/banner.png`,
       note:
         "Make a normal HTTP request. An unpaid paid-route request returns HTTP 402 with payment requirements; sign client-side and retry with PAYMENT-SIGNATURE."
     }

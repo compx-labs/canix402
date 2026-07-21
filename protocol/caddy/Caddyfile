@@ -5,7 +5,7 @@
 {$CADDY_SITE_ADDRESS} {
 	@free {
 		method GET
-		path /health /metadata /discovery /openapi.json /llms.txt /llms-full.txt /robots.txt /favicon.ico /favicon.png /.well-known/x402 /.well-known/x402.json /.well-known/agent-card.json /.well-known/agent.json /.well-known/ai-plugin.json /swaps/quote /swaps/optin /pricing /strategies /strategies/*
+		path / /health /metadata /discovery /openapi.json /llms.txt /llms-full.txt /robots.txt /favicon.ico /favicon.png /logo.png /banner.png /.well-known/x402 /.well-known/x402.json /.well-known/agent-card.json /.well-known/agent.json /.well-known/ai-plugin.json /swaps/quote /swaps/optin /pricing /strategies /strategies/*
 	}
 	handle @free {
 		reverse_proxy {$UPSTREAM_API}
@@ -31,6 +31,9 @@
 				price {$X402_PRICE_AGGREGATE_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
 			}
 		}
 
@@ -49,6 +52,9 @@
 				price {$X402_PRICE_SEARCH_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
 			}
 		}
 
@@ -67,6 +73,9 @@
 				price {$X402_PRICE_PERSONALIZED_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
 			}
 		}
 
@@ -85,6 +94,9 @@
 				price {$X402_PRICE_POSITIONS_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
 			}
 		}
 
@@ -103,6 +115,9 @@
 				price {$X402_PRICE_PROTOCOL_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
 			}
 		}
 
@@ -121,6 +136,9 @@
 				price {$X402_PRICE_EXECUTION_QUOTE_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
 			}
 		}
 
@@ -142,6 +160,9 @@
 				price {$X402_PRICE_STRATEGY_COMPILE_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
 			}
 		}
 
@@ -163,6 +184,9 @@
 				price {$X402_PRICE_STRATEGY_PUBLISH_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
 			}
 		}
 
@@ -184,6 +208,9 @@
 				price {$X402_PRICE_STRATEGY_REVISE_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
 			}
 		}
 
@@ -202,6 +229,9 @@
 				price {$X402_PRICE_HAYSTACK_SWAP_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
 			}
 		}
 

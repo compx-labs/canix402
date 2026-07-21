@@ -34,6 +34,28 @@
     "mcpTransport": "streamable-http"
   },
   "paths": {
+    "/": {
+      "get": {
+        "summary": "API root branding and social metadata page",
+        "tags": [
+          "system",
+          "discovery"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "HTML landing page with logo, banner, title, description, and social metadata",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Service health check",
@@ -183,6 +205,52 @@
         }
       }
     },
+    "/logo.png": {
+      "get": {
+        "summary": "Service logo for directory and social indexing",
+        "tags": [
+          "system",
+          "discovery"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Service logo image",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/banner.png": {
+      "get": {
+        "summary": "Service banner for directory and social indexing",
+        "tags": [
+          "system",
+          "discovery"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Service banner image",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/.well-known/x402.json": {
       "get": {
         "summary": "x402 discovery manifest for agent and directory indexing",
@@ -209,6 +277,8 @@
                     "llmsTxtUrl",
                     "openapiUrl",
                     "discoveryUrl",
+                    "logoUrl",
+                    "bannerUrl",
                     "facilitator",
                     "chains",
                     "resources"
@@ -245,6 +315,14 @@
                       "format": "uri"
                     },
                     "discoveryUrl": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "logoUrl": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "bannerUrl": {
                       "type": "string",
                       "format": "uri"
                     },
@@ -3875,6 +3953,8 @@
           "llmsTxtUrl": "https://canix402.compx.io/llms.txt",
           "openapiUrl": "https://canix402-api.compx.io/openapi.json",
           "discoveryUrl": "https://canix402-api.compx.io/discovery",
+          "logoUrl": "https://canix402-api.compx.io/logo.png",
+          "bannerUrl": "https://canix402-api.compx.io/banner.png",
           "facilitator": "https://facilitator.goplausible.xyz",
           "chains": [
             {

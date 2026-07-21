@@ -148,10 +148,18 @@ export async function assertFreeEndpoint(
     throw new Error(`${path}: expected 200, got ${response.status}`);
   }
 
-  if (path === "/favicon.ico" || path === "/favicon.png") {
+  if (path === "/favicon.ico" || path === "/favicon.png" || path === "/logo.png" || path === "/banner.png") {
     const body = Buffer.from(await response.arrayBuffer());
     if (body.length === 0) {
-      throw new Error(`${path}: expected non-empty favicon body`);
+      throw new Error(`${path}: expected non-empty image body`);
+    }
+    return;
+  }
+
+  if (path === "/") {
+    const html = await response.text();
+    if (!html.includes("og:title") || !html.includes("og:image") || !html.includes("/logo.png")) {
+      throw new Error(`${path}: expected HTML branding metadata`);
     }
     return;
   }
@@ -199,6 +207,12 @@ export async function assertFreeEndpoint(
     }
     if (body.discoveryUrl !== `${baseUrl}/discovery`) {
       throw new Error(`${path}: discoveryUrl mismatch`);
+    }
+    if (body.logoUrl !== `${baseUrl}/logo.png`) {
+      throw new Error(`${path}: logoUrl mismatch`);
+    }
+    if (body.bannerUrl !== `${baseUrl}/banner.png`) {
+      throw new Error(`${path}: bannerUrl mismatch`);
     }
     return;
   }
