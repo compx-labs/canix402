@@ -25,6 +25,7 @@
 			description "canix402 paid DeFi data endpoint"
 			mime_type application/json
 			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile opportunities
 
 			accept {
 				pay_to {$X402_PAY_TO}
@@ -46,6 +47,7 @@
 			description "canix402 paid DeFi data endpoint"
 			mime_type application/json
 			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile opportunities_search
 
 			accept {
 				pay_to {$X402_PAY_TO}
@@ -67,6 +69,7 @@
 			description "canix402 wallet-personalized DeFi data endpoint"
 			mime_type application/json
 			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile opportunities_personalized
 
 			accept {
 				pay_to {$X402_PAY_TO}
@@ -88,6 +91,7 @@
 			description "canix402 wallet DeFi positions endpoint"
 			mime_type application/json
 			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile positions
 
 			accept {
 				pay_to {$X402_PAY_TO}
@@ -109,6 +113,7 @@
 			description "canix402 paid DeFi data endpoint"
 			mime_type application/json
 			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile protocol_opportunities
 
 			accept {
 				pay_to {$X402_PAY_TO}
@@ -130,6 +135,7 @@
 			description "canix402 paid execution quote endpoint"
 			mime_type application/json
 			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile execution_quotes
 
 			accept {
 				pay_to {$X402_PAY_TO}
@@ -154,6 +160,7 @@
 			description "canix402 paid strategy compile endpoint"
 			mime_type application/json
 			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile strategy_compile
 
 			accept {
 				pay_to {$X402_PAY_TO}
@@ -178,6 +185,7 @@
 			description "canix402 paid strategy publish endpoint"
 			mime_type application/json
 			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile strategy_publish
 
 			accept {
 				pay_to {$X402_PAY_TO}
@@ -202,6 +210,7 @@
 			description "canix402 paid strategy revise endpoint"
 			mime_type application/json
 			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile strategy_revise
 
 			accept {
 				pay_to {$X402_PAY_TO}
@@ -223,6 +232,7 @@
 			description "canix402 paid Haystack swap transaction endpoint"
 			mime_type application/json
 			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile haystack_swap
 
 			accept {
 				pay_to {$X402_PAY_TO}

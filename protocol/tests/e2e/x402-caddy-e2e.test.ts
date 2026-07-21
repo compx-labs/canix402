@@ -29,6 +29,34 @@ test("paid endpoint returns 402 and PAYMENT-REQUIRED without signature", async (
   }
 });
 
+test("paid endpoint 402 includes compact extensions.bazaar discovery metadata", async () => {
+  const context = await setup();
+  try {
+    const response = await fetch(`${context.baseUrl}/opportunities`);
+    assert.equal(response.status, 402);
+    const paymentRequired = response.headers.get("payment-required");
+    assert.ok(paymentRequired);
+    assert.ok(
+      paymentRequired.length < 12_000,
+      `PAYMENT-REQUIRED header too large: ${paymentRequired.length}`
+    );
+
+    const decoded = decodePaymentRequired(paymentRequired);
+    const bazaar = decoded.extensions?.bazaar as
+      | { info?: unknown; schema?: unknown }
+      | undefined;
+    assert.ok(bazaar, "expected extensions.bazaar");
+    assert.ok(bazaar.info, "expected extensions.bazaar.info");
+    assert.ok(bazaar.schema, "expected extensions.bazaar.schema");
+    assert.equal(
+      (decoded.accepts[0]?.extra as { tag?: string } | undefined)?.tag,
+      "x402-global-challenge"
+    );
+  } finally {
+    await context.teardown();
+  }
+});
+
 test("positions endpoint advertises exactly 5000 micro-USDC", async () => {
   const context = await setup();
   try {
@@ -124,6 +152,13 @@ test("valid PAYMENT-SIGNATURE triggers verify then settle and returns 200", asyn
     assert.equal(
       nestedPayload?.paymentIndex ?? paymentPayload.paymentIndex,
       0
+    );
+    const payloadExtensions = paymentPayload.extensions as
+      | Record<string, unknown>
+      | undefined;
+    assert.ok(
+      payloadExtensions?.bazaar,
+      "PAYMENT-SIGNATURE should echo extensions.bazaar from the 402"
     );
     assert.equal(
       paymentRequirements.network === "algorand-mainnet" ||
@@ -327,7 +362,7 @@ function buildSignatureFromPaymentRequired(
       ...accepted,
       amount: accepted.maxAmountRequired ?? accepted.amount ?? "10000"
     },
-    extensions: {},
+    extensions: decoded.extensions ?? {},
     outputSchema: null,
     payload: {
       paymentGroup: fixtures.valid.paymentPayload.paymentGroup,
@@ -341,8 +376,10 @@ function buildSignatureFromPaymentRequired(
 
 function decodePaymentRequired(headerValue: string): {
   accepts: Array<Record<string, unknown>>;
+  extensions?: Record<string, unknown>;
 } {
   return JSON.parse(Buffer.from(headerValue, "base64").toString("utf-8")) as {
     accepts: Array<Record<string, unknown>>;
+    extensions?: Record<string, unknown>;
   };
 }
