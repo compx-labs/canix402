@@ -377,8 +377,8 @@ function buildX402Manifest(): X402DiscoveryManifest {
     llmsTxtUrl,
     openapiUrl: `${publicBaseUrl}/openapi.json`,
     discoveryUrl: `${publicBaseUrl}/discovery`,
-    logoUrl: `${publicBaseUrl}/logo.png`,
-    bannerUrl: `${publicBaseUrl}/banner.png`,
+    logoUrl: `${publicBaseUrl}/logo.png?v=2`,
+    bannerUrl: `${publicBaseUrl}/banner.png?v=2`,
     mcpInstall: MCP_SERVER_INSTALL_URL,
     mcpUrl,
     mcpTransport: MCP_SERVER_TRANSPORT,
@@ -511,7 +511,7 @@ function buildAgentCard() {
     preferredTransport: "HTTP+JSON",
     version: getApiVersion(),
     documentationUrl: `${docsSiteUrl}/llms.txt`,
-    iconUrl: `${publicBaseUrl}/logo.png`,
+    iconUrl: `${publicBaseUrl}/logo.png?v=2`,
     provider: {
       organization: "Neon Forge Ltd",
       url: docsSiteUrl,
@@ -546,8 +546,8 @@ function buildAgentCard() {
       manifest: `${publicBaseUrl}/.well-known/x402.json`,
       openapi: `${publicBaseUrl}/openapi.json`,
       llmsTxt: `${docsSiteUrl}/llms.txt`,
-      logoUrl: `${publicBaseUrl}/logo.png`,
-      bannerUrl: `${publicBaseUrl}/banner.png`,
+      logoUrl: `${publicBaseUrl}/logo.png?v=2`,
+      bannerUrl: `${publicBaseUrl}/banner.png?v=2`,
       note:
         "Make a normal HTTP request. An unpaid paid-route request returns HTTP 402 with payment requirements; sign client-side and retry with PAYMENT-SIGNATURE."
     }

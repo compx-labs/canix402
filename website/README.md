@@ -109,7 +109,8 @@ After deploy:
 
 ## Brand assets
 
-- `public/brand/canix402-banner.png`
-- `public/brand/canix402-mark.png`
+- `public/brand/canix402-banner-v2.png` (1200×630 OG/social banner)
+- `public/brand/canix402-mark-v2.png` (square logo)
+- Legacy aliases: `canix402-banner.png`, `canix402-mark.png` (same bytes)
 
 The site uses a dark charcoal / red DeFi-native visual system with Inter Tight as the primary UI font and JetBrains Mono reserved for code, paths, and transaction identifiers.

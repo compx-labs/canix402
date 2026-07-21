@@ -28,9 +28,9 @@ function publicBaseUrl(): string {
 
 function buildRootHtml(): string {
   const base = publicBaseUrl();
-  const logoUrl = `${base}/logo.png`;
-  const bannerUrl = `${base}/banner.png`;
-  const faviconUrl = `${base}/favicon.png`;
+  const logoUrl = `${base}/logo.png?v=2`;
+  const bannerUrl = `${base}/banner.png?v=2`;
+  const faviconUrl = `${base}/favicon.png?v=2`;
 
   return `<!doctype html>
 <html lang="en">
@@ -42,7 +42,7 @@ function buildRootHtml(): string {
     <meta name="robots" content="index,follow" />
     <link rel="canonical" href="${base}/" />
     <link rel="icon" type="image/png" href="${faviconUrl}" />
-    <link rel="icon" href="${base}/favicon.ico" sizes="any" />
+    <link rel="icon" href="${base}/favicon.ico?v=2" sizes="any" />
     <link rel="apple-touch-icon" href="${logoUrl}" />
 
     <meta property="og:type" content="website" />
@@ -106,6 +106,11 @@ function buildRootHtml(): string {
 `;
 }
 
+function sendPng(reply: { header: (k: string, v: string) => unknown; type: (t: string) => { send: (b: Buffer) => unknown } }, body: Buffer) {
+  reply.header("Cache-Control", "public, max-age=86400, stale-while-revalidate=604800");
+  return reply.type("image/png").send(body);
+}
+
 export function registerAssetRoutes(app: FastifyInstance) {
   app.get(
     "/",
@@ -117,6 +122,7 @@ export function registerAssetRoutes(app: FastifyInstance) {
       }
     },
     async (_request, reply) => {
+      reply.header("Cache-Control", "public, max-age=60");
       return reply.type("text/html; charset=utf-8").send(buildRootHtml());
     }
   );
@@ -130,9 +136,7 @@ export function registerAssetRoutes(app: FastifyInstance) {
         }
       }
     },
-    async (_request, reply) => {
-      return reply.type("image/png").send(faviconPng);
-    }
+    async (_request, reply) => sendPng(reply, faviconPng)
   );
 
   app.get(
@@ -145,6 +149,7 @@ export function registerAssetRoutes(app: FastifyInstance) {
       }
     },
     async (_request, reply) => {
+      reply.header("Cache-Control", "public, max-age=86400, stale-while-revalidate=604800");
       return reply.type("image/x-icon").send(faviconIco);
     }
   );
@@ -158,9 +163,7 @@ export function registerAssetRoutes(app: FastifyInstance) {
         }
       }
     },
-    async (_request, reply) => {
-      return reply.type("image/png").send(logoPng);
-    }
+    async (_request, reply) => sendPng(reply, logoPng)
   );
 
   app.get(
@@ -172,8 +175,6 @@ export function registerAssetRoutes(app: FastifyInstance) {
         }
       }
     },
-    async (_request, reply) => {
-      return reply.type("image/png").send(bannerPng);
-    }
+    async (_request, reply) => sendPng(reply, bannerPng)
   );
 }
