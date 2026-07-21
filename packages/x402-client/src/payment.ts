@@ -57,7 +57,7 @@ export async function buildPaymentSignature(
       ...accepted,
       amount: normalizedAmount
     },
-    extensions: {},
+    extensions: input.paymentRequest.extensions ?? {},
     outputSchema: null,
     payload: {
       paymentGroup: payment.paymentGroup,

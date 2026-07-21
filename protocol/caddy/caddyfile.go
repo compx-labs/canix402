@@ -45,6 +45,7 @@ func parseCaddyfile(h httpcaddyfile.Helper) (caddyhttp.MiddlewareHandler, error)
 //	    quote_timeout_ms <int>     # optional timeout in ms for quote endpoint
 //	    settlement_gate_path_regex <regex> # optional settle-before-upstream routes
 //	    proof_shared_secret <value>        # required only with settlement_gate_path_regex
+//	    bazaar_profile <name>              # optional bazaar discovery profile
 //
 //	    # except: skip paywall for paths matching a regexp
 //	    except  ^/robots\.txt$
@@ -184,6 +185,12 @@ func (x *X402) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 				return d.ArgErr()
 			}
 			x.ProofSharedSecret = d.Val()
+
+		case "bazaar_profile":
+			if !d.NextArg() {
+				return d.ArgErr()
+			}
+			x.BazaarProfile = d.Val()
 
 		default:
 			return d.Errf("unknown x402 option: %q", d.Val())

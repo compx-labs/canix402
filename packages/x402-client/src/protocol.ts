@@ -16,6 +16,7 @@ export interface PaymentRequest {
     url?: string;
     [key: string]: unknown;
   };
+  extensions?: Record<string, unknown>;
   [key: string]: unknown;
 }
 

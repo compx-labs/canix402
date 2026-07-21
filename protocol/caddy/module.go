@@ -24,6 +24,7 @@ import (
 	"go.uber.org/zap"
 
 	x402 "github.com/GoPlausible/x402-avm/go"
+	"github.com/GoPlausible/x402-avm/go/extensions/bazaar"
 	x402http "github.com/GoPlausible/x402-avm/go/http"
 	avmserver "github.com/GoPlausible/x402-avm/go/mechanisms/avm/exact/server"
 	evmserver "github.com/GoPlausible/x402-avm/go/mechanisms/evm/exact/server"
@@ -119,6 +120,10 @@ type X402 struct {
 	// to x402 processing; all other User-Agents are passed through freely.
 	// If UAMatch is empty every request is subject to x402 (default).
 	UAMatch []string `json:"ua_match,omitempty"`
+
+	// BazaarProfile selects a compact discovery schema attached to 402
+	// responses via extensions.bazaar (e.g. "opportunities").
+	BazaarProfile string `json:"bazaar_profile,omitempty"`
 
 	// ─── internal ──────────────────────────────────────────────────────
 	httpServer      *x402http.HTTPServer
@@ -222,12 +227,22 @@ func (x *X402) Provision(ctx caddy.Context) error {
 	// ── Build SDK RoutesConfig ─────────────────────────────────────────
 	// Use a single catch-all route: Caddy's own routing already narrowed
 	// which requests reach this middleware instance.
+	route := x402http.RouteConfig{
+		Accepts:     sdkOpts,
+		Description: x.Description,
+		MimeType:    x.MimeType,
+	}
+	if x.BazaarProfile != "" {
+		extension, err := buildBazaarExtension(x.BazaarProfile)
+		if err != nil {
+			return fmt.Errorf("x402: bazaar_profile: %w", err)
+		}
+		route.Extensions = map[string]interface{}{
+			bazaar.BAZAAR.Key(): extension,
+		}
+	}
 	routes := x402http.RoutesConfig{
-		"/*": {
-			Accepts:     sdkOpts,
-			Description: x.Description,
-			MimeType:    x.MimeType,
-		},
+		"/*": route,
 	}
 
 	// ── Assemble and initialize the SDK HTTP server ────────────────────
@@ -292,6 +307,11 @@ func (x *X402) Validate() error {
 	}
 	if x.QuoteTimeoutMS < 0 {
 		return fmt.Errorf("x402: quote_timeout_ms must be >= 0")
+	}
+	if x.BazaarProfile != "" {
+		if _, err := buildBazaarExtension(x.BazaarProfile); err != nil {
+			return fmt.Errorf("x402: %w", err)
+		}
 	}
 	return nil
 }
