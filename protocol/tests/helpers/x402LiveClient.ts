@@ -208,10 +208,10 @@ export async function assertFreeEndpoint(
     if (body.discoveryUrl !== `${baseUrl}/discovery`) {
       throw new Error(`${path}: discoveryUrl mismatch`);
     }
-    if (body.logoUrl !== `${baseUrl}/logo.png`) {
+    if (body.logoUrl !== `${baseUrl}/logo.png?v=2`) {
       throw new Error(`${path}: logoUrl mismatch`);
     }
-    if (body.bannerUrl !== `${baseUrl}/banner.png`) {
+    if (body.bannerUrl !== `${baseUrl}/banner.png?v=2`) {
       throw new Error(`${path}: bannerUrl mismatch`);
     }
     return;

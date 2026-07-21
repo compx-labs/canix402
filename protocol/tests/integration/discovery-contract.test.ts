@@ -108,8 +108,8 @@ test("well-known x402 manifest lists paid resources and indexing links", async (
   assert.equal(manifest.x402Version, 2);
   assert.equal(manifest.openapiUrl, "https://canix402-api.compx.io/openapi.json");
   assert.equal(manifest.discoveryUrl, "https://canix402-api.compx.io/discovery");
-  assert.equal(manifest.logoUrl, "https://canix402-api.compx.io/logo.png");
-  assert.equal(manifest.bannerUrl, "https://canix402-api.compx.io/banner.png");
+  assert.equal(manifest.logoUrl, "https://canix402-api.compx.io/logo.png?v=2");
+  assert.equal(manifest.bannerUrl, "https://canix402-api.compx.io/banner.png?v=2");
   assert.equal(manifest.docsUrl, "https://canix402.compx.io/x402");
   assert.equal(manifest.llmsTxtUrl, "https://canix402.compx.io/llms.txt");
   assert.equal((manifest as { mcpTransport?: string }).mcpTransport, MCP_SERVER_TRANSPORT);
@@ -264,9 +264,9 @@ test("gateway serves agent discovery metadata without payment", async () => {
   assert.equal(agentCard.statusCode, 200);
   assert.equal(legacyAgentCard.statusCode, 200);
   assert.equal(card.documentationUrl, "https://canix402.compx.io/llms.txt");
-  assert.equal(card.iconUrl, "https://canix402-api.compx.io/logo.png");
-  assert.equal(card.x402?.logoUrl, "https://canix402-api.compx.io/logo.png");
-  assert.equal(card.x402?.bannerUrl, "https://canix402-api.compx.io/banner.png");
+  assert.equal(card.iconUrl, "https://canix402-api.compx.io/logo.png?v=2");
+  assert.equal(card.x402?.logoUrl, "https://canix402-api.compx.io/logo.png?v=2");
+  assert.equal(card.x402?.bannerUrl, "https://canix402-api.compx.io/banner.png?v=2");
   assert.equal(card.provider.url, "https://canix402.compx.io");
   assert.equal(card.skills.length, endpointPolicyMatrix.filter((endpoint) => endpoint.access === "paid").length);
 

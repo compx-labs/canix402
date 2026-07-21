@@ -3953,8 +3953,8 @@
           "llmsTxtUrl": "https://canix402.compx.io/llms.txt",
           "openapiUrl": "https://canix402-api.compx.io/openapi.json",
           "discoveryUrl": "https://canix402-api.compx.io/discovery",
-          "logoUrl": "https://canix402-api.compx.io/logo.png",
-          "bannerUrl": "https://canix402-api.compx.io/banner.png",
+          "logoUrl": "https://canix402-api.compx.io/logo.png?v=2",
+          "bannerUrl": "https://canix402-api.compx.io/banner.png?v=2",
           "facilitator": "https://facilitator.goplausible.xyz",
           "chains": [
             {
