@@ -36,7 +36,8 @@ test("aggregate returns every protocol status and preserves safe amounts", async
       throw new Error("indexer offline");
     },
     compx: async () => ({ positions: [], warnings: [] }),
-    dorkfi: async () => ({ positions: [], warnings: [] })
+    dorkfi: async () => ({ positions: [], warnings: [] }),
+    "myth-finance": async () => ({ positions: [], warnings: [] })
   });
 
   const response = await fetchWalletPositions(VALID_ADDRESS);
@@ -59,7 +60,8 @@ test("aggregate returns every protocol status and preserves safe amounts", async
       { protocol: "pact", status: "partial" },
       { protocol: "folks-finance", status: "unavailable" },
       { protocol: "compx", status: "ok" },
-      { protocol: "dorkfi", status: "ok" }
+      { protocol: "dorkfi", status: "ok" },
+      { protocol: "myth-finance", status: "ok" }
     ]
   );
 });
@@ -89,7 +91,8 @@ test("aggregate bounds concurrent protocol collectors and preserves protocol ord
     pact: collector("pact"),
     "folks-finance": collector("folks-finance"),
     compx: collector("compx"),
-    dorkfi: collector("dorkfi")
+    dorkfi: collector("dorkfi"),
+    "myth-finance": collector("myth-finance")
   });
 
   try {
@@ -102,7 +105,7 @@ test("aggregate bounds concurrent protocol collectors and preserves protocol ord
     const response = await responsePromise;
     assert.deepEqual(
       response.protocols.map(({ protocol }) => protocol),
-      ["tinyman", "pact", "folks-finance", "compx", "dorkfi"]
+      ["tinyman", "pact", "folks-finance", "compx", "dorkfi", "myth-finance"]
     );
   } finally {
     if (originalConcurrency === undefined) {
@@ -136,7 +139,7 @@ test("GET /positions returns 200 for a valid empty wallet", async () => {
       meta: { address: string };
     };
     assert.deepEqual(body.data, []);
-    assert.equal(body.protocols.length, 5);
+    assert.equal(body.protocols.length, 6);
     assert.ok(body.protocols.every(({ status }) => status === "ok"));
     assert.deepEqual(body.totals, {
       suppliedUsd: 0,
@@ -193,7 +196,8 @@ test("aggregate calculates complete supplied, borrowed, reward, and net totals",
     pact: emptyCollector,
     "folks-finance": emptyCollector,
     compx: emptyCollector,
-    dorkfi: emptyCollector
+    dorkfi: emptyCollector,
+    "myth-finance": emptyCollector
   });
 
   const response = await fetchWalletPositions(VALID_ADDRESS);
@@ -294,6 +298,7 @@ function setAllCollectors(
     pact: collector,
     "folks-finance": collector,
     compx: collector,
-    dorkfi: collector
+    dorkfi: collector,
+    "myth-finance": collector
   });
 }
