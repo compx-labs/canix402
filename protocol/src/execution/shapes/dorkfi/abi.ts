@@ -58,6 +58,24 @@ export function decodeMarketResult(returnValue: unknown): DecodedDorkFiMarket {
 
 const emptySignSigner = algosdk.makeEmptyTransactionSigner();
 
+/** Keep simulate failures short — never surface full algosdk txn dumps. */
+function throwCompactSimulateError(method: string, methodResult: {
+  decodeError?: Error;
+  returnValue?: unknown;
+}): never {
+  const raw =
+    methodResult.decodeError instanceof Error
+      ? methodResult.decodeError.message
+      : methodResult.returnValue === undefined
+        ? "no ABI return"
+        : "unexpected simulate result";
+  const firstLine = raw.split("\n")[0] ?? raw;
+  const compact = /did not log a return value/i.test(firstLine)
+    ? "no ABI return"
+    : firstLine.replace(/\s+/g, " ").trim().slice(0, 120);
+  throw new Error(`${method} simulate: ${compact || "failed"}`);
+}
+
 export async function simulateGetMarket(params: {
   algod: Algodv2;
   poolAppId: number;
@@ -73,7 +91,8 @@ export async function simulateGetMarket(params: {
     methodArgs: [params.marketAppId],
     sender,
     suggestedParams: paramsSuggested,
-    signer: emptySignSigner
+    signer: emptySignSigner,
+    appForeignApps: [params.marketAppId]
   });
 
   const simRequest = new algosdk.modelsv2.SimulateRequest({
@@ -84,14 +103,28 @@ export async function simulateGetMarket(params: {
 
   const response = await atc.simulate(params.algod, simRequest);
   const methodResult = response.methodResults[0];
-  if (methodResult?.decodeError) {
-    throw methodResult.decodeError;
-  }
-  if (methodResult?.returnValue === undefined) {
-    throw new Error("get_market simulation returned no value.");
+  if (methodResult?.decodeError || methodResult?.returnValue === undefined) {
+    throwCompactSimulateError("get_market", methodResult ?? {});
   }
 
   return decodeMarketResult(methodResult.returnValue);
+}
+
+/** Index scale used by Dork.fi deposit math (matches dorkfi-app). */
+export const DORKFI_DEPOSIT_INDEX_SCALE = 10n ** 18n;
+
+/**
+ * Convert scaled nToken / scaled-deposit units to underlying ASA base units.
+ * Formula: (scaled * depositIndex) / 1e18
+ */
+export function underlyingFromScaledDeposits(
+  scaledDeposits: bigint,
+  depositIndex: bigint
+): bigint {
+  if (scaledDeposits <= 0n || depositIndex <= 0n) {
+    return 0n;
+  }
+  return (scaledDeposits * depositIndex) / DORKFI_DEPOSIT_INDEX_SCALE;
 }
 
 export async function simulateWithdrawUnderlyingAmount(params: {
@@ -122,7 +155,8 @@ export async function simulateWithdrawUnderlyingAmount(params: {
       flatFee: true,
       fee: 20_000n
     },
-    signer: emptySignSigner
+    signer: emptySignSigner,
+    appForeignApps: [params.marketAppId]
   });
 
   const simRequest = new algosdk.modelsv2.SimulateRequest({
@@ -133,11 +167,8 @@ export async function simulateWithdrawUnderlyingAmount(params: {
 
   const response = await atc.simulate(params.algod, simRequest);
   const methodResult = response.methodResults[0];
-  if (methodResult?.decodeError) {
-    throw methodResult.decodeError;
-  }
-  if (methodResult?.returnValue === undefined) {
-    throw new Error("withdraw simulation returned no value.");
+  if (methodResult?.decodeError || methodResult?.returnValue === undefined) {
+    throwCompactSimulateError("withdraw", methodResult ?? {});
   }
 
   return BigInt(methodResult.returnValue as string | number | bigint);

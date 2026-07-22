@@ -36,6 +36,14 @@ When the indexed health API is available, pool-level USD supplied/debt rows are
 - `opportunityId`: `null`
 - no exit/manage shapes (informational only)
 
+ASA `amountRaw` is the wallet **nToken** balance (withdraw-shape units). Estimated
+underlying ASA is derived as `(nToken * depositIndex) / 1e18` for notes only —
+positions no longer depend on a naked `withdraw` simulate (which often fails
+without the full custom group).
+
+Paused catalog markets are skipped quietly. If at least one ASA supply row is
+built, per-market probe failures are not surfaced as protocol warnings.
+
 If the indexed source is unavailable, only ASA rows are returned and Dork.fi is
 reported as `partial` with aggregate USD totals `null`.
 

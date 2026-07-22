@@ -53,13 +53,15 @@ import {
 } from "../execution/shapes/compx/pool-state.js";
 import { createCompXBuilderAlgodClient } from "../execution/shapes/compx/shared.js";
 import {
+  underlyingFromScaledDeposits
+} from "../execution/shapes/dorkfi/abi.js";
+import {
   buildDorkFiLendingOpportunityId,
   DORKFI_ALGORAND_ASA_MARKETS
 } from "../execution/shapes/dorkfi/market-catalog.js";
 import {
   resolveDorkFiLendingMarketState
 } from "../execution/shapes/dorkfi/market-state.js";
-import { simulateWithdrawUnderlyingAmount } from "../execution/shapes/dorkfi/abi.js";
 import type { OpportunityMarketRecord } from "../types/opportunity.js";
 import type { PositionMarketRecord } from "./position-execution-shapes.js";
 import { resolveAssetDecimals } from "./asset-decimals.js";
@@ -1357,7 +1359,7 @@ export async function collectDorkFiPositions(
     onChain = {
       positions: [],
       warnings: [
-        `Dork.fi on-chain ASA supply unavailable: ${errorMessage(onChainError)}`
+        `Dork.fi on-chain ASA supply unavailable: ${compactErrorMessage(onChainError)}`
       ]
     };
   }
@@ -1404,7 +1406,6 @@ interface DorkFiPositionCollectorDependencies {
     address: string
   ) => Promise<ProtocolPositionsCollection>;
   resolveMarketState: typeof resolveDorkFiLendingMarketState;
-  simulateWithdrawUnderlyingAmount: typeof simulateWithdrawUnderlyingAmount;
 }
 
 let dorkFiPositionCollectorOverrides:
@@ -1421,7 +1422,6 @@ function resolveDorkFiPositionCollectorDependencies(): DorkFiPositionCollectorDe
   return {
     fetchIndexedPositions: fetchDorkFiIndexedPositions,
     resolveMarketState: resolveDorkFiLendingMarketState,
-    simulateWithdrawUnderlyingAmount,
     ...dorkFiPositionCollectorOverrides
   };
 }
@@ -1557,6 +1557,7 @@ async function collectDorkFiOnChainSupply(
   walletHoldings.set(0, snapshot.amount);
   const positions: PositionMarketRecord[] = [];
   const warnings: string[] = [];
+  let pausedMarkets = 0;
 
   await mapPositionCandidates(
     DORKFI_ALGORAND_ASA_MARKETS,
@@ -1574,13 +1575,12 @@ async function collectDorkFiOnChainSupply(
         if (state.userNTokenBalance === 0n) {
           return;
         }
-        const suppliedRaw = await deps.simulateWithdrawUnderlyingAmount({
-          algod,
-          poolAppId: market.poolAppId,
-          marketAppId: market.marketAppId,
-          nTokenAmount: state.userNTokenBalance,
-          userAddress: address
-        });
+        // amountRaw is nToken-denominated so clients can feed withdraw quotes directly.
+        const nTokenAmount = state.userNTokenBalance;
+        const estimatedUnderlying = underlyingFromScaledDeposits(
+          nTokenAmount,
+          state.depositIndex
+        );
         positions.push({
           protocol: "dorkfi",
           positionType: "supplied",
@@ -1593,11 +1593,13 @@ async function collectDorkFiOnChainSupply(
           }),
           assetId: market.assetId,
           assetSymbol: market.symbol,
-          amountRaw: suppliedRaw.toString(),
-          amount: formatUnits(suppliedRaw, market.decimals),
+          amountRaw: nTokenAmount.toString(),
+          amount: formatUnits(nTokenAmount, market.decimals),
           usdValue: null,
           notes:
-            "Underlying amount is the current simulated withdrawal value of the nToken balance.",
+            estimatedUnderlying > 0n
+              ? `Amount is nToken (ARC-200) balance for withdraw quotes. Estimated underlying ASA: ${estimatedUnderlying.toString()}.`
+              : "Amount is nToken (ARC-200) balance for withdraw quotes.",
           inputHints: {
             poolAppId: market.poolAppId,
             marketAppId: market.marketAppId,
@@ -1605,18 +1607,52 @@ async function collectDorkFiOnChainSupply(
           }
         });
       } catch (error) {
-        warnings.push(`${market.marketAppId}: ${errorMessage(error)}`);
+        if (isDorkFiPausedMarketError(error)) {
+          pausedMarkets += 1;
+          return;
+        }
+        warnings.push(formatDorkFiMarketWarning(market.marketAppId, error));
       }
     }
   );
 
+  // Successful ASA holdings are actionable; don't let unrelated market probes
+  // mark the protocol partial.
+  if (positions.length > 0) {
+    return { positions, warnings: [] };
+  }
+
   throwIfEveryCandidateFailed(
     "Dork.fi",
-    DORKFI_ALGORAND_ASA_MARKETS.length,
+    DORKFI_ALGORAND_ASA_MARKETS.length - pausedMarkets,
     positions,
     warnings
   );
   return { positions, warnings };
+}
+
+function isDorkFiPausedMarketError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /market is paused/i.test(message);
+}
+
+function compactErrorMessage(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error);
+  const firstLine = (raw.split("\n")[0] ?? raw).replace(/\s+/g, " ").trim();
+  const withoutJsonDump =
+    firstLine.includes("{") && firstLine.indexOf("{") > 0
+      ? firstLine.slice(0, firstLine.indexOf("{")).trim()
+      : firstLine.includes("{")
+        ? "market probe failed"
+        : firstLine;
+  if (/did not log a return value/i.test(withoutJsonDump)) {
+    return "no ABI return";
+  }
+  return (withoutJsonDump || "market probe failed").slice(0, 120);
+}
+
+function formatDorkFiMarketWarning(marketAppId: number, error: unknown): string {
+  return `${marketAppId}: ${compactErrorMessage(error)}`.slice(0, 180);
 }
 
 async function mapPositionCandidates<T>(

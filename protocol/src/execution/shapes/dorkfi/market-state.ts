@@ -21,6 +21,8 @@ export interface DorkFiLendingMarketState {
   tokenStandard: "asa";
   symbol: string;
   paused: boolean;
+  /** Current market deposit index (1e18 scale). */
+  depositIndex: bigint;
   userAssetBalance: bigint;
   userNTokenBalance: bigint;
   userOptedIntoAsset: boolean;
@@ -186,6 +188,7 @@ export async function resolveDorkFiLendingMarketState(params: {
     tokenStandard: "asa",
     symbol: catalogMarket.symbol,
     paused: market.paused,
+    depositIndex: market.depositIndex,
     userAssetBalance,
     userNTokenBalance,
     userOptedIntoAsset,
