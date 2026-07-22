@@ -18,6 +18,7 @@ export type ExecutionProtocol =
   | "folks-finance"
   | "compx"
   | "dorkfi"
+  | "myth-finance"
   | "haystack";
 
 /**

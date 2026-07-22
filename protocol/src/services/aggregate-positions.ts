@@ -8,6 +8,7 @@ import {
   collectCompXPositions,
   collectDorkFiPositions,
   collectFolksFinancePositions,
+  collectMythFinancePositions,
   collectPactPositions,
   collectTinymanPositions,
   type PositionCollectionContext,
@@ -27,7 +28,8 @@ export const SUPPORTED_POSITION_PROTOCOLS = [
   "pact",
   "folks-finance",
   "compx",
-  "dorkfi"
+  "dorkfi",
+  "myth-finance"
 ] as const satisfies readonly Protocol[];
 
 export class AllPositionSourcesUnavailableError extends Error {
@@ -206,6 +208,7 @@ function resolveCollectors(): PositionCollectors {
     "folks-finance": collectFolksFinancePositions,
     compx: collectCompXPositions,
     dorkfi: collectDorkFiPositions,
+    "myth-finance": collectMythFinancePositions,
     ...collectorOverrides
   };
 }

@@ -160,7 +160,7 @@ A paid wallet data route priced at exactly 0.005 USDC:
   the wallet; Pact maps held LP tokens and wallet-local farm app ids against a
   short-lived protocol metadata cache before making any on-chain farm calls.
 - The response normalizes supplied, LP, staked, debt, and reward positions found
-  across Tinyman, Pact, Folks Finance, CompX, and Dork.fi. Base-unit and decimal
+  across Tinyman, Pact, Folks Finance, CompX, Dork.fi, and Myth Finance. Base-unit and decimal
   token amounts are strings to preserve precision.
 - Every protocol reports `ok`, `partial`, or `unavailable`. Partial upstream
   failures do not discard successful protocol data; the route returns `502` only
