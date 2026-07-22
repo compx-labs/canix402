@@ -4,18 +4,21 @@ This document defines the current Tinyman adapter contract used by canix402.
 
 ## Source Strategy
 
-- Mode: API-first (pools) + on-chain consensus APR (tALGO liquid staking)
+- Mode: API-first (pools) + on-chain consensus APR (tALGO) + restake TINY APR (stALGO)
 - Adapter file: `src/adapters/tinyman.ts`
 - Positions collector: `src/services/protocol-positions.ts` (`collectTinymanPositions`)
 - Base URL: `TINYMAN_API_BASE_URL`
 - Endpoints used:
   - Opportunities: `GET /pools/`
-  - ALGO USD for tALGO TVL: `GET /assets/0/` (`price_in_usd`)
+  - ALGO USD for tALGO/stALGO TVL: `GET /assets/0/` (`price_in_usd`)
+  - TINY USD for stALGO APR: `GET /assets/{tiny_asset_id}/` (`price_in_usd`)
   - Wallet LP positions: `GET /pools/?liquidity_asset_ids=…`
   - Wallet farm commitments / unclaimed rewards: `GET /staking/pool-programs/?pooler_address=…&committed_only=true`
   - Reward asset USD: `GET /assets/{asset_id}/` (`price_in_usd`)
 - tALGO staking also reads algod ledger supply, recent block headers (bonus + fees), and
   Tinyman stake-app state via `@tinymanorg/tinyman-js-sdk` `TinymanTAlgoClient`
+- stALGO restake reads restake-app globals (`total_staked_amount`,
+  `current_reward_rate_per_time`) and values stake via ALGO/tALGO ratio
 - Default query profile matches Tinyman app pool listing behavior:
   - `with_statistics=true`
   - `version__in=2.0` (override with `TINYMAN_POOL_VERSIONS`)
@@ -29,7 +32,7 @@ This document defines the current Tinyman adapter contract used by canix402.
 - `TINYMAN_POOL_VERSIONS` (optional CSV, default `2.0`)
 - `TINYMAN_ONLY_VERIFIED` (optional boolean, default `true`)
 - `TINYMAN_POOL_LIMIT` (optional integer-like string, default `100`)
-- `X402_ALGOD_URL` / `X402_ALGOD_TOKEN` (shared; used for tALGO staking APR/TVL)
+- `X402_ALGOD_URL` / `X402_ALGOD_TOKEN` (shared; used for tALGO/stALGO staking APR/TVL)
 
 ## Normalized Output Fields
 
@@ -123,5 +126,6 @@ recent block headers (`bonus`, `feesCollected`). See `src/services/consensus-sta
   only unpaid `pending` rewards are included in wallet reward totals.
 - Consensus APR uses ledger online stake (not the stricter ≥30k eligible-stake
   filter) and a short fee sample; treat as an estimate.
-- Tinyman stALGO restake is not listed as a separate opportunity in this phase.
-- `tvlUsd` and `apy` for LP/farm are trusted from source; tALGO staking is derived.
+- Tinyman stALGO restake is emitted as `tinyman-staking-stalgo` with APR derived
+  from restake app `current_reward_rate_per_time` × TINY USD / staked TVL.
+- `tvlUsd` and `apy` for LP/farm are trusted from source; tALGO/stALGO staking are derived.

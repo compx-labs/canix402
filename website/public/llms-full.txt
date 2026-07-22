@@ -6,7 +6,7 @@
 
 - **Gateway base URL:** `https://canix402-api.compx.io`
 - **Documentation site:** https://canix402.compx.io
-- **Supported protocols:** Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance
+- **Supported protocols:** Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, Haystack
 - **Operator:** Neon Forge Ltd
 - **Support:** kieran@neonforge.ltd
 - **Terms:** https://canix402.compx.io/terms
@@ -74,7 +74,7 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 ### Route notes
 
 - `GET /opportunities` — top aggregated opportunities ranked by APY (default limit 10).
-- `GET /protocols/:protocol/opportunities` — protocol slug e.g. `tinyman`, `pact`, `folks-finance`, `compx`, `dorkfi`, `myth-finance`.
+- `GET /protocols/:protocol/opportunities` — protocol slug e.g. `tinyman`, `pact`, `folks-finance`, `compx`, `dorkfi`, `myth-finance`, `haystack`.
 - `GET /opportunities/search` — filter by `platform`, `type`, `minApy`, `maxApy`, `minTvlUsd`.
 - `GET /opportunities/personalized` — requires `address` (Algorand account); premium price; matches opportunities to wallet-held assets.
 - `GET /positions` — requires `address` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.

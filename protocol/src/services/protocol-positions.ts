@@ -19,6 +19,10 @@ import { CompXSDK, standardToMicro, type UserPosition } from "@compx/sdk";
 
 import {
   FOLKS_XALGO_STAKING_OPPORTUNITY_ID,
+  HAYSTACK_STAKING_OPPORTUNITY_ID,
+  HAY_ASSET_ID,
+  USDC_ASSET_ID,
+  TINYMAN_STALGO_STAKING_OPPORTUNITY_ID,
   TINYMAN_TALGO_STAKING_OPPORTUNITY_ID,
   fetchCompXOpportunities,
   fetchCompXTokenPrices,
@@ -28,7 +32,19 @@ import {
   MYTH_ARC59_ROUTER_APP_ID,
   MYTH_SIMULATE_SENDER
 } from "../adapters/index.js";
-import { TALGO_ASSET_ID } from "../execution/shapes/tinyman/liquid-stake-state.js";
+import {
+  STALGO_ASSET_ID,
+  TALGO_ASSET_ID
+} from "../execution/shapes/tinyman/liquid-stake-state.js";
+import {
+  HAYSTACK_STAKING_APP_ID
+} from "../execution/shapes/haystack/constants.js";
+import {
+  createStakerBoxName
+} from "../execution/shapes/haystack/staking-spec.js";
+import {
+  getStakerBoxRecord
+} from "../execution/shapes/haystack/shared.js";
 import {
   resolveCompXLendingMarketState
 } from "../execution/shapes/compx/market-state.js";
@@ -106,6 +122,10 @@ export async function collectTinymanPositions(
   }
 
   const farmedLiquidityAssetIds = new Set<number>();
+  const farmMetaByLiquidityAssetId = new Map<
+    number,
+    { programId: number; poolAddress: string }
+  >();
   for (const farmPool of farmPools) {
     if (!tinymanPoolHasActiveFarmCommitment(farmPool)) {
       continue;
@@ -115,6 +135,23 @@ export async function collectTinymanPositions(
     );
     if (liquidityAssetId !== null) {
       farmedLiquidityAssetIds.add(liquidityAssetId);
+      const poolAddress = farmPool.address;
+      for (const program of farmPool.programs ?? []) {
+        if (
+          program.pooler?.current_cycle_commitment == null &&
+          program.pooler?.next_cycle_commitment == null
+        ) {
+          continue;
+        }
+        const programId = parseSafePositiveInteger(program.staking_program?.id);
+        if (programId !== null && poolAddress) {
+          farmMetaByLiquidityAssetId.set(liquidityAssetId, {
+            programId,
+            poolAddress
+          });
+          break;
+        }
+      }
     }
   }
 
@@ -138,6 +175,7 @@ export async function collectTinymanPositions(
       const decimals = parseNonNegativeInteger(pool.liquidity_asset?.decimals) ?? 6;
       const pair = tinymanPoolPair(pool);
       const isFarmed = farmedLiquidityAssetIds.has(liquidityAssetId);
+      const farmMeta = farmMetaByLiquidityAssetId.get(liquidityAssetId);
       positions.push({
         protocol: "tinyman",
         positionType: "lp",
@@ -151,7 +189,14 @@ export async function collectTinymanPositions(
           tvlUsd === null
             ? null
             : proportionalUsd(tvlUsd, lpBalance, issued),
-        notes: "LP-token claim; underlying reserve composition changes with pool state.",
+        notes: isFarmed
+          ? [
+              "LP-token claim; underlying reserve composition changes with pool state.",
+              farmMeta !== undefined
+                ? `Farm programId=${farmMeta.programId}; poolAddress=${farmMeta.poolAddress}; uncommit with commitAmount=0.`
+                : "Committed to a Tinyman farm; uncommit with commitAmount=0."
+            ].join(" ")
+          : "LP-token claim; underlying reserve composition changes with pool state.",
         ...(isFarmed
           ? {
               caveats: [
@@ -241,6 +286,10 @@ export async function collectTinymanPositions(
   const liquidStake = await collectTinymanTAlgoWalletPosition(snapshot);
   positions.push(...liquidStake.positions);
   warnings.push(...liquidStake.warnings);
+
+  const restake = await collectTinymanStAlgoWalletPosition(snapshot);
+  positions.push(...restake.positions);
+  warnings.push(...restake.warnings);
 
   return {
     positions,
@@ -1735,6 +1784,119 @@ export async function collectMythFinancePositions(
   return collectMythDualStakeWalletPositions(snapshot, address);
 }
 
+export async function collectHaystackPositions(
+  address: string,
+  _snapshot: WalletSnapshot
+): Promise<ProtocolPositionsCollection> {
+  const warnings: string[] = [];
+  const positions: PositionMarketRecord[] = [];
+
+  let record;
+  try {
+    const algod = createPositionsAlgodClient();
+    const boxName = createStakerBoxName(address);
+    record = await getStakerBoxRecord(algod, HAYSTACK_STAKING_APP_ID, boxName);
+  } catch (error) {
+    return {
+      positions: [],
+      warnings: [`Haystack staking box unavailable: ${errorMessage(error)}`]
+    };
+  }
+
+  if (!record.hasBox || record.stake <= 0n) {
+    // Still surface pending rewards if the box exists with zero stake.
+    if (!record.hasBox) {
+      return { positions: [], warnings };
+    }
+  }
+
+  const assetIds = [HAY_ASSET_ID, USDC_ASSET_ID];
+  const decimalsByAssetId = await resolveAssetDecimals(assetIds).catch(() => {
+    warnings.push("Haystack asset decimals unavailable; defaulting to 6.");
+    return new Map<number, number>();
+  });
+  const hayDecimals = decimalsByAssetId.get(HAY_ASSET_ID) ?? 6;
+  const usdcDecimals = decimalsByAssetId.get(USDC_ASSET_ID) ?? 6;
+
+  let prices = new Map<number, number | null>();
+  try {
+    prices = await fetchTinymanAssetUsdPrices(assetIds);
+  } catch (error) {
+    warnings.push(`Haystack USD pricing unavailable: ${errorMessage(error)}`);
+  }
+  const hayUsd = prices.get(HAY_ASSET_ID) ?? null;
+  const usdcUsd = prices.get(USDC_ASSET_ID) ?? 1;
+
+  if (record.stake > 0n) {
+    positions.push({
+      protocol: "haystack",
+      positionType: "staked",
+      positionId: `haystack:staked:${HAYSTACK_STAKING_APP_ID}`,
+      opportunityId: HAYSTACK_STAKING_OPPORTUNITY_ID,
+      assetId: HAY_ASSET_ID,
+      assetSymbol: "HAY",
+      amountRaw: record.stake.toString(),
+      amount: formatUnits(record.stake, hayDecimals),
+      usdValue: tokenUsdValue(record.stake, hayDecimals, hayUsd),
+      notes: "Haystack staker-box HAY stake (source of truth)."
+    });
+  }
+
+  if (record.pendingRewardsUsdc > 0n) {
+    positions.push({
+      protocol: "haystack",
+      positionType: "reward",
+      positionId: `haystack:reward:${HAYSTACK_STAKING_APP_ID}:usdc`,
+      opportunityId: HAYSTACK_STAKING_OPPORTUNITY_ID,
+      assetId: USDC_ASSET_ID,
+      assetSymbol: "USDC",
+      amountRaw: record.pendingRewardsUsdc.toString(),
+      amount: formatUnits(record.pendingRewardsUsdc, usdcDecimals),
+      usdValue: tokenUsdValue(record.pendingRewardsUsdc, usdcDecimals, usdcUsd),
+      caveats: [
+        "Pending USDC from staker box; live accrual may be higher until the next drip/claim."
+      ]
+    });
+  }
+
+  if (record.pendingRewardsHay > 0n) {
+    positions.push({
+      protocol: "haystack",
+      positionType: "reward",
+      positionId: `haystack:reward:${HAYSTACK_STAKING_APP_ID}:hay`,
+      opportunityId: HAYSTACK_STAKING_OPPORTUNITY_ID,
+      assetId: HAY_ASSET_ID,
+      assetSymbol: "HAY",
+      amountRaw: record.pendingRewardsHay.toString(),
+      amount: formatUnits(record.pendingRewardsHay, hayDecimals),
+      usdValue: tokenUsdValue(record.pendingRewardsHay, hayDecimals, hayUsd),
+      caveats: [
+        "Pending HAY from staker box; live accrual may be higher until the next drip/claim."
+      ]
+    });
+  }
+
+  const rewardsComplete =
+    !warnings.some((warning) => warning.includes("USD pricing")) &&
+    !positions.some(
+      (position) =>
+        position.positionType === "reward" && position.usdValue === null
+    );
+
+  return {
+    positions,
+    warnings,
+    coverage: {
+      suppliedUsdComplete:
+        positions
+          .filter((position) => position.positionType === "staked")
+          .every((position) => position.usdValue !== null),
+      borrowedUsdComplete: true,
+      rewardsUsdComplete: rewardsComplete
+    }
+  };
+}
+
 async function collectTinymanTAlgoWalletPosition(
   snapshot: WalletSnapshot
 ): Promise<ProtocolPositionsCollection> {
@@ -1779,6 +1941,59 @@ async function collectTinymanTAlgoWalletPosition(
         usdValue: tokenUsdValue(balance, decimals, priceUsd),
         notes:
           "Wallet tALGO balance is the liquid-staking position size (source of truth)."
+      }
+    ],
+    warnings
+  };
+}
+
+async function collectTinymanStAlgoWalletPosition(
+  snapshot: WalletSnapshot
+): Promise<ProtocolPositionsCollection> {
+  const stAlgoId = STALGO_ASSET_ID.mainnet;
+  const balance = getWalletAssetBalance(snapshot, stAlgoId);
+  if (balance <= 0n) {
+    return { positions: [], warnings: [] };
+  }
+
+  const warnings: string[] = [];
+  let decimals = 6;
+  try {
+    const decimalsByAssetId = await resolveAssetDecimals([stAlgoId]);
+    decimals = decimalsByAssetId.get(stAlgoId) ?? 6;
+  } catch (error) {
+    warnings.push(
+      `Tinyman stALGO decimals unavailable: ${errorMessage(error)}; defaulting to 6.`
+    );
+  }
+
+  // stALGO is 1:1 with tALGO; price via tALGO market when available.
+  const tAlgoId = TALGO_ASSET_ID.mainnet;
+  let priceUsd: number | null = null;
+  try {
+    const prices = await fetchTinymanAssetUsdPrices([tAlgoId]);
+    priceUsd = prices.get(tAlgoId) ?? null;
+  } catch (error) {
+    warnings.push(
+      `Tinyman stALGO USD pricing unavailable: ${errorMessage(error)}`
+    );
+  }
+
+  return {
+    positions: [
+      {
+        protocol: "tinyman",
+        positionType: "staked",
+        positionId: `tinyman:staked:stalgo:${stAlgoId}`,
+        opportunityId: TINYMAN_STALGO_STAKING_OPPORTUNITY_ID,
+        assetId: stAlgoId,
+        assetSymbol: "stALGO",
+        amountRaw: balance.toString(),
+        amount: formatUnits(balance, decimals),
+        usdValue: tokenUsdValue(balance, decimals, priceUsd),
+        notes:
+          "Wallet stALGO balance is the restake position size (1:1 with tALGO). " +
+          "Pending TINY restake rewards are not collected in this phase; claim via manage shapes."
       }
     ],
     warnings

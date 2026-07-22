@@ -4,10 +4,12 @@ import {
   fetchCompXOpportunities,
   fetchDorkFiOpportunities,
   fetchFolksFinanceOpportunities,
+  fetchHaystackOpportunities,
   fetchMythFinanceOpportunities,
   fetchPactOpportunities,
   fetchTinymanOpportunities,
   FolksFinanceAdapterError,
+  HaystackAdapterError,
   MythFinanceAdapterError,
   PactAdapterError,
   TinymanAdapterError
@@ -25,7 +27,8 @@ export const SUPPORTED_AGGREGATE_PROTOCOLS = [
   "folks-finance",
   "compx",
   "dorkfi",
-  "myth-finance"
+  "myth-finance",
+  "haystack"
 ] as const;
 
 export interface AggregateFetchResult {
@@ -101,6 +104,9 @@ export async function fetchOpportunitiesForProtocol(
     if (protocol === "myth-finance") {
       return await fetchMythFinanceOpportunities();
     }
+    if (protocol === "haystack") {
+      return await fetchHaystackOpportunities();
+    }
   } catch (error) {
     if (
       error instanceof TinymanAdapterError ||
@@ -108,7 +114,8 @@ export async function fetchOpportunitiesForProtocol(
       error instanceof FolksFinanceAdapterError ||
       error instanceof CompXAdapterError ||
       error instanceof DorkFiAdapterError ||
-      error instanceof MythFinanceAdapterError
+      error instanceof MythFinanceAdapterError ||
+      error instanceof HaystackAdapterError
     ) {
       throw error;
     }

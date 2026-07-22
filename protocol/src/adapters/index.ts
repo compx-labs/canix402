@@ -4,15 +4,18 @@ export type AdapterName =
   | "folks-finance"
   | "compx"
   | "dorkfi"
-  | "myth-finance";
+  | "myth-finance"
+  | "haystack";
 
 export {
   fetchTinymanOpportunities,
   normalizeTinymanPool,
   normalizeTinymanTAlgoStakingOpportunity,
+  normalizeTinymanStAlgoStakingOpportunity,
   setTinymanAdapterDependenciesForTests,
   TINYMAN_LIQUID_STAKE_PROTOCOL_FEE,
   TINYMAN_TALGO_STAKING_OPPORTUNITY_ID,
+  TINYMAN_STALGO_STAKING_OPPORTUNITY_ID,
   TinymanAdapterError
 } from "./tinyman.js";
 export { fetchPactOpportunities, normalizePactPool, PactAdapterError } from "./pact.js";
@@ -56,3 +59,15 @@ export {
   MYTH_SIMULATE_SENDER,
   MythFinanceAdapterError
 } from "./mythFinance.js";
+export {
+  fetchHaystackOpportunities,
+  normalizeHaystackStakingOpportunity,
+  setHaystackAdapterDependenciesForTests,
+  fixedPointAprToPercentage,
+  HAYSTACK_STAKING_OPPORTUNITY_ID,
+  HAYSTACK_STAKING_APP_ID,
+  HAY_ASSET_ID,
+  USDC_ASSET_ID,
+  HaystackAdapterError
+} from "./haystack.js";
+export type { HaystackPoolSnapshot } from "./haystack.js";

@@ -8,11 +8,12 @@ import {
   collectMythFinancePositions,
   collectTinymanPositions
 } from "../../src/services/protocol-positions.js";
-import { TALGO_ASSET_ID } from "../../src/execution/shapes/tinyman/liquid-stake-state.js";
+import { TALGO_ASSET_ID, STALGO_ASSET_ID } from "../../src/execution/shapes/tinyman/liquid-stake-state.js";
 import type { WalletSnapshot } from "../../src/services/wallet-snapshot.js";
 
 const XALGO_ID = Number(MainnetConsensusConfig.xAlgoId);
 const TALGO_ID = TALGO_ASSET_ID.mainnet;
+const STALGO_ID = STALGO_ASSET_ID.mainnet;
 
 function snapshotWithAssets(
   assets: Array<{ assetId: number; amount: bigint }>
@@ -53,6 +54,22 @@ test("Tinyman positions include wallet tALGO as staked", async () => {
   assert.equal(talgo.amountRaw, "2500000");
   assert.equal(talgo.opportunityId, "tinyman-staking-talgo");
   assert.match(talgo.notes ?? "", /Wallet tALGO balance/);
+});
+
+test("Tinyman positions include wallet stALGO as staked", async () => {
+  const result = await collectTinymanPositions(
+    "A7NMWS3NT3IUDMLVO26ULGXGIIOUQ3ND2TXSER6EBGRZNOBOUIQXHIBGDE",
+    snapshotWithAssets([{ assetId: STALGO_ID, amount: 4_000_000n }])
+  );
+
+  const stalgo = result.positions.find(
+    (position) =>
+      position.positionType === "staked" && position.assetId === STALGO_ID
+  );
+  assert.ok(stalgo);
+  assert.equal(stalgo.amountRaw, "4000000");
+  assert.equal(stalgo.opportunityId, "tinyman-staking-stalgo");
+  assert.match(stalgo.notes ?? "", /Wallet stALGO balance/);
 });
 
 test("Folks positions include wallet xALGO as staked", async () => {

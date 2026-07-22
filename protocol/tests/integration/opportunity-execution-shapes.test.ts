@@ -153,6 +153,42 @@ test("LP positions expose exit shapes and staking positions expose unstake/claim
   assert.ok(lp.compatibleExitShapeKeys.some((key) => key.includes("removeLiquidity")));
   assert.equal(lp.compatibleManageShapeKeys.length, 0);
 
+  const farmedLp = attachExecutionShapesToPosition({
+    protocol: "tinyman",
+    positionType: "lp",
+    positionId: "tinyman:lp:1",
+    opportunityId: "pool:lp",
+    assetId: 1,
+    assetSymbol: "LP",
+    amountRaw: "1",
+    amount: "1",
+    usdValue: 1,
+    caveats: [
+      "Committed to Tinyman farm staking; farm stakes the full wallet LP balance."
+    ]
+  });
+  assert.ok(
+    farmedLp.compatibleExitShapeKeys.includes(
+      "mainnet:tinyman:staking-v1:farm:uncommit"
+    )
+  );
+
+  const farmReward = attachExecutionShapesToPosition({
+    protocol: "tinyman",
+    positionType: "reward",
+    positionId: "tinyman:reward:pool:258:2200000000",
+    opportunityId: "pool:farm",
+    assetId: 2200000000,
+    assetSymbol: "TINY",
+    amountRaw: "1",
+    amount: "1",
+    usdValue: 1
+  });
+  assert.deepEqual(farmReward.compatibleManageShapeKeys, [
+    "mainnet:tinyman:staking-v1:farm:claimRewards"
+  ]);
+  assert.deepEqual(farmReward.compatibleExitShapeKeys, []);
+
   const staked = attachExecutionShapesToPosition({
     protocol: "compx",
     positionType: "staked",
@@ -184,6 +220,24 @@ test("Liquid-staking wallet positions attach exclusive burn/unstake/redeem exits
     "mainnet:tinyman:liquid-stake-v1:burn:tAlgo"
   ]);
   assert.deepEqual(talgo.compatibleManageShapeKeys, []);
+
+  const stalgo = attachExecutionShapesToPosition({
+    protocol: "tinyman",
+    positionType: "staked",
+    positionId: "tinyman:staked:stalgo:2537023208",
+    opportunityId: "tinyman-staking-stalgo",
+    assetId: 2537023208,
+    assetSymbol: "stALGO",
+    amountRaw: "1000000",
+    amount: "1",
+    usdValue: 1
+  });
+  assert.deepEqual(stalgo.compatibleExitShapeKeys, [
+    "mainnet:tinyman:restake-v1:decreaseStake:stAlgo"
+  ]);
+  assert.deepEqual(stalgo.compatibleManageShapeKeys, [
+    "mainnet:tinyman:restake-v1:claimRewards:stAlgo"
+  ]);
 
   const xalgo = attachExecutionShapesToPosition({
     protocol: "folks-finance",
@@ -254,6 +308,39 @@ test("Tinyman tALGO staking attaches mint enter and burn exit", () => {
   );
 });
 
+test("Tinyman stALGO staking attaches increase enter and decrease exit", () => {
+  const record: OpportunityMarketRecord = {
+    protocol: "tinyman",
+    opportunityType: "staking",
+    opportunityId: "tinyman-staking-stalgo",
+    assetPair: "tALGO/stALGO",
+    assetIds: [2537013734, 2537023208],
+    apy: 12,
+    yieldBasis: "apr",
+    tvlUsd: 50_000,
+    sourceTimestamp: "2026-07-17T00:00:00.000Z",
+    fetchedAt: "2026-07-17T00:00:00.000Z"
+  };
+
+  const enriched = attachExecutionShapesToOpportunity(record, executionRegistry);
+  assert.equal(enriched.executionReady, true);
+  assert.equal(enriched.executionShapes.length, 1);
+  assert.equal(
+    enriched.executionShapes[0]?.shapeKey,
+    "mainnet:tinyman:restake-v1:increaseStake:stAlgo"
+  );
+  assert.deepEqual(enriched.executionShapes[0]?.requiredAssetIds, [2537013734]);
+  assert.equal(enriched.executionShapes[0]?.inputHints?.assetId, 2537013734);
+  assert.equal(enriched.compatibleExitShapes.length, 1);
+  assert.equal(
+    enriched.compatibleExitShapes[0]?.shapeKey,
+    "mainnet:tinyman:restake-v1:decreaseStake:stAlgo"
+  );
+  assert.deepEqual(enriched.compatibleExitShapes[0]?.requiredAssetIds, [
+    2537023208
+  ]);
+});
+
 test("Folks xALGO staking attaches stake enter and unstake exit", () => {
   const record: OpportunityMarketRecord = {
     protocol: "folks-finance",
@@ -290,6 +377,31 @@ test("Folks xALGO staking attaches stake enter and unstake exit", () => {
     enriched.compatibleExitShapes[0]?.inputHints?.depositAssetId,
     1134696561
   );
+});
+
+test("Dork.fi USDC lending hints resolve marketAppId from ASA catalog", () => {
+  const record: OpportunityMarketRecord = {
+    protocol: "dorkfi",
+    opportunityType: "lending",
+    opportunityId: "dorkfi:algorand:3333688282:31566704:lending",
+    assetPair: "USDC",
+    assetIds: [31566704],
+    apy: 5,
+    yieldBasis: "apy",
+    tvlUsd: 1_000_000,
+    sourceTimestamp: "2026-07-22T00:00:00.000Z",
+    fetchedAt: "2026-07-22T00:00:00.000Z"
+  };
+
+  const enriched = attachExecutionShapesToOpportunity(record, executionRegistry);
+  assert.equal(enriched.executionReady, true);
+  assert.equal(
+    enriched.executionShapes[0]?.shapeKey,
+    "mainnet:dorkfi:v1:deposit:asa"
+  );
+  assert.equal(enriched.executionShapes[0]?.inputHints?.poolAppId, 3333688282);
+  assert.equal(enriched.executionShapes[0]?.inputHints?.marketAppId, 3210682240);
+  assert.equal(enriched.executionShapes[0]?.inputHints?.assetId, 31566704);
 });
 
 test("Myth dualSTAKE staking attaches mint enter and redeem exit", () => {

@@ -86,7 +86,7 @@ function stakingState(overrides: Partial<HaystackStakingState> = {}): HaystackSt
     usdcAssetId: USDC_ASSET_ID,
     oracleAppId: 3_016_268_320,
     paused: false,
-    staker: overrides.staker ?? { hasBox, stake: hasBox ? 5_000_000n : 0n },
+    staker: overrides.staker ?? { hasBox, stake: hasBox ? 5_000_000n : 0n, pendingRewardsUsdc: 0n, pendingRewardsHay: 0n },
     userHayBalance: overrides.userHayBalance ?? 10_000_000n,
     userOptedIntoUsdc: overrides.userOptedIntoUsdc ?? true,
     stakerBoxName: createStakerBoxName(USER_ADDRESS),
@@ -97,7 +97,7 @@ function stakingState(overrides: Partial<HaystackStakingState> = {}): HaystackSt
 }
 
 test("stake shape compiles a 3-txn group for a first-time staker", async () => {
-  const state = stakingState({ staker: { hasBox: false, stake: 0n } });
+  const state = stakingState({ staker: { hasBox: false, stake: 0n, pendingRewardsUsdc: 0n, pendingRewardsHay: 0n } });
   const amount = 100_000_000n;
 
   setHaystackStakeHayDependenciesForTests({
@@ -134,7 +134,7 @@ test("stake shape compiles a 3-txn group for a first-time staker", async () => {
 });
 
 test("stake shape compiles a 2-txn group (no MBR) for a returning staker", async () => {
-  const state = stakingState({ staker: { hasBox: true, stake: 1_000_000n } });
+  const state = stakingState({ staker: { hasBox: true, stake: 1_000_000n, pendingRewardsUsdc: 0n, pendingRewardsHay: 0n } });
   const amount = 50_000_000n;
 
   setHaystackStakeHayDependenciesForTests({
@@ -171,7 +171,7 @@ test("stake shape compiles a 2-txn group (no MBR) for a returning staker", async
 });
 
 test("stake shape validates MBR payment and stakeHay selector", () => {
-  const state = stakingState({ staker: { hasBox: false, stake: 0n } });
+  const state = stakingState({ staker: { hasBox: false, stake: 0n, pendingRewardsUsdc: 0n, pendingRewardsHay: 0n } });
   const amount = 250_000_000n;
   const group = buildMockStakeGroup({
     user: USER,
@@ -207,7 +207,7 @@ test("unstake shape rejects amount above staked balance at resolveState", async 
       oracleAppId: 3_016_268_320,
       paused: false
     }),
-    getStakerBoxRecord: async () => ({ hasBox: true, stake: 100n }),
+    getStakerBoxRecord: async () => ({ hasBox: true, stake: 100n, pendingRewardsUsdc: 0n, pendingRewardsHay: 0n }),
     getAccountAssetBalance: async () => 1_000_000n,
     isAssetOptedIn: async () => true,
     getApplicationAddress: () => APP_ADDRESS
@@ -227,7 +227,7 @@ test("unstake shape rejects amount above staked balance at resolveState", async 
 
 test("unstake shape validates unstakeHayAndClaim app call", () => {
   const state = stakingState({
-    staker: { hasBox: true, stake: 5_000_000n },
+    staker: { hasBox: true, stake: 5_000_000n, pendingRewardsUsdc: 0n, pendingRewardsHay: 0n },
     userOptedIntoUsdc: true
   });
   const group = buildMockUnstakeGroup({
@@ -249,7 +249,7 @@ test("unstake shape validates unstakeHayAndClaim app call", () => {
 
 test("unstake shape validates optional USDC opt-in before unstakeHayAndClaim", () => {
   const state = stakingState({
-    staker: { hasBox: true, stake: 5_000_000n },
+    staker: { hasBox: true, stake: 5_000_000n, pendingRewardsUsdc: 0n, pendingRewardsHay: 0n },
     userOptedIntoUsdc: false
   });
   const group = buildMockUnstakeGroup({
@@ -335,7 +335,7 @@ test("claim shape compiles via mocked finalize (opted-in user)", async () => {
 });
 
 test("ungrouped stake transactions fail validation", () => {
-  const state = stakingState({ staker: { hasBox: false, stake: 0n } });
+  const state = stakingState({ staker: { hasBox: false, stake: 0n, pendingRewardsUsdc: 0n, pendingRewardsHay: 0n } });
   const amount = 100_000n;
   const group = buildMockStakeGroup({
     user: USER,
