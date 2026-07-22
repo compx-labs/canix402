@@ -149,9 +149,6 @@ export const dorkfiWithdrawAsaShape: TransactionShapeSpec<
       warnings.push(
         "Could not simulate expected underlying ASA output; wallet should re-check balances before signing."
       );
-      if (error instanceof Error) {
-        warnings.push(error.message);
-      }
     }
 
     let transactions;

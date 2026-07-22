@@ -36,6 +36,7 @@ function usdcMarketState(
     tokenStandard: "asa",
     symbol: "USDC",
     paused: false,
+    depositIndex: 10n ** 18n,
     userAssetBalance: 0n,
     userNTokenBalance: 1_000_000n,
     userOptedIntoAsset: true,
@@ -88,8 +89,7 @@ test("Dork.fi merges ASA supply with indexed USD aggregate and keeps withdraw ac
           tokenStandard: "asa"
         }
       });
-    },
-    simulateWithdrawUnderlyingAmount: async () => 1_000_000n
+    }
   });
 
   const result = await collectDorkFiPositions(ADDRESS, emptyWalletSnapshot(ADDRESS));
@@ -129,6 +129,56 @@ test("Dork.fi merges ASA supply with indexed USD aggregate and keeps withdraw ac
 
   assert.equal(result.coverage?.suppliedUsdComplete, true);
   assert.equal(result.coverage?.borrowedUsdComplete, true);
+});
+
+test("Dork.fi paused markets are skipped quietly and do not hide USDC supply", async () => {
+  setDorkFiPositionCollectorDependenciesForTests({
+    fetchIndexedPositions: async () =>
+      normalizeDorkFiHealthRecords([
+        {
+          network: "algorand-mainnet",
+          appId: String(DORKFI_MAINNET_USDC_POOL_APP_ID),
+          totalCollateralValue: "1000000000000",
+          totalBorrowValue: "0",
+          healthFactor: "10",
+          lastUpdated: 1_783_944_000_000
+        }
+      ]),
+    resolveMarketState: async (params) => {
+      if (params.marketAppId === DORKFI_MAINNET_USDC_MARKET_APP_ID) {
+        return usdcMarketState();
+      }
+      throw new Error("Dork.fi market is paused.");
+    }
+  });
+
+  const result = await collectDorkFiPositions(ADDRESS, emptyWalletSnapshot(ADDRESS));
+  assert.equal(result.warnings.length, 0);
+  assert.ok(
+    result.positions.some(
+      (position) =>
+        position.opportunityId ===
+        "dorkfi:algorand:3333688282:31566704:lending"
+    )
+  );
+});
+
+test("Dork.fi market probe warnings stay short without algosdk dumps", async () => {
+  setDorkFiPositionCollectorDependenciesForTests({
+    fetchIndexedPositions: async () => ({ positions: [], warnings: [] }),
+    resolveMarketState: async () => {
+      throw new Error(
+        'App call transaction did not log a return value {"txn":{"txn":{"apar":"x".repeat(5000)}}}'
+      );
+    }
+  });
+
+  const result = await collectDorkFiPositions(ADDRESS, emptyWalletSnapshot(ADDRESS));
+  assert.ok(result.warnings.length > 0);
+  for (const warning of result.warnings) {
+    assert.ok(warning.length <= 180, warning);
+    assert.equal(warning.includes('"txn"'), false);
+  }
 });
 
 test("Dork.fi USD aggregates alone never advertise withdraw shapes", () => {

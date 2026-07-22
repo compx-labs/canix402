@@ -67,6 +67,7 @@ function lendingMarketState(overrides?: Partial<DorkFiLendingMarketState>): Dork
     tokenStandard: "asa",
     symbol: "USDC",
     paused: false,
+    depositIndex: 10n ** 18n,
     userAssetBalance: 5_000_000n,
     userNTokenBalance: 1_000_000n,
     userOptedIntoAsset: true,
