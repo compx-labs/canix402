@@ -168,6 +168,54 @@ test("LP positions expose exit shapes and staking positions expose unstake/claim
   assert.ok(staked.compatibleManageShapeKeys.some((key) => key.includes("claim")));
 });
 
+test("Liquid-staking wallet positions attach exclusive burn/unstake/redeem exits", () => {
+  const talgo = attachExecutionShapesToPosition({
+    protocol: "tinyman",
+    positionType: "staked",
+    positionId: "tinyman:staked:talgo:2537013734",
+    opportunityId: "tinyman-staking-talgo",
+    assetId: 2537013734,
+    assetSymbol: "tALGO",
+    amountRaw: "1000000",
+    amount: "1",
+    usdValue: 1
+  });
+  assert.deepEqual(talgo.compatibleExitShapeKeys, [
+    "mainnet:tinyman:liquid-stake-v1:burn:tAlgo"
+  ]);
+  assert.deepEqual(talgo.compatibleManageShapeKeys, []);
+
+  const xalgo = attachExecutionShapesToPosition({
+    protocol: "folks-finance",
+    positionType: "staked",
+    positionId: "folks-finance:staked:xalgo:1134696561",
+    opportunityId: "folks-staking-xalgo",
+    assetId: 1134696561,
+    assetSymbol: "xALGO",
+    amountRaw: "1000000",
+    amount: "1",
+    usdValue: 1
+  });
+  assert.deepEqual(xalgo.compatibleExitShapeKeys, [
+    "mainnet:folks-finance:xalgo-v1:unstake:immediate"
+  ]);
+
+  const myth = attachExecutionShapesToPosition({
+    protocol: "myth-finance",
+    positionType: "staked",
+    positionId: "myth-finance:staked:3028076093:3028084000",
+    opportunityId: "myth-staking-3028076093",
+    assetId: 3028084000,
+    assetSymbol: "memoALGO",
+    amountRaw: "1000000",
+    amount: "1",
+    usdValue: 1
+  });
+  assert.deepEqual(myth.compatibleExitShapeKeys, [
+    "mainnet:myth-finance:dualstake-v1:redeem:lst"
+  ]);
+});
+
 test("Tinyman tALGO staking attaches mint enter and burn exit", () => {
   const record: OpportunityMarketRecord = {
     protocol: "tinyman",
@@ -241,5 +289,68 @@ test("Folks xALGO staking attaches stake enter and unstake exit", () => {
   assert.equal(
     enriched.compatibleExitShapes[0]?.inputHints?.depositAssetId,
     1134696561
+  );
+});
+
+test("Myth dualSTAKE staking attaches mint enter and redeem exit", () => {
+  const record: OpportunityMarketRecord = {
+    protocol: "myth-finance",
+    opportunityType: "staking",
+    opportunityId: "myth-staking-3028076093",
+    assetPair: "ALGO/MemO→memoALGO",
+    assetIds: [0, 885835936, 3028084000],
+    apy: 4.2,
+    yieldBasis: "apy",
+    tvlUsd: 50_000,
+    sourceTimestamp: "2026-07-22T00:00:00.000Z",
+    fetchedAt: "2026-07-22T00:00:00.000Z"
+  };
+
+  const enriched = attachExecutionShapesToOpportunity(record, executionRegistry);
+  assert.equal(enriched.executionReady, true);
+  assert.equal(enriched.executionShapes.length, 1);
+  assert.equal(
+    enriched.executionShapes[0]?.shapeKey,
+    "mainnet:myth-finance:dualstake-v1:mint:lst"
+  );
+  assert.deepEqual(enriched.executionShapes[0]?.requiredAssetIds, [0, 885835936]);
+  assert.equal(enriched.executionShapes[0]?.inputHints?.poolAppId, 3028076093);
+  assert.equal(enriched.executionShapes[0]?.inputHints?.assetAId, 0);
+  assert.equal(enriched.executionShapes[0]?.inputHints?.assetBId, 885835936);
+  assert.equal(enriched.compatibleExitShapes.length, 1);
+  assert.equal(
+    enriched.compatibleExitShapes[0]?.shapeKey,
+    "mainnet:myth-finance:dualstake-v1:redeem:lst"
+  );
+  assert.deepEqual(enriched.compatibleExitShapes[0]?.requiredAssetIds, [
+    3028084000
+  ]);
+  assert.equal(enriched.compatibleExitShapes[0]?.inputHints?.assetId, 3028084000);
+  assert.equal(enriched.compatibleExitShapes[0]?.inputHints?.poolAppId, 3028076093);
+});
+
+test("Myth farm attaches mint enter and redeem exit", () => {
+  const record: OpportunityMarketRecord = {
+    protocol: "myth-finance",
+    opportunityType: "farm",
+    opportunityId: "myth-farm-2933534328",
+    assetPair: "fooALGO farm (FOO)",
+    assetIds: [0, 1284444444, 2933535000],
+    apy: 0.0582,
+    yieldBasis: "apr",
+    tvlUsd: 10_000,
+    sourceTimestamp: "2026-07-22T00:00:00.000Z",
+    fetchedAt: "2026-07-22T00:00:00.000Z"
+  };
+
+  const enriched = attachExecutionShapesToOpportunity(record, executionRegistry);
+  assert.equal(enriched.executionReady, true);
+  assert.equal(
+    enriched.executionShapes[0]?.shapeKey,
+    "mainnet:myth-finance:dualstake-v1:mint:lst"
+  );
+  assert.equal(
+    enriched.compatibleExitShapes[0]?.shapeKey,
+    "mainnet:myth-finance:dualstake-v1:redeem:lst"
   );
 });

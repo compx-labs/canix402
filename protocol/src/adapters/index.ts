@@ -3,7 +3,8 @@ export type AdapterName =
   | "pact"
   | "folks-finance"
   | "compx"
-  | "dorkfi";
+  | "dorkfi"
+  | "myth-finance";
 
 export {
   fetchTinymanOpportunities,
@@ -36,3 +37,22 @@ export {
   normalizeDorkFiOpportunity,
   DorkFiAdapterError
 } from "./dorkfi.js";
+export {
+  fetchMythFinanceOpportunities,
+  normalizeMythStakingOpportunity,
+  normalizeMythFarmOpportunity,
+  setMythFinanceSdkDependenciesForTests,
+  mythStakingOpportunityId,
+  mythFarmOpportunityId,
+  parseMythStakingAppId,
+  parseMythFarmAppId,
+  isMythStakingOpportunityId,
+  isMythFarmOpportunityId,
+  MYTH_STAKING_OPPORTUNITY_ID_PREFIX,
+  MYTH_FARM_OPPORTUNITY_ID_PREFIX,
+  MYTH_DS_REGISTRY_APP_ID,
+  MYTH_TINYMAN_APP_ID,
+  MYTH_ARC59_ROUTER_APP_ID,
+  MYTH_SIMULATE_SENDER,
+  MythFinanceAdapterError
+} from "./mythFinance.js";

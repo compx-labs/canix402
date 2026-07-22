@@ -1,18 +1,34 @@
 import algosdk, { Algodv2 } from "algosdk";
 import {
+  ConsensusState,
+  MainnetConsensusConfig,
   MainnetDepositsAppId,
   MainnetLoans,
   MainnetOracle,
   MainnetPoolManagerAppId,
   MainnetPools,
+  getConsensusState,
   retrieveUserDepositsFullInfo,
   retrieveUserLoansInfo
 } from "@folks-finance/algorand-sdk";
 import { makeFarmFromRawState } from "@pactfi/pactsdk";
+import { AlgorandClient } from "@algorandfoundation/algokit-utils";
+import { DualStake } from "@myth-finance/dualstake-ts-sdk";
 
 import { CompXSDK, standardToMicro, type UserPosition } from "@compx/sdk";
 
-import { fetchCompXOpportunities, fetchCompXTokenPrices } from "../adapters/index.js";
+import {
+  FOLKS_XALGO_STAKING_OPPORTUNITY_ID,
+  TINYMAN_TALGO_STAKING_OPPORTUNITY_ID,
+  fetchCompXOpportunities,
+  fetchCompXTokenPrices,
+  mythStakingOpportunityId,
+  MYTH_DS_REGISTRY_APP_ID,
+  MYTH_TINYMAN_APP_ID,
+  MYTH_ARC59_ROUTER_APP_ID,
+  MYTH_SIMULATE_SENDER
+} from "../adapters/index.js";
+import { TALGO_ASSET_ID } from "../execution/shapes/tinyman/liquid-stake-state.js";
 import {
   resolveCompXLendingMarketState
 } from "../execution/shapes/compx/market-state.js";
@@ -222,6 +238,10 @@ export async function collectTinymanPositions(
     farmRewardsComplete = false;
   }
 
+  const liquidStake = await collectTinymanTAlgoWalletPosition(snapshot);
+  positions.push(...liquidStake.positions);
+  warnings.push(...liquidStake.warnings);
+
   return {
     positions,
     warnings,
@@ -229,7 +249,9 @@ export async function collectTinymanPositions(
       suppliedUsdComplete:
         poolsResult.status === "fulfilled" &&
         positions
-          .filter((position) => position.positionType === "lp")
+          .filter((position) =>
+            ["supplied", "lp", "staked"].includes(position.positionType)
+          )
           .every((position) => position.usdValue !== null),
       borrowedUsdComplete: true,
       rewardsUsdComplete: farmRewardsComplete && !hasUnpricedRewards
@@ -724,7 +746,7 @@ function pactPoolPair(pool: PactPositionPool): string {
 
 export async function collectFolksFinancePositions(
   address: string,
-  _snapshot: WalletSnapshot
+  snapshot: WalletSnapshot
 ): Promise<ProtocolPositionsCollection> {
   const indexer = createIndexerClient();
   const deposits = await retrieveUserDepositsFullInfo(
@@ -882,6 +904,10 @@ export async function collectFolksFinancePositions(
       }
     }
   }
+
+  const liquidStake = await collectFolksXAlgoWalletPosition(snapshot);
+  positions.push(...liquidStake.positions);
+  warnings.push(...liquidStake.warnings);
 
   return {
     positions,
@@ -1696,6 +1722,274 @@ function chunkValues<T>(values: readonly T[], size: number): T[][] {
     chunks.push(values.slice(index, index + size));
   }
   return chunks;
+}
+
+/**
+ * Liquid-staking positions use the wallet LST balance as the source of truth.
+ * Exits hang off opportunity-compatible redeem/burn/unstake shapes.
+ */
+export async function collectMythFinancePositions(
+  address: string,
+  snapshot: WalletSnapshot
+): Promise<ProtocolPositionsCollection> {
+  return collectMythDualStakeWalletPositions(snapshot, address);
+}
+
+async function collectTinymanTAlgoWalletPosition(
+  snapshot: WalletSnapshot
+): Promise<ProtocolPositionsCollection> {
+  const tAlgoId = TALGO_ASSET_ID.mainnet;
+  const balance = getWalletAssetBalance(snapshot, tAlgoId);
+  if (balance <= 0n) {
+    return { positions: [], warnings: [] };
+  }
+
+  const warnings: string[] = [];
+  let decimals = 6;
+  try {
+    const decimalsByAssetId = await resolveAssetDecimals([tAlgoId]);
+    decimals = decimalsByAssetId.get(tAlgoId) ?? 6;
+  } catch (error) {
+    warnings.push(
+      `Tinyman tALGO decimals unavailable: ${errorMessage(error)}; defaulting to 6.`
+    );
+  }
+
+  let priceUsd: number | null = null;
+  try {
+    const prices = await fetchTinymanAssetUsdPrices([tAlgoId]);
+    priceUsd = prices.get(tAlgoId) ?? null;
+  } catch (error) {
+    warnings.push(
+      `Tinyman tALGO USD pricing unavailable: ${errorMessage(error)}`
+    );
+  }
+
+  return {
+    positions: [
+      {
+        protocol: "tinyman",
+        positionType: "staked",
+        positionId: `tinyman:staked:talgo:${tAlgoId}`,
+        opportunityId: TINYMAN_TALGO_STAKING_OPPORTUNITY_ID,
+        assetId: tAlgoId,
+        assetSymbol: "tALGO",
+        amountRaw: balance.toString(),
+        amount: formatUnits(balance, decimals),
+        usdValue: tokenUsdValue(balance, decimals, priceUsd),
+        notes:
+          "Wallet tALGO balance is the liquid-staking position size (source of truth)."
+      }
+    ],
+    warnings
+  };
+}
+
+async function collectFolksXAlgoWalletPosition(
+  snapshot: WalletSnapshot
+): Promise<ProtocolPositionsCollection> {
+  const xAlgoId = Number(MainnetConsensusConfig.xAlgoId);
+  if (!Number.isInteger(xAlgoId) || xAlgoId < 1) {
+    return {
+      positions: [],
+      warnings: ["Folks Finance xALGO asset id is not configured."]
+    };
+  }
+
+  const balance = getWalletAssetBalance(snapshot, xAlgoId);
+  if (balance <= 0n) {
+    return { positions: [], warnings: [] };
+  }
+
+  const warnings: string[] = [];
+  let decimals = 6;
+  try {
+    const decimalsByAssetId = await resolveAssetDecimals([xAlgoId]);
+    decimals = decimalsByAssetId.get(xAlgoId) ?? 6;
+  } catch (error) {
+    warnings.push(
+      `Folks xALGO decimals unavailable: ${errorMessage(error)}; defaulting to 6.`
+    );
+  }
+
+  let priceUsd: number | null = null;
+  try {
+    // Prefer Tinyman market price for the xALGO ASA when available.
+    const prices = await fetchTinymanAssetUsdPrices([xAlgoId]);
+    priceUsd = prices.get(xAlgoId) ?? null;
+  } catch (error) {
+    warnings.push(
+      `Folks xALGO USD pricing unavailable: ${errorMessage(error)}`
+    );
+  }
+
+  if (priceUsd === null) {
+    try {
+      priceUsd = await estimateFolksXAlgoUsdPrice(balance, decimals);
+    } catch (error) {
+      warnings.push(
+        `Folks xALGO ALGO-backing price unavailable: ${errorMessage(error)}`
+      );
+    }
+  }
+
+  return {
+    positions: [
+      {
+        protocol: "folks-finance",
+        positionType: "staked",
+        positionId: `folks-finance:staked:xalgo:${xAlgoId}`,
+        opportunityId: FOLKS_XALGO_STAKING_OPPORTUNITY_ID,
+        assetId: xAlgoId,
+        assetSymbol: "xALGO",
+        amountRaw: balance.toString(),
+        amount: formatUnits(balance, decimals),
+        usdValue: tokenUsdValue(balance, decimals, priceUsd),
+        notes:
+          "Wallet xALGO balance is the liquid-staking position size (source of truth)."
+      }
+    ],
+    warnings
+  };
+}
+
+async function estimateFolksXAlgoUsdPrice(
+  _balance: bigint,
+  _decimals: number
+): Promise<number | null> {
+  const algod = createPositionsAlgodClient();
+  const [consensusState, algoPrices] = await Promise.all([
+    getConsensusStateFromFolks(algod),
+    fetchTinymanAssetUsdPrices([0])
+  ]);
+  const algoUsd = algoPrices.get(0) ?? null;
+  if (algoUsd === null || consensusState === null) {
+    return null;
+  }
+  const circulating = consensusState.xAlgoCirculatingSupply;
+  const algoBalance = consensusState.algoBalance;
+  if (circulating <= 0n) {
+    return null;
+  }
+  // ALGO backing per xALGO unit, priced in USD.
+  const algoPerXAlgo = Number(algoBalance) / Number(circulating);
+  if (!Number.isFinite(algoPerXAlgo) || algoPerXAlgo <= 0) {
+    return null;
+  }
+  return algoPerXAlgo * algoUsd;
+}
+
+async function getConsensusStateFromFolks(
+  algod: Algodv2
+): Promise<ConsensusState | null> {
+  try {
+    return await getConsensusState(algod, MainnetConsensusConfig);
+  } catch {
+    return null;
+  }
+}
+
+async function collectMythDualStakeWalletPositions(
+  snapshot: WalletSnapshot,
+  _address: string
+): Promise<ProtocolPositionsCollection> {
+  const heldAssetIds = getHeldWalletAssetIds(snapshot);
+  if (heldAssetIds.length === 0) {
+    return { positions: [], warnings: [] };
+  }
+
+  const warnings: string[] = [];
+  let contracts: Array<{ asaId: bigint; appId: bigint; lstId: bigint }>;
+  try {
+    const algod = createPositionsAlgodClient();
+    const algorand = AlgorandClient.fromClients({ algod });
+    contracts = await DualStake.getAvailableContracts({
+      algorand,
+      network: "mainnet",
+      dsRegistryAppId: readMythRegistryAppId(),
+      tinymanAppId: MYTH_TINYMAN_APP_ID,
+      arc59RouterAppId: MYTH_ARC59_ROUTER_APP_ID,
+      sender: process.env.MYTH_SIMULATE_SENDER ?? MYTH_SIMULATE_SENDER
+    });
+  } catch (error) {
+    return {
+      positions: [],
+      warnings: [
+        `Myth Finance dualSTAKE registry unavailable: ${errorMessage(error)}`
+      ]
+    };
+  }
+
+  const heldSet = new Set(heldAssetIds);
+  const heldLsts = contracts.filter((contract) =>
+    heldSet.has(Number(contract.lstId))
+  );
+  if (heldLsts.length === 0) {
+    return { positions: [], warnings: [] };
+  }
+
+  const lstIds = heldLsts.map((contract) => Number(contract.lstId));
+  const decimalsByAssetId = await resolveAssetDecimals(lstIds).catch(() => {
+    warnings.push("Myth Finance LST decimals unavailable; defaulting to 6.");
+    return new Map<number, number>();
+  });
+
+  let algoUsd: number | null = null;
+  try {
+    const prices = await fetchTinymanAssetUsdPrices([0]);
+    algoUsd = prices.get(0) ?? null;
+  } catch (error) {
+    warnings.push(
+      `Myth Finance ALGO USD pricing unavailable: ${errorMessage(error)}`
+    );
+  }
+
+  const positions: PositionMarketRecord[] = [];
+  for (const contract of heldLsts) {
+    const lstId = Number(contract.lstId);
+    const appId = Number(contract.appId);
+    const balance = getWalletAssetBalance(snapshot, lstId);
+    if (balance <= 0n) {
+      continue;
+    }
+    const decimals = decimalsByAssetId.get(lstId) ?? 6;
+    // Redeem pays mostly ALGO plus a small paired ASA; USD approximates the ALGO leg only.
+    positions.push({
+      protocol: "myth-finance",
+      positionType: "staked",
+      positionId: `myth-finance:staked:${appId}:${lstId}`,
+      opportunityId: mythStakingOpportunityId(appId),
+      assetId: lstId,
+      assetSymbol: `dS-${lstId}`,
+      amountRaw: balance.toString(),
+      amount: formatUnits(balance, decimals),
+      usdValue: tokenUsdValue(balance, decimals, algoUsd),
+      notes:
+        "Wallet dualSTAKE LST balance is the liquid-staking position size (source of truth). " +
+        "Redeem returns mostly ALGO plus a small amount of the paired ASA (not 1:1 ALGO). " +
+        "usdValue approximates the ALGO leg only."
+    });
+  }
+
+  return { positions, warnings };
+}
+
+function createPositionsAlgodClient(): Algodv2 {
+  const server = process.env.X402_ALGOD_URL ?? "https://mainnet-api.algonode.cloud";
+  const token = process.env.X402_ALGOD_TOKEN ?? "";
+  return new algosdk.Algodv2(token, server.replace(/\/$/, ""), "");
+}
+
+function readMythRegistryAppId(): bigint {
+  const raw = process.env.MYTH_DS_REGISTRY_APP_ID;
+  if (raw === undefined || raw.trim() === "") {
+    return MYTH_DS_REGISTRY_APP_ID;
+  }
+  try {
+    return BigInt(raw);
+  } catch {
+    return MYTH_DS_REGISTRY_APP_ID;
+  }
 }
 
 function readNonNegativeInteger(

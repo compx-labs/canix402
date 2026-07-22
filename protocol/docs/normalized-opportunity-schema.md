@@ -14,7 +14,7 @@ This document defines the stable `OpportunityRecordV1` contract published by
 
 ### Required fields
 
-- `protocol`: `tinyman | pact | folks-finance | compx | dorkfi`
+- `protocol`: `tinyman | pact | folks-finance | compx | dorkfi | myth-finance`
 - `opportunityType`: `lp | farm | staking | lending`
 - `opportunityId`: stable protocol-local identifier
 - `assetPair`: market label (pair or single-asset label)

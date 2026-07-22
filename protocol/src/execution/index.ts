@@ -3,6 +3,7 @@ import { compxShapes } from "./shapes/compx/index.js";
 import { dorkfiShapes } from "./shapes/dorkfi/index.js";
 import { folksFinanceShapes } from "./shapes/folks-finance/index.js";
 import { haystackShapes } from "./shapes/haystack/index.js";
+import { mythFinanceShapes } from "./shapes/myth-finance/index.js";
 import { pactShapes } from "./shapes/pact/index.js";
 import { tinymanShapes } from "./shapes/tinyman/index.js";
 
@@ -18,6 +19,19 @@ export * from "./shapes/folks-finance/index.js";
 export * from "./shapes/pact/index.js";
 export * from "./shapes/compx/index.js";
 export * from "./shapes/dorkfi/index.js";
+export {
+  mythFinanceMintLstShape,
+  mythFinanceRedeemLstShape,
+  mythFinanceShapes,
+  resolveMythDualStakeState,
+  buildMythMintTransactions,
+  buildMythRedeemTransactions
+} from "./shapes/myth-finance/index.js";
+export type {
+  MythMintLstInput,
+  MythRedeemLstInput,
+  MythDualStakeState
+} from "./shapes/myth-finance/index.js";
 export {
   haystackStakeHayShape,
   haystackUnstakeHayShape,
@@ -46,6 +60,7 @@ export function createExecutionRegistry(): TransactionShapeRegistry {
     ...pactShapes,
     ...compxShapes,
     ...dorkfiShapes,
+    ...mythFinanceShapes,
     ...haystackShapes
   ]) {
     registry.register(shape);

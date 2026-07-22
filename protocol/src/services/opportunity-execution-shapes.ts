@@ -28,6 +28,8 @@ const TINYMAN_BURN_TALGO = "mainnet:tinyman:liquid-stake-v1:burn:tAlgo";
 const FOLKS_STAKE_IMMEDIATE = "mainnet:folks-finance:xalgo-v1:stake:immediate";
 const FOLKS_UNSTAKE_IMMEDIATE =
   "mainnet:folks-finance:xalgo-v1:unstake:immediate";
+const MYTH_MINT_LST = "mainnet:myth-finance:dualstake-v1:mint:lst";
+const MYTH_REDEEM_LST = "mainnet:myth-finance:dualstake-v1:redeem:lst";
 
 type ShapeStep = {
   shapeKey: string;
@@ -89,6 +91,11 @@ const FOLKS_XALGO_STAKING_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
   { shapeKey: FOLKS_STAKE_IMMEDIATE, order: 0 }
 ];
 
+/** Exclusive enter path for Myth dualSTAKE mint (staking + passive farms). */
+const MYTH_DUALSTAKE_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: MYTH_MINT_LST, order: 0 }
+];
+
 /** Liquid-staking exit path for Tinyman tALGO burn. */
 const TINYMAN_TALGO_STAKING_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
   { shapeKey: TINYMAN_BURN_TALGO, order: 0 }
@@ -97,6 +104,11 @@ const TINYMAN_TALGO_STAKING_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
 /** Liquid-staking exit path for Folks xALGO immediate unstake. */
 const FOLKS_XALGO_STAKING_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
   { shapeKey: FOLKS_UNSTAKE_IMMEDIATE, order: 0 }
+];
+
+/** Liquid-staking exit path for Myth dualSTAKE redeem. */
+const MYTH_DUALSTAKE_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: MYTH_REDEEM_LST, order: 0 }
 ];
 
 export function attachExecutionShapesToOpportunity(
@@ -204,6 +216,12 @@ function orderEnterShapes(
     });
   }
 
+  if (isMythDualStakeOpportunity(record)) {
+    return orderBySteps(shapes, MYTH_DUALSTAKE_ENTER_STEPS, {
+      exclusive: true
+    });
+  }
+
   return shapes.map((shape) => ({ shape, order: 0 }));
 }
 
@@ -252,6 +270,9 @@ function resolveExitSteps(
     record.opportunityId === FOLKS_XALGO_STAKING_OPPORTUNITY_ID
   ) {
     return FOLKS_XALGO_STAKING_EXIT_STEPS;
+  }
+  if (isMythDualStakeOpportunity(record)) {
+    return MYTH_DUALSTAKE_EXIT_STEPS;
   }
   return [];
 }
@@ -360,6 +381,24 @@ function buildInputHints(
     return hints;
   }
 
+  if (record.protocol === "myth-finance") {
+    const appId =
+      parseTrailingAppId(record.opportunityId, "myth-staking-") ??
+      parseTrailingAppId(record.opportunityId, "myth-farm-");
+    if (appId !== null) {
+      hints.poolAppId = appId;
+    }
+    if (assetIds[0] !== undefined) {
+      hints.assetId = assetIds[0];
+      hints.depositAssetId = assetIds[0];
+    }
+    if (assetIds[0] !== undefined && assetIds[1] !== undefined) {
+      hints.assetAId = assetIds[0];
+      hints.assetBId = assetIds[1];
+    }
+    return hints;
+  }
+
   if (record.protocol === "tinyman" || record.protocol === "pact") {
     if (
       record.protocol === "tinyman" &&
@@ -427,6 +466,16 @@ function buildRequiredAssetIds(record: OpportunityMarketRecord): number[] {
     return assetIds[0] !== undefined ? [assetIds[0]] : [];
   }
 
+  if (record.protocol === "myth-finance") {
+    // mint requires ALGO + paired ASA; LST is the receipt
+    const algoId = assetIds[0];
+    const asaId = assetIds[1];
+    if (algoId === undefined || asaId === undefined) {
+      return [];
+    }
+    return [algoId, asaId];
+  }
+
   if (assetIds.length > 0) {
     // lending / single-asset / farm: require the primary underlying asset(s)
     if (
@@ -442,10 +491,14 @@ function buildRequiredAssetIds(record: OpportunityMarketRecord): number[] {
   return [];
 }
 
-/** Receipt token (xALGO / tALGO) for liquid-staking exits. */
+/** Receipt token (xALGO / tALGO / dualSTAKE LST) for liquid-staking exits. */
 function buildExitRequiredAssetIds(record: OpportunityMarketRecord): number[] {
   if (!isLiquidStakingOpportunity(record)) {
     return [];
+  }
+  if (record.protocol === "myth-finance") {
+    const receipt = record.assetIds?.[2];
+    return receipt !== undefined ? [receipt] : [];
   }
   const receipt = record.assetIds?.[1];
   return receipt !== undefined ? [receipt] : [];
@@ -458,6 +511,20 @@ function buildExitInputHints(
     return {};
   }
   const hints: OpportunityExecutionInputHints = {};
+  if (record.protocol === "myth-finance") {
+    const appId =
+      parseTrailingAppId(record.opportunityId, "myth-staking-") ??
+      parseTrailingAppId(record.opportunityId, "myth-farm-");
+    if (appId !== null) {
+      hints.poolAppId = appId;
+    }
+    const receipt = record.assetIds?.[2];
+    if (receipt !== undefined) {
+      hints.assetId = receipt;
+      hints.depositAssetId = receipt;
+    }
+    return hints;
+  }
   const receipt = record.assetIds?.[1];
   if (receipt !== undefined) {
     hints.assetId = receipt;
@@ -471,7 +538,17 @@ function isLiquidStakingOpportunity(record: OpportunityMarketRecord): boolean {
     (record.protocol === "tinyman" &&
       record.opportunityId === TINYMAN_TALGO_STAKING_OPPORTUNITY_ID) ||
     (record.protocol === "folks-finance" &&
-      record.opportunityId === FOLKS_XALGO_STAKING_OPPORTUNITY_ID)
+      record.opportunityId === FOLKS_XALGO_STAKING_OPPORTUNITY_ID) ||
+    isMythDualStakeOpportunity(record)
+  );
+}
+
+function isMythDualStakeOpportunity(record: OpportunityMarketRecord): boolean {
+  return (
+    record.protocol === "myth-finance" &&
+    (record.opportunityType === "staking" || record.opportunityType === "farm") &&
+    (record.opportunityId.startsWith("myth-staking-") ||
+      record.opportunityId.startsWith("myth-farm-"))
   );
 }
 

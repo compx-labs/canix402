@@ -110,6 +110,26 @@ export const EXECUTION_SHAPES = [
     priceUsdc: "0.10"
   },
   {
+    shapeKey: "mainnet:myth-finance:dualstake-v1:mint:lst",
+    protocol: "myth-finance",
+    protocolVersion: "dualstake-v1",
+    action: "mint",
+    variant: "lst",
+    summary: "Mint a Myth Finance dualSTAKE LST by depositing ALGO plus a small paired-ASA leg (not a pure ALGO 1:1 LST)",
+    docsPath: "protocol/docs/execution-shapes/myth-finance-mint-lst.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:myth-finance:dualstake-v1:redeem:lst",
+    protocol: "myth-finance",
+    protocolVersion: "dualstake-v1",
+    action: "redeem",
+    variant: "lst",
+    summary: "Redeem a Myth Finance dualSTAKE LST for mostly ALGO plus a small amount of the paired ASA (not 1:1 ALGO)",
+    docsPath: "protocol/docs/execution-shapes/myth-finance-redeem-lst.md",
+    priceUsdc: "0.10"
+  },
+  {
     shapeKey: "mainnet:pact:v1:addLiquidity:twoSided",
     protocol: "pact",
     protocolVersion: "v1",

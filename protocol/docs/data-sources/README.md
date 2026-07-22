@@ -9,6 +9,7 @@ This section tracks protocol-specific source contracts and normalization rules.
 - [Folks Finance](folks-finance.md)
 - [CompX](compx.md)
 - [Dork.fi](dorkfi.md)
+- [Myth Finance](myth-finance.md)
 
 ## Planned Protocols
 
@@ -50,6 +51,7 @@ Current adapter policy:
 - Folks Finance: `apy`
 - CompX: `apr`
 - Dork.fi: `apy`
+- Myth Finance: staking `apy`; farm `apr`
 
 ## Asset Decimals and Precision
 

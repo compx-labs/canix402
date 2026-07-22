@@ -21,7 +21,7 @@ const MCP_WELL_KNOWN = (
 ).replace(/\/+$/, "");
 const SUPPORT_EMAIL = "kieran@neonforge.ltd";
 const OPERATOR = "Neon Forge Ltd";
-const PROTOCOLS = ["Tinyman", "Pact", "Folks Finance", "CompX", "Dork.fi"] as const;
+const PROTOCOLS = ["Tinyman", "Pact", "Folks Finance", "CompX", "Dork.fi", "Myth Finance"] as const;
 
 interface DiscoveryEndpoint {
   id: string;
@@ -216,7 +216,7 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 ### Route notes
 
 - \`GET /opportunities\` — top aggregated opportunities ranked by APY (default limit 10).
-- \`GET /protocols/:protocol/opportunities\` — protocol slug e.g. \`tinyman\`, \`pact\`, \`folks-finance\`, \`compx\`, \`dork-fi\`.
+- \`GET /protocols/:protocol/opportunities\` — protocol slug e.g. \`tinyman\`, \`pact\`, \`folks-finance\`, \`compx\`, \`dorkfi\`, \`myth-finance\`.
 - \`GET /opportunities/search\` — filter by \`platform\`, \`type\`, \`minApy\`, \`maxApy\`, \`minTvlUsd\`.
 - \`GET /opportunities/personalized\` — requires \`address\` (Algorand account); premium price; matches opportunities to wallet-held assets.
 - \`GET /positions\` — requires \`address\` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
