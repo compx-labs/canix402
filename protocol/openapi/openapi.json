@@ -2024,6 +2024,10 @@
           "notes": {
             "type": "string"
           },
+          "inputHints": {
+            "$ref": "#/components/schemas/OpportunityExecutionInputHints",
+            "description": "Optional selector hints for compatible exit/manage shapes. Amounts never appear."
+          },
           "compatibleExitShapeKeys": {
             "type": "array",
             "items": {

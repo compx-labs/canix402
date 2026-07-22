@@ -194,10 +194,16 @@ function sumUsd(
   positions: ReadonlyArray<{ usdValue: number | null }>,
   complete: boolean
 ): number | null {
-  if (!complete || positions.some((position) => position.usdValue === null)) {
+  if (!complete) {
     return null;
   }
-  return positions.reduce(
+  // Unpriced supplemental rows (e.g. Dork.fi ASA exit-planning supplies) must
+  // not poison priced USD aggregates from the same wallet response.
+  const priced = positions.filter((position) => position.usdValue !== null);
+  if (priced.length === 0) {
+    return positions.length === 0 ? 0 : null;
+  }
+  return priced.reduce(
     (sum, position) => sum + (position.usdValue ?? 0),
     0
   );

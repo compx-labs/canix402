@@ -256,6 +256,11 @@ test("Dork.fi indexed health records normalize supplied debt and health", () => 
     ]
   );
   assert.deepEqual(result.warnings, []);
+  assert.ok(
+    (result.positions[0]?.caveats ?? []).some((caveat) =>
+      caveat.includes("Not executable")
+    )
+  );
 });
 
 test("Dork.fi ASA catalog opportunityId uses poolAppId and resolves distinct marketAppId", () => {

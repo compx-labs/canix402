@@ -415,13 +415,23 @@ test("Dork.fi USDC lending opportunity and supplied position share pool-based op
     assetSymbol: "USDC",
     amountRaw: "1000000",
     amount: "1",
-    usdValue: null
+    usdValue: null,
+    inputHints: {
+      poolAppId: 3333688282,
+      marketAppId: 3210682240,
+      assetId: 31566704
+    }
   });
   assert.equal(position.opportunityId, enriched.opportunityId);
   assert.ok(
     position.compatibleExitShapeKeys.includes("mainnet:dorkfi:v1:withdraw:asa")
   );
-  // Withdraw quotes reuse opportunity enter hints (positions do not carry hints).
+  assert.deepEqual(position.inputHints, {
+    poolAppId: 3333688282,
+    marketAppId: 3210682240,
+    assetId: 31566704
+  });
+  // Withdraw quotes can use position inputHints or opportunity enter hints.
   assert.equal(enriched.executionShapes[0]?.inputHints?.marketAppId, 3210682240);
   assert.notEqual(
     enriched.executionShapes[0]?.inputHints?.marketAppId,
