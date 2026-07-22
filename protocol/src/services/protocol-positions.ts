@@ -53,6 +53,7 @@ import {
 } from "../execution/shapes/compx/pool-state.js";
 import { createCompXBuilderAlgodClient } from "../execution/shapes/compx/shared.js";
 import {
+  buildDorkFiLendingOpportunityId,
   DORKFI_ALGORAND_ASA_MARKETS
 } from "../execution/shapes/dorkfi/market-catalog.js";
 import {
@@ -1519,8 +1520,13 @@ async function collectDorkFiOnChainSupply(
         positions.push({
           protocol: "dorkfi",
           positionType: "supplied",
+          // positionId stays market-scoped (one supply per market app).
           positionId: `dorkfi:supplied:${market.marketAppId}`,
-          opportunityId: `dorkfi:algorand:${market.marketAppId}:${market.assetId}:lending`,
+          // opportunityId must match adapters/dorkfi.ts: poolAppId + assetId.
+          opportunityId: buildDorkFiLendingOpportunityId({
+            poolAppId: market.poolAppId,
+            assetId: market.assetId
+          }),
           assetId: market.assetId,
           assetSymbol: market.symbol,
           amountRaw: suppliedRaw.toString(),

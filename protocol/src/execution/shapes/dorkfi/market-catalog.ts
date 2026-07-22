@@ -97,3 +97,14 @@ export function findCatalogMarketByPoolAndAsset(params: {
       market.poolAppId === params.poolAppId && market.assetId === params.assetId
   );
 }
+
+/**
+ * Stable lending opportunity id shared by discovery and on-chain positions.
+ * Uses pool app id (not market app id); markets on the same pool are keyed by asset.
+ */
+export function buildDorkFiLendingOpportunityId(params: {
+  poolAppId: number;
+  assetId: number | string;
+}): string {
+  return `dorkfi:algorand:${params.poolAppId}:${params.assetId}:lending`;
+}

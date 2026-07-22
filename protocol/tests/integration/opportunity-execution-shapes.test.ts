@@ -379,11 +379,12 @@ test("Folks xALGO staking attaches stake enter and unstake exit", () => {
   );
 });
 
-test("Dork.fi USDC lending hints resolve marketAppId from ASA catalog", () => {
+test("Dork.fi USDC lending opportunity and supplied position share pool-based opportunityId", () => {
+  const opportunityId = "dorkfi:algorand:3333688282:31566704:lending";
   const record: OpportunityMarketRecord = {
     protocol: "dorkfi",
     opportunityType: "lending",
-    opportunityId: "dorkfi:algorand:3333688282:31566704:lending",
+    opportunityId,
     assetPair: "USDC",
     assetIds: [31566704],
     apy: 5,
@@ -402,6 +403,30 @@ test("Dork.fi USDC lending hints resolve marketAppId from ASA catalog", () => {
   assert.equal(enriched.executionShapes[0]?.inputHints?.poolAppId, 3333688282);
   assert.equal(enriched.executionShapes[0]?.inputHints?.marketAppId, 3210682240);
   assert.equal(enriched.executionShapes[0]?.inputHints?.assetId, 31566704);
+
+  // On-chain ASA fallback positions must use the same opportunityId scheme so
+  // clients can match enter → position → withdraw via exact equality.
+  const position = attachExecutionShapesToPosition({
+    protocol: "dorkfi",
+    positionType: "supplied",
+    positionId: "dorkfi:supplied:3210682240",
+    opportunityId,
+    assetId: 31566704,
+    assetSymbol: "USDC",
+    amountRaw: "1000000",
+    amount: "1",
+    usdValue: null
+  });
+  assert.equal(position.opportunityId, enriched.opportunityId);
+  assert.ok(
+    position.compatibleExitShapeKeys.includes("mainnet:dorkfi:v1:withdraw:asa")
+  );
+  // Withdraw quotes reuse opportunity enter hints (positions do not carry hints).
+  assert.equal(enriched.executionShapes[0]?.inputHints?.marketAppId, 3210682240);
+  assert.notEqual(
+    enriched.executionShapes[0]?.inputHints?.marketAppId,
+    enriched.executionShapes[0]?.inputHints?.poolAppId
+  );
 });
 
 test("Myth dualSTAKE staking attaches mint enter and redeem exit", () => {
