@@ -1,4 +1,5 @@
 import type { Protocol } from "../routes/schemas.js";
+import type { OpportunityExecutionInputHints } from "./opportunity.js";
 
 export const POSITION_TYPES = [
   "supplied",
@@ -29,6 +30,8 @@ export interface PositionRecordV1 {
   sourceTimestamp?: string;
   caveats?: string[];
   notes?: string;
+  /** Selector hints for compatible exit/manage shapes (amounts never appear). */
+  inputHints?: OpportunityExecutionInputHints;
   compatibleExitShapeKeys: string[];
   compatibleManageShapeKeys: string[];
 }

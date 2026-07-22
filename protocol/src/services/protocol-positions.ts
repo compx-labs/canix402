@@ -1348,20 +1348,82 @@ export async function collectDorkFiPositions(
   snapshot: WalletSnapshot,
   context: PositionCollectionContext = createPositionCollectionContext()
 ): Promise<ProtocolPositionsCollection> {
+  const deps = resolveDorkFiPositionCollectorDependencies();
+
+  let onChain: ProtocolPositionsCollection;
   try {
-    return await fetchDorkFiIndexedPositions(address);
+    onChain = await collectDorkFiOnChainSupply(address, snapshot, context);
+  } catch (onChainError) {
+    onChain = {
+      positions: [],
+      warnings: [
+        `Dork.fi on-chain ASA supply unavailable: ${errorMessage(onChainError)}`
+      ]
+    };
+  }
+
+  let indexed: ProtocolPositionsCollection;
+  try {
+    indexed = await deps.fetchIndexedPositions(address);
   } catch (indexedError) {
-    const fallback = await collectDorkFiOnChainSupply(address, snapshot, context);
-    fallback.warnings.unshift(
+    onChain.warnings.unshift(
       `Dork.fi indexed debt/health source unavailable: ${errorMessage(indexedError)}`
     );
-    fallback.coverage = {
+    onChain.coverage = {
       suppliedUsdComplete: false,
       borrowedUsdComplete: false,
       rewardsUsdComplete: true
     };
-    return fallback;
+    if (
+      onChain.positions.length === 0 &&
+      onChain.warnings.some((warning) =>
+        warning.includes("on-chain ASA supply unavailable")
+      )
+    ) {
+      throw new Error(
+        `Dork.fi position sources unavailable: ${onChain.warnings.join("; ")}`
+      );
+    }
+    return onChain;
   }
+
+  // ASA market rows first (executable); indexed USD/debt/HF second (informational).
+  return {
+    positions: [...onChain.positions, ...indexed.positions],
+    warnings: [...onChain.warnings, ...indexed.warnings],
+    coverage: {
+      suppliedUsdComplete: indexed.coverage?.suppliedUsdComplete ?? true,
+      borrowedUsdComplete: indexed.coverage?.borrowedUsdComplete ?? true,
+      rewardsUsdComplete: true
+    }
+  };
+}
+
+interface DorkFiPositionCollectorDependencies {
+  fetchIndexedPositions: (
+    address: string
+  ) => Promise<ProtocolPositionsCollection>;
+  resolveMarketState: typeof resolveDorkFiLendingMarketState;
+  simulateWithdrawUnderlyingAmount: typeof simulateWithdrawUnderlyingAmount;
+}
+
+let dorkFiPositionCollectorOverrides:
+  | Partial<DorkFiPositionCollectorDependencies>
+  | undefined;
+
+export function setDorkFiPositionCollectorDependenciesForTests(
+  overrides?: Partial<DorkFiPositionCollectorDependencies>
+): void {
+  dorkFiPositionCollectorOverrides = overrides;
+}
+
+function resolveDorkFiPositionCollectorDependencies(): DorkFiPositionCollectorDependencies {
+  return {
+    fetchIndexedPositions: fetchDorkFiIndexedPositions,
+    resolveMarketState: resolveDorkFiLendingMarketState,
+    simulateWithdrawUnderlyingAmount,
+    ...dorkFiPositionCollectorOverrides
+  };
 }
 
 interface DorkFiHealthRecord {
@@ -1405,7 +1467,8 @@ export function normalizeDorkFiHealthRecords(
       record.updatedAt ?? record.lastUpdated ?? record.lastUpdateTime
     );
     const caveats = [
-      "Pool-level USD value from the Dork.fi index; it is not an asset-level token amount."
+      "Pool-level USD value from the Dork.fi index; it is not an asset-level token amount.",
+      "Not executable: use asset-level Dork.fi supplied rows for withdraw quotes."
     ];
     if (suppliedRaw > 0n) {
       positions.push({
@@ -1486,6 +1549,7 @@ async function collectDorkFiOnChainSupply(
   snapshot: WalletSnapshot,
   context: PositionCollectionContext
 ): Promise<ProtocolPositionsCollection> {
+  const deps = resolveDorkFiPositionCollectorDependencies();
   const algod = createAlgodClient(context.algodRequestGate);
   const walletHoldings = new Map(
     snapshot.assets.map((holding) => [holding.assetId, holding.amount])
@@ -1498,7 +1562,7 @@ async function collectDorkFiOnChainSupply(
     DORKFI_ALGORAND_ASA_MARKETS,
     async (market) => {
       try {
-        const state = await resolveDorkFiLendingMarketState({
+        const state = await deps.resolveMarketState({
           network: "mainnet",
           algod,
           poolAppId: market.poolAppId,
@@ -1510,7 +1574,7 @@ async function collectDorkFiOnChainSupply(
         if (state.userNTokenBalance === 0n) {
           return;
         }
-        const suppliedRaw = await simulateWithdrawUnderlyingAmount({
+        const suppliedRaw = await deps.simulateWithdrawUnderlyingAmount({
           algod,
           poolAppId: market.poolAppId,
           marketAppId: market.marketAppId,
@@ -1532,7 +1596,13 @@ async function collectDorkFiOnChainSupply(
           amountRaw: suppliedRaw.toString(),
           amount: formatUnits(suppliedRaw, market.decimals),
           usdValue: null,
-          notes: "Underlying amount is the current simulated withdrawal value of the nToken balance."
+          notes:
+            "Underlying amount is the current simulated withdrawal value of the nToken balance.",
+          inputHints: {
+            poolAppId: market.poolAppId,
+            marketAppId: market.marketAppId,
+            assetId: market.assetId
+          }
         });
       } catch (error) {
         warnings.push(`${market.marketAppId}: ${errorMessage(error)}`);

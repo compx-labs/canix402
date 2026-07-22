@@ -20,24 +20,24 @@ This document defines the current Dork.fi adapter contract used by canix402.
 
 ## Wallet Positions
 
-`GET /positions` uses Dork.fi's indexed health response first. It emits pool-level
-supplied and debt rows with USD values and health factors. These are deliberately
-identified as USD summaries rather than asset-level token balances.
-
-If the indexed source is unavailable, the collector falls back to verified
-Algorand ASA markets, reads the wallet's nToken balances on-chain, and simulates
-their current withdrawal value. Fallback rows use:
+`GET /positions` always reads verified Algorand ASA catalog markets on-chain
+(nToken balances + simulated withdraw amounts). Those rows are the executable
+surface:
 
 - `positionId`: `dorkfi:supplied:<marketAppId>` (market-scoped)
 - `opportunityId`: `dorkfi:algorand:<poolAppId>:<assetId>:lending` (same scheme as
   opportunity discovery — pool app id, not market app id)
+- `inputHints`: `{ poolAppId, marketAppId, assetId }` for withdraw quotes
 
-Indexed USD summaries use `dorkfi:supplied-usd:<poolAppId>` /
-`dorkfi:debt-usd:<poolAppId>` with `opportunityId: null`, so they neither collide
-with ASA rows nor invent enter/exit opportunity ids.
+When the indexed health API is available, pool-level USD supplied/debt rows are
+**merged** (not substituted) for totals and health factor:
 
-The fallback cannot provide debt, health, or USD valuation, so Dork.fi is
-reported as `partial` and aggregate totals remain `null`.
+- `positionId`: `dorkfi:supplied-usd:<poolAppId>` / `dorkfi:debt-usd:<poolAppId>`
+- `opportunityId`: `null`
+- no exit/manage shapes (informational only)
+
+If the indexed source is unavailable, only ASA rows are returned and Dork.fi is
+reported as `partial` with aggregate USD totals `null`.
 
 ## Normalized Output Fields
 

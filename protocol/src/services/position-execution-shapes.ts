@@ -28,6 +28,14 @@ export function attachExecutionShapesToPosition(
   record: PositionMarketRecord,
   registry: TransactionShapeRegistry = executionRegistry
 ): PositionRecordV1 {
+  if (isDorkFiUsdAggregate(record)) {
+    return {
+      ...record,
+      compatibleExitShapeKeys: [],
+      compatibleManageShapeKeys: []
+    };
+  }
+
   const exclusive = exclusiveLiquidStakeShapes(record);
   if (exclusive !== null) {
     return {
@@ -150,5 +158,14 @@ function isTinymanFarmReward(record: PositionMarketRecord): boolean {
     record.positionType === "reward" &&
     typeof record.opportunityId === "string" &&
     record.opportunityId.endsWith(":farm")
+  );
+}
+
+/** Pool-level USD summaries are informational only — never attach withdraw shapes. */
+function isDorkFiUsdAggregate(record: PositionMarketRecord): boolean {
+  return (
+    record.protocol === "dorkfi" &&
+    (record.positionId.startsWith("dorkfi:supplied-usd:") ||
+      record.positionId.startsWith("dorkfi:debt-usd:"))
   );
 }

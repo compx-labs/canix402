@@ -1,6 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 
 import { ProtocolSchema } from "../routes/schemas.js";
+import { OpportunityExecutionInputHintsSchema } from "./opportunity-schema.js";
 import { POSITION_TYPES } from "./position.js";
 
 export const PositionTypeSchema = Type.Union(
@@ -23,6 +24,7 @@ export const PositionRecordSchema = Type.Object({
   sourceTimestamp: Type.Optional(Type.String({ format: "date-time" })),
   caveats: Type.Optional(Type.Array(Type.String())),
   notes: Type.Optional(Type.String()),
+  inputHints: Type.Optional(OpportunityExecutionInputHintsSchema),
   compatibleExitShapeKeys: Type.Array(Type.String({ minLength: 1 })),
   compatibleManageShapeKeys: Type.Array(Type.String({ minLength: 1 }))
 });
