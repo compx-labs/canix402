@@ -10,10 +10,11 @@ This section tracks protocol-specific source contracts and normalization rules.
 - [CompX](compx.md)
 - [Dork.fi](dorkfi.md)
 - [Myth Finance](myth-finance.md)
+- [Haystack](haystack.md)
 
 ## Planned Protocols
 
-- Haystack
+_(none currently)_
 
 Each protocol document should include:
 
@@ -46,12 +47,13 @@ interpret what the normalized `apy` value represents:
 
 Current adapter policy:
 
-- Tinyman: `apy`
+- Tinyman: LP/farm/tALGO `apy`; stALGO restake `apr`
 - Pact: `apr`
 - Folks Finance: `apy`
 - CompX: `apr`
 - Dork.fi: `apy`
 - Myth Finance: staking `apy`; farm `apr`
+- Haystack: `apr`
 
 ## Asset Decimals and Precision
 

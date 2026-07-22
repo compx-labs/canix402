@@ -25,6 +25,11 @@ const TINYMAN_TALGO_STAKING_OPPORTUNITY_ID = "tinyman-staking-talgo";
 const FOLKS_XALGO_STAKING_OPPORTUNITY_ID = "folks-staking-xalgo";
 const TINYMAN_MINT_TALGO = "mainnet:tinyman:liquid-stake-v1:mint:tAlgo";
 const TINYMAN_BURN_TALGO = "mainnet:tinyman:liquid-stake-v1:burn:tAlgo";
+const TINYMAN_STALGO_STAKING_OPPORTUNITY_ID = "tinyman-staking-stalgo";
+const TINYMAN_INCREASE_STALGO =
+  "mainnet:tinyman:restake-v1:increaseStake:stAlgo";
+const TINYMAN_DECREASE_STALGO =
+  "mainnet:tinyman:restake-v1:decreaseStake:stAlgo";
 const FOLKS_STAKE_IMMEDIATE = "mainnet:folks-finance:xalgo-v1:stake:immediate";
 const FOLKS_UNSTAKE_IMMEDIATE =
   "mainnet:folks-finance:xalgo-v1:unstake:immediate";
@@ -86,6 +91,11 @@ const TINYMAN_TALGO_STAKING_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
   { shapeKey: TINYMAN_MINT_TALGO, order: 0 }
 ];
 
+/** Exclusive enter path for Tinyman stALGO restake (do not attach tALGO mint). */
+const TINYMAN_STALGO_STAKING_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: TINYMAN_INCREASE_STALGO, order: 0 }
+];
+
 /** Exclusive enter path for Folks xALGO immediate stake. */
 const FOLKS_XALGO_STAKING_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
   { shapeKey: FOLKS_STAKE_IMMEDIATE, order: 0 }
@@ -99,6 +109,11 @@ const MYTH_DUALSTAKE_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
 /** Liquid-staking exit path for Tinyman tALGO burn. */
 const TINYMAN_TALGO_STAKING_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
   { shapeKey: TINYMAN_BURN_TALGO, order: 0 }
+];
+
+/** Liquid-staking exit path for Tinyman stALGO decrease. */
+const TINYMAN_STALGO_STAKING_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: TINYMAN_DECREASE_STALGO, order: 0 }
 ];
 
 /** Liquid-staking exit path for Folks xALGO immediate unstake. */
@@ -207,6 +222,16 @@ function orderEnterShapes(
   }
 
   if (
+    record.protocol === "tinyman" &&
+    record.opportunityType === "staking" &&
+    record.opportunityId === TINYMAN_STALGO_STAKING_OPPORTUNITY_ID
+  ) {
+    return orderBySteps(shapes, TINYMAN_STALGO_STAKING_ENTER_STEPS, {
+      exclusive: true
+    });
+  }
+
+  if (
     record.protocol === "folks-finance" &&
     record.opportunityType === "staking" &&
     record.opportunityId === FOLKS_XALGO_STAKING_OPPORTUNITY_ID
@@ -263,6 +288,13 @@ function resolveExitSteps(
     record.opportunityId === TINYMAN_TALGO_STAKING_OPPORTUNITY_ID
   ) {
     return TINYMAN_TALGO_STAKING_EXIT_STEPS;
+  }
+  if (
+    record.protocol === "tinyman" &&
+    record.opportunityType === "staking" &&
+    record.opportunityId === TINYMAN_STALGO_STAKING_OPPORTUNITY_ID
+  ) {
+    return TINYMAN_STALGO_STAKING_EXIT_STEPS;
   }
   if (
     record.protocol === "folks-finance" &&
@@ -402,7 +434,8 @@ function buildInputHints(
   if (record.protocol === "tinyman" || record.protocol === "pact") {
     if (
       record.protocol === "tinyman" &&
-      record.opportunityId === TINYMAN_TALGO_STAKING_OPPORTUNITY_ID
+      (record.opportunityId === TINYMAN_TALGO_STAKING_OPPORTUNITY_ID ||
+        record.opportunityId === TINYMAN_STALGO_STAKING_OPPORTUNITY_ID)
     ) {
       if (assetIds[0] !== undefined) {
         hints.assetId = assetIds[0];
@@ -536,7 +569,8 @@ function buildExitInputHints(
 function isLiquidStakingOpportunity(record: OpportunityMarketRecord): boolean {
   return (
     (record.protocol === "tinyman" &&
-      record.opportunityId === TINYMAN_TALGO_STAKING_OPPORTUNITY_ID) ||
+      (record.opportunityId === TINYMAN_TALGO_STAKING_OPPORTUNITY_ID ||
+        record.opportunityId === TINYMAN_STALGO_STAKING_OPPORTUNITY_ID)) ||
     (record.protocol === "folks-finance" &&
       record.opportunityId === FOLKS_XALGO_STAKING_OPPORTUNITY_ID) ||
     isMythDualStakeOpportunity(record)

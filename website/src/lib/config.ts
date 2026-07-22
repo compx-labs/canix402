@@ -39,7 +39,8 @@ export const supportedProtocols = [
   "Folks Finance",
   "CompX",
   "Dork.fi",
-  "Myth Finance"
+  "Myth Finance",
+  "Haystack"
 ] as const;
 
 export const defaultPaidPriceUsdc = "0.01";

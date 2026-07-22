@@ -422,6 +422,34 @@ export function parseBaseUnitAmount(value: unknown, field: string): bigint {
   return result;
 }
 
+/** Like parseBaseUnitAmount but allows zero (used for full farm uncommit). */
+export function parseNonNegativeBaseUnitAmount(value: unknown, field: string): bigint {
+  let result: bigint;
+  if (typeof value === "bigint") {
+    result = value;
+  } else if (typeof value === "number") {
+    if (!Number.isInteger(value)) {
+      throw new InvalidShapeInputError(`${field} must be an integer amount in base units.`, {
+        [field]: value
+      });
+    }
+    result = BigInt(value);
+  } else if (typeof value === "string" && /^\d+$/.test(value)) {
+    result = BigInt(value);
+  } else {
+    throw new InvalidShapeInputError(
+      `${field} must be a non-negative integer amount in base units.`,
+      { [field]: value }
+    );
+  }
+  if (result < 0n) {
+    throw new InvalidShapeInputError(`${field} must be greater than or equal to zero.`, {
+      [field]: value
+    });
+  }
+  return result;
+}
+
 export function parseOptionalBaseUnitAmount(value: unknown, field: string): bigint | undefined {
   if (value === undefined) {
     return undefined;

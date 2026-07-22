@@ -5,6 +5,8 @@ import { tinymanAddLiquiditySingleAssetShape } from "./add-liquidity-single-asse
 import { tinymanRemoveLiquidityMultipleAssetsOutShape } from "./remove-liquidity-multiple-assets-out.js";
 import { tinymanRemoveLiquiditySingleAssetOutShape } from "./remove-liquidity-single-asset-out.js";
 import { tinymanFarmCommitShape } from "./farm-commit.js";
+import { tinymanFarmUncommitShape } from "./farm-uncommit.js";
+import { tinymanFarmClaimRewardsShape } from "./farm-claim-rewards.js";
 import { tinymanAddLiquidityAndFarmFlexibleShape } from "./add-liquidity-and-farm-flexible.js";
 import { tinymanAddLiquidityAndFarmSingleAssetShape } from "./add-liquidity-and-farm-single-asset.js";
 import { tinymanMintTAlgoShape } from "./mint-talgo.js";
@@ -73,6 +75,23 @@ export type {
   TinymanFarmCommitInput,
   TinymanFarmCommitDependencies
 } from "./farm-commit.js";
+export {
+  tinymanFarmUncommitShape,
+  setTinymanFarmUncommitDependenciesForTests
+} from "./farm-uncommit.js";
+export type {
+  TinymanFarmUncommitInput,
+  TinymanFarmUncommitDependencies
+} from "./farm-uncommit.js";
+export {
+  tinymanFarmClaimRewardsShape,
+  setTinymanFarmClaimRewardsDependenciesForTests
+} from "./farm-claim-rewards.js";
+export type {
+  TinymanFarmClaimRewardsInput,
+  TinymanFarmClaimRewardsState,
+  TinymanFarmClaimRewardsDependencies
+} from "./farm-claim-rewards.js";
 export {
   resolveTinymanFarmState,
   setTinymanFarmStateDependenciesForTests
@@ -162,6 +181,8 @@ export const tinymanShapes: readonly TransactionShapeSpec[] = [
   tinymanRemoveLiquidityMultipleAssetsOutShape,
   tinymanRemoveLiquiditySingleAssetOutShape,
   tinymanFarmCommitShape,
+  tinymanFarmUncommitShape,
+  tinymanFarmClaimRewardsShape,
   tinymanAddLiquidityAndFarmFlexibleShape,
   tinymanAddLiquidityAndFarmSingleAssetShape,
   tinymanMintTAlgoShape,

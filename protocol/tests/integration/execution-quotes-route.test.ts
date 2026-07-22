@@ -867,7 +867,7 @@ function haystackStakingState(): HaystackStakingState {
     usdcAssetId: HAYSTACK_USDC_ASSET_ID,
     oracleAppId: 3_016_268_320,
     paused: false,
-    staker: { hasBox: false, stake: 0n },
+    staker: { hasBox: false, stake: 0n, pendingRewardsUsdc: 0n, pendingRewardsHay: 0n },
     userHayBalance: 500_000_000n,
     userOptedIntoUsdc: true,
     stakerBoxName: createHaystackStakerBoxName(USER_ADDRESS),

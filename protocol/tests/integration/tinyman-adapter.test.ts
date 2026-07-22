@@ -6,8 +6,10 @@ import {
   fetchTinymanOpportunities,
   normalizeTinymanPool,
   normalizeTinymanTAlgoStakingOpportunity,
+  normalizeTinymanStAlgoStakingOpportunity,
   setTinymanAdapterDependenciesForTests,
   TINYMAN_LIQUID_STAKE_PROTOCOL_FEE,
+  TINYMAN_STALGO_STAKING_OPPORTUNITY_ID,
   TINYMAN_TALGO_STAKING_OPPORTUNITY_ID
 } from "../../src/adapters/index.js";
 import { buildApp } from "../../src/app.js";
@@ -16,6 +18,9 @@ function disableTinymanStakingForTests(): void {
   setTinymanAdapterDependenciesForTests({
     estimateConsensusApr: async () => {
       throw new Error("staking disabled in this test");
+    },
+    getRestakeGlobalState: async () => {
+      throw new Error("restake disabled in this test");
     }
   });
 }
@@ -78,6 +83,31 @@ test("normalizeTinymanTAlgoStakingOpportunity applies 8% protocol fee", () => {
   // staked ALGO = 1e12 * 1.05 / 1e6 = 1.05e6; USD = 1.05e6 * 0.2 = 210_000
   assert.equal(record?.tvlUsd, 210_000);
   assert.ok(record?.notes?.includes("8%"));
+});
+
+test("normalizeTinymanStAlgoStakingOpportunity derives TINY emission APR", () => {
+  const record = normalizeTinymanStAlgoStakingOpportunity({
+    totalStakedAmount: 1_000_000_000_000n,
+    // 1 TINY / sec in micro-units
+    currentRewardRatePerTime: 1_000_000n,
+    algoToTAlgoRatio: 1,
+    algoUsdPrice: 0.2,
+    tinyUsdPrice: 0.01,
+    fetchedAtIso: "2026-07-17T12:00:00.000Z"
+  });
+
+  assert.ok(record);
+  assert.equal(record?.opportunityId, TINYMAN_STALGO_STAKING_OPPORTUNITY_ID);
+  assert.equal(record?.assetPair, "tALGO/stALGO");
+  assert.equal(record?.yieldBasis, "apr");
+  assert.deepEqual(record?.assetIds, [2537013734, 2537023208]);
+  // TVL = 1e12 / 1e6 * 0.2 = 200_000
+  assert.equal(record?.tvlUsd, 200_000);
+  // reward USD/year = 1 TINY/s * 31557600 * 0.01 = 315576
+  // APR% = 315576 / 200000 * 100 = 157.788
+  assert.ok(record?.apr !== undefined);
+  assert.ok(Math.abs((record?.apr ?? 0) - 157.788) < 0.001);
+  assert.equal(record?.apy, record?.apr);
 });
 
 test("normalizeTinymanTAlgoStakingOpportunity drops invalid inputs", () => {

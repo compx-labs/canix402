@@ -62,12 +62,20 @@ test("jsonResult and errorResult shapes", () => {
   assert.match(clientError.content[0]?.text ?? "", /INTERNAL_ERROR/);
 });
 
-test("execution shapes catalog includes tinyman add and remove", () => {
+test("execution shapes catalog matches the protocol registry key set", () => {
   const keys = EXECUTION_SHAPES.map((shape) => shape.shapeKey);
+  assert.equal(keys.length, 40);
+  assert.equal(new Set(keys).size, 40);
   assert.ok(keys.includes("mainnet:tinyman:v2:addLiquidity:flexible"));
   assert.ok(keys.includes("mainnet:tinyman:v2:removeLiquidity:multipleAssetsOut"));
+  assert.ok(keys.includes("mainnet:tinyman:staking-v1:farm:commit"));
+  assert.ok(keys.includes("mainnet:tinyman:staking-v1:farm:uncommit"));
+  assert.ok(keys.includes("mainnet:tinyman:staking-v1:farm:claimRewards"));
+  assert.ok(keys.includes("mainnet:tinyman:liquid-stake-v1:mint:tAlgo"));
+  assert.ok(keys.includes("mainnet:tinyman:restake-v1:increaseStake:stAlgo"));
   assert.ok(keys.includes("mainnet:pact:v1:addLiquidity:twoSided"));
-  assert.ok(keys.includes("mainnet:pact:v1:removeLiquidity:proportional"));
+  assert.ok(keys.includes("mainnet:pact:v1:farm:deployEscrow"));
+  assert.ok(keys.includes("mainnet:pact:v1:addLiquidityAndFarm:twoSided"));
   assert.ok(keys.includes("mainnet:compx:v1:deposit:asa"));
   assert.ok(keys.includes("mainnet:compx:v1:withdraw:asa"));
   assert.ok(keys.includes("mainnet:compx:v1:stake:asa"));
@@ -75,6 +83,8 @@ test("execution shapes catalog includes tinyman add and remove", () => {
   assert.ok(keys.includes("mainnet:compx:v1:claim:rewards"));
   assert.ok(keys.includes("mainnet:dorkfi:v1:deposit:asa"));
   assert.ok(keys.includes("mainnet:dorkfi:v1:withdraw:asa"));
+  assert.ok(keys.includes("mainnet:haystack:v1:stake:hay"));
+  assert.ok(keys.includes("mainnet:myth-finance:dualstake-v1:mint:lst"));
 });
 
 test("X402Client fetchFree returns JSON on 200", async () => {

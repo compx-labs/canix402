@@ -8,9 +8,19 @@ import {
 } from "../services/consensus-staking-apr.js";
 import { buildSourceMetadata } from "../services/source-metadata.js";
 import { OpportunityMarketRecord } from "../types/opportunity.js";
+import {
+  STALGO_ASSET_ID,
+  TALGO_ASSET_ID,
+  TINY_ASSET_ID,
+  TINYMAN_RESTAKE_APP_ID
+} from "../execution/shapes/tinyman/liquid-stake-state.js";
 
 /** Mainnet tALGO ASA (Tinyman liquid staking). */
-const TALGO_MAINNET_ASSET_ID = 2537013734;
+const TALGO_MAINNET_ASSET_ID = TALGO_ASSET_ID.mainnet;
+const STALGO_MAINNET_ASSET_ID = STALGO_ASSET_ID.mainnet;
+const TINY_MAINNET_ASSET_ID = TINY_ASSET_ID.mainnet;
+const RESTAKE_APP_ID_MAINNET = TINYMAN_RESTAKE_APP_ID.mainnet;
+const SECONDS_PER_YEAR = 365.25 * 24 * 60 * 60;
 
 interface TinymanPoolApiRecord {
   address?: string;
@@ -39,6 +49,7 @@ interface TinymanAssetApiRecord {
 /** Tinyman deducts 8% of consensus block rewards before accruing into tALGO. */
 export const TINYMAN_LIQUID_STAKE_PROTOCOL_FEE = 0.08;
 export const TINYMAN_TALGO_STAKING_OPPORTUNITY_ID = "tinyman-staking-talgo";
+export const TINYMAN_STALGO_STAKING_OPPORTUNITY_ID = "tinyman-staking-stalgo";
 
 export class TinymanAdapterError extends Error {
   public readonly cause?: unknown;
@@ -50,12 +61,22 @@ export class TinymanAdapterError extends Error {
   }
 }
 
+interface TinymanRestakeGlobalState {
+  totalStakedAmount: bigint;
+  currentRewardRatePerTime: bigint;
+}
+
 interface TinymanAdapterDependencies {
   estimateConsensusApr: () => Promise<ConsensusStakingAprEstimate>;
   createAlgodClient: () => Algodv2;
   getTAlgoCirculatingSupply: (algod: Algodv2) => Promise<bigint>;
   getAlgoToTAlgoRatio: (algod: Algodv2) => Promise<number>;
+  getRestakeGlobalState: (algod: Algodv2) => Promise<TinymanRestakeGlobalState>;
   fetchAlgoUsdPrice: (fetchImpl: typeof fetch) => Promise<number | null>;
+  fetchAssetUsdPrice: (
+    fetchImpl: typeof fetch,
+    assetId: number
+  ) => Promise<number | null>;
 }
 
 let tinymanDependencyOverrides: Partial<TinymanAdapterDependencies> | undefined;
@@ -78,7 +99,9 @@ function resolveTinymanDependencies(): TinymanAdapterDependencies {
       const client = new TinymanTAlgoClient(algod, "mainnet");
       return client.getRatio();
     },
+    getRestakeGlobalState: fetchTinymanRestakeGlobalState,
     fetchAlgoUsdPrice: fetchTinymanAlgoUsdPrice,
+    fetchAssetUsdPrice: fetchTinymanAssetUsdPrice,
     ...tinymanDependencyOverrides
   };
 }
@@ -112,11 +135,12 @@ export async function fetchTinymanOpportunities(
       requestInit.headers = { authorization: `Bearer ${apiKey}` };
     }
 
-    const [poolResponse, stakingOpportunity] = await Promise.all([
+    const [poolResponse, tAlgoStaking, stAlgoStaking] = await Promise.all([
       fetchImpl(requestUrl, {
         ...requestInit
       }),
-      fetchTinymanTAlgoStakingOpportunity(fetchImpl, fetchedAt).catch(() => null)
+      fetchTinymanTAlgoStakingOpportunity(fetchImpl, fetchedAt).catch(() => null),
+      fetchTinymanStAlgoStakingOpportunity(fetchImpl, fetchedAt).catch(() => null)
     ]);
 
     if (!poolResponse.ok) {
@@ -132,10 +156,10 @@ export async function fetchTinymanOpportunities(
       .filter((record) => (onlyVerified ? record.is_verified === true : true))
       .flatMap((record) => normalizeTinymanPoolOpportunities(record, fetchedAt));
 
-    if (stakingOpportunity !== null) {
-      return [...poolOpportunities, stakingOpportunity];
-    }
-    return poolOpportunities;
+    const liquidStake = [tAlgoStaking, stAlgoStaking].filter(
+      (entry): entry is OpportunityMarketRecord => entry !== null
+    );
+    return [...poolOpportunities, ...liquidStake];
   } catch (error) {
     if (error instanceof TinymanAdapterError) {
       throw error;
@@ -169,6 +193,35 @@ export async function fetchTinymanTAlgoStakingOpportunity(
       algoToTAlgoRatio,
       algoUsdPrice,
       sampleSize: consensus.sampleSize,
+      fetchedAtIso
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchTinymanStAlgoStakingOpportunity(
+  fetchImpl: typeof fetch = fetch,
+  fetchedAtIso: string = new Date().toISOString()
+): Promise<OpportunityMarketRecord | null> {
+  const dependencies = resolveTinymanDependencies();
+
+  try {
+    const algod = dependencies.createAlgodClient();
+    const [restake, algoToTAlgoRatio, algoUsdPrice, tinyUsdPrice] =
+      await Promise.all([
+        dependencies.getRestakeGlobalState(algod),
+        dependencies.getAlgoToTAlgoRatio(algod),
+        dependencies.fetchAlgoUsdPrice(fetchImpl),
+        dependencies.fetchAssetUsdPrice(fetchImpl, TINY_MAINNET_ASSET_ID)
+      ]);
+
+    return normalizeTinymanStAlgoStakingOpportunity({
+      totalStakedAmount: restake.totalStakedAmount,
+      currentRewardRatePerTime: restake.currentRewardRatePerTime,
+      algoToTAlgoRatio,
+      algoUsdPrice,
+      tinyUsdPrice,
       fetchedAtIso
     });
   } catch {
@@ -238,13 +291,92 @@ export function normalizeTinymanTAlgoStakingOpportunity(input: {
   };
 }
 
+export function normalizeTinymanStAlgoStakingOpportunity(input: {
+  totalStakedAmount: bigint;
+  currentRewardRatePerTime: bigint;
+  algoToTAlgoRatio: number;
+  algoUsdPrice: number | null;
+  tinyUsdPrice: number | null;
+  fetchedAtIso: string;
+}): OpportunityMarketRecord | null {
+  const {
+    totalStakedAmount,
+    currentRewardRatePerTime,
+    algoToTAlgoRatio,
+    algoUsdPrice,
+    tinyUsdPrice,
+    fetchedAtIso
+  } = input;
+
+  if (
+    totalStakedAmount <= 0n ||
+    currentRewardRatePerTime < 0n ||
+    !(algoToTAlgoRatio > 0) ||
+    !Number.isFinite(algoToTAlgoRatio) ||
+    algoUsdPrice === null ||
+    !(algoUsdPrice > 0) ||
+    tinyUsdPrice === null ||
+    !(tinyUsdPrice > 0)
+  ) {
+    return null;
+  }
+
+  const stakedAlgoBaseUnits = Number(totalStakedAmount) * algoToTAlgoRatio;
+  if (!Number.isFinite(stakedAlgoBaseUnits) || stakedAlgoBaseUnits <= 0) {
+    return null;
+  }
+
+  const tvlUsd = (stakedAlgoBaseUnits / 1_000_000) * algoUsdPrice;
+  const tinyPerYear = Number(currentRewardRatePerTime) * SECONDS_PER_YEAR;
+  if (!Number.isFinite(tinyPerYear) || tinyPerYear < 0) {
+    return null;
+  }
+  const rewardUsdPerYear = (tinyPerYear / 1_000_000) * tinyUsdPrice;
+  if (!Number.isFinite(tvlUsd) || tvlUsd <= 0 || !Number.isFinite(rewardUsdPerYear)) {
+    return null;
+  }
+
+  const apr = (rewardUsdPerYear / tvlUsd) * 100;
+  if (!Number.isFinite(apr) || apr < 0) {
+    return null;
+  }
+
+  return {
+    protocol: "tinyman",
+    opportunityType: "staking",
+    opportunityId: TINYMAN_STALGO_STAKING_OPPORTUNITY_ID,
+    assetPair: "tALGO/stALGO",
+    assetIds: [TALGO_MAINNET_ASSET_ID, STALGO_MAINNET_ASSET_ID],
+    apy: apr,
+    yieldBasis: "apr",
+    tvlUsd,
+    apr,
+    ...buildSourceMetadata({
+      fetchedAtIso,
+      contextNotes: [
+        "Tinyman stALGO restake. APR estimated from restake app " +
+          "`current_reward_rate_per_time` (TINY/sec) × TINY USD / staked TVL " +
+          "(tALGO stake valued via ALGO/tALGO ratio). Claim requires TINY power; " +
+          "stALGO is non-transferable while staked."
+      ]
+    })
+  };
+}
+
 async function fetchTinymanAlgoUsdPrice(
   fetchImpl: typeof fetch
+): Promise<number | null> {
+  return fetchTinymanAssetUsdPrice(fetchImpl, 0);
+}
+
+async function fetchTinymanAssetUsdPrice(
+  fetchImpl: typeof fetch,
+  assetId: number
 ): Promise<number | null> {
   const baseUrl =
     process.env.TINYMAN_API_BASE_URL ?? "https://mainnet.analytics.tinyman.org/api/v1";
   const apiKey = process.env.TINYMAN_API_KEY;
-  const requestUrl = `${trimTrailingSlash(baseUrl)}/assets/0/`;
+  const requestUrl = `${trimTrailingSlash(baseUrl)}/assets/${assetId}/`;
   const requestInit: RequestInit = {};
   if (apiKey) {
     requestInit.headers = { authorization: `Bearer ${apiKey}` };
@@ -256,6 +388,27 @@ async function fetchTinymanAlgoUsdPrice(
   }
   const payload = (await response.json()) as TinymanAssetApiRecord;
   return toNumber(payload.price_in_usd);
+}
+
+async function fetchTinymanRestakeGlobalState(
+  algod: Algodv2
+): Promise<TinymanRestakeGlobalState> {
+  const app = await algod.getApplicationByID(RESTAKE_APP_ID_MAINNET).do();
+  const values = new Map<string, bigint>();
+  for (const entry of app.params?.globalState ?? []) {
+    const key = Buffer.from(entry.key).toString("utf8");
+    values.set(key, BigInt(entry.value.uint ?? 0));
+  }
+
+  const totalStakedAmount = values.get("total_staked_amount");
+  const currentRewardRatePerTime = values.get("current_reward_rate_per_time");
+  if (totalStakedAmount === undefined || currentRewardRatePerTime === undefined) {
+    throw new TinymanAdapterError(
+      "Tinyman restake app is missing total_staked_amount or current_reward_rate_per_time."
+    );
+  }
+
+  return { totalStakedAmount, currentRewardRatePerTime };
 }
 
 function createTinymanAlgodClient(): Algodv2 {

@@ -48,12 +48,17 @@ export interface StakerBoxRecord {
   hasBox: boolean;
   /** Current staked HAY balance (base units). Zero when the box is absent. */
   stake: bigint;
+  /** Pending USDC rewards stored in the box (may lag live accrual). */
+  pendingRewardsUsdc: bigint;
+  /** Pending HAY rewards stored in the box (may lag live accrual). */
+  pendingRewardsHay: bigint;
 }
 
 /**
  * Read the caller's `userStake` box directly from algod. The box name is the
- * raw 32-byte address; the value is the ARC-56 `UserData` struct whose first
- * field is the uint64 stake balance. Returns `hasBox: false` on a 404.
+ * raw 32-byte address; the value is the ARC-56 `UserData` struct:
+ * stake (u64) | pendingUsdc (u64) | debtUsdc (u128) | pendingHay (u64) | debtHay (u128).
+ * Returns `hasBox: false` on a 404.
  */
 export async function getStakerBoxRecord(
   algod: Algodv2,
@@ -64,10 +69,19 @@ export async function getStakerBoxRecord(
     const box = await algod.getApplicationBoxByName(appId, boxName).do();
     const value = box.value;
     const stake = value.length >= 8 ? decodeUint64BE(value.subarray(0, 8)) : 0n;
-    return { hasBox: true, stake };
+    const pendingRewardsUsdc =
+      value.length >= 16 ? decodeUint64BE(value.subarray(8, 16)) : 0n;
+    const pendingRewardsHay =
+      value.length >= 40 ? decodeUint64BE(value.subarray(32, 40)) : 0n;
+    return { hasBox: true, stake, pendingRewardsUsdc, pendingRewardsHay };
   } catch (error) {
     if (isBoxNotFoundError(error)) {
-      return { hasBox: false, stake: 0n };
+      return {
+        hasBox: false,
+        stake: 0n,
+        pendingRewardsUsdc: 0n,
+        pendingRewardsHay: 0n
+      };
     }
     throw new ShapeBuildError("Failed to read Haystack staker box.", {
       details: { appId },

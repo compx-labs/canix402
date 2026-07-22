@@ -167,7 +167,7 @@ test("opportunity record schema stays aligned with TypeBox contract", async () =
   const assetIdsProperty = openapiProperties.assetIds as { type?: string } | undefined;
 
   assert.deepEqual(protocolProperty?.enum, [...SupportedProtocolValues]);
-  assert.equal(protocolProperty?.enum?.includes("haystack"), false);
+  assert.equal(protocolProperty?.enum?.includes("haystack"), true);
   assert.deepEqual(opportunityTypeProperty?.enum, ["lp", "farm", "staking", "lending"]);
   assert.deepEqual(yieldBasisProperty?.enum, ["apy", "apr"]);
   assert.equal(assetIdsProperty?.type, "array");

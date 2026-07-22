@@ -50,6 +50,106 @@ export const EXECUTION_SHAPES = [
     priceUsdc: "0.10"
   },
   {
+    shapeKey: "mainnet:tinyman:staking-v1:farm:commit",
+    protocol: "tinyman",
+    protocolVersion: "staking-v1",
+    action: "farm",
+    variant: "commit",
+    summary: "Commit existing Tinyman LP to a farm (LP stays in wallet)",
+    docsPath: "protocol/docs/execution-shapes/tinyman-farm-commit.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:tinyman:staking-v1:farm:uncommit",
+    protocol: "tinyman",
+    protocolVersion: "staking-v1",
+    action: "farm",
+    variant: "uncommit",
+    summary: "Lower or clear a Tinyman farm LP commitment (commitAmount=0 fully uncommits)",
+    docsPath: "protocol/docs/execution-shapes/tinyman-farm-uncommit.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:tinyman:staking-v1:farm:claimRewards",
+    protocol: "tinyman",
+    protocolVersion: "staking-v1",
+    action: "farm",
+    variant: "claimRewards",
+    summary: "Claim unpaid Tinyman farm rewards (Analytics-prepared unsigned group)",
+    docsPath: "protocol/docs/execution-shapes/tinyman-farm-claim-rewards.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:tinyman:v2:addLiquidityAndFarm:flexible",
+    protocol: "tinyman",
+    protocolVersion: "v2",
+    action: "addLiquidityAndFarm",
+    variant: "flexible",
+    summary: "Two-sided flexible add-liquidity and farm commit in one group",
+    docsPath: "protocol/docs/execution-shapes/tinyman-add-liquidity-and-farm-flexible.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:tinyman:v2:addLiquidityAndFarm:singleAsset",
+    protocol: "tinyman",
+    protocolVersion: "v2",
+    action: "addLiquidityAndFarm",
+    variant: "singleAsset",
+    summary: "One-sided add-liquidity and farm commit in one group",
+    docsPath: "protocol/docs/execution-shapes/tinyman-add-liquidity-and-farm-single-asset.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:tinyman:liquid-stake-v1:mint:tAlgo",
+    protocol: "tinyman",
+    protocolVersion: "liquid-stake-v1",
+    action: "mint",
+    variant: "tAlgo",
+    summary: "Stake ALGO and mint Tinyman tALGO",
+    docsPath: "protocol/docs/execution-shapes/tinyman-mint-talgo.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:tinyman:liquid-stake-v1:burn:tAlgo",
+    protocol: "tinyman",
+    protocolVersion: "liquid-stake-v1",
+    action: "burn",
+    variant: "tAlgo",
+    summary: "Burn tALGO to redeem ALGO",
+    docsPath: "protocol/docs/execution-shapes/tinyman-burn-talgo.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:tinyman:restake-v1:increaseStake:stAlgo",
+    protocol: "tinyman",
+    protocolVersion: "restake-v1",
+    action: "increaseStake",
+    variant: "stAlgo",
+    summary: "Restake tALGO into stALGO",
+    docsPath: "protocol/docs/execution-shapes/tinyman-increase-stake-stalgo.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:tinyman:restake-v1:decreaseStake:stAlgo",
+    protocol: "tinyman",
+    protocolVersion: "restake-v1",
+    action: "decreaseStake",
+    variant: "stAlgo",
+    summary: "Unrestake stALGO back to tALGO",
+    docsPath: "protocol/docs/execution-shapes/tinyman-decrease-stake-stalgo.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:tinyman:restake-v1:claimRewards:stAlgo",
+    protocol: "tinyman",
+    protocolVersion: "restake-v1",
+    action: "claimRewards",
+    variant: "stAlgo",
+    summary: "Claim TINY rewards from Tinyman restaking",
+    docsPath: "protocol/docs/execution-shapes/tinyman-claim-rewards-stalgo.md",
+    priceUsdc: "0.10"
+  },
+  {
     shapeKey: "mainnet:folks-finance:v2:setup:depositEscrow",
     protocol: "folks-finance",
     protocolVersion: "v2",
@@ -267,6 +367,37 @@ export const EXECUTION_SHAPES = [
     variant: "asa",
     summary: "Withdraw ASA from a Dork.fi lending market by burning nToken",
     docsPath: "protocol/docs/execution-shapes/dorkfi-withdraw-asa.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:haystack:v1:stake:hay",
+    protocol: "haystack",
+    protocolVersion: "v1",
+    action: "stake",
+    variant: "hay",
+    summary: "Stake HAY into the Haystack single-token staking pool",
+    docsPath: "protocol/docs/execution-shapes/haystack-stake-hay.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:haystack:v1:unstake:hay",
+    protocol: "haystack",
+    protocolVersion: "v1",
+    action: "unstake",
+    variant: "hay",
+    summary:
+      "Unstake HAY from the Haystack staking pool and claim pending USDC and HAY rewards",
+    docsPath: "protocol/docs/execution-shapes/haystack-unstake-hay.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:haystack:v1:claim:rewards",
+    protocol: "haystack",
+    protocolVersion: "v1",
+    action: "claim",
+    variant: "rewards",
+    summary: "Claim accrued USDC and HAY rewards from the Haystack staking pool",
+    docsPath: "protocol/docs/execution-shapes/haystack-claim-rewards.md",
     priceUsdc: "0.10"
   }
 ] as const;
