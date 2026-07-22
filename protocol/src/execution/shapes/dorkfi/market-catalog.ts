@@ -83,3 +83,17 @@ export function findCatalogMarket(params: {
       market.assetId === params.assetId
   );
 }
+
+/**
+ * Resolve a catalog market from opportunity identifiers.
+ * Opportunity IDs encode poolAppId + assetId (not marketAppId).
+ */
+export function findCatalogMarketByPoolAndAsset(params: {
+  poolAppId: number;
+  assetId: number;
+}): DorkFiCatalogMarket | undefined {
+  return DORKFI_ALGORAND_ASA_MARKETS.find(
+    (market) =>
+      market.poolAppId === params.poolAppId && market.assetId === params.assetId
+  );
+}

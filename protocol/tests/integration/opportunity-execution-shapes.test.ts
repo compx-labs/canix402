@@ -379,6 +379,31 @@ test("Folks xALGO staking attaches stake enter and unstake exit", () => {
   );
 });
 
+test("Dork.fi USDC lending hints resolve marketAppId from ASA catalog", () => {
+  const record: OpportunityMarketRecord = {
+    protocol: "dorkfi",
+    opportunityType: "lending",
+    opportunityId: "dorkfi:algorand:3333688282:31566704:lending",
+    assetPair: "USDC",
+    assetIds: [31566704],
+    apy: 5,
+    yieldBasis: "apy",
+    tvlUsd: 1_000_000,
+    sourceTimestamp: "2026-07-22T00:00:00.000Z",
+    fetchedAt: "2026-07-22T00:00:00.000Z"
+  };
+
+  const enriched = attachExecutionShapesToOpportunity(record, executionRegistry);
+  assert.equal(enriched.executionReady, true);
+  assert.equal(
+    enriched.executionShapes[0]?.shapeKey,
+    "mainnet:dorkfi:v1:deposit:asa"
+  );
+  assert.equal(enriched.executionShapes[0]?.inputHints?.poolAppId, 3333688282);
+  assert.equal(enriched.executionShapes[0]?.inputHints?.marketAppId, 3210682240);
+  assert.equal(enriched.executionShapes[0]?.inputHints?.assetId, 31566704);
+});
+
 test("Myth dualSTAKE staking attaches mint enter and redeem exit", () => {
   const record: OpportunityMarketRecord = {
     protocol: "myth-finance",

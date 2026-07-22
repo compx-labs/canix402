@@ -3,6 +3,7 @@ import {
   type TransactionShapeRegistry,
   type TransactionShapeSpec
 } from "../execution/index.js";
+import { findCatalogMarketByPoolAndAsset } from "../execution/shapes/dorkfi/market-catalog.js";
 import type {
   OpportunityExecutionInputHints,
   OpportunityExecutionShape,
@@ -394,13 +395,13 @@ function buildInputHints(
   }
 
   if (record.protocol === "dorkfi") {
-    // dorkfi:algorand:<appId>:<assetIdOrSlug>:<type>
+    // dorkfi:algorand:<poolAppId>:<assetIdOrSlug>:<type>
+    // Opportunity IDs carry the pool app, not the distinct market app.
     const parts = record.opportunityId.split(":");
     if (parts.length >= 5) {
       const poolAppId = Number(parts[2]);
       if (Number.isInteger(poolAppId) && poolAppId >= 1) {
         hints.poolAppId = poolAppId;
-        hints.marketAppId = poolAppId;
       }
       const assetId = Number(parts[3]);
       if (Number.isInteger(assetId) && assetId >= 0) {
@@ -409,6 +410,15 @@ function buildInputHints(
     }
     if (hints.assetId === undefined && assetIds[0] !== undefined) {
       hints.assetId = assetIds[0];
+    }
+    if (hints.poolAppId !== undefined && hints.assetId !== undefined) {
+      const catalogMarket = findCatalogMarketByPoolAndAsset({
+        poolAppId: hints.poolAppId,
+        assetId: hints.assetId
+      });
+      if (catalogMarket !== undefined) {
+        hints.marketAppId = catalogMarket.marketAppId;
+      }
     }
     return hints;
   }

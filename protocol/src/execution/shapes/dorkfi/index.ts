@@ -22,7 +22,11 @@ export {
 } from "./market-state.js";
 export type { DorkFiLendingMarketState, DorkFiLendingMarketStateDependencies } from "./market-state.js";
 
-export { DORKFI_ALGORAND_ASA_MARKETS, findCatalogMarket } from "./market-catalog.js";
+export {
+  DORKFI_ALGORAND_ASA_MARKETS,
+  findCatalogMarket,
+  findCatalogMarketByPoolAndAsset
+} from "./market-catalog.js";
 export {
   DORKFI_MAINNET_USDC_POOL_APP_ID,
   DORKFI_MAINNET_USDC_MARKET_APP_ID,
