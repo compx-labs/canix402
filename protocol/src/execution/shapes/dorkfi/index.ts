@@ -25,7 +25,8 @@ export type { DorkFiLendingMarketState, DorkFiLendingMarketStateDependencies } f
 export {
   DORKFI_ALGORAND_ASA_MARKETS,
   findCatalogMarket,
-  findCatalogMarketByPoolAndAsset
+  findCatalogMarketByPoolAndAsset,
+  buildDorkFiLendingOpportunityId
 } from "./market-catalog.js";
 export {
   DORKFI_MAINNET_USDC_POOL_APP_ID,

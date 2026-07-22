@@ -26,8 +26,18 @@ identified as USD summaries rather than asset-level token balances.
 
 If the indexed source is unavailable, the collector falls back to verified
 Algorand ASA markets, reads the wallet's nToken balances on-chain, and simulates
-their current withdrawal value. The fallback cannot provide debt, health, or USD
-valuation, so Dork.fi is reported as `partial` and aggregate totals remain `null`.
+their current withdrawal value. Fallback rows use:
+
+- `positionId`: `dorkfi:supplied:<marketAppId>` (market-scoped)
+- `opportunityId`: `dorkfi:algorand:<poolAppId>:<assetId>:lending` (same scheme as
+  opportunity discovery — pool app id, not market app id)
+
+Indexed USD summaries use `dorkfi:supplied-usd:<poolAppId>` /
+`dorkfi:debt-usd:<poolAppId>` with `opportunityId: null`, so they neither collide
+with ASA rows nor invent enter/exit opportunity ids.
+
+The fallback cannot provide debt, health, or USD valuation, so Dork.fi is
+reported as `partial` and aggregate totals remain `null`.
 
 ## Normalized Output Fields
 
@@ -58,7 +68,7 @@ Other emitted fields:
 | (adapter policy) | `yieldBasis` | Always `apy` |
 | `tvl` | `tvlUsd` | Required; row dropped when invalid |
 | `assetId` | `assetIds[0]` | Emitted only when valid non-negative integer |
-| `appId` + `assetId` + `type` + network | `opportunityId` | Stable synthesized identifier |
+| `appId` (pool) + `assetId` + `type` + network | `opportunityId` | `dorkfi:algorand:<poolAppId>:<assetIdOrSlug>:<type>` — `appId` is the lending **pool** app, not the per-asset market app |
 | fetch timestamp | `sourceTimestamp` | Source currently does not expose per-row update timestamp |
 
 ## Error and Data Quality Behavior

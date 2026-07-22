@@ -6,6 +6,11 @@ import {
   fetchWalletPositions,
   setPositionCollectorsForTests
 } from "../../src/services/aggregate-positions.js";
+import {
+  buildDorkFiLendingOpportunityId,
+  DORKFI_ALGORAND_ASA_MARKETS,
+  findCatalogMarket
+} from "../../src/execution/shapes/dorkfi/market-catalog.js";
 import { normalizeDorkFiHealthRecords } from "../../src/services/protocol-positions.js";
 import type { PositionMarketRecord } from "../../src/services/position-execution-shapes.js";
 import type { PositionRecordV1 } from "../../src/types/position.js";
@@ -225,6 +230,8 @@ test("Dork.fi indexed health records normalize supplied debt and health", () => 
   assert.deepEqual(
     result.positions.map((position) => ({
       type: position.positionType,
+      positionId: position.positionId,
+      opportunityId: position.opportunityId,
       usdValue: position.usdValue,
       healthFactor: position.healthFactor,
       sourceTimestamp: position.sourceTimestamp
@@ -232,12 +239,16 @@ test("Dork.fi indexed health records normalize supplied debt and health", () => 
     [
       {
         type: "supplied",
+        positionId: "dorkfi:supplied-usd:3333688282",
+        opportunityId: null,
         usdValue: 12.5,
         healthFactor: 4.1667,
         sourceTimestamp: "2026-07-13T12:00:00.000Z"
       },
       {
         type: "debt",
+        positionId: "dorkfi:debt-usd:3333688282",
+        opportunityId: null,
         usdValue: 3,
         healthFactor: 4.1667,
         sourceTimestamp: "2026-07-13T12:00:00.000Z"
@@ -245,6 +256,25 @@ test("Dork.fi indexed health records normalize supplied debt and health", () => 
     ]
   );
   assert.deepEqual(result.warnings, []);
+});
+
+test("Dork.fi ASA catalog opportunityId uses poolAppId and resolves distinct marketAppId", () => {
+  const usdc = DORKFI_ALGORAND_ASA_MARKETS.find((market) => market.symbol === "USDC");
+  assert.ok(usdc);
+  const opportunityId = buildDorkFiLendingOpportunityId({
+    poolAppId: usdc.poolAppId,
+    assetId: usdc.assetId
+  });
+  assert.equal(opportunityId, "dorkfi:algorand:3333688282:31566704:lending");
+  assert.notEqual(opportunityId, `dorkfi:algorand:${usdc.marketAppId}:${usdc.assetId}:lending`);
+
+  const catalog = findCatalogMarket({
+    poolAppId: usdc.poolAppId,
+    marketAppId: usdc.marketAppId,
+    assetId: usdc.assetId
+  });
+  assert.equal(catalog?.marketAppId, 3210682240);
+  assert.equal(catalog?.poolAppId, 3333688282);
 });
 
 test("GET /positions returns 502 only when every source is unavailable", async () => {

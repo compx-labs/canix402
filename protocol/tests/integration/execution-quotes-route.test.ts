@@ -63,6 +63,7 @@ import {
   DORKFI_MAINNET_USDC_ASA_ID,
   DORKFI_MAINNET_USDC_MARKET_APP_ID,
   DORKFI_MAINNET_USDC_POOL_APP_ID,
+  buildDorkFiLendingOpportunityId,
   setDorkFiDepositAsaDependenciesForTests,
   setDorkFiLendingMarketStateDependenciesForTests,
   setDorkFiWithdrawAsaDependenciesForTests,
@@ -80,6 +81,8 @@ import {
   setHaystackStakingStateDependenciesForTests,
   type HaystackStakingState
 } from "../../src/execution/shapes/haystack/index.js";
+import { attachExecutionShapesToOpportunity } from "../../src/services/opportunity-execution-shapes.js";
+import type { OpportunityMarketRecord } from "../../src/types/opportunity.js";
 
 const FOLKS_USDC_POOL_APP_ID = 971372237;
 const FOLKS_FUSDC_ASSET_ID = 971384592;
@@ -1771,6 +1774,61 @@ test("POST /execution/quotes compiles Dork.fi lending withdraw shape", async () 
   };
   assert.equal(body.data[0].shapeKey, dorkfiWithdrawAsaShape.key);
   assert.equal(body.data[0].transactions.length, 2);
+
+  await app.close();
+});
+
+test("POST /execution/quotes withdraws Dork.fi USDC using opportunity enter inputHints", async () => {
+  const opportunity: OpportunityMarketRecord = {
+    protocol: "dorkfi",
+    opportunityType: "lending",
+    opportunityId: buildDorkFiLendingOpportunityId({
+      poolAppId: DORKFI_MAINNET_USDC_POOL_APP_ID,
+      assetId: DORKFI_MAINNET_USDC_ASA_ID
+    }),
+    assetPair: "USDC",
+    assetIds: [DORKFI_MAINNET_USDC_ASA_ID],
+    apy: 5,
+    yieldBasis: "apy",
+    tvlUsd: 1_000_000,
+    sourceTimestamp: "2026-07-22T00:00:00.000Z",
+    fetchedAt: "2026-07-22T00:00:00.000Z"
+  };
+  const enriched = attachExecutionShapesToOpportunity(opportunity);
+  const hints = enriched.executionShapes[0]?.inputHints;
+  assert.equal(hints?.poolAppId, DORKFI_MAINNET_USDC_POOL_APP_ID);
+  assert.equal(hints?.marketAppId, DORKFI_MAINNET_USDC_MARKET_APP_ID);
+  assert.equal(hints?.assetId, DORKFI_MAINNET_USDC_ASA_ID);
+  assert.notEqual(hints?.marketAppId, hints?.poolAppId);
+
+  installDorkFiWithdrawMocks();
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/quotes",
+    payload: {
+      quotes: [
+        {
+          shapeKey: dorkfiWithdrawAsaShape.key,
+          input: {
+            userAddress: USER_ADDRESS,
+            poolAppId: hints?.poolAppId,
+            marketAppId: hints?.marketAppId,
+            assetId: hints?.assetId,
+            amount: "100000"
+          }
+        }
+      ]
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  const body = response.json() as {
+    data: Array<{ shapeKey: string }>;
+  };
+  assert.equal(body.data[0]?.shapeKey, dorkfiWithdrawAsaShape.key);
 
   await app.close();
 });

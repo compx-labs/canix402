@@ -126,7 +126,8 @@ Per-protocol policy:
 - Pact: `<poolId>:lp` and `<farmId>:farm` (farm falls back to pool id when needed)
 - Folks: `folks-lending-<poolAppId>`
 - CompX: `compx-lending-<marketAppId>`, `compx-staking-<poolAppId>`
-- Dork.fi: `dorkfi:algorand:<appIdOrFallback>:<assetIdOrSlug>:<opportunityType>`
+- Dork.fi: `dorkfi:algorand:<poolAppIdOrFallback>:<assetIdOrSlug>:<opportunityType>`
+  (pool app id, not market app id; markets share a pool and are distinguished by asset id)
 
 Fallback identifiers are allowed when source fields are missing; such rows include
 a caveat in `notes`.
