@@ -6,12 +6,12 @@
 
 - **Gateway base URL:** `https://canix402-api.compx.io`
 - **Documentation site:** https://canix402.compx.io
-- **Supported protocols:** Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, Haystack
+- **Supported protocols:** Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, Haystack, Réti
 - **Operator:** Neon Forge Ltd
 - **Support:** kieran@neonforge.ltd
 - **Terms:** https://canix402.compx.io/terms
 
-Opportunity responses are normalized records with fields such as `protocol`, `opportunityType`, `opportunityId`, `assetPair`, `apy`, `apr`, `tvlUsd`, `sourceTimestamp`, and `fetchedAt`. Numeric precision follows the published OpenAPI `x-precision` contract (typically 6 decimal places).
+Opportunity responses are normalized records with fields such as `protocol`, `opportunityType`, `opportunityId`, `assetPair`, `apy`, `apr`, `tvlUsd`, `executionShapes`, `compatibleExitShapes`, optional `entryRequirements` / `capacity` (Réti), `sourceTimestamp`, and `fetchedAt`. Numeric precision follows the published OpenAPI `x-precision` contract (typically 6 decimal places).
 
 ## Machine-readable contracts
 
@@ -27,7 +27,7 @@ Always call the **gateway**, not an internal upstream API. x402 enforcement, `PA
 
 ### MCP server
 
-Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_get_positions`, `canix_get_execution_quote`, and free discovery helpers. See https://canix402.compx.io/mcp.
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_list_execution_shapes`, `canix_get_positions`, `canix_get_execution_quote`, strategy marketplace tools, and free discovery helpers. See https://canix402.compx.io/mcp.
 
 ## x402 payment flow
 
@@ -52,12 +52,15 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 
 ## Endpoint reference
 
+- `GET /` (Free) — API root branding and social metadata page.
 - `GET /health` (Free) — Service health check.
 - `GET /metadata` (Free) — Service metadata and policy surface.
 - `GET /discovery` (Free) — Machine-readable endpoint catalog for agents.
 - `GET /openapi.json` (Free) — OpenAPI contract document.
 - `GET /favicon.ico` (Free) — API favicon for directory indexing.
 - `GET /favicon.png` (Free) — API favicon image.
+- `GET /logo.png` (Free) — Service logo for directory and social indexing.
+- `GET /banner.png` (Free) — Service banner for directory and social indexing.
 - `GET /.well-known/x402` (Free) — x402 discovery fan-out document.
 - `GET /.well-known/x402.json` (Free) — x402 discovery manifest for agent and directory indexing.
 - `POST /swaps/quote` (Free) — Fetch a walletless Haystack swap quote.
@@ -69,20 +72,29 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `GET /opportunities/personalized` (0.05 USDC) — Top opportunities tuned to a wallet's held assets. Params: address=, limit=, offset=, includeInactive=.
 - `GET /positions` (0.005 USDC) — Algorand DeFi positions held by a wallet. Params: address=.
 - `POST /swaps/transactions` (0.005 USDC) — Build a walletless Haystack swap transaction group.
-- `POST /execution/quotes` (0.1 USDC) — Compile a verified transaction shape into unsigned Algorand transactions.
+- `GET /execution/shapes` (Free) — List verified execution shape catalog metadata.
+- `POST /execution/quotes` (0.1 USDC) — Compile one or more verified transaction shapes into unsigned Algorand transaction groups.
+- `GET /strategies` (Free) — List published strategies. Params: status=, tag=, creatorAddress=, limit=, offset=.
+- `GET /strategies/{strategyId}` (Free) — Get a strategy by strategyId (ASA id). Params: :strategyId.
+- `POST /strategies` (100 USDC) — Publish a new strategy (mints NFT, writes Spaces JSON).
+- `POST /strategies/{strategyId}` (1 USDC) — Revise a strategy composition (NFT holder only, 14-day cooldown). Params: :strategyId.
+- `POST /strategies/{strategyId}/compile` (0.1 USDC) — Compile a strategy into unsigned execution quotes. Params: :strategyId.
 
 ### Route notes
 
 - `GET /opportunities` — top aggregated opportunities ranked by APY (default limit 10).
-- `GET /protocols/:protocol/opportunities` — protocol slug e.g. `tinyman`, `pact`, `folks-finance`, `compx`, `dorkfi`, `myth-finance`, `haystack`.
+- `GET /protocols/:protocol/opportunities` — protocol slug e.g. `tinyman`, `pact`, `folks-finance`, `compx`, `dorkfi`, `myth-finance`, `haystack`, `reti`.
 - `GET /opportunities/search` — filter by `platform`, `type`, `minApy`, `maxApy`, `minTvlUsd`.
 - `GET /opportunities/personalized` — requires `address` (Algorand account); premium price; matches opportunities to wallet-held assets.
 - `GET /positions` — requires `address` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
+- `GET /execution/shapes` — free catalog of verified shape keys and requiredInputs (metadata only).
+- `POST /execution/quotes` — batch unsigned transaction groups for verified shapes; flat ~0.1 USDC per request.
+- `GET /strategies` / `GET /strategies/{strategyId}` — free marketplace list/detail; publish 100 USDC, revise 1 USDC, compile 0.1 USDC.
 - Haystack swaps — call free `POST /swaps/quote`, sign and submit any group from free `POST /swaps/optin`, refresh the short-lived quote, then call paid `POST /swaps/transactions` for 0.005 USDC. Amounts are asset base units.
 - Walletless handoff — sign only the returned `userSignIndexes`, preserve Haystack pre-signed members and group order, and submit the complete group through the caller's Algod client.
 - Swap costs — the 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee/referral, DEX fees, price impact, and Algorand network fees.
 
-Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-known/x402.json`, `POST /swaps/quote`, `POST /swaps/optin`.
+Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-known/x402.json`, `GET /execution/shapes`, `GET /strategies`, `POST /swaps/quote`, `POST /swaps/optin`.
 
 ## Error catalog
 
@@ -90,7 +102,12 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
 - `MALFORMED_PAYMENT_SIGNATURE` (HTTP 402) — PAYMENT-SIGNATURE payload is malformed.
 - `EXPIRED_PAYMENT_PROOF` (HTTP 402) — PAYMENT-SIGNATURE proof has expired.
 - `VALIDATION_ERROR` (HTTP 400) — Request validation failed.
+- `NOT_FOUND` (HTTP 404) — Requested resource was not found.
 - `INTERNAL_ERROR` (HTTP 500) — Internal server error.
+- `STRATEGY_VALIDATION_ERROR` (HTTP 400) — Strategy publish/revise/compile payload failed validation.
+- `STRATEGY_NOT_FOUND` (HTTP 404) — Strategy document was not found.
+- `STRATEGY_FORBIDDEN` (HTTP 403) — Caller is not allowed to revise or compile this strategy.
+- `STRATEGY_CONFLICT` (HTTP 409) — Strategy revise cooldown or conflicting state prevented the request.
 
 ## Sample responses (trimmed)
 
@@ -104,24 +121,182 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
       "opportunityType": "lp",
       "opportunityId": "tinyman:pool:1002541853",
       "assetPair": "ALGO/USDC",
+      "assetIds": [
+        0,
+        31566704
+      ],
       "apr": 10.512,
       "apy": 12.5,
       "yieldBasis": "apy",
       "tvlUsd": 2450000.5,
       "sourceTimestamp": "2026-07-06T09:00:00.000Z",
       "fetchedAt": "2026-07-06T09:00:00.000Z",
-      "notes": "sourceTimestamp reflects fetch time; upstream does not expose a per-row update time."
+      "notes": "sourceTimestamp reflects fetch time; upstream does not expose a per-row update time.",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "flexible",
+          "title": "Tinyman v2 flexible add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Tinyman AMM v2 pool using flexible amounts. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolId": "tinyman:pool:1002541853"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:initial",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "initial",
+          "title": "Tinyman v2 initial add liquidity",
+          "summary": "Adds the first liquidity to a bootstrapped but empty Tinyman AMM v2 pool. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_initial_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolId": "tinyman:pool:1002541853"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:singleAsset",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "singleAsset",
+          "title": "Tinyman v2 single-asset add liquidity",
+          "summary": "Adds one-sided liquidity to an existing Tinyman AMM v2 pool. Tinyman performs an internal swap to balance the deposit and mints pool tokens. Generates the documented 2-transaction group (asset transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetBId",
+            "depositAssetId",
+            "depositAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolId": "tinyman:pool:1002541853"
+          }
+        }
+      ],
+      "compatibleExitShapes": []
     },
     {
-      "protocol": "folks-finance",
-      "opportunityType": "lending",
-      "opportunityId": "folks:lending:31566704",
-      "assetPair": "USDC",
-      "apy": 6.06,
-      "yieldBasis": "apy",
-      "tvlUsd": 29846.609471,
-      "sourceTimestamp": "2026-07-06T08:55:00.000Z",
-      "fetchedAt": "2026-07-06T09:00:00.000Z"
+      "protocol": "reti",
+      "opportunityType": "staking",
+      "opportunityId": "reti-staking-12",
+      "assetPair": "ALGO",
+      "assetIds": [
+        0
+      ],
+      "apy": 8.5,
+      "apr": 8.5,
+      "yieldBasis": "apr",
+      "tvlUsd": 125000.5,
+      "sourceTimestamp": "2026-07-23T10:00:00.000Z",
+      "fetchedAt": "2026-07-23T10:00:00.000Z",
+      "entryRequirements": {
+        "minAmount": {
+          "assetId": 0,
+          "amount": "1000000000"
+        },
+        "eligibilityFullyCheckable": true
+      },
+      "capacity": {
+        "stakerSlotsRemaining": 20,
+        "algoRoomMicroAlgos": "50000000000",
+        "acceptingStake": true
+      },
+      "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:reti:v1:stake:algo",
+          "protocol": "reti",
+          "protocolVersion": "v1",
+          "action": "stake",
+          "variant": "algo",
+          "title": "Réti ALGO stake to validator",
+          "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "validatorId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            0
+          ],
+          "inputHints": {
+            "validatorId": 12,
+            "assetId": 0,
+            "depositAssetId": 0
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:reti:v1:unstake:algo",
+          "protocol": "reti",
+          "protocolVersion": "v1",
+          "action": "unstake",
+          "variant": "algo",
+          "title": "Réti ALGO unstake from pool",
+          "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "validatorId",
+            "poolAppId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            0
+          ],
+          "inputHints": {
+            "validatorId": 12,
+            "assetId": 0,
+            "depositAssetId": 0
+          }
+        }
+      ]
     }
   ],
   "meta": {
@@ -143,12 +318,101 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
       "opportunityType": "lp",
       "opportunityId": "tinyman:pool:1002541853",
       "assetPair": "ALGO/USDC",
+      "assetIds": [
+        0,
+        31566704
+      ],
       "apr": 10.512,
       "apy": 12.5,
       "yieldBasis": "apy",
       "tvlUsd": 2450000.5,
       "sourceTimestamp": "2026-07-06T09:00:00.000Z",
-      "fetchedAt": "2026-07-06T09:00:00.000Z"
+      "fetchedAt": "2026-07-06T09:00:00.000Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "flexible",
+          "title": "Tinyman v2 flexible add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Tinyman AMM v2 pool using flexible amounts. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolId": "tinyman:pool:1002541853"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:initial",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "initial",
+          "title": "Tinyman v2 initial add liquidity",
+          "summary": "Adds the first liquidity to a bootstrapped but empty Tinyman AMM v2 pool. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_initial_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolId": "tinyman:pool:1002541853"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:singleAsset",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "singleAsset",
+          "title": "Tinyman v2 single-asset add liquidity",
+          "summary": "Adds one-sided liquidity to an existing Tinyman AMM v2 pool. Tinyman performs an internal swap to balance the deposit and mints pool tokens. Generates the documented 2-transaction group (asset transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetBId",
+            "depositAssetId",
+            "depositAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolId": "tinyman:pool:1002541853"
+          }
+        }
+      ],
+      "compatibleExitShapes": []
     }
   ],
   "meta": {
@@ -168,7 +432,7 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
     {
       "protocol": "folks-finance",
       "opportunityType": "lending",
-      "opportunityId": "folks:lending:0",
+      "opportunityId": "folks-lending-971365552",
       "assetPair": "ALGO",
       "assetIds": [
         0
@@ -177,23 +441,180 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
       "yieldBasis": "apy",
       "tvlUsd": 1875000.25,
       "sourceTimestamp": "2026-07-06T08:55:00.000Z",
-      "fetchedAt": "2026-07-06T09:00:00.000Z"
+      "fetchedAt": "2026-07-06T09:00:00.000Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "depositEscrow",
+          "title": "Folks Finance v2 add deposit escrow",
+          "summary": "Creates and funds a new Folks Finance deposit escrow for the user. Returns a 3-transaction group that must be signed by both the user and the generated escrow account.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress"
+          ],
+          "requiredAssetIds": [
+            0
+          ],
+          "inputHints": {
+            "poolAppId": 971365552,
+            "assetId": 0
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "optEscrowAsset",
+          "title": "Folks Finance v2 opt deposit escrow into pool fAsset",
+          "summary": "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+          "order": 1,
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:depositEscrow"
+          ],
+          "requiredInputs": [
+            "userAddress",
+            "escrowAddress"
+          ],
+          "requiredAssetIds": [
+            0
+          ],
+          "inputHints": {
+            "poolAppId": 971365552,
+            "assetId": 0
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "deposit",
+          "variant": "escrow",
+          "title": "Folks Finance v2 escrow deposit",
+          "summary": "Deposits an underlying asset into a Folks Finance lending pool via a deposit escrow. fAssets accrue in the escrow rather than the user's wallet. Generates the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
+          "order": 2,
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:optEscrowAsset"
+          ],
+          "requiredInputs": [
+            "userAddress",
+            "assetAmount"
+          ],
+          "requiredAssetIds": [
+            0
+          ],
+          "inputHints": {
+            "poolAppId": 971365552,
+            "assetId": 0
+          }
+        }
+      ],
+      "compatibleExitShapes": []
     },
     {
       "protocol": "tinyman",
       "opportunityType": "lp",
       "opportunityId": "tinyman:pool:1002541853",
       "assetPair": "ALGO/USDC",
+      "assetIds": [
+        0,
+        31566704
+      ],
       "apr": 10.512,
       "apy": 12.5,
       "yieldBasis": "apy",
       "tvlUsd": 2450000.5,
       "sourceTimestamp": "2026-07-06T09:00:00.000Z",
       "fetchedAt": "2026-07-06T09:00:00.000Z",
-      "assetIds": [
-        0,
-        31566704
-      ]
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "flexible",
+          "title": "Tinyman v2 flexible add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Tinyman AMM v2 pool using flexible amounts. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolId": "tinyman:pool:1002541853"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:initial",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "initial",
+          "title": "Tinyman v2 initial add liquidity",
+          "summary": "Adds the first liquidity to a bootstrapped but empty Tinyman AMM v2 pool. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_initial_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolId": "tinyman:pool:1002541853"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:singleAsset",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "singleAsset",
+          "title": "Tinyman v2 single-asset add liquidity",
+          "summary": "Adds one-sided liquidity to an existing Tinyman AMM v2 pool. Tinyman performs an internal swap to balance the deposit and mints pool tokens. Generates the documented 2-transaction group (asset transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetBId",
+            "depositAssetId",
+            "depositAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolId": "tinyman:pool:1002541853"
+          }
+        }
+      ],
+      "compatibleExitShapes": []
     }
   ],
   "meta": {
@@ -213,16 +634,84 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
 {
   "data": [
     {
-      "protocol": "tinyman",
-      "opportunityType": "lp",
-      "opportunityId": "tinyman:pool:1002541853",
-      "assetPair": "ALGO/USDC",
-      "apr": 10.512,
-      "apy": 12.5,
-      "yieldBasis": "apy",
-      "tvlUsd": 2450000.5,
-      "sourceTimestamp": "2026-07-06T09:00:00.000Z",
-      "fetchedAt": "2026-07-06T09:00:00.000Z"
+      "protocol": "reti",
+      "opportunityType": "staking",
+      "opportunityId": "reti-staking-12",
+      "assetPair": "ALGO",
+      "assetIds": [
+        0
+      ],
+      "apy": 8.5,
+      "apr": 8.5,
+      "yieldBasis": "apr",
+      "tvlUsd": 125000.5,
+      "sourceTimestamp": "2026-07-23T10:00:00.000Z",
+      "fetchedAt": "2026-07-23T10:00:00.000Z",
+      "entryRequirements": {
+        "minAmount": {
+          "assetId": 0,
+          "amount": "1000000000"
+        },
+        "eligibilityFullyCheckable": true
+      },
+      "capacity": {
+        "stakerSlotsRemaining": 20,
+        "algoRoomMicroAlgos": "50000000000",
+        "acceptingStake": true
+      },
+      "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:reti:v1:stake:algo",
+          "protocol": "reti",
+          "protocolVersion": "v1",
+          "action": "stake",
+          "variant": "algo",
+          "title": "Réti ALGO stake to validator",
+          "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "validatorId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            0
+          ],
+          "inputHints": {
+            "validatorId": 12,
+            "assetId": 0,
+            "depositAssetId": 0
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:reti:v1:unstake:algo",
+          "protocol": "reti",
+          "protocolVersion": "v1",
+          "action": "unstake",
+          "variant": "algo",
+          "title": "Réti ALGO unstake from pool",
+          "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "validatorId",
+            "poolAppId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            0
+          ],
+          "inputHints": {
+            "validatorId": 12,
+            "assetId": 0,
+            "depositAssetId": 0
+          }
+        }
+      ]
     }
   ],
   "meta": {
@@ -230,6 +719,212 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
     "offset": 0,
     "includeInactive": false,
     "paymentRequired": true
+  }
+}
+```
+
+### GET /execution/shapes
+
+```json
+{
+  "data": [
+    {
+      "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+      "network": "mainnet",
+      "protocol": "tinyman",
+      "protocolVersion": "v2",
+      "action": "addLiquidity",
+      "variant": "flexible",
+      "shapeVersion": "1.0.0",
+      "title": "Tinyman v2 flexible add liquidity",
+      "description": "Two-sided flexible add-liquidity to a Tinyman AMM v2 pool",
+      "summary": "Two-sided flexible add-liquidity to a Tinyman AMM v2 pool",
+      "opportunityRole": "enter",
+      "supportedOpportunityTypes": [
+        "lp"
+      ],
+      "requiredInputs": [
+        "userAddress",
+        "assetAId",
+        "assetAAmount",
+        "assetBId",
+        "assetBAmount"
+      ],
+      "sources": [
+        {
+          "kind": "sdk",
+          "description": "Tinyman JS SDK v2 liquidity helpers"
+        }
+      ],
+      "docsPath": "protocol/docs/execution-shapes/tinyman-add-liquidity-flexible.md"
+    },
+    {
+      "shapeKey": "mainnet:reti:v1:stake:algo",
+      "network": "mainnet",
+      "protocol": "reti",
+      "protocolVersion": "v1",
+      "action": "stake",
+      "variant": "algo",
+      "shapeVersion": "1.0.0",
+      "title": "Réti stake ALGO",
+      "description": "Stake ALGO to a Réti validator via ValidatorRegistry.addStake",
+      "summary": "Stake ALGO to a Réti validator via ValidatorRegistry.addStake",
+      "opportunityRole": "enter",
+      "supportedOpportunityTypes": [
+        "staking"
+      ],
+      "requiredInputs": [
+        "userAddress",
+        "validatorId",
+        "amount"
+      ],
+      "sources": [
+        {
+          "kind": "docs",
+          "description": "Réti ValidatorRegistry ABI"
+        }
+      ],
+      "docsPath": "protocol/docs/execution-shapes/reti-stake-algo.md"
+    }
+  ],
+  "meta": {
+    "paymentRequired": false,
+    "shapeCount": 2,
+    "note": "Catalog metadata only. Compile unsigned groups via paid POST /execution/quotes. Full catalog is larger; this sample is trimmed."
+  }
+}
+```
+
+### POST /execution/quotes
+
+```json
+{
+  "data": [
+    {
+      "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+      "shapeVersion": "1.0.0",
+      "network": "mainnet",
+      "expiresAt": "2026-07-23T12:00:30.000Z",
+      "encodedTransactions": [
+        "<base64-unsigned-txn-0>",
+        "<base64-unsigned-txn-1>"
+      ],
+      "transactions": [
+        {
+          "type": "axfer",
+          "sender": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "fee": "1000",
+          "groupPresent": true
+        }
+      ],
+      "metadata": {
+        "poolAddress": "TINYPQOLADDRESSPLACEHOLDERAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "warnings": []
+    }
+  ],
+  "meta": {
+    "paymentRequired": true,
+    "executionSubmitted": false,
+    "quoteCount": 1,
+    "note": "Unsigned groups only. Sign and submit locally; Canix never receives wallet keys."
+  }
+}
+```
+
+### GET /positions
+
+```json
+{
+  "data": [
+    {
+      "protocol": "tinyman",
+      "positionType": "lp",
+      "positionId": "tinyman:lp:1002541853",
+      "opportunityId": "tinyman:pool:1002541853",
+      "assetId": 1002541853,
+      "assetSymbol": "TMPOOL2",
+      "amountRaw": "1250000",
+      "amount": "1.250000",
+      "usdValue": 42.5,
+      "compatibleExitShapeKeys": [
+        "mainnet:tinyman:v2:removeLiquidity:multipleAssetsOut",
+        "mainnet:tinyman:v2:removeLiquidity:singleAssetOut"
+      ],
+      "compatibleManageShapeKeys": [],
+      "inputHints": {
+        "assetAId": 0,
+        "assetBId": 31566704,
+        "poolId": "1002541853"
+      }
+    },
+    {
+      "protocol": "reti",
+      "positionType": "staked",
+      "positionId": "reti:staked:12:2714574619",
+      "opportunityId": "reti-staking-12",
+      "assetId": 0,
+      "assetSymbol": "ALGO",
+      "amountRaw": "2000000000",
+      "amount": "2000.000000",
+      "usdValue": 400,
+      "compatibleExitShapeKeys": [
+        "mainnet:reti:v1:unstake:algo"
+      ],
+      "compatibleManageShapeKeys": [],
+      "inputHints": {
+        "validatorId": 12,
+        "poolAppId": 2714574619,
+        "assetId": 0
+      }
+    }
+  ],
+  "meta": {
+    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "paymentRequired": true
+  }
+}
+```
+
+### GET /strategies
+
+```json
+{
+  "data": [
+    {
+      "schemaVersion": 1,
+      "strategyId": 1234567890,
+      "creatorAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "lastRevisedAt": "2026-07-01T00:00:00.000Z",
+      "name": "Balanced ALGO LP + Réti stake",
+      "description": "Illustrative weight-based strategy: half Tinyman flexible add-liquidity, half Réti validator stake.",
+      "tags": [
+        "algo",
+        "lp",
+        "staking"
+      ],
+      "status": "published",
+      "legs": [
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+          "opportunityId": "tinyman:pool:1002541853",
+          "weightBps": 5000
+        },
+        {
+          "shapeKey": "mainnet:reti:v1:stake:algo",
+          "opportunityId": "reti-staking-12",
+          "weightBps": 5000
+        }
+      ],
+      "holderFeeShareBps": 5000
+    }
+  ],
+  "meta": {
+    "paymentRequired": false,
+    "limit": 25,
+    "offset": 0,
+    "note": "strategyId equals the strategy NFT ASA id. Publish/revise/compile are paid; list/detail are free."
   }
 }
 ```

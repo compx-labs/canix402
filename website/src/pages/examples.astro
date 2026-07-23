@@ -6,14 +6,18 @@ import aggregateSample from "../data/opportunities.sample.json";
 import searchSample from "../data/opportunities-search.sample.json";
 import personalizedSample from "../data/opportunities-personalized.sample.json";
 import protocolSample from "../data/protocol-opportunities.sample.json";
+import positionsSample from "../data/positions.sample.json";
+import executionShapesSample from "../data/execution-shapes.sample.json";
+import executionQuotesSample from "../data/execution-quotes.sample.json";
+import strategiesSample from "../data/strategies.sample.json";
 
 const format = (value: unknown): string => JSON.stringify(value, null, 2);
 ---
 
 <BaseLayout
   title="Examples | CANIX402"
-  description="Copy-paste Canix402 API examples for discovery, OpenAPI, x402 signed retries, and sample opportunity payloads — aggregate, search, personalized, and protocol-specific."
-  keywords="Canix402 examples, x402 payment examples, API samples, personalized opportunities, Algorand DeFi responses"
+  description="Copy-paste Canix402 API examples for discovery, OpenAPI, x402 signed retries, opportunities, positions, execution shapes/quotes, and strategies."
+  keywords="Canix402 examples, x402 payment examples, API samples, personalized opportunities, execution quotes, strategies, Algorand DeFi responses"
 >
   <h1 class="page-title">Examples</h1>
   <p class="muted">All examples use the public Caddy gateway URL. Replace placeholders before running paid retries.</p>
@@ -61,9 +65,11 @@ const format = (value: unknown): string => JSON.stringify(value, null, 2);
   <h2 id="sample-responses" class="page-title">Sample response payloads</h2>
   <div class="notice">
     These are illustrative snapshots of the normalized response contract, not live paid data.
-    Numeric values follow the precision contract (6 decimal places by default, up to 12 for small
-    non-zero values). Live responses vary in values and row count; the shape and field semantics
-    match. The full machine-readable schema and examples are published in
+    Opportunity rows include <code>executionShapes</code>, <code>compatibleExitShapes</code>, and
+    (for Réti) <code>entryRequirements</code> / <code>capacity</code>. Numeric values follow the
+    precision contract (6 decimal places by default, up to 12 for small non-zero values). Live
+    responses vary in values and row count; the shape and field semantics match. The full
+    machine-readable schema and examples are published in
     <a href={config.openApiUrl}>OpenAPI</a>.
   </div>
 
@@ -107,9 +113,58 @@ const format = (value: unknown): string => JSON.stringify(value, null, 2);
       <code>folks-finance</code>, <code>compx</code>, <code>dorkfi</code>, <code>myth-finance</code>,
       <code>haystack</code>, <code>reti</code>).
     </p>
-    <CodeBlock code={`curl -i ${config.gatewayBaseUrl}/protocols/tinyman/opportunities`} />
+    <CodeBlock code={`curl -i ${config.gatewayBaseUrl}/protocols/reti/opportunities`} />
     <h3>Sample response (200)</h3>
     <CodeBlock code={format(protocolSample)} />
+  </section>
+
+  <section class="panel">
+    <h2>Execution shape catalog (free)</h2>
+    <p>
+      <code>GET /execution/shapes</code> — live catalog of verified shape keys, required inputs, and
+      docs paths. Metadata only; does not compile quotes.
+    </p>
+    <CodeBlock code={`curl -s ${config.gatewayBaseUrl}/execution/shapes | jq '.meta, (.data | length)'`} />
+    <h3>Sample response (200, trimmed)</h3>
+    <CodeBlock code={format(executionShapesSample)} />
+  </section>
+
+  <section class="panel">
+    <h2>Execution quotes (paid)</h2>
+    <p>
+      <code>POST /execution/quotes</code> — batch <code>&#123; quotes: [&#123; shapeKey, input &#125;, ...] &#125;</code>
+      (~0.1 USDC flat per request). Returns unsigned groups; Canix never signs or submits.
+    </p>
+    <CodeBlock
+      code={`curl -i ${config.gatewayBaseUrl}/execution/quotes \\\n  -H 'content-type: application/json' \\\n  -d '{\n    "quotes": [{\n      "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",\n      "input": {\n        "userAddress": "YOUR_ALGORAND_ADDRESS",\n        "assetAId": 0,\n        "assetAAmount": "1000000",\n        "assetBId": 31566704,\n        "assetBAmount": "1000000",\n        "maxSlippageBps": 50\n      }\n    }]\n  }'`}
+    />
+    <h3>Sample response (200)</h3>
+    <CodeBlock code={format(executionQuotesSample)} />
+  </section>
+
+  <section class="panel">
+    <h2>Wallet positions (paid)</h2>
+    <p>
+      <code>GET /positions?address=</code> — normalized DeFi positions with exit/manage shape keys
+      (~0.005 USDC).
+    </p>
+    <CodeBlock
+      code={`curl -i '${config.gatewayBaseUrl}/positions?address=YOUR_ALGORAND_ADDRESS'`}
+    />
+    <h3>Sample response (200)</h3>
+    <CodeBlock code={format(positionsSample)} />
+  </section>
+
+  <section class="panel">
+    <h2>Strategies marketplace</h2>
+    <p>
+      <code>GET /strategies</code> and <code>GET /strategies/&#123;strategyId&#125;</code> are free.
+      Paid: publish <code>100 USDC</code>, revise <code>1 USDC</code>, compile <code>0.1 USDC</code>.
+      <code>strategyId</code> equals the strategy NFT ASA id.
+    </p>
+    <CodeBlock code={`curl -s ${config.gatewayBaseUrl}/strategies | jq '.data[0] | {strategyId, name, status}'`} />
+    <h3>Sample list response (200, trimmed)</h3>
+    <CodeBlock code={format(strategiesSample)} />
   </section>
 
   <section class="panel">

@@ -58,11 +58,11 @@ Shared Redis with CompX/Orbital (`compx-v2/docs/redis-usage.md`): CompX uses DB 
 - [ ] Add monitoring.
   - [ ] Track x402 requests, failed payments, successful settlements, referrers, and user agents.
   - [ ] Log which directories/agents send traffic.
-- [ ] Website/docs catch-up after protocol API review (deferred from first tranche):
-  - [ ] Refresh `website/src/data/discovery.snapshot.json` (include strategies; update execution-quote description).
-  - [ ] Refresh opportunity samples with `executionShapes`, `inputHints`, `entryRequirements`, `capacity`.
-  - [ ] Add Réti to website protocol lists (`protocols.astro`, `config.ts`, llms generator).
-  - [ ] Document strategies + `/positions` + `/execution/quotes` samples the way opportunities are shown today.
+- [x] Website/docs catch-up after protocol API review (deferred from first tranche):
+  - [x] Refresh `website/src/data/discovery.snapshot.json` (include strategies; update execution-quote description).
+  - [x] Refresh opportunity samples with `executionShapes`, `inputHints`, `entryRequirements`, `capacity`.
+  - [x] Add Réti to website protocol lists (`protocols.astro`, `config.ts`, llms generator).
+  - [x] Document strategies + `/positions` + `/execution/quotes` samples the way opportunities are shown today.
 
 ## 7) Wallet Positions Coverage (`GET /positions`)
 
@@ -145,7 +145,7 @@ Design SoT: [`docs/strategies.md`](strategies.md).
 - [x] Fee disclosure: fixed 50% of compile access fee to NFT holder (weekly).
 - [ ] Ranking/sorting beyond basic filters.
 - [x] Include strategy endpoints in payment-policy matrix (feeds discovery/OpenAPI/llms).
-- [ ] Agent-readable marketplace examples on website.
+- [x] Agent-readable marketplace examples on website.
 
 ### Execution Compiler
 
