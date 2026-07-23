@@ -7,6 +7,7 @@ const caddyfile = readFileSync(resolve(process.cwd(), "caddy/Caddyfile"), "utf-8
 
 test("Caddy keeps free POST routes outside x402 enforcement", () => {
   assert.match(caddyfile, /@free_post \{[\s\S]*?path \/swaps\/quote \/swaps\/optin \/pricing/);
+  assert.match(caddyfile, /@free \{[\s\S]*?path [^\n]*\/execution\/shapes/);
   assert.match(caddyfile, /@free \{[\s\S]*?path [^\n]*\/strategies/);
   assert.match(caddyfile, /@paid_strategy_publish/);
   assert.match(caddyfile, /@paid_strategy_revise/);

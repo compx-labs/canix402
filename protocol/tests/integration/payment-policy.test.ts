@@ -29,6 +29,18 @@ test("Haystack swap policy advertises the dedicated 0.005 USDC price", () => {
   assert.equal(transactions?.priceUsdc, process.env.X402_PRICE_HAYSTACK_SWAP_USDC ?? "0.005");
 });
 
+test("execution shapes catalog is free while quote compile remains paid", () => {
+  assert.equal(classifyEndpointAccess("/execution/shapes", "GET"), "free");
+  assert.equal(classifyEndpointAccess("/execution/quotes", "POST"), "paid");
+
+  const shapes = endpointPolicyMatrix.find((endpoint) => endpoint.id === "executionShapes");
+  const quotes = endpointPolicyMatrix.find((endpoint) => endpoint.id === "executionQuote");
+  assert.equal(shapes?.method, "GET");
+  assert.equal(shapes?.access, "free");
+  assert.equal(quotes?.method, "POST");
+  assert.equal(quotes?.access, "paid");
+});
+
 test("strategy marketplace policy is method-aware with publish/revise/compile prices", () => {
   assert.equal(classifyEndpointAccess("/strategies", "GET"), "free");
   assert.equal(classifyEndpointAccess("/strategies", "POST"), "paid");

@@ -1,7 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/server";
 import * as z from "zod";
 
-import { EXECUTION_SHAPES } from "../lib/execution-shapes.js";
 import { errorResult, jsonResult } from "../lib/tool-result.js";
 import type { X402Client } from "../lib/x402-client.js";
 
@@ -100,14 +99,16 @@ export function registerFreeTools(server: McpServer, client: X402Client): void {
     "canix_list_execution_shapes",
     {
       description:
-        "List verified execution shape keys that can be passed to canix_get_execution_quote. Local catalog; no payment required.",
+        "List verified execution shape catalog metadata via GET /execution/shapes (free). Returns shapeKey, requiredInputs, opportunityRole, and docsPath from the live protocol registry. Catalog only — compile unsigned groups with canix_get_execution_quote (paid POST /execution/quotes).",
       inputSchema: {}
     },
     async () => {
-      return jsonResult({
-        shapes: EXECUTION_SHAPES,
-        note: "Quotes are compiled via paid POST /execution/quotes (0.10 USDC). Canix returns unsigned transactions only."
-      });
+      try {
+        const body = await client.fetchFree("/execution/shapes");
+        return jsonResult(body);
+      } catch (error) {
+        return errorResult(error);
+      }
     }
   );
 

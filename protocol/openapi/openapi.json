@@ -981,6 +981,30 @@
         }
       }
     },
+    "/execution/shapes": {
+      "get": {
+        "summary": "List verified execution shape catalog metadata",
+        "description": "Returns the live catalog of verified transaction shapes (shapeKey, requiredInputs, opportunityRole, docsPath). Catalog metadata only — does not compile quotes or return unsigned transactions. Use POST /execution/quotes to compile executable groups.",
+        "tags": [
+          "execution",
+          "discovery",
+          "agents"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Execution shape catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionShapesListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/execution/quotes": {
       "post": {
         "summary": "Compile a verified transaction shape into unsigned Algorand transactions",
@@ -2250,6 +2274,166 @@
           "poolId": {
             "type": "string",
             "description": "Optional discovery/opportunity id for traceability."
+          }
+        }
+      },
+      "ExecutionShapesListResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExecutionShapeCatalogEntry"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "paymentRequired",
+              "shapeCount"
+            ],
+            "properties": {
+              "paymentRequired": {
+                "type": "boolean",
+                "const": false
+              },
+              "shapeCount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "ExecutionShapeCatalogEntry": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "shapeKey",
+          "network",
+          "protocol",
+          "protocolVersion",
+          "action",
+          "variant",
+          "shapeVersion",
+          "title",
+          "description",
+          "summary",
+          "opportunityRole",
+          "supportedOpportunityTypes",
+          "requiredInputs",
+          "sources"
+        ],
+        "properties": {
+          "shapeKey": {
+            "type": "string",
+            "minLength": 1,
+            "example": "mainnet:tinyman:v2:addLiquidity:flexible"
+          },
+          "network": {
+            "type": "string",
+            "minLength": 1
+          },
+          "protocol": {
+            "type": "string",
+            "minLength": 1
+          },
+          "protocolVersion": {
+            "type": "string",
+            "minLength": 1
+          },
+          "action": {
+            "type": "string",
+            "minLength": 1
+          },
+          "variant": {
+            "type": "string",
+            "minLength": 1
+          },
+          "shapeVersion": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "opportunityRole": {
+            "type": "string",
+            "enum": [
+              "enter",
+              "exit",
+              "manage"
+            ]
+          },
+          "supportedOpportunityTypes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "requiredInputs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Input field names required by POST /execution/quotes for this shapeKey."
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExecutionShapeSource"
+            }
+          },
+          "docsPath": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Repository-relative path to shape documentation when available."
+          }
+        }
+      },
+      "ExecutionShapeSource": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "description"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "sdk",
+              "api",
+              "docs",
+              "arc56"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "url": {
+            "type": "string",
+            "minLength": 1
           }
         }
       },

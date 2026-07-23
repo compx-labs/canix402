@@ -1,27 +1,10 @@
 import { FastifyInstance } from "fastify";
 
-import {
-  CompXAdapterError,
-  DorkFiAdapterError,
-  fetchCompXOpportunities,
-  fetchFolksFinanceOpportunities,
-  fetchDorkFiOpportunities,
-  fetchHaystackOpportunities,
-  fetchMythFinanceOpportunities,
-  fetchRetiOpportunities,
-  FolksFinanceAdapterError,
-  HaystackAdapterError,
-  MythFinanceAdapterError,
-  fetchPactOpportunities,
-  PactAdapterError,
-  RetiAdapterError,
-  fetchTinymanOpportunities,
-  TinymanAdapterError
-} from "../adapters/index.js";
+import { fetchOpportunitiesForProtocol } from "../services/aggregate-opportunities.js";
 import { rankOpportunitiesByApy } from "../services/opportunity-ranking.js";
 import { formatOpportunitiesForAgent } from "../services/precision.js";
 import { ApiSuccess } from "../types/index.js";
-import { OpportunityMarketRecord, OpportunityRecordV1 } from "../types/opportunity.js";
+import { OpportunityRecordV1 } from "../types/opportunity.js";
 import { OpportunitiesListResponseSchema } from "../types/opportunity-schema.js";
 import {
   PROTOCOL_OPPORTUNITIES_DEFAULT_LIMIT,
@@ -55,41 +38,7 @@ export function registerProtocolRoutes(app: FastifyInstance) {
         includeInactive = false
       } = request.query;
 
-      let data: OpportunityMarketRecord[] = [];
-      try {
-        if (protocol === "tinyman") {
-          data = await fetchTinymanOpportunities();
-        } else if (protocol === "pact") {
-          data = await fetchPactOpportunities();
-        } else if (protocol === "folks-finance") {
-          data = await fetchFolksFinanceOpportunities();
-        } else if (protocol === "compx") {
-          data = await fetchCompXOpportunities();
-        } else if (protocol === "dorkfi") {
-          data = await fetchDorkFiOpportunities();
-        } else if (protocol === "myth-finance") {
-          data = await fetchMythFinanceOpportunities();
-        } else if (protocol === "haystack") {
-          data = await fetchHaystackOpportunities();
-        } else if (protocol === "reti") {
-          data = await fetchRetiOpportunities();
-        }
-      } catch (error) {
-        if (
-          error instanceof TinymanAdapterError ||
-          error instanceof PactAdapterError ||
-          error instanceof FolksFinanceAdapterError ||
-          error instanceof CompXAdapterError ||
-          error instanceof DorkFiAdapterError ||
-          error instanceof MythFinanceAdapterError ||
-          error instanceof HaystackAdapterError ||
-          error instanceof RetiAdapterError
-        ) {
-          throw error;
-        }
-        throw error;
-      }
-
+      const data = await fetchOpportunitiesForProtocol(protocol);
       const pagedData = rankOpportunitiesByApy(data).slice(offset, offset + limit);
 
       return {
