@@ -5,7 +5,8 @@ export type AdapterName =
   | "compx"
   | "dorkfi"
   | "myth-finance"
-  | "haystack";
+  | "haystack"
+  | "reti";
 
 export {
   fetchTinymanOpportunities,
@@ -71,3 +72,19 @@ export {
   HaystackAdapterError
 } from "./haystack.js";
 export type { HaystackPoolSnapshot } from "./haystack.js";
+export {
+  fetchRetiOpportunities,
+  normalizeRetiStakingOpportunity,
+  setRetiAdapterDependenciesForTests,
+  retiStakingOpportunityId,
+  parseRetiValidatorId,
+  isRetiStakingOpportunityId,
+  buildEntryRequirements,
+  buildCapacity,
+  RetiAdapterError
+} from "./reti.js";
+export type { RetiValidatorSnapshot } from "./reti.js";
+export {
+  RETI_STAKING_OPPORTUNITY_ID_PREFIX,
+  RETI_VALIDATOR_REGISTRY_APP_ID
+} from "../reti/constants.js";

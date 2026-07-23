@@ -190,6 +190,10 @@ function normalizePactFarm(
   const usedFallbackIdentifiers = poolId.length === 0 || pairName.length === 0;
 
   const baseId = farmId.length > 0 ? farmId : poolId;
+  // farm.pool joins to pool.on_chain_id; prefer the joined pool row, then farm.pool.
+  const poolAppId =
+    parsePositiveAppId(pool.on_chain_id ?? pool.id) ??
+    parsePositiveAppId(farm.pool);
 
   return {
     protocol: "pact",
@@ -197,6 +201,7 @@ function normalizePactFarm(
     opportunityId: baseId.length > 0 ? `${baseId}:farm` : `pact-${pairName || "unknown"}:farm`,
     assetPair: pairName || "unknown/unknown",
     ...(assetIds.length > 0 ? { assetIds } : {}),
+    ...(poolAppId !== null ? { poolAppId } : {}),
     apy,
     yieldBasis: "apr",
     tvlUsd,
@@ -206,6 +211,16 @@ function normalizePactFarm(
       usedFallbackIdentifiers
     })
   };
+}
+
+function parsePositiveAppId(
+  value: number | string | null | undefined
+): number | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isInteger(parsed) && parsed >= 1 ? parsed : null;
 }
 
 function toNumber(value: number | string | null | undefined): number | null {

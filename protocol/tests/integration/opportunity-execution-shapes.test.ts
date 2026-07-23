@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { executionRegistry } from "../../src/execution/index.js";
+import { pactAddLiquidityAndFarmTwoSidedShape } from "../../src/execution/shapes/pact/add-liquidity-and-farm-two-sided.js";
 import {
   attachExecutionShapesToOpportunity
 } from "../../src/services/opportunity-execution-shapes.js";
@@ -105,6 +106,7 @@ test("Pact farm enter shapes are ordered deploy then stake/addLiquidityAndFarm",
     opportunityId: "3625283323:farm",
     assetPair: "USDC/ALGO",
     assetIds: [31566704, 0],
+    poolAppId: 3495906641,
     apy: 12,
     yieldBasis: "apr",
     tvlUsd: 50_000,
@@ -135,7 +137,60 @@ test("Pact farm enter shapes are ordered deploy then stake/addLiquidityAndFarm",
     "mainnet:pact:v1:farm:deployEscrow"
   ]);
   assert.equal(enriched.executionShapes[0]?.inputHints?.farmAppId, 3625283323);
-  assert.equal(enriched.executionShapes[0]?.inputHints?.poolId, "3625283323");
+  assert.equal(enriched.executionShapes[2]?.inputHints?.farmAppId, 3625283323);
+  assert.equal(enriched.executionShapes[2]?.inputHints?.poolAppId, 3495906641);
+  assert.notEqual(
+    enriched.executionShapes[2]?.inputHints?.poolAppId,
+    enriched.executionShapes[2]?.inputHints?.farmAppId
+  );
+  // Farm id must not be overloaded into poolId; composite shapes need poolAppId.
+  assert.equal(enriched.executionShapes[2]?.inputHints?.poolId, undefined);
+  assert.equal(
+    (enriched as { poolAppId?: number }).poolAppId,
+    undefined
+  );
+});
+
+test("Pact ALGO/USDC farm 3585364727 hints include distinct AMM poolAppId", () => {
+  const farmAppId = 3585364727;
+  const poolAppId = 2966876920;
+  const record: OpportunityMarketRecord = {
+    protocol: "pact",
+    opportunityType: "farm",
+    opportunityId: `${farmAppId}:farm`,
+    assetPair: "ALGO/USDC",
+    assetIds: [0, 31566704],
+    poolAppId,
+    apy: 14,
+    yieldBasis: "apr",
+    tvlUsd: 3_147,
+    sourceTimestamp: "2026-07-23T00:00:00.000Z",
+    fetchedAt: "2026-07-23T00:00:00.000Z"
+  };
+
+  const enriched = attachExecutionShapesToOpportunity(record, executionRegistry);
+  const addAndFarm = enriched.executionShapes.find(
+    (shape) => shape.shapeKey === "mainnet:pact:v1:addLiquidityAndFarm:twoSided"
+  );
+  assert.ok(addAndFarm);
+  assert.equal(addAndFarm?.inputHints?.farmAppId, farmAppId);
+  assert.equal(addAndFarm?.inputHints?.poolAppId, poolAppId);
+  assert.notEqual(addAndFarm?.inputHints?.poolAppId, addAndFarm?.inputHints?.farmAppId);
+  assert.equal(addAndFarm?.inputHints?.assetAId, 0);
+  assert.equal(addAndFarm?.inputHints?.assetBId, 31566704);
+  assert.ok(addAndFarm?.requiredInputs.includes("poolAppId"));
+  assert.ok(addAndFarm?.requiredInputs.includes("farmAppId"));
+
+  // Hints alone must satisfy poolAppId validation when merged into a quote input.
+  const parsed = pactAddLiquidityAndFarmTwoSidedShape.parseInput({
+    userAddress: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+    ...addAndFarm?.inputHints,
+    assetAAmount: "1000000",
+    assetBAmount: "1000000",
+    maxSlippageBps: 50
+  });
+  assert.equal(parsed.farmAppId, farmAppId);
+  assert.equal(parsed.poolAppId, poolAppId);
 });
 
 test("LP positions expose exit shapes and staking positions expose unstake/claim", () => {

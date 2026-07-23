@@ -151,8 +151,12 @@ export function attachExecutionShapesToOpportunity(
       toOpportunityExecutionShape(entry, exitRequiredAssetIds, exitInputHints)
   );
 
+  // poolAppId on market records is adapter-only metadata for hint building
+  // (e.g. Pact farm → AMM pool). Keep it out of the public opportunity surface.
+  const { poolAppId: _poolAppId, ...publicRecord } = record;
+
   return {
-    ...record,
+    ...publicRecord,
     executionReady: executionShapes.length > 0,
     executionShapes,
     compatibleExitShapes
@@ -469,15 +473,24 @@ function buildInputHints(
         hints.depositAssetId = only;
       }
     }
-    const poolId = stripOpportunityTypeSuffix(record.opportunityId);
-    if (poolId.length > 0) {
-      hints.poolId = poolId;
-    }
     if (record.protocol === "pact" && record.opportunityType === "farm") {
-      const farmAppId = Number(poolId);
+      const farmId = stripOpportunityTypeSuffix(record.opportunityId);
+      const farmAppId = Number(farmId);
       if (Number.isInteger(farmAppId) && farmAppId >= 1) {
         hints.farmAppId = farmAppId;
       }
+      // Composite addLiquidityAndFarm needs the AMM pool, which is distinct from
+      // the farm app. Adapters set record.poolAppId from farm→pool metadata.
+      // Do not overload poolId with the farm id (that broke poolAppId validation).
+      if (record.poolAppId !== undefined) {
+        hints.poolAppId = record.poolAppId;
+      }
+      return hints;
+    }
+
+    const poolId = stripOpportunityTypeSuffix(record.opportunityId);
+    if (poolId.length > 0) {
+      hints.poolId = poolId;
     }
     return hints;
   }

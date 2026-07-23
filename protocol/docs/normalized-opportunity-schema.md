@@ -5,7 +5,7 @@ This document defines the stable `OpportunityRecordV1` contract published by
 
 ## Versioning
 
-- Contract version: `1.2.0`
+- Contract version: `1.3.0`
 - Canonical schema sources:
   - `src/types/opportunity-schema.ts` (`OpportunityRecordSchema`)
   - `openapi/openapi.json` (`#/components/schemas/OpportunityRecord`)
@@ -14,7 +14,7 @@ This document defines the stable `OpportunityRecordV1` contract published by
 
 ### Required fields
 
-- `protocol`: `tinyman | pact | folks-finance | compx | dorkfi | myth-finance`
+- `protocol`: `tinyman | pact | folks-finance | compx | dorkfi | myth-finance | haystack | reti`
 - `opportunityType`: `lp | farm | staking | lending`
 - `opportunityId`: stable protocol-local identifier
 - `assetPair`: market label (pair or single-asset label)
@@ -32,6 +32,33 @@ This document defines the stable `OpportunityRecordV1` contract published by
 - `assetIds`: on-chain Algorand asset ids backing the opportunity
 - `apr`: secondary APR metric when source provides it
 - `notes`: caveats about timestamp provenance, fallback identifiers, or estimate basis
+- `entryRequirements`: machine-readable minimum stake / token gates (discovery metadata; quote-time recheck is authoritative)
+- `capacity`: remaining staker slots / ALGO room and whether the venue is accepting stake
+
+## Entry requirements and capacity
+
+Réti is the first protocol that publishes structured eligibility. Other protocols
+may omit these fields.
+
+### `entryRequirements`
+
+| Field | Meaning |
+|---|---|
+| `minAmount` | `{ assetId, amount }` minimum deposit in base units (`amount` is a decimal string) |
+| `gates` | Token / NFD gates (`asa`, `asa-creator`, `nfd-linked-creators`, `nfd-root-segment`) |
+| `gateMatch` | How multiple ASA gates combine (`any` \| `all`). Réti uses `any`. |
+| `eligibilityFullyCheckable` | `false` when gates include NFD/creator kinds personalized matching cannot resolve |
+
+Amounts never appear in `inputHints`. Agents should filter on discovery, then treat
+quote-time on-chain validation as the hard gate.
+
+### `capacity`
+
+| Field | Meaning |
+|---|---|
+| `stakerSlotsRemaining` | Remaining ledger seats across pools, or `null` if unknown |
+| `algoRoomMicroAlgos` | Remaining ALGO headroom (microAlgos decimal string), or `null` |
+| `acceptingStake` | Whether new stake can currently be accepted |
 
 ## Execution shapes on opportunities
 
@@ -71,7 +98,11 @@ Agents must treat research-only rows as research-only and **must not invent**
 
 Only these keys may appear: `assetId`, `assetAId`, `assetBId`, `depositAssetId`,
 `poolAppId`, `marketAppId`, `poolId`, `programId`, `liquidityAssetId`,
-`escrowAddress`.
+`escrowAddress`, `farmAppId`, `escrowAppId`, `validatorId`.
+
+For Pact farms, `farmAppId` is the farm application and `poolAppId` is the
+underlying AMM pool (from farm→pool join metadata). Do not treat the farm id as
+`poolAppId`.
 
 ### Amount convention
 
@@ -117,6 +148,8 @@ Per-protocol policy:
 | CompX `lending` | `apr` | `supplyApy` is APR-derived |
 | CompX `staking` | `apr` | `getPoolApr()` estimate |
 | Dork.fi all supported types | `apy` | Source field is `apy` |
+| Myth Finance dualSTAKE | `apr` | Consensus APR net of fees (+ farm APR when present) |
+| Réti staking | `apr` | Consensus APR net of validator commission |
 
 ## Identifier Patterns
 
@@ -128,6 +161,8 @@ Per-protocol policy:
 - CompX: `compx-lending-<marketAppId>`, `compx-staking-<poolAppId>`
 - Dork.fi: `dorkfi:algorand:<poolAppIdOrFallback>:<assetIdOrSlug>:<opportunityType>`
   (pool app id, not market app id; markets share a pool and are distinguished by asset id)
+- Myth: `myth-staking-<appId>`, `myth-farm-<appId>`
+- Réti: `reti-staking-<validatorId>` (one row per validator; pools allocate under that validator)
 
 Fallback identifiers are allowed when source fields are missing; such rows include
 a caveat in `notes`.
@@ -141,6 +176,7 @@ The following fields are intentionally out of scope for `OpportunityRecordV1`:
 - `tvlOrLiquidity` union fields
 - manage shapes on opportunities (use positions / shape catalog)
 - exit shapes on non–liquid-staking opportunities (use positions / shape catalog)
+- full NFD resolution for personalized eligibility (publish gates; resolve later)
 
 Any addition of these fields is a future contract revision and should be reflected
 in both TypeBox and OpenAPI schema surfaces.

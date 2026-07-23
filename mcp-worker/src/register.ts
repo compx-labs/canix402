@@ -5,7 +5,16 @@ import { EXECUTION_SHAPES } from "./execution-shapes.js";
 import type { GatewayClient } from "./client.js";
 import { errorResult, jsonResult, paidToolResult } from "./tool-result.js";
 
-const ProtocolSchema = z.enum(["tinyman", "pact", "folks-finance", "compx", "dorkfi", "myth-finance"]);
+const ProtocolSchema = z.enum([
+  "tinyman",
+  "pact",
+  "folks-finance",
+  "compx",
+  "dorkfi",
+  "myth-finance",
+  "haystack",
+  "reti"
+]);
 const AlgorandAddressSchema = z.string().length(58);
 const AssetIdSchema = z.union([
   z.number().int().min(0),

@@ -5,7 +5,16 @@ import { errorResult, jsonResult } from "../lib/tool-result.js";
 import type { PaidCallResult, X402Client } from "../lib/x402-client.js";
 import { microUsdcToUsdc } from "../lib/x402-client.js";
 
-const ProtocolSchema = z.enum(["tinyman", "pact", "folks-finance", "compx", "dorkfi", "myth-finance"]);
+const ProtocolSchema = z.enum([
+  "tinyman",
+  "pact",
+  "folks-finance",
+  "compx",
+  "dorkfi",
+  "myth-finance",
+  "haystack",
+  "reti"
+]);
 
 export interface PaidRequestContext {
   path: string;

@@ -7,11 +7,13 @@ import {
   fetchHaystackOpportunities,
   fetchMythFinanceOpportunities,
   fetchPactOpportunities,
+  fetchRetiOpportunities,
   fetchTinymanOpportunities,
   FolksFinanceAdapterError,
   HaystackAdapterError,
   MythFinanceAdapterError,
   PactAdapterError,
+  RetiAdapterError,
   TinymanAdapterError
 } from "../adapters/index.js";
 import { OpportunityMarketRecord } from "../types/opportunity.js";
@@ -28,7 +30,8 @@ export const SUPPORTED_AGGREGATE_PROTOCOLS = [
   "compx",
   "dorkfi",
   "myth-finance",
-  "haystack"
+  "haystack",
+  "reti"
 ] as const;
 
 export interface AggregateFetchResult {
@@ -107,6 +110,9 @@ export async function fetchOpportunitiesForProtocol(
     if (protocol === "haystack") {
       return await fetchHaystackOpportunities();
     }
+    if (protocol === "reti") {
+      return await fetchRetiOpportunities();
+    }
   } catch (error) {
     if (
       error instanceof TinymanAdapterError ||
@@ -115,7 +121,8 @@ export async function fetchOpportunitiesForProtocol(
       error instanceof CompXAdapterError ||
       error instanceof DorkFiAdapterError ||
       error instanceof MythFinanceAdapterError ||
-      error instanceof HaystackAdapterError
+      error instanceof HaystackAdapterError ||
+      error instanceof RetiAdapterError
     ) {
       throw error;
     }

@@ -60,7 +60,7 @@ test("fetchPactOpportunities maps API payload and emits LP + farm records", asyn
           ok: true,
           json: async () => ([
             {
-              on_chain_id: "pool-good",
+              on_chain_id: "1072843805",
               is_verified: true,
               apr_7d_all: 0.072,
               apr_7d: 0.068,
@@ -85,8 +85,8 @@ test("fetchPactOpportunities maps API payload and emits LP + farm records", asyn
         ok: true,
         json: async () => ([
           {
-            on_chain_id: "farm-good",
-            pool: "pool-good",
+            on_chain_id: "3625283323",
+            pool: "1072843805",
             apr: 0.12,
             average_apr: 0.14,
             tvl_usd: 300000
@@ -100,8 +100,10 @@ test("fetchPactOpportunities maps API payload and emits LP + farm records", asyn
     const farm = opportunities.find((opportunity) => opportunity.opportunityType === "farm");
     assert.ok(lp);
     assert.ok(farm);
-    assert.equal(lp?.opportunityId, "pool-good:lp");
-    assert.equal(farm?.opportunityId, "farm-good:farm");
+    assert.equal(lp?.opportunityId, "1072843805:lp");
+    assert.equal(farm?.opportunityId, "3625283323:farm");
+    assert.equal(farm?.poolAppId, 1072843805);
+    assert.notEqual(farm?.poolAppId, Number(farm?.opportunityId.split(":")[0]));
     assert.equal(lp?.protocol, "pact");
     assert.equal(lp?.yieldBasis, "apr");
     assert.equal(farm?.protocol, "pact");
@@ -129,7 +131,15 @@ test("GET /protocols/pact/opportunities returns Pact normalized LP and farm data
 
     assert.equal(response.statusCode, 200);
     const body = response.json() as {
-      data: Array<{ protocol: string; opportunityType: string; opportunityId: string }>;
+      data: Array<{
+        protocol: string;
+        opportunityType: string;
+        opportunityId: string;
+        executionShapes?: Array<{
+          shapeKey: string;
+          inputHints?: { farmAppId?: number; poolAppId?: number };
+        }>;
+      }>;
     };
     assert.equal(body.data.length, 2);
     assert.equal(body.data[0]?.protocol, "pact");
@@ -149,6 +159,15 @@ test("GET /protocols/pact/opportunities returns Pact normalized LP and farm data
       body.data.some((row) => row.opportunityId.endsWith(":farm")),
       true
     );
+    const farm = body.data.find((row) => row.opportunityType === "farm");
+    assert.ok(farm);
+    const addAndFarm = farm.executionShapes?.find(
+      (shape: { shapeKey: string }) =>
+        shape.shapeKey === "mainnet:pact:v1:addLiquidityAndFarm:twoSided"
+    );
+    assert.equal(addAndFarm?.inputHints?.farmAppId, 999);
+    assert.equal(addAndFarm?.inputHints?.poolAppId, 123);
+    assert.notEqual(addAndFarm?.inputHints?.poolAppId, addAndFarm?.inputHints?.farmAppId);
   } finally {
     await app.close();
     await mockServer.close();

@@ -30,7 +30,83 @@ export const OpportunityExecutionInputHintsSchema = Type.Object(
     liquidityAssetId: Type.Optional(Type.Integer({ minimum: 0 })),
     escrowAddress: Type.Optional(Type.String({ minLength: 58, maxLength: 58 })),
     farmAppId: Type.Optional(Type.Integer({ minimum: 1 })),
-    escrowAppId: Type.Optional(Type.Integer({ minimum: 1 }))
+    escrowAppId: Type.Optional(Type.Integer({ minimum: 1 })),
+    /** Réti (and similar) stake target; amounts never appear here. */
+    validatorId: Type.Optional(Type.Integer({ minimum: 1 }))
+  },
+  { additionalProperties: false }
+);
+
+/** Minimum deposit / stake amount in base units (decimal string). */
+export const OpportunityAmountRequirementSchema = Type.Object(
+  {
+    assetId: Type.Integer({ minimum: 0 }),
+    amount: Type.String({ minLength: 1, pattern: "^[0-9]+$" })
+  },
+  { additionalProperties: false }
+);
+
+/**
+ * Machine-readable entry gates. Réti uses OR across ASA gates (`gateMatch: "any"`).
+ * NFD / creator gates are published even when personalized matching cannot resolve them.
+ */
+export const OpportunityEntryGateSchema = Type.Union([
+  Type.Object(
+    {
+      kind: Type.Literal("asa"),
+      assetId: Type.Integer({ minimum: 0 }),
+      minBalance: Type.Optional(Type.String({ minLength: 1, pattern: "^[0-9]+$" }))
+    },
+    { additionalProperties: false }
+  ),
+  Type.Object(
+    {
+      kind: Type.Literal("asa-creator"),
+      creator: Type.String({ minLength: 58, maxLength: 58 }),
+      minBalance: Type.Optional(Type.String({ minLength: 1, pattern: "^[0-9]+$" }))
+    },
+    { additionalProperties: false }
+  ),
+  Type.Object(
+    {
+      kind: Type.Literal("nfd-linked-creators"),
+      nfd: Type.String({ minLength: 1 })
+    },
+    { additionalProperties: false }
+  ),
+  Type.Object(
+    {
+      kind: Type.Literal("nfd-root-segment"),
+      nfdRoot: Type.String({ minLength: 1 })
+    },
+    { additionalProperties: false }
+  )
+]);
+
+export const OpportunityEntryRequirementsSchema = Type.Object(
+  {
+    minAmount: Type.Optional(OpportunityAmountRequirementSchema),
+    gates: Type.Optional(Type.Array(OpportunityEntryGateSchema)),
+    gateMatch: Type.Optional(
+      Type.Union([Type.Literal("any"), Type.Literal("all")])
+    ),
+    /**
+     * False when gates include kinds personalized matching cannot resolve
+     * (NFD / creator). Agents must not treat the wallet as confirmed-eligible.
+     */
+    eligibilityFullyCheckable: Type.Optional(Type.Boolean())
+  },
+  { additionalProperties: false }
+);
+
+export const OpportunityCapacitySchema = Type.Object(
+  {
+    stakerSlotsRemaining: Type.Union([Type.Integer({ minimum: 0 }), Type.Null()]),
+    algoRoomMicroAlgos: Type.Union([
+      Type.String({ minLength: 1, pattern: "^[0-9]+$" }),
+      Type.Null()
+    ]),
+    acceptingStake: Type.Boolean()
   },
   { additionalProperties: false }
 );
@@ -57,13 +133,21 @@ export const OpportunityMarketRecordSchema = Type.Object({
   opportunityId: Type.String(),
   assetPair: Type.String(),
   assetIds: Type.Optional(Type.Array(Type.Integer({ minimum: 0 }))),
+  /**
+   * Underlying AMM / lending pool application id when distinct from the
+   * opportunity id (e.g. Pact farm app vs Pact pool app). Used to build
+   * execution inputHints; omitted from the public OpportunityRecord surface.
+   */
+  poolAppId: Type.Optional(Type.Integer({ minimum: 1 })),
   apy: Type.Number(),
   yieldBasis: YieldBasisSchema,
   tvlUsd: Type.Number(),
   apr: Type.Optional(Type.Number()),
   sourceTimestamp: Type.String({ format: "date-time" }),
   fetchedAt: Type.String({ format: "date-time" }),
-  notes: Type.Optional(Type.String())
+  notes: Type.Optional(Type.String()),
+  entryRequirements: Type.Optional(OpportunityEntryRequirementsSchema),
+  capacity: Type.Optional(OpportunityCapacitySchema)
 });
 
 export const OpportunityRecordSchema = Type.Object({
@@ -79,6 +163,8 @@ export const OpportunityRecordSchema = Type.Object({
   sourceTimestamp: Type.String({ format: "date-time" }),
   fetchedAt: Type.String({ format: "date-time" }),
   notes: Type.Optional(Type.String()),
+  entryRequirements: Type.Optional(OpportunityEntryRequirementsSchema),
+  capacity: Type.Optional(OpportunityCapacitySchema),
   executionReady: Type.Boolean(),
   executionShapes: Type.Array(OpportunityExecutionShapeSchema),
   compatibleExitShapes: Type.Array(OpportunityExecutionShapeSchema)
@@ -116,3 +202,11 @@ export type OpportunityExecutionInputHints = Static<
 export type OpportunityExecutionShape = Static<typeof OpportunityExecutionShapeSchema>;
 export type OpportunityRecordV1 = Static<typeof OpportunityRecordSchema>;
 export type YieldBasis = Static<typeof YieldBasisSchema>;
+export type OpportunityAmountRequirement = Static<
+  typeof OpportunityAmountRequirementSchema
+>;
+export type OpportunityEntryGate = Static<typeof OpportunityEntryGateSchema>;
+export type OpportunityEntryRequirements = Static<
+  typeof OpportunityEntryRequirementsSchema
+>;
+export type OpportunityCapacity = Static<typeof OpportunityCapacitySchema>;
