@@ -22,7 +22,7 @@ import {
   resolvePactFarmState
 } from "./farm-state.js";
 import { toSdkAmount } from "./parse-input.js";
-import { normalizeSuggestedParamsForPact } from "./pool-state.js";
+import { createPactBuilderAlgodClient, normalizeSuggestedParamsForPact } from "./pool-state.js";
 
 const MIN_ALGO_FEE = 1000n;
 
@@ -61,7 +61,7 @@ function resolveDependencies(): PactFarmUnstakeDependencies {
     resolveFarmState: resolvePactFarmState,
     buildUnstakeTxs: (escrow, amount) =>
       escrow.buildUnstakeTxs(amount) as unknown as algosdk.Transaction[],
-    getSuggestedParams: async (algod) => algod.getTransactionParams().do(),
+    getSuggestedParams: async () => createPactBuilderAlgodClient().getTransactionParams().do(),
     ...dependencyOverrides
   };
 }
@@ -132,7 +132,7 @@ export const pactFarmUnstakeShape: TransactionShapeSpec<
     }
 
     const suggestedParams = normalizeSuggestedParamsForPact(
-      await dependencies.getSuggestedParams(context.algod)
+      await dependencies.getSuggestedParams(createPactBuilderAlgodClient())
     );
     state.farm.setSuggestedParams(suggestedParams as never);
     escrow.setSuggestedParams(suggestedParams as never);

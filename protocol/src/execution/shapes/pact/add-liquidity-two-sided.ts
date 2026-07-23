@@ -24,6 +24,7 @@ import {
 } from "./parse-input.js";
 import {
   PactPoolState,
+  createPactBuilderAlgodClient,
   mapAssetsToPactAmounts,
   normalizeSuggestedParamsForPact,
   resolvePactPoolState
@@ -96,7 +97,7 @@ function resolveDependencies(): PactAddLiquidityTwoSidedDependencies {
         address: options.address,
         suggestedParams: options.suggestedParams as never
       }) as unknown as algosdk.Transaction[],
-    getSuggestedParams: async (algod) => algod.getTransactionParams().do(),
+    getSuggestedParams: async () => createPactBuilderAlgodClient().getTransactionParams().do(),
     ...dependencyOverrides
   };
 }
@@ -215,7 +216,9 @@ export const pactAddLiquidityTwoSidedShape: TransactionShapeSpec<
 
     let rawTxns: algosdk.Transaction[];
     try {
-      const suggestedParams = await dependencies.getSuggestedParams(context.algod);
+      const suggestedParams = await dependencies.getSuggestedParams(
+        createPactBuilderAlgodClient()
+      );
       rawTxns = dependencies.buildAddLiquidityTxs(state.pool, {
         liquidityAddition,
         address: input.userAddress,

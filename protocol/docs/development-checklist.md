@@ -16,12 +16,15 @@ Status legend:
 
 ## 2) Caching Design and Redis Rollout (Planned Next Phase)
 
-- [ ] Design cache key strategy per endpoint/protocol.
-- [ ] Define TTL policy per protocol based on update frequency.
+Shared Redis with CompX/Orbital (`compx-v2/docs/redis-usage.md`): CompX uses DB 0 by default with **no** global prefix and generic keys (`market:*`, `asset:*`, `app:state:*`, `oracle:price:*`, `prices:aggregated:v1`, `lp:price:*`, `bull:orbital-oracle-price-update:*`). Isolation for Canix: **dedicated DB index** in `REDIS_URL` (e.g. `/6`) **plus** `canix402:` key prefix. Never reuse CompX prefixes; prefer `SCAN` over `KEYS`; never `FLUSHALL` on the shared instance.
+
+- [ ] Design cache key strategy per endpoint/protocol (`canix402:opportunities:…` first).
+- [ ] Define TTL policy per protocol based on update frequency (start with env-tunable short TTL for aggregated opportunities).
 - [ ] Add cache read-through path (cache first, fetch on miss).
 - [ ] Add stale-data metadata in responses.
 - [ ] Add invalidation/refresh strategy (time-based and on-demand options).
-- [ ] Add local/dev toggle to run with cache disabled.
+- [ ] Add local/dev toggle to run with cache disabled (`REDIS_URL` unset or explicit flag).
+- [ ] Document chosen Redis DB index + `canix402:` prefix in Canix deployment docs (and note in CompX runbook).
 
 ## 3) Testing and Quality Gates
 
@@ -55,6 +58,11 @@ Status legend:
 - [ ] Add monitoring.
   - [ ] Track x402 requests, failed payments, successful settlements, referrers, and user agents.
   - [ ] Log which directories/agents send traffic.
+- [ ] Website/docs catch-up after protocol API review (deferred from first tranche):
+  - [ ] Refresh `website/src/data/discovery.snapshot.json` (include strategies; update execution-quote description).
+  - [ ] Refresh opportunity samples with `executionShapes`, `inputHints`, `entryRequirements`, `capacity`.
+  - [ ] Add Réti to website protocol lists (`protocols.astro`, `config.ts`, llms generator).
+  - [ ] Document strategies + `/positions` + `/execution/quotes` samples the way opportunities are shown today.
 
 ## 7) Wallet Positions Coverage (`GET /positions`)
 
@@ -86,6 +94,12 @@ Canix should become the validation, discovery, transaction-generation, execution
 - [x] Attach ordered enter-only `executionShapes` (+ `executionReady`, `requiredAssetIds`, typed `inputHints`) to every opportunity response; empty array means research-only.
 - [x] Surface Tinyman tALGO and Folks xALGO liquid staking as `opportunityType: "staking"` rows (consensus APR from Foundation bonus + fee share; Tinyman 8% fee / Folks `ConsensusState.fee`).
 - [x] Attach `compatibleExitShapeKeys` / `compatibleManageShapeKeys` on position records.
+- [ ] Attach Réti + Haystack `compatibleExitShapes` on opportunities (`resolveExitSteps` today only covers Tinyman/Folks/Myth; positions already expose exit keys).
+- [ ] API hygiene follow-ups (deferred from protocol API review first tranche):
+  - [ ] Implement or remove dead `includeInactive` query param on opportunity routes.
+  - [ ] Map Myth/Haystack/Réti adapter errors to 502 in global handler (parity with other adapters).
+  - [ ] Add strategy error codes to typed catalog + discovery `errorCatalog`.
+  - [ ] Align base URL defaults and amount display (`amountUsdc` + `amountMicro`) across discovery/Caddy.
 - [x] Break `POST /execution/quotes` to batch `{ quotes: [{ shapeKey, input }, ...] }` → `data: ExecutableQuote[]` (flat 0.1 USDC per request; correlated `quoteIndex`/`shapeKey` on failure; no group merging).
 - [~] Dork.fi production lending live verification via gated `test:dorkfi-production` (`X402_DORKFI_EXECUTION_LIVE=1`; excluded from `test:ci`) currently fails at submit with an Algod incomplete-group rejection.
 

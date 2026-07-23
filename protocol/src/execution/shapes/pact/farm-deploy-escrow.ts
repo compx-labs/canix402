@@ -18,7 +18,7 @@ import {
   resolveFarmAppIdFromInput,
   resolvePactFarmState
 } from "./farm-state.js";
-import { normalizeSuggestedParamsForPact } from "./pool-state.js";
+import { createPactBuilderAlgodClient, normalizeSuggestedParamsForPact } from "./pool-state.js";
 
 const MIN_ALGO_FEE = 1000n;
 /** Gas-station fund payment that bootstraps escrow creation. */
@@ -60,7 +60,7 @@ function resolveDependencies(): PactFarmDeployEscrowDependencies {
     resolveFarmState: resolvePactFarmState,
     prepareDeployEscrowTxs: async (farm, sender) =>
       (await farm.prepareDeployEscrowTxs(sender)) as unknown as algosdk.Transaction[],
-    getSuggestedParams: async (algod) => algod.getTransactionParams().do(),
+    getSuggestedParams: async () => createPactBuilderAlgodClient().getTransactionParams().do(),
     ...dependencyOverrides
   };
 }
@@ -139,7 +139,7 @@ export const pactFarmDeployEscrowShape: TransactionShapeSpec<
     }
 
     const suggestedParams = normalizeSuggestedParamsForPact(
-      await dependencies.getSuggestedParams(context.algod)
+      await dependencies.getSuggestedParams(createPactBuilderAlgodClient())
     );
     state.farm.setSuggestedParams(suggestedParams as never);
 

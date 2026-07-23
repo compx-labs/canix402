@@ -11,6 +11,8 @@ import { InvalidShapeInputError, ShapeStateError } from "../../errors.js";
 import type { ExecutionNetwork } from "../../types.js";
 import { parseAddress, parseAssetId, parseBaseUnitAmount } from "./parse-input.js";
 import {
+  addressToStringForPact,
+  createPactBuilderAlgodClient,
   createPactCompatibleAlgodClient,
   normalizeSuggestedParamsForPact
 } from "./pool-state.js";
@@ -85,8 +87,11 @@ export async function resolvePactFarmState(params: {
   escrowAppId?: number;
 }): Promise<PactFarmState> {
   const dependencies = resolveDependencies();
-  const { network, userAddress, farmAppId } = params;
-  const pactAlgod = createPactCompatibleAlgodClient(params.algod);
+  const { network, farmAppId } = params;
+  const userAddress = addressToStringForPact(params.userAddress, "user");
+  // Use Pact's nested algosdk client so application.creator (escrow userAddress)
+  // is a plain string, not an algosdk v3 Address object.
+  const pactAlgod = createPactCompatibleAlgodClient(createPactBuilderAlgodClient());
 
   dependencies.ensureGasStation(network, pactAlgod);
 
@@ -110,7 +115,7 @@ export async function resolvePactFarmState(params: {
   }
 
   const suggestedParams = normalizeSuggestedParamsForPact(
-    await dependencies.getSuggestedParams(params.algod)
+    await dependencies.getSuggestedParams(pactAlgod)
   );
   farm.setSuggestedParams(suggestedParams as never);
 
@@ -131,13 +136,14 @@ export async function resolvePactFarmState(params: {
         cause: error
       });
     }
-    if (escrow.userAddress !== userAddress) {
+    const escrowCreator = addressToStringForPact(escrow.userAddress, "farmEscrow.userAddress");
+    if (escrowCreator !== userAddress) {
       throw new ShapeStateError(
         "Provided escrowAppId was not created by the supplied userAddress.",
         {
           details: {
             escrowAppId: params.escrowAppId,
-            escrowCreator: escrow.userAddress,
+            escrowCreator,
             userAddress
           }
         }
@@ -155,6 +161,16 @@ export async function resolvePactFarmState(params: {
   }
 
   if (escrow !== null) {
+    // Pact builders read these fields into v2 decodeAddress; coerce any leftover
+    // Address objects from mixed algosdk copies before buildStakeTxs / update.
+    (escrow as { userAddress: string }).userAddress = addressToStringForPact(
+      escrow.userAddress,
+      "farmEscrow.userAddress"
+    );
+    (escrow as { address: string }).address = addressToStringForPact(
+      escrow.address,
+      "farmEscrow.address"
+    );
     escrow.setSuggestedParams(suggestedParams as never);
   }
 
@@ -186,7 +202,10 @@ export async function resolvePactFarmState(params: {
     userStaked,
     userLpBalance,
     escrowAppId: escrow?.appId ?? null,
-    escrowAddress: escrow?.address ?? null,
+    escrowAddress:
+      escrow === null
+        ? null
+        : addressToStringForPact(escrow.address, "farmEscrow.address"),
     hasEscrow: escrow !== null,
     farm,
     escrow

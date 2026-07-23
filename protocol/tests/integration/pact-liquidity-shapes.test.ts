@@ -14,6 +14,7 @@ import {
 } from "../../src/execution/index.js";
 import type { SerializedTransaction, ShapeBuildContext } from "../../src/execution/index.js";
 import {
+  addressToStringForPact,
   createPactCompatibleAlgodClient,
   mapAssetsToPactAmounts,
   pactAddLiquidityTwoSidedShape,
@@ -353,6 +354,43 @@ test("Pact algod compatibility adapter normalizes algosdk v3 app state for SDK p
   assert.equal(pool.feeBps, 30);
   assert.equal(pool.state.totalPrimary, 5_000_000);
   assert.equal(pool.state.totalSecondary, 2_500_000);
+});
+
+test("addressToStringForPact coerces algosdk v3 Address for Pact v2 builders", () => {
+  const v3Address = algosdk.getApplicationAddress(POOL_APP_ID);
+  assert.equal(typeof v3Address, "object");
+
+  const asString = addressToStringForPact(v3Address, "pool.escrowAddress");
+  assert.equal(asString, v3Address.toString());
+  assert.match(asString, /^[A-Z2-7]{58}$/);
+
+  assert.equal(addressToStringForPact(asString, "user"), asString);
+  assert.throws(
+    () => addressToStringForPact({ not: "an-address" }, "farmEscrow.address"),
+    ShapeStateError
+  );
+});
+
+test("Pact algod compatibility adapter stringifies v3 application.creator", async () => {
+  const creatorAddress = algosdk.getApplicationAddress(4_200_001);
+  const algod = {
+    getApplicationByID: () => ({
+      do: async () => ({
+        id: BigInt(4_200_001),
+        params: {
+          creator: creatorAddress,
+          globalState: []
+        }
+      })
+    })
+  } as unknown as Algodv2;
+
+  const compatible = createPactCompatibleAlgodClient(algod);
+  const app = await compatible.getApplicationByID(4_200_001).do();
+  const creator = (app as { params: { creator: unknown } }).params.creator;
+
+  assert.equal(typeof creator, "string");
+  assert.equal(creator, creatorAddress.toString());
 });
 
 test("add shape builds real Pact mainnet SDK transaction group", async () => {
