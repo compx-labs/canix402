@@ -5,6 +5,7 @@ import { folksFinanceShapes } from "./shapes/folks-finance/index.js";
 import { haystackShapes } from "./shapes/haystack/index.js";
 import { mythFinanceShapes } from "./shapes/myth-finance/index.js";
 import { pactShapes } from "./shapes/pact/index.js";
+import { retiShapes } from "./shapes/reti/index.js";
 import { tinymanShapes } from "./shapes/tinyman/index.js";
 
 export * from "./types.js";
@@ -46,6 +47,18 @@ export type {
   HaystackClaimRewardsInput,
   HaystackStakingState
 } from "./shapes/haystack/index.js";
+export {
+  retiStakeAlgoShape,
+  retiUnstakeAlgoShape,
+  retiShapes,
+  resolveRetiStakeState
+} from "./shapes/reti/index.js";
+export type {
+  RetiStakeAlgoInput,
+  RetiUnstakeAlgoInput,
+  RetiStakeState,
+  RetiUnstakeState
+} from "./shapes/reti/index.js";
 
 /**
  * Build a registry pre-loaded with every verified transaction shape. Callers
@@ -61,7 +74,8 @@ export function createExecutionRegistry(): TransactionShapeRegistry {
     ...compxShapes,
     ...dorkfiShapes,
     ...mythFinanceShapes,
-    ...haystackShapes
+    ...haystackShapes,
+    ...retiShapes
   ]) {
     registry.register(shape);
   }

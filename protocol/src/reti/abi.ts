@@ -136,7 +136,7 @@ async function simulateMethodCall(params: {
   algod: Algodv2;
   appId: number;
   method: algosdk.ABIMethod;
-  methodArgs?: unknown[];
+  methodArgs?: algosdk.ABIArgument[];
   sender?: string;
 }): Promise<unknown> {
   const sender = params.sender ?? RETI_SIMULATE_SENDER;

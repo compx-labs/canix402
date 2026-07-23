@@ -23,6 +23,7 @@ const TINYMAN_FARM_CLAIM = "mainnet:tinyman:staking-v1:farm:claimRewards";
 const FOLKS_UNSTAKE_IMMEDIATE =
   "mainnet:folks-finance:xalgo-v1:unstake:immediate";
 const MYTH_REDEEM_LST = "mainnet:myth-finance:dualstake-v1:redeem:lst";
+const RETI_UNSTAKE_ALGO = "mainnet:reti:v1:unstake:algo";
 
 export function attachExecutionShapesToPosition(
   record: PositionMarketRecord,
@@ -137,6 +138,15 @@ function exclusiveLiquidStakeShapes(
       record.opportunityId.startsWith("myth-farm-"))
   ) {
     return { exitKeys: [MYTH_REDEEM_LST], manageKeys: [] };
+  }
+
+  if (
+    record.protocol === "reti" &&
+    record.positionType === "staked" &&
+    typeof record.opportunityId === "string" &&
+    record.opportunityId.startsWith("reti-staking-")
+  ) {
+    return { exitKeys: [RETI_UNSTAKE_ALGO], manageKeys: [] };
   }
 
   return null;

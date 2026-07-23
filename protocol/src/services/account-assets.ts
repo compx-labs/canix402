@@ -20,6 +20,12 @@ interface AccountInformation {
   assets?: AccountAssetHolding[];
 }
 
+export interface AccountHoldings {
+  heldAssetIds: Set<number>;
+  /** Base-unit balances keyed by asset id (0 = ALGO). */
+  balances: Map<number, bigint>;
+}
+
 interface AccountAssetsDependencies {
   createAlgodClient: () => Algodv2;
   fetchAccountInformation: (
@@ -37,6 +43,11 @@ export function setAccountAssetsDependenciesForTests(
 }
 
 export async function fetchHeldAssetIds(address: string): Promise<Set<number>> {
+  const holdings = await fetchAccountHoldings(address);
+  return holdings.heldAssetIds;
+}
+
+export async function fetchAccountHoldings(address: string): Promise<AccountHoldings> {
   const dependencies = resolveDependencies();
 
   try {
@@ -44,18 +55,24 @@ export async function fetchHeldAssetIds(address: string): Promise<Set<number>> {
     const accountInfo = await dependencies.fetchAccountInformation(client, address);
 
     const heldAssetIds = new Set<number>();
+    const balances = new Map<number, bigint>();
 
-    if (toBigInt(accountInfo.amount) > 0n) {
+    const algoBalance = toBigInt(accountInfo.amount);
+    balances.set(0, algoBalance);
+    if (algoBalance > 0n) {
       heldAssetIds.add(0);
     }
 
     for (const holding of accountInfo.assets ?? []) {
-      if (toBigInt(holding.amount) > 0n) {
-        heldAssetIds.add(Number(holding.assetId));
+      const assetId = Number(holding.assetId);
+      const amount = toBigInt(holding.amount);
+      balances.set(assetId, amount);
+      if (amount > 0n) {
+        heldAssetIds.add(assetId);
       }
     }
 
-    return heldAssetIds;
+    return { heldAssetIds, balances };
   } catch (error) {
     if (error instanceof AccountAssetsError) {
       throw error;

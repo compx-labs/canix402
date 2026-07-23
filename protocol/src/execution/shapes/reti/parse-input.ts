@@ -37,11 +37,6 @@ export function parseRetiPositiveAmount(value: unknown, field = "amount"): bigin
 }
 
 export function parseRetiValidatorId(value: unknown): number {
-  const raw =
-    typeof value === "object" && value !== null
-      ? undefined
-      : value;
-  void raw;
   const numeric =
     typeof value === "number"
       ? value

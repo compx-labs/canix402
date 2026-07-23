@@ -36,6 +36,7 @@ const FOLKS_UNSTAKE_IMMEDIATE =
   "mainnet:folks-finance:xalgo-v1:unstake:immediate";
 const MYTH_MINT_LST = "mainnet:myth-finance:dualstake-v1:mint:lst";
 const MYTH_REDEEM_LST = "mainnet:myth-finance:dualstake-v1:redeem:lst";
+const RETI_STAKE_ALGO = "mainnet:reti:v1:stake:algo";
 
 type ShapeStep = {
   shapeKey: string;
@@ -105,6 +106,11 @@ const FOLKS_XALGO_STAKING_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
 /** Exclusive enter path for Myth dualSTAKE mint (staking + passive farms). */
 const MYTH_DUALSTAKE_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
   { shapeKey: MYTH_MINT_LST, order: 0 }
+];
+
+/** Exclusive enter path for Réti validator stake. */
+const RETI_STAKING_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: RETI_STAKE_ALGO, order: 0 }
 ];
 
 /** Liquid-staking exit path for Tinyman tALGO burn. */
@@ -248,6 +254,12 @@ function orderEnterShapes(
 
   if (isMythDualStakeOpportunity(record)) {
     return orderBySteps(shapes, MYTH_DUALSTAKE_ENTER_STEPS, {
+      exclusive: true
+    });
+  }
+
+  if (isRetiStakingOpportunity(record)) {
+    return orderBySteps(shapes, RETI_STAKING_ENTER_STEPS, {
       exclusive: true
     });
   }
@@ -445,6 +457,18 @@ function buildInputHints(
     return hints;
   }
 
+  if (record.protocol === "reti") {
+    const validatorId = parseTrailingAppId(record.opportunityId, "reti-staking-");
+    if (validatorId !== null) {
+      hints.validatorId = validatorId;
+    }
+    if (assetIds[0] !== undefined) {
+      hints.assetId = assetIds[0];
+      hints.depositAssetId = assetIds[0];
+    }
+    return hints;
+  }
+
   if (record.protocol === "tinyman" || record.protocol === "pact") {
     if (
       record.protocol === "tinyman" &&
@@ -606,6 +630,14 @@ function isMythDualStakeOpportunity(record: OpportunityMarketRecord): boolean {
     (record.opportunityType === "staking" || record.opportunityType === "farm") &&
     (record.opportunityId.startsWith("myth-staking-") ||
       record.opportunityId.startsWith("myth-farm-"))
+  );
+}
+
+function isRetiStakingOpportunity(record: OpportunityMarketRecord): boolean {
+  return (
+    record.protocol === "reti" &&
+    record.opportunityType === "staking" &&
+    record.opportunityId.startsWith("reti-staking-")
   );
 }
 

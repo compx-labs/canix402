@@ -1,7 +1,7 @@
 import algosdk from "algosdk";
 import { FastifyInstance } from "fastify";
 
-import { fetchHeldAssetIds } from "../services/account-assets.js";
+import { fetchAccountHoldings } from "../services/account-assets.js";
 import {
   fetchOpportunitiesForProtocols,
   SUPPORTED_AGGREGATE_PROTOCOLS
@@ -155,12 +155,12 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
         });
       }
 
-      const heldAssetIds = await fetchHeldAssetIds(address);
+      const holdings = await fetchAccountHoldings(address);
       const data = await fetchOpportunitiesForProtocols(SUPPORTED_AGGREGATE_PROTOCOLS);
 
       const personalized = selectPersonalizedOpportunities(
         data,
-        heldAssetIds,
+        holdings,
         offset + limit
       ).slice(offset, offset + limit);
 
@@ -172,7 +172,7 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
           includeInactive,
           paymentRequired: true,
           address,
-          heldAssetCount: heldAssetIds.size
+          heldAssetCount: holdings.heldAssetIds.size
         }
       });
     }

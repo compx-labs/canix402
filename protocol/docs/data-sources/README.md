@@ -11,6 +11,7 @@ This section tracks protocol-specific source contracts and normalization rules.
 - [Dork.fi](dorkfi.md)
 - [Myth Finance](myth-finance.md)
 - [Haystack](haystack.md)
+- [Réti](reti.md)
 
 ## Planned Protocols
 

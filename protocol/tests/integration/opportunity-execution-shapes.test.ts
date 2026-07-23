@@ -556,3 +556,49 @@ test("Myth farm attaches mint enter and redeem exit", () => {
     "mainnet:myth-finance:dualstake-v1:redeem:lst"
   );
 });
+
+test("Réti staking attaches stake enter with validatorId hint", () => {
+  const record: OpportunityMarketRecord = {
+    protocol: "reti",
+    opportunityType: "staking",
+    opportunityId: "reti-staking-12",
+    assetPair: "ALGO",
+    assetIds: [0],
+    apy: 8.5,
+    yieldBasis: "apr",
+    tvlUsd: 50_000,
+    sourceTimestamp: "2026-07-23T00:00:00.000Z",
+    fetchedAt: "2026-07-23T00:00:00.000Z",
+    entryRequirements: {
+      minAmount: { assetId: 0, amount: "1000000000" },
+      eligibilityFullyCheckable: true
+    },
+    capacity: {
+      stakerSlotsRemaining: 20,
+      algoRoomMicroAlgos: "1000000000",
+      acceptingStake: true
+    }
+  };
+
+  const enriched = attachExecutionShapesToOpportunity(record, executionRegistry);
+  assert.equal(enriched.executionReady, true);
+  assert.equal(enriched.executionShapes.length, 1);
+  assert.equal(enriched.executionShapes[0]?.shapeKey, "mainnet:reti:v1:stake:algo");
+  assert.equal(enriched.executionShapes[0]?.inputHints?.validatorId, 12);
+  assert.deepEqual(enriched.executionShapes[0]?.requiredAssetIds, [0]);
+  assert.deepEqual(enriched.compatibleExitShapes, []);
+
+  const position = attachExecutionShapesToPosition({
+    protocol: "reti",
+    positionType: "staked",
+    positionId: "reti:staked:12:99",
+    opportunityId: "reti-staking-12",
+    assetId: 0,
+    assetSymbol: "ALGO",
+    amountRaw: "2000000000",
+    amount: "2000",
+    usdValue: 400,
+    inputHints: { validatorId: 12, poolAppId: 99, assetId: 0 }
+  });
+  assert.deepEqual(position.compatibleExitShapeKeys, ["mainnet:reti:v1:unstake:algo"]);
+});

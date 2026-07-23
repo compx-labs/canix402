@@ -1,9 +1,8 @@
-import { Algodv2 } from "algosdk";
+import algosdk, { Algodv2 } from "algosdk";
 
 import { ShapeStateError } from "../../errors.js";
 import type { ExecutionNetwork } from "../../types.js";
 import {
-  createRetiAlgodClient,
   retiGetCurMaxStakePerPool,
   retiGetPools,
   retiGetValidatorConfig,
@@ -15,7 +14,6 @@ import {
 import {
   RETI_GATING_TYPE_ASSET_ID,
   RETI_GATING_TYPE_NONE,
-  RETI_MAX_STAKERS_PER_POOL,
   RETI_VALIDATOR_REGISTRY_APP_ID
 } from "../../../reti/constants.js";
 import { buildCapacity, buildEntryRequirements } from "../../../adapters/reti.js";
@@ -54,7 +52,6 @@ export interface RetiStakeStateDependencies {
     address: string,
     assetId: number
   ) => Promise<boolean>;
-  getApplicationAddress: (appId: number) => string;
   getStatusRound: (algod: Algodv2) => Promise<bigint>;
 }
 
@@ -74,10 +71,6 @@ function resolveDependencies(): RetiStakeStateDependencies {
     getCurMaxStakePerPool: retiGetCurMaxStakePerPool,
     getAccountAlgoBalance: defaultGetAccountAlgoBalance,
     isAssetOptedIn: defaultIsAssetOptedIn,
-    getApplicationAddress: (appId) => {
-      const algosdk = require("algosdk") as typeof import("algosdk");
-      return algosdk.getApplicationAddress(appId).toString();
-    },
     getStatusRound: async (algod) => {
       const status = await algod.status().do();
       return BigInt(status.lastRound ?? 0);
@@ -85,9 +78,6 @@ function resolveDependencies(): RetiStakeStateDependencies {
     ...dependencyOverrides
   };
 }
-
-// Avoid require — use static import
-import algosdk from "algosdk";
 
 async function defaultGetAccountAlgoBalance(
   algod: Algodv2,
@@ -170,9 +160,7 @@ export async function resolveRetiStakeState(params: {
 
   const gateAssetIds =
     config.entryGatingType === RETI_GATING_TYPE_ASSET_ID
-      ? config.entryGatingAssets
-          .filter((id) => id > 0n)
-          .map((id) => Number(id))
+      ? config.entryGatingAssets.filter((id) => id > 0n).map((id) => Number(id))
       : [];
 
   return {
@@ -204,7 +192,12 @@ export function assertStakeEligibility(params: {
   if (amount < minEntry) {
     throw new ShapeStateError(
       `Stake amount ${amount.toString()} is below validator minEntryStake ${minEntry.toString()}.`,
-      { details: { amount: amount.toString(), minEntryStake: minEntry.toString() } }
+      {
+        details: {
+          amount: amount.toString(),
+          minEntryStake: minEntry.toString()
+        }
+      }
     );
   }
 
@@ -229,7 +222,6 @@ export function assertStakeEligibility(params: {
     return;
   }
 
-  // Creator / NFD gates: valueToVerify must be non-zero (asset or nfd id).
   if (valueToVerify <= 0n) {
     throw new ShapeStateError(
       "valueToVerify is required for this Réti validator's entry gate.",
@@ -253,5 +245,3 @@ function readRegistryAppId(): number {
   }
   return RETI_VALIDATOR_REGISTRY_APP_ID;
 }
-
-export { createRetiAlgodClient, RETI_MAX_STAKERS_PER_POOL };
