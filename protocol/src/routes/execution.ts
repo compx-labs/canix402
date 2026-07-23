@@ -9,7 +9,8 @@ import {
   ShapeValidationError,
   compileExecutableQuote,
   createExecutionAlgodClient,
-  executionRegistry
+  executionRegistry,
+  listExecutionShapeCatalog
 } from "../execution/index.js";
 import { ApiError, ApiSuccess } from "../types/index.js";
 import {
@@ -17,9 +18,38 @@ import {
   ExecutionQuoteRequestSchema,
   ExecutionQuoteResponseSchema
 } from "../types/execution-quote-schema.js";
+import {
+  ExecutionShapeCatalogEntryDto,
+  ExecutionShapesListResponseSchema
+} from "../types/execution-shapes-schema.js";
 import type { ExecutableQuote } from "../execution/types.js";
 
 export function registerExecutionRoutes(app: FastifyInstance) {
+  app.get<{
+    Reply: ApiSuccess<ExecutionShapeCatalogEntryDto[]>;
+  }>(
+    "/execution/shapes",
+    {
+      schema: {
+        response: {
+          200: ExecutionShapesListResponseSchema
+        }
+      }
+    },
+    async (_request, reply) => {
+      const data = listExecutionShapeCatalog(executionRegistry);
+      return reply.send({
+        data,
+        meta: {
+          paymentRequired: false,
+          shapeCount: data.length,
+          note:
+            "Catalog metadata only. Compile unsigned groups via paid POST /execution/quotes."
+        }
+      });
+    }
+  );
+
   app.post<{
     Body: ExecutionQuoteRequest;
     Reply: ApiSuccess<ExecutableQuote[]> | ApiError;

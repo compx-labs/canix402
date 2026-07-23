@@ -277,7 +277,7 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
     "canix_get_execution_quote",
     {
       description:
-        "Compile one or more unsigned Algorand transaction groups for verified execution shapes (POST /execution/quotes). Pass quotes: [{ shapeKey, input }, ...] (min 1). Response data is an ExecutableQuote array in the same order — groups are never merged. Paid: flat ~0.10 USDC via x402 per request (not per quote item), so batching Folks setup+deposit or multiple opportunities is one payment. On failure, error.details includes quoteIndex and shapeKey. Canix does not sign or submit transactions. Prefer executionShapes (enter) and compatibleExitShapes (when present) from opportunity responses; otherwise use positions or canix_list_execution_shapes for exit/manage shapes.",
+        "Compile one or more unsigned Algorand transaction groups for verified execution shapes (POST /execution/quotes). Pass quotes: [{ shapeKey, input }, ...] (min 1). Required input fields vary by shapeKey — call canix_list_execution_shapes and use each shape's requiredInputs (userAddress is always required). Response data is an ExecutableQuote array in the same order — groups are never merged. Paid: flat ~0.10 USDC via x402 per request (not per quote item). On failure, error.details includes quoteIndex and shapeKey. Canix does not sign or submit transactions.",
       inputSchema: {
         quotes: z
           .array(
@@ -285,21 +285,16 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
               shapeKey: z.string().min(1),
               input: z
                 .object({
-                  userAddress: z.string().min(1),
-                  // LP fields (Tinyman/Pact) - validated per shape by the API
-                  assetAId: z.union([z.number().int().min(0), z.string()]).optional(),
-                  assetAAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
-                  assetBId: z.union([z.number().int().min(0), z.string()]).optional(),
-                  assetBAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
-                  poolTokenAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
-                  maxSlippageBps: z.union([z.number().int().min(0).max(10_000), z.string()]).optional(),
-                  poolId: z.string().min(1).optional(),
-                  // Single-token staking / lending fields (CompX, Haystack, Dork.fi, Folks)
-                  amount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
-                  poolAppId: z.union([z.number().int().min(1), z.string()]).optional(),
-                  marketAppId: z.union([z.number().int().min(1), z.string()]).optional()
+                  userAddress: z.string().min(1)
                 })
-                .passthrough()
+                .catchall(
+                  z.union([
+                    z.string(),
+                    z.number(),
+                    z.boolean(),
+                    z.null()
+                  ])
+                )
             })
           )
           .min(1),

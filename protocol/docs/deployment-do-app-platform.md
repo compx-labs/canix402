@@ -50,6 +50,18 @@ The **protocol** (internal API) component should also set
 discovery/OpenAPI metadata matches the Caddy gate (see
 [`protocol/.env.example`](../.env.example)).
 
+### Redis (opportunity cache)
+
+Optional. When `REDIS_URL` is set on the **protocol** component, aggregated
+opportunity adapters are cached with a short TTL (`OPPORTUNITIES_CACHE_TTL_SEC`,
+default 45s). Isolation from CompX/Orbital on a shared Redis instance:
+
+- Dedicated DB index in the URL (e.g. `redis://:password@host:6379/6`)
+- All keys use the `canix402:` prefix (e.g. `canix402:opportunities:protocol:mainnet:tinyman`)
+- Leave `REDIS_URL` unset or set `OPPORTUNITIES_CACHE_DISABLED=1` for local/dev without cache
+
+Never `FLUSHALL` on a shared Redis instance; `FLUSHDB` only against Canix’s DB.
+
 `UPSTREAM_API` must use the protocol component's **internal** hostname on App
 Platform (for example `http://canix402-protocol:3000`), not `localhost`.
 

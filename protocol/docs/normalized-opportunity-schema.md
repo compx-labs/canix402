@@ -68,7 +68,7 @@ Liquid-staking opportunities may also list known exits on `compatibleExitShapes`
 (e.g. Folks xALGO unstake, Tinyman tALGO burn). For other protocols, or when
 `compatibleExitShapes` is empty, agents discover exits via
 `compatibleExitShapeKeys` / `compatibleManageShapeKeys` on positions, or via
-`canix_list_execution_shapes`. Manage shapes are not attached on opportunities.
+`canix_list_execution_shapes` (backed by free `GET /execution/shapes`). Manage shapes are not attached on opportunities.
 
 ### Empty / research-only contract
 

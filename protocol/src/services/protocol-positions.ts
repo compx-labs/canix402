@@ -492,6 +492,53 @@ function assetFallback(value: unknown): string {
   return parsed === null ? "unknown" : parsed === 0 ? "ALGO" : `ASSET-${parsed}`;
 }
 
+interface PactFarmLike {
+  getUserStateFromAccountInfo: (
+    accountInfo: unknown
+  ) => { staked: number } | null | undefined;
+  estimateAccruedRewards: (
+    now: Date,
+    // Pact SDK requires FarmUserState; mocks only need `{ staked }`.
+    userState: { staked: number } & Record<string, unknown>
+  ) => Record<number, number>;
+  state: {
+    stakedAsset: { index: number };
+    rewardAssets: Array<{
+      index: number;
+      unitName?: string | null;
+      name?: string | null;
+    }>;
+    updatedAt: Date;
+  };
+}
+
+interface PactPositionCollectorDependencies {
+  fetchFarm: (algod: Algodv2, farmAppId: number) => Promise<PactFarmLike>;
+  fetchRewardUsdPrices: (
+    assetIds: number[]
+  ) => Promise<Record<string, number>>;
+}
+
+let pactPositionCollectorOverrides:
+  | Partial<PactPositionCollectorDependencies>
+  | undefined;
+
+export function setPactPositionCollectorDependenciesForTests(
+  overrides?: Partial<PactPositionCollectorDependencies>
+): void {
+  pactPositionCollectorOverrides = overrides;
+  pactPositionCatalogCache = undefined;
+  pactPositionCatalogInFlight = undefined;
+}
+
+function resolvePactFetchFarm(): PactPositionCollectorDependencies["fetchFarm"] {
+  return (
+    pactPositionCollectorOverrides?.fetchFarm ??
+    ((algod, farmAppId) =>
+      fetchPactFarmFromState(algod, farmAppId) as unknown as Promise<PactFarmLike>)
+  );
+}
+
 export async function collectPactPositions(
   _address: string,
   snapshot: WalletSnapshot,
@@ -502,6 +549,8 @@ export async function collectPactPositions(
   const localAppIds = getWalletLocalAppIds(snapshot);
   const positions: PositionMarketRecord[] = [];
   const warnings: string[] = [];
+  const rewardDecimalsByAssetId = new Map<number, number>();
+  const fetchFarm = resolvePactFetchFarm();
 
   for (const pool of catalog.pools) {
     const liquidityAssetId = parseSafePositiveInteger(
@@ -551,7 +600,7 @@ export async function collectPactPositions(
   for (const record of farmCandidates) {
     const farmAppId = parseSafePositiveInteger(record.on_chain_id)!;
     try {
-      const farm = await fetchPactFarmFromState(algod, farmAppId);
+      const farm = await fetchFarm(algod, farmAppId);
       const userState = farm.getUserStateFromAccountInfo(snapshot.accountInfo);
       if (!userState || userState.staked <= 0) {
         continue;
@@ -599,6 +648,7 @@ export async function collectPactPositions(
           (await resolveAssetDecimals([rewardAsset.index], algod)).get(
             rewardAsset.index
           ) ?? 0;
+        rewardDecimalsByAssetId.set(rewardAsset.index, rewardDecimals);
         positions.push({
           protocol: "pact",
           positionType: "reward",
@@ -610,7 +660,7 @@ export async function collectPactPositions(
           amount: formatUnits(rewardRaw, rewardDecimals),
           usdValue: null,
           sourceTimestamp: farm.state.updatedAt.toISOString(),
-          caveats: ["The Pact SDK does not provide reward-asset USD prices."]
+          caveats: ["Unclaimed Pact farm reward."]
         });
       }
     } catch (error) {
@@ -618,7 +668,53 @@ export async function collectPactPositions(
     }
   }
 
-  const sourceFailures = warnings.length;
+  const farmReadFailures = warnings.length;
+  const pendingRewardAssetIds = [
+    ...new Set(
+      positions
+        .filter(
+          (position) =>
+            position.positionType === "reward" &&
+            position.assetId !== null &&
+            BigInt(position.amountRaw) > 0n
+        )
+        .map((position) => position.assetId as number)
+    )
+  ];
+
+  if (pendingRewardAssetIds.length > 0) {
+    try {
+      const rewardPrices = await fetchPactFarmRewardUsdPrices(
+        pendingRewardAssetIds
+      );
+      for (const position of positions) {
+        if (
+          position.positionType !== "reward" ||
+          position.assetId === null ||
+          position.usdValue !== null
+        ) {
+          continue;
+        }
+        const decimals =
+          rewardDecimalsByAssetId.get(position.assetId) ?? 0;
+        const priceUsd = rewardPrices.get(position.assetId) ?? null;
+        position.usdValue = tokenUsdValue(
+          BigInt(position.amountRaw),
+          decimals,
+          priceUsd
+        );
+        if (position.usdValue !== null) {
+          position.notes =
+            "USD valued via CompX/Tinyman asset price (Pact SDK has no reward USD).";
+        }
+      }
+    } catch (error) {
+      warnings.push(
+        `Pact farm reward USD pricing unavailable: ${errorMessage(error)}`
+      );
+    }
+  }
+
   const hasUnpricedRewards = positions.some(
     (position) => position.positionType === "reward" && position.usdValue === null
   );
@@ -630,14 +726,82 @@ export async function collectPactPositions(
     warnings,
     coverage: {
       suppliedUsdComplete:
-        sourceFailures === 0 &&
+        farmReadFailures === 0 &&
         positions
           .filter((position) => position.positionType !== "reward")
           .every((position) => position.usdValue !== null),
       borrowedUsdComplete: true,
-      rewardsUsdComplete: sourceFailures === 0 && !hasUnpricedRewards
+      rewardsUsdComplete: farmReadFailures === 0 && !hasUnpricedRewards
     }
   };
+}
+
+function usableUsdPrice(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? value
+    : null;
+}
+
+async function fetchPactFarmRewardUsdPrices(
+  assetIds: readonly number[]
+): Promise<Map<number, number | null>> {
+  const uniqueIds = [...new Set(assetIds)];
+  const prices = new Map<number, number | null>();
+  for (const assetId of uniqueIds) {
+    prices.set(assetId, null);
+  }
+  if (uniqueIds.length === 0) {
+    return prices;
+  }
+
+  const override = pactPositionCollectorOverrides?.fetchRewardUsdPrices;
+  if (override !== undefined) {
+    const priced = await override(uniqueIds);
+    for (const assetId of uniqueIds) {
+      prices.set(assetId, usableUsdPrice(priced[String(assetId)]));
+    }
+    applyPactRewardPriceFallbacks(prices);
+    return prices;
+  }
+
+  let pricedFromCompX = false;
+  try {
+    const priced = await fetchCompXTokenPrices(uniqueIds);
+    pricedFromCompX = true;
+    for (const assetId of uniqueIds) {
+      prices.set(assetId, usableUsdPrice(priced[String(assetId)]));
+    }
+  } catch {
+    // Fall through to Tinyman for all ids when CompX pricing fails.
+  }
+
+  const missing = uniqueIds.filter((assetId) => prices.get(assetId) === null);
+  if (missing.length > 0) {
+    try {
+      const tinymanPrices = await fetchTinymanAssetUsdPrices(missing);
+      for (const assetId of missing) {
+        if (prices.get(assetId) !== null) {
+          continue;
+        }
+        prices.set(assetId, usableUsdPrice(tinymanPrices.get(assetId)));
+      }
+    } catch (error) {
+      if (!pricedFromCompX) {
+        throw error;
+      }
+    }
+  }
+
+  applyPactRewardPriceFallbacks(prices);
+  return prices;
+}
+
+function applyPactRewardPriceFallbacks(
+  prices: Map<number, number | null>
+): void {
+  if (prices.has(USDC_ASSET_ID) && prices.get(USDC_ASSET_ID) === null) {
+    prices.set(USDC_ASSET_ID, 1);
+  }
 }
 
 interface PactPositionAsset {

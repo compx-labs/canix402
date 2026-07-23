@@ -1,6 +1,5 @@
 import type { McpServer } from "@modelcontextprotocol/server";
 
-import { EXECUTION_SHAPES } from "./lib/execution-shapes.js";
 import type { X402Client } from "./lib/x402-client.js";
 
 export function registerResources(server: McpServer, client: X402Client): void {
@@ -50,16 +49,18 @@ export function registerResources(server: McpServer, client: X402Client): void {
     "execution-shapes",
     "canix://execution-shapes",
     {
-      description: "Curated list of verified execution shape keys for quote compilation",
+      description:
+        "Live verified execution shape catalog (GET /execution/shapes). Metadata only; quotes remain paid.",
       mimeType: "application/json"
     },
     async (uri) => {
+      const body = await client.fetchFree("/execution/shapes");
       return {
         contents: [
           {
             uri: uri.href,
             mimeType: "application/json",
-            text: JSON.stringify({ shapes: EXECUTION_SHAPES }, null, 2)
+            text: JSON.stringify(body, null, 2)
           }
         ]
       };

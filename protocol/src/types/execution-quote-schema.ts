@@ -5,51 +5,59 @@ const BaseUnitAmountSchema = Type.Union([
   Type.String({ minLength: 1 })
 ]);
 
-export const ExecutionQuoteInputSchema = Type.Object({
-  userAddress: Type.String({ minLength: 1 }),
-  // Tinyman LP fields (validated per shape)
-  assetAId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
-  assetAAmount: Type.Optional(BaseUnitAmountSchema),
-  assetBId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
-  assetBAmount: Type.Optional(BaseUnitAmountSchema),
-  poolTokenAmount: Type.Optional(BaseUnitAmountSchema),
-  depositAssetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
-  depositAmount: Type.Optional(BaseUnitAmountSchema),
-  outputAssetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
-  maxSlippageBps: Type.Optional(
-    Type.Union([Type.Integer({ minimum: 0, maximum: 10_000 }), Type.String()])
-  ),
-  // Folks Finance lending fields (validated per shape)
-  assetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
-  assetAmount: Type.Optional(BaseUnitAmountSchema),
-  amount: Type.Optional(BaseUnitAmountSchema),
-  amountDenomination: Type.Optional(
-    Type.Union([
-      Type.Literal("asset"),
-      Type.Literal("fAsset"),
-      Type.Literal("base"),
-      Type.Literal("lst"),
-      Type.Literal("ntoken"),
-      Type.Literal("asa")
-    ])
-  ),
-  escrowAddress: Type.Optional(Type.String({ minLength: 58, maxLength: 58 })),
-  includeOpUp: Type.Optional(Type.Boolean()),
-  // Shared traceability / pool selectors (validated per shape)
-  poolAppId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
-  poolId: Type.Optional(Type.String({ minLength: 1 })),
-  // CompX lending fields (validated per shape)
-  marketAppId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
-  // Tinyman farm fields (validated per shape)
-  programId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
-  programAccount: Type.Optional(Type.String({ minLength: 58, maxLength: 58 })),
-  liquidityAssetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
-  commitAmount: Type.Optional(BaseUnitAmountSchema),
-  requiredAssetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
-  // Pact farm fields (validated per shape)
-  farmAppId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
-  escrowAppId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()]))
-});
+export const ExecutionQuoteInputSchema = Type.Object(
+  {
+    userAddress: Type.String({ minLength: 1 }),
+    // Tinyman LP fields (validated per shape)
+    assetAId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
+    assetAAmount: Type.Optional(BaseUnitAmountSchema),
+    assetBId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
+    assetBAmount: Type.Optional(BaseUnitAmountSchema),
+    poolTokenAmount: Type.Optional(BaseUnitAmountSchema),
+    depositAssetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
+    depositAmount: Type.Optional(BaseUnitAmountSchema),
+    outputAssetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
+    maxSlippageBps: Type.Optional(
+      Type.Union([Type.Integer({ minimum: 0, maximum: 10_000 }), Type.String()])
+    ),
+    // Folks Finance lending fields (validated per shape)
+    assetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
+    assetAmount: Type.Optional(BaseUnitAmountSchema),
+    amount: Type.Optional(BaseUnitAmountSchema),
+    amountDenomination: Type.Optional(
+      Type.Union([
+        Type.Literal("asset"),
+        Type.Literal("fAsset"),
+        Type.Literal("base"),
+        Type.Literal("lst"),
+        Type.Literal("ntoken"),
+        Type.Literal("asa")
+      ])
+    ),
+    escrowAddress: Type.Optional(Type.String({ minLength: 58, maxLength: 58 })),
+    includeOpUp: Type.Optional(Type.Boolean()),
+    // Shared traceability / pool selectors (validated per shape)
+    poolAppId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
+    poolId: Type.Optional(Type.String({ minLength: 1 })),
+    poolAddress: Type.Optional(Type.String({ minLength: 1 })),
+    // CompX lending fields (validated per shape)
+    marketAppId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
+    // Tinyman farm fields (validated per shape)
+    programId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
+    programAccount: Type.Optional(Type.String({ minLength: 58, maxLength: 58 })),
+    liquidityAssetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
+    commitAmount: Type.Optional(BaseUnitAmountSchema),
+    requiredAssetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),
+    // Pact farm fields (validated per shape)
+    farmAppId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
+    escrowAppId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
+    // Myth Finance dualSTAKE
+    appId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
+    // Réti staking
+    validatorId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()]))
+  },
+  { additionalProperties: true }
+);
 
 export const ExecutionQuoteRequestSchema = Type.Object({
   quotes: Type.Array(

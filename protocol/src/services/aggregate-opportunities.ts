@@ -18,6 +18,12 @@ import {
 } from "../adapters/index.js";
 import { OpportunityMarketRecord } from "../types/opportunity.js";
 import type { Protocol } from "../routes/schemas.js";
+import {
+  getOpportunitiesCacheTtlSec,
+  getOrSetCacheJson,
+  isOpportunityCacheEnabled,
+  opportunityCacheKey
+} from "./redis-cache.js";
 
 /**
  * Protocols aggregated by the public `/opportunities` endpoint. The CLI and the
@@ -33,6 +39,8 @@ export const SUPPORTED_AGGREGATE_PROTOCOLS = [
   "haystack",
   "reti"
 ] as const;
+
+const OPPORTUNITY_CACHE_NETWORK = "mainnet";
 
 export interface AggregateFetchResult {
   data: OpportunityMarketRecord[];
@@ -86,6 +94,23 @@ export async function fetchOpportunitiesWithErrors(
 }
 
 export async function fetchOpportunitiesForProtocol(
+  protocol: Protocol
+): Promise<OpportunityMarketRecord[]> {
+  if (!isOpportunityCacheEnabled()) {
+    return fetchOpportunitiesForProtocolUncached(protocol);
+  }
+
+  const key = opportunityCacheKey(OPPORTUNITY_CACHE_NETWORK, protocol);
+  const ttl = getOpportunitiesCacheTtlSec();
+  const { value } = await getOrSetCacheJson(
+    key,
+    () => fetchOpportunitiesForProtocolUncached(protocol),
+    ttl
+  );
+  return value;
+}
+
+async function fetchOpportunitiesForProtocolUncached(
   protocol: Protocol
 ): Promise<OpportunityMarketRecord[]> {
   try {

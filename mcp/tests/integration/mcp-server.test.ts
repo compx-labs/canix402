@@ -116,16 +116,32 @@ test("canix_get_token_prices posts a free pricing request", async () => {
   await server.close();
 });
 
-test("canix_list_execution_shapes does not call network", async () => {
+test("canix_list_execution_shapes fetches the live catalog", async () => {
   let fetchCalls = 0;
+  let fetchedPath = "";
   const server = createCanixMcpServer({
     config: {
       apiUrl: "https://example.test",
       network: "algorand-mainnet"
     },
-    fetchImpl: async () => {
+    fetchImpl: async (input) => {
       fetchCalls += 1;
-      return new Response("{}", { status: 500 });
+      fetchedPath = String(input);
+      return new Response(
+        JSON.stringify({
+          data: [
+            {
+              shapeKey: "mainnet:tinyman:v2:addLiquidity:flexible",
+              requiredInputs: ["userAddress", "assetAId", "assetAAmount"]
+            }
+          ],
+          meta: { paymentRequired: false, shapeCount: 1 }
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" }
+        }
+      );
     }
   });
 
@@ -133,7 +149,8 @@ test("canix_list_execution_shapes does not call network", async () => {
     {},
     {}
   );
-  assert.equal(fetchCalls, 0);
+  assert.equal(fetchCalls, 1);
+  assert.match(fetchedPath, /\/execution\/shapes$/);
   assert.equal(result.isError, undefined);
   const text = result.content.find((part) => part.type === "text");
   assert.ok(text?.text);

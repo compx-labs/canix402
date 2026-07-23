@@ -1,7 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import * as z from "zod";
 
-import { EXECUTION_SHAPES } from "./execution-shapes.js";
 import type { GatewayClient } from "./client.js";
 import { errorResult, jsonResult, paidToolResult } from "./tool-result.js";
 
@@ -159,13 +158,17 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_list_execution_shapes",
     {
       description:
-        "List verified execution shape keys that can be passed to canix_get_execution_quote. Local catalog; free.",
+        "List verified execution shape catalog metadata via GET /execution/shapes (free). Returns shapeKey, requiredInputs, opportunityRole, and docsPath from the live protocol registry. Catalog only — compile unsigned groups with canix_get_execution_quote (paid).",
       inputSchema: {}
     },
-    async () => jsonResult({
-      shapes: EXECUTION_SHAPES,
-      note: "Quotes are compiled via paid POST /execution/quotes (0.10 USDC). Canix returns unsigned transactions only."
-    })
+    async () => {
+      try {
+        const body = await client.fetchFree("/execution/shapes");
+        return jsonResult(body);
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
   );
 
   server.registerTool(
@@ -410,7 +413,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_get_execution_quote",
     {
       description:
-        "Compile one or more unsigned Algorand transaction groups (POST /execution/quotes). Pass quotes: [{ shapeKey, input }, ...]. Response data is an ExecutableQuote array. Paid flat ~0.10 USDC per request (not per item). On failure, error.details includes quoteIndex and shapeKey.",
+        "Compile one or more unsigned Algorand transaction groups (POST /execution/quotes). Pass quotes: [{ shapeKey, input }, ...]. Required input fields vary by shapeKey — call canix_list_execution_shapes and use each shape's requiredInputs (userAddress is always required). Response data is an ExecutableQuote array. Paid flat ~0.10 USDC per request (not per item). On failure, error.details includes quoteIndex and shapeKey.",
       inputSchema: {
         quotes: z
           .array(
@@ -418,21 +421,16 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
               shapeKey: z.string().min(1),
               input: z
                 .object({
-                  userAddress: z.string().min(1),
-                  assetAId: z.union([z.number().int().min(0), z.string()]).optional(),
-                  assetAAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
-                  assetBId: z.union([z.number().int().min(0), z.string()]).optional(),
-                  assetBAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
-                  poolTokenAmount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
-                  maxSlippageBps: z
-                    .union([z.number().int().min(0).max(10_000), z.string()])
-                    .optional(),
-                  poolId: z.string().min(1).optional(),
-                  amount: z.union([z.number().int().min(1), z.string().min(1)]).optional(),
-                  poolAppId: z.union([z.number().int().min(1), z.string()]).optional(),
-                  marketAppId: z.union([z.number().int().min(1), z.string()]).optional()
+                  userAddress: z.string().min(1)
                 })
-                .passthrough()
+                .catchall(
+                  z.union([
+                    z.string(),
+                    z.number(),
+                    z.boolean(),
+                    z.null()
+                  ])
+                )
             })
           )
           .min(1),
@@ -755,18 +753,22 @@ export function registerCanixResources(server: McpServer, client: GatewayClient)
     "execution-shapes",
     "canix://execution-shapes",
     {
-      description: "Curated list of verified execution shape keys for quote compilation",
+      description:
+        "Live verified execution shape catalog (GET /execution/shapes). Metadata only; quotes remain paid.",
       mimeType: "application/json"
     },
-    async (uri) => ({
-      contents: [
-        {
-          uri: uri.href,
-          mimeType: "application/json",
-          text: JSON.stringify({ shapes: EXECUTION_SHAPES }, null, 2)
-        }
-      ]
-    })
+    async (uri) => {
+      const body = await client.fetchFree("/execution/shapes");
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "application/json",
+            text: JSON.stringify(body, null, 2)
+          }
+        ]
+      };
+    }
   );
 }
 

@@ -18,13 +18,13 @@ Status legend:
 
 Shared Redis with CompX/Orbital (`compx-v2/docs/redis-usage.md`): CompX uses DB 0 by default with **no** global prefix and generic keys (`market:*`, `asset:*`, `app:state:*`, `oracle:price:*`, `prices:aggregated:v1`, `lp:price:*`, `bull:orbital-oracle-price-update:*`). Isolation for Canix: **dedicated DB index** in `REDIS_URL` (e.g. `/6`) **plus** `canix402:` key prefix. Never reuse CompX prefixes; prefer `SCAN` over `KEYS`; never `FLUSHALL` on the shared instance.
 
-- [ ] Design cache key strategy per endpoint/protocol (`canix402:opportunities:…` first).
-- [ ] Define TTL policy per protocol based on update frequency (start with env-tunable short TTL for aggregated opportunities).
-- [ ] Add cache read-through path (cache first, fetch on miss).
+- [x] Design cache key strategy per endpoint/protocol (`canix402:opportunities:protocol:{network}:{protocol}` first).
+- [x] Define TTL policy per protocol based on update frequency (start with env-tunable short TTL for aggregated opportunities).
+- [x] Add cache read-through path (cache first, fetch on miss).
 - [ ] Add stale-data metadata in responses.
 - [ ] Add invalidation/refresh strategy (time-based and on-demand options).
-- [ ] Add local/dev toggle to run with cache disabled (`REDIS_URL` unset or explicit flag).
-- [ ] Document chosen Redis DB index + `canix402:` prefix in Canix deployment docs (and note in CompX runbook).
+- [x] Add local/dev toggle to run with cache disabled (`REDIS_URL` unset or `OPPORTUNITIES_CACHE_DISABLED=1`).
+- [x] Document chosen Redis DB index + `canix402:` prefix in Canix deployment docs (and note in CompX runbook).
 
 ## 3) Testing and Quality Gates
 

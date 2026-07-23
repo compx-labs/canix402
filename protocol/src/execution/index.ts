@@ -14,6 +14,15 @@ export {
   TransactionShapeRegistry,
   compileExecutableQuote
 } from "./registry.js";
+export {
+  listExecutionShapeCatalog,
+  toExecutionShapeCatalogEntry
+} from "./catalog.js";
+export type { ExecutionShapeCatalogEntry } from "./catalog.js";
+export {
+  EXECUTION_SHAPE_DOCS_PATHS,
+  getExecutionShapeDocsPath
+} from "./shape-docs.js";
 export * from "./normalize-transaction.js";
 export * from "./shapes/tinyman/index.js";
 export * from "./shapes/folks-finance/index.js";
