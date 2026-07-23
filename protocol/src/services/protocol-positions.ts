@@ -498,7 +498,8 @@ interface PactFarmLike {
   ) => { staked: number } | null | undefined;
   estimateAccruedRewards: (
     now: Date,
-    userState: { staked: number }
+    // Pact SDK requires FarmUserState; mocks only need `{ staked }`.
+    userState: { staked: number } & Record<string, unknown>
   ) => Record<number, number>;
   state: {
     stakedAsset: { index: number };
@@ -533,7 +534,8 @@ export function setPactPositionCollectorDependenciesForTests(
 function resolvePactFetchFarm(): PactPositionCollectorDependencies["fetchFarm"] {
   return (
     pactPositionCollectorOverrides?.fetchFarm ??
-    (async (algod, farmAppId) => fetchPactFarmFromState(algod, farmAppId))
+    ((algod, farmAppId) =>
+      fetchPactFarmFromState(algod, farmAppId) as unknown as Promise<PactFarmLike>)
   );
 }
 
