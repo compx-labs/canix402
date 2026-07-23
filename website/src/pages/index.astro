@@ -2,7 +2,8 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import BrandLogo from "../components/BrandLogo.astro";
 import EndpointTable from "../components/EndpointTable.astro";
-import { config, supportedProtocols } from "../lib/config";
+import { config } from "../lib/config";
+import { protocols } from "../lib/protocols";
 import { loadDiscovery } from "../lib/discovery";
 
 const loaded = await loadDiscovery(config.discoveryUrl);
@@ -142,7 +143,7 @@ const caseStudyResults = [
         </ul>
       </div>
       <div class="hero-banner">
-        <BrandLogo variant="banner" alt="CANIX402 banner logo" />
+        <BrandLogo variant="mark" class="hero-mark" alt="CANIX402 wolf mark" />
       </div>
     </div>
   </section>
@@ -337,9 +338,21 @@ const caseStudyResults = [
     </div>
     <div class="protocol-grid">
       {
-        supportedProtocols.map((protocol) => (
+        protocols.map((protocol) => (
           <article class="protocol-card">
-            <h3>{protocol}</h3>
+            <img
+              class:list={[
+                "protocol-logo protocol-logo--grid",
+                protocol.logoVariant === "wide" && "protocol-logo--wide"
+              ]}
+              src={protocol.logo}
+              alt=""
+              width="36"
+              height="36"
+              loading="lazy"
+              decoding="async"
+            />
+            <h3>{protocol.name}</h3>
             <p class="muted">Normalized opportunities via paid API routes.</p>
           </article>
         ))

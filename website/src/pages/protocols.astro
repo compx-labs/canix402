@@ -1,53 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-
-const protocols = [
-  {
-    name: "Tinyman",
-    summary: "LP and farm opportunities from Tinyman analytics pools API.",
-    notes: "Verified pools by default; emits pool asset ids for wallet personalization."
-  },
-  {
-    name: "Pact",
-    summary: "LP and farm opportunities from Pact pools and farms APIs.",
-    notes: "Combines pool TVL/APY with linked farm incentives where available."
-  },
-  {
-    name: "Folks Finance",
-    summary: "Lending opportunities from the Folks Finance Algorand SDK.",
-    notes: "Uses on-chain pool state and oracle pricing for TVL normalization."
-  },
-  {
-    name: "CompX",
-    summary: "Lending and staking opportunities via the CompX SDK.",
-    notes: "Covers lending markets and staking pools with optional active-only filtering."
-  },
-  {
-    name: "Dork.fi",
-    summary: "Cross-platform opportunities filtered to Algorand rows from Dork.fi static feed.",
-    notes: "API-first adapter with Algorand network filtering during normalization."
-  },
-  {
-    name: "Myth Finance",
-    summary:
-      "dualSTAKE liquid staking and farms — stake ALGO + a paired ASA, earn consensus rewards swapped into that ASA.",
-    notes:
-      "Per-instance opportunities (myth-staking-{appId}); mint/redeem via execution shapes; farm incentives when present."
-  },
-  {
-    name: "Haystack",
-    summary: "Single-token HAY staking with dual USDC + HAY rewards.",
-    notes:
-      "On-chain EMA APR and TVL from staking app 3321763884; stake/unstake/claim via execution shapes."
-  },
-  {
-    name: "Réti",
-    summary:
-      "Open-pooling consensus staking — stake ALGO to a validator; pools allocate under each validator.",
-    notes:
-      "Per-validator opportunities (reti-staking-{validatorId}) with entryRequirements and capacity; stake/unstake via execution shapes. Quote-time eligibility is authoritative."
-  }
-];
+import { protocols } from "../lib/protocols";
 ---
 
 <BaseLayout
@@ -64,8 +17,22 @@ const protocols = [
   <div class="card-grid">
     {
       protocols.map((protocol) => (
-        <article class="card">
-          <h3>{protocol.name}</h3>
+        <article class="card protocol-detail-card">
+          <div class="protocol-card-header">
+            <img
+              class:list={[
+                "protocol-logo",
+                protocol.logoVariant === "wide" && "protocol-logo--wide"
+              ]}
+              src={protocol.logo}
+              alt=""
+              width="40"
+              height="40"
+              loading="lazy"
+              decoding="async"
+            />
+            <h3>{protocol.name}</h3>
+          </div>
           <p>{protocol.summary}</p>
           <p class="muted">{protocol.notes}</p>
         </article>

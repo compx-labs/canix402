@@ -124,9 +124,11 @@ export async function fetchWalletPositions(
 
     data.push(...result.value.positions);
     const sourceCoverage = result.value.coverage ?? {
+      // Collectors should return explicit coverage. If they omit it, only treat
+      // warnings as a supplied-USD gap — do not hard-null borrowed/rewards.
       suppliedUsdComplete: result.value.warnings.length === 0,
-      borrowedUsdComplete: result.value.warnings.length === 0,
-      rewardsUsdComplete: result.value.warnings.length === 0
+      borrowedUsdComplete: true,
+      rewardsUsdComplete: true
     };
     coverage.suppliedUsdComplete &&= sourceCoverage.suppliedUsdComplete;
     coverage.borrowedUsdComplete &&= sourceCoverage.borrowedUsdComplete;

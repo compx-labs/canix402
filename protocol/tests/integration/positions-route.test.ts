@@ -4,7 +4,8 @@ import test from "node:test";
 import { buildApp } from "../../src/app.js";
 import {
   fetchWalletPositions,
-  setPositionCollectorsForTests
+  setPositionCollectorsForTests,
+  SUPPORTED_POSITION_PROTOCOLS
 } from "../../src/services/aggregate-positions.js";
 import {
   buildDorkFiLendingOpportunityId,
@@ -17,6 +18,12 @@ import type { PositionRecordV1 } from "../../src/types/position.js";
 
 const VALID_ADDRESS =
   "RS7TLLQRXKBAQDAVTSZC2ZLMVMLNSCL3FOUOESJJZ5XSKFFL56UI6X33CI";
+
+const COMPLETE_COVERAGE = {
+  suppliedUsdComplete: true,
+  borrowedUsdComplete: true,
+  rewardsUsdComplete: true
+} as const;
 
 test.afterEach(() => {
   setPositionCollectorsForTests(undefined);
@@ -35,14 +42,48 @@ test("aggregate returns every protocol status and preserves safe amounts", async
     usdValue: 42.5
   };
   setPositionCollectorsForTests({
-    tinyman: async () => ({ positions: [position], warnings: [] }),
-    pact: async () => ({ positions: [], warnings: ["one pool failed"] }),
+    tinyman: async () => ({
+      positions: [position],
+      warnings: [],
+      coverage: COMPLETE_COVERAGE
+    }),
+    pact: async () => ({
+      positions: [],
+      warnings: ["one pool failed"],
+      coverage: {
+        suppliedUsdComplete: false,
+        borrowedUsdComplete: true,
+        rewardsUsdComplete: true
+      }
+    }),
     "folks-finance": async () => {
       throw new Error("indexer offline");
     },
-    compx: async () => ({ positions: [], warnings: [] }),
-    dorkfi: async () => ({ positions: [], warnings: [] }),
-    "myth-finance": async () => ({ positions: [], warnings: [] })
+    compx: async () => ({
+      positions: [],
+      warnings: [],
+      coverage: COMPLETE_COVERAGE
+    }),
+    dorkfi: async () => ({
+      positions: [],
+      warnings: [],
+      coverage: COMPLETE_COVERAGE
+    }),
+    "myth-finance": async () => ({
+      positions: [],
+      warnings: [],
+      coverage: COMPLETE_COVERAGE
+    }),
+    haystack: async () => ({
+      positions: [],
+      warnings: [],
+      coverage: COMPLETE_COVERAGE
+    }),
+    reti: async () => ({
+      positions: [],
+      warnings: [],
+      coverage: COMPLETE_COVERAGE
+    })
   });
 
   const response = await fetchWalletPositions(VALID_ADDRESS);
@@ -52,6 +93,7 @@ test("aggregate returns every protocol status and preserves safe amounts", async
     (response.data[0]?.compatibleExitShapeKeys.length ?? 0) > 0,
     "LP positions should expose Tinyman remove-liquidity exit shapes"
   );
+  // Folks unavailable nulls every USD total (fail-closed for missing sources).
   assert.deepEqual(response.totals, {
     suppliedUsd: null,
     borrowedUsd: null,
@@ -66,7 +108,9 @@ test("aggregate returns every protocol status and preserves safe amounts", async
       { protocol: "folks-finance", status: "unavailable" },
       { protocol: "compx", status: "ok" },
       { protocol: "dorkfi", status: "ok" },
-      { protocol: "myth-finance", status: "ok" }
+      { protocol: "myth-finance", status: "ok" },
+      { protocol: "haystack", status: "ok" },
+      { protocol: "reti", status: "ok" }
     ]
   );
 });
@@ -89,7 +133,7 @@ test("aggregate bounds concurrent protocol collectors and preserves protocol ord
       resolveFirstPair?.();
     }
     await release;
-    return { positions: [], warnings: [] };
+    return { positions: [], warnings: [], coverage: COMPLETE_COVERAGE };
   };
   setPositionCollectorsForTests({
     tinyman: collector("tinyman"),
@@ -97,7 +141,9 @@ test("aggregate bounds concurrent protocol collectors and preserves protocol ord
     "folks-finance": collector("folks-finance"),
     compx: collector("compx"),
     dorkfi: collector("dorkfi"),
-    "myth-finance": collector("myth-finance")
+    "myth-finance": collector("myth-finance"),
+    haystack: collector("haystack"),
+    reti: collector("reti")
   });
 
   try {
@@ -110,7 +156,7 @@ test("aggregate bounds concurrent protocol collectors and preserves protocol ord
     const response = await responsePromise;
     assert.deepEqual(
       response.protocols.map(({ protocol }) => protocol),
-      ["tinyman", "pact", "folks-finance", "compx", "dorkfi", "myth-finance"]
+      [...SUPPORTED_POSITION_PROTOCOLS]
     );
   } finally {
     if (originalConcurrency === undefined) {
@@ -122,7 +168,11 @@ test("aggregate bounds concurrent protocol collectors and preserves protocol ord
 });
 
 test("GET /positions returns 200 for a valid empty wallet", async () => {
-  setAllCollectors(async () => ({ positions: [], warnings: [] }));
+  setAllCollectors(async () => ({
+    positions: [],
+    warnings: [],
+    coverage: COMPLETE_COVERAGE
+  }));
   const app = buildApp();
   await app.ready();
 
@@ -144,7 +194,7 @@ test("GET /positions returns 200 for a valid empty wallet", async () => {
       meta: { address: string };
     };
     assert.deepEqual(body.data, []);
-    assert.equal(body.protocols.length, 6);
+    assert.equal(body.protocols.length, SUPPORTED_POSITION_PROTOCOLS.length);
     assert.ok(body.protocols.every(({ status }) => status === "ok"));
     assert.deepEqual(body.totals, {
       suppliedUsd: 0,
@@ -176,11 +226,7 @@ test("aggregate calculates complete supplied, borrowed, reward, and net totals",
   const emptyCollector = async () => ({
     positions: [],
     warnings: [],
-    coverage: {
-      suppliedUsdComplete: true,
-      borrowedUsdComplete: true,
-      rewardsUsdComplete: true
-    }
+    coverage: COMPLETE_COVERAGE
   });
   setPositionCollectorsForTests({
     tinyman: async () => ({
@@ -192,17 +238,15 @@ test("aggregate calculates complete supplied, borrowed, reward, and net totals",
         position("reward", 5)
       ],
       warnings: [],
-      coverage: {
-        suppliedUsdComplete: true,
-        borrowedUsdComplete: true,
-        rewardsUsdComplete: true
-      }
+      coverage: COMPLETE_COVERAGE
     }),
     pact: emptyCollector,
     "folks-finance": emptyCollector,
     compx: emptyCollector,
     dorkfi: emptyCollector,
-    "myth-finance": emptyCollector
+    "myth-finance": emptyCollector,
+    haystack: emptyCollector,
+    reti: emptyCollector
   });
 
   const response = await fetchWalletPositions(VALID_ADDRESS);
@@ -211,6 +255,194 @@ test("aggregate calculates complete supplied, borrowed, reward, and net totals",
     borrowedUsd: 40,
     rewardsUsd: 5,
     netUsd: 140
+  });
+});
+
+test("complete Tinyman/CompX coverage does not hard-null wallet totals", async () => {
+  const emptyCollector = async () => ({
+    positions: [],
+    warnings: [],
+    coverage: COMPLETE_COVERAGE
+  });
+  setPositionCollectorsForTests({
+    tinyman: async () => ({
+      positions: [
+        {
+          protocol: "tinyman",
+          positionType: "lp",
+          positionId: "tinyman:lp:1",
+          opportunityId: null,
+          assetId: 1,
+          assetSymbol: "LP",
+          amountRaw: "1",
+          amount: "1",
+          usdValue: 100
+        },
+        {
+          protocol: "tinyman",
+          positionType: "reward",
+          positionId: "tinyman:reward:1",
+          opportunityId: null,
+          assetId: 2,
+          assetSymbol: "TINY",
+          amountRaw: "1",
+          amount: "1",
+          usdValue: 3
+        }
+      ],
+      warnings: [],
+      coverage: COMPLETE_COVERAGE
+    }),
+    pact: emptyCollector,
+    "folks-finance": emptyCollector,
+    compx: async () => ({
+      positions: [
+        {
+          protocol: "compx",
+          positionType: "debt",
+          positionId: "compx:debt:1",
+          opportunityId: null,
+          assetId: 31566704,
+          assetSymbol: "USDC",
+          amountRaw: "2500000",
+          amount: "2.5",
+          usdValue: 2.5
+        },
+        {
+          protocol: "compx",
+          positionType: "reward",
+          positionId: "compx:reward:1",
+          opportunityId: null,
+          assetId: 31566704,
+          assetSymbol: "USDC",
+          amountRaw: "100000",
+          amount: "0.1",
+          usdValue: 0.1
+        }
+      ],
+      warnings: [],
+      coverage: COMPLETE_COVERAGE
+    }),
+    dorkfi: emptyCollector,
+    "myth-finance": emptyCollector,
+    haystack: emptyCollector,
+    reti: emptyCollector
+  });
+
+  const response = await fetchWalletPositions(VALID_ADDRESS);
+  assert.deepEqual(response.totals, {
+    suppliedUsd: 100,
+    borrowedUsd: 2.5,
+    rewardsUsd: 3.1,
+    netUsd: 100.6
+  });
+  assert.ok(response.protocols.every(({ status }) => status === "ok"));
+});
+
+test("rewards-only incomplete coverage nulls rewardsUsd and netUsd only", async () => {
+  const emptyCollector = async () => ({
+    positions: [],
+    warnings: [],
+    coverage: COMPLETE_COVERAGE
+  });
+  setPositionCollectorsForTests({
+    tinyman: async () => ({
+      positions: [
+        {
+          protocol: "tinyman",
+          positionType: "lp",
+          positionId: "tinyman:lp:1",
+          opportunityId: null,
+          assetId: 1,
+          assetSymbol: "LP",
+          amountRaw: "1",
+          amount: "1",
+          usdValue: 50
+        },
+        {
+          protocol: "tinyman",
+          positionType: "reward",
+          positionId: "tinyman:reward:1",
+          opportunityId: null,
+          assetId: 2,
+          assetSymbol: "TINY",
+          amountRaw: "1",
+          amount: "1",
+          usdValue: null
+        }
+      ],
+      warnings: ["Tinyman farm reward USD pricing is unavailable."],
+      coverage: {
+        suppliedUsdComplete: true,
+        borrowedUsdComplete: true,
+        rewardsUsdComplete: false
+      }
+    }),
+    pact: emptyCollector,
+    "folks-finance": emptyCollector,
+    compx: emptyCollector,
+    dorkfi: emptyCollector,
+    "myth-finance": emptyCollector,
+    haystack: emptyCollector,
+    reti: emptyCollector
+  });
+
+  const response = await fetchWalletPositions(VALID_ADDRESS);
+  assert.deepEqual(response.totals, {
+    suppliedUsd: 50,
+    borrowedUsd: 0,
+    rewardsUsd: null,
+    netUsd: null
+  });
+  assert.equal(
+    response.protocols.find((row) => row.protocol === "tinyman")?.status,
+    "partial"
+  );
+});
+
+test("collector warnings without coverage no longer hard-null borrowed/rewards", async () => {
+  const emptyCollector = async () => ({
+    positions: [],
+    warnings: [],
+    coverage: COMPLETE_COVERAGE
+  });
+  setPositionCollectorsForTests({
+    tinyman: async () => ({
+      positions: [
+        {
+          protocol: "tinyman",
+          positionType: "lp",
+          positionId: "tinyman:lp:1",
+          opportunityId: null,
+          assetId: 1,
+          assetSymbol: "LP",
+          amountRaw: "1",
+          amount: "1",
+          usdValue: 20
+        }
+      ],
+      warnings: [],
+      coverage: COMPLETE_COVERAGE
+    }),
+    // Legacy/omitted coverage + warning used to force all three flags false.
+    pact: async () => ({
+      positions: [],
+      warnings: ["one pool failed"]
+    }),
+    "folks-finance": emptyCollector,
+    compx: emptyCollector,
+    dorkfi: emptyCollector,
+    "myth-finance": emptyCollector,
+    haystack: emptyCollector,
+    reti: emptyCollector
+  });
+
+  const response = await fetchWalletPositions(VALID_ADDRESS);
+  assert.deepEqual(response.totals, {
+    suppliedUsd: null,
+    borrowedUsd: 0,
+    rewardsUsd: 0,
+    netUsd: null
   });
 });
 
@@ -334,6 +566,8 @@ function setAllCollectors(
     "folks-finance": collector,
     compx: collector,
     dorkfi: collector,
-    "myth-finance": collector
+    "myth-finance": collector,
+    haystack: collector,
+    reti: collector
   });
 }

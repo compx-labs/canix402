@@ -1790,7 +1790,19 @@ async function collectDorkFiOnChainSupply(
   // Successful ASA holdings are actionable; don't let unrelated market probes
   // mark the protocol partial.
   if (positions.length > 0) {
-    return { positions, warnings: [] };
+    return {
+      positions,
+      warnings: [],
+      coverage: {
+        // ASA rows are exit-planning amounts (often unpriced); USD supply comes
+        // from the indexed health merge path.
+        suppliedUsdComplete: positions.every(
+          (position) => position.usdValue !== null
+        ),
+        borrowedUsdComplete: true,
+        rewardsUsdComplete: true
+      }
+    };
   }
 
   throwIfEveryCandidateFailed(
@@ -2085,12 +2097,25 @@ export async function collectRetiPositions(
   } catch (error) {
     return {
       positions: [],
-      warnings: [`Réti staked pools unavailable: ${errorMessage(error)}`]
+      warnings: [`Réti staked pools unavailable: ${errorMessage(error)}`],
+      coverage: {
+        suppliedUsdComplete: false,
+        borrowedUsdComplete: true,
+        rewardsUsdComplete: false
+      }
     };
   }
 
   if (poolKeys.length === 0) {
-    return { positions: [], warnings };
+    return {
+      positions: [],
+      warnings,
+      coverage: {
+        suppliedUsdComplete: true,
+        borrowedUsdComplete: true,
+        rewardsUsdComplete: true
+      }
+    };
   }
 
   let algoUsd: number | null = null;
@@ -2184,7 +2209,27 @@ export async function collectRetiPositions(
     }
   }
 
-  return { positions, warnings };
+  const hasUnpricedStaked = positions.some(
+    (position) =>
+      position.positionType === "staked" && position.usdValue === null
+  );
+  const hasUnpricedRewards = positions.some(
+    (position) =>
+      position.positionType === "reward" && position.usdValue === null
+  );
+  if (hasUnpricedRewards) {
+    warnings.push("Réti reward-token USD pricing is unavailable.");
+  }
+
+  return {
+    positions,
+    warnings,
+    coverage: {
+      suppliedUsdComplete: !hasUnpricedStaked,
+      borrowedUsdComplete: true,
+      rewardsUsdComplete: !hasUnpricedRewards
+    }
+  };
 }
 
 function readRetiRegistryAppId(): number {
@@ -2524,7 +2569,15 @@ async function collectMythDualStakeWalletPositions(
 ): Promise<ProtocolPositionsCollection> {
   const heldAssetIds = getHeldWalletAssetIds(snapshot);
   if (heldAssetIds.length === 0) {
-    return { positions: [], warnings: [] };
+    return {
+      positions: [],
+      warnings: [],
+      coverage: {
+        suppliedUsdComplete: true,
+        borrowedUsdComplete: true,
+        rewardsUsdComplete: true
+      }
+    };
   }
 
   const warnings: string[] = [];
@@ -2545,7 +2598,12 @@ async function collectMythDualStakeWalletPositions(
       positions: [],
       warnings: [
         `Myth Finance dualSTAKE registry unavailable: ${errorMessage(error)}`
-      ]
+      ],
+      coverage: {
+        suppliedUsdComplete: false,
+        borrowedUsdComplete: true,
+        rewardsUsdComplete: true
+      }
     };
   }
 
@@ -2554,7 +2612,15 @@ async function collectMythDualStakeWalletPositions(
     heldSet.has(Number(contract.lstId))
   );
   if (heldLsts.length === 0) {
-    return { positions: [], warnings: [] };
+    return {
+      positions: [],
+      warnings: [],
+      coverage: {
+        suppliedUsdComplete: true,
+        borrowedUsdComplete: true,
+        rewardsUsdComplete: true
+      }
+    };
   }
 
   const lstIds = heldLsts.map((contract) => Number(contract.lstId));
@@ -2600,7 +2666,19 @@ async function collectMythDualStakeWalletPositions(
     });
   }
 
-  return { positions, warnings };
+  const hasUnpricedStaked = positions.some(
+    (position) =>
+      position.positionType === "staked" && position.usdValue === null
+  );
+  return {
+    positions,
+    warnings,
+    coverage: {
+      suppliedUsdComplete: !hasUnpricedStaked,
+      borrowedUsdComplete: true,
+      rewardsUsdComplete: true
+    }
+  };
 }
 
 function createPositionsAlgodClient(): Algodv2 {
