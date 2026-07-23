@@ -297,6 +297,7 @@ export interface X402RequirementTemplate {
   network: string;
   asset: string;
   payTo: string;
+  /** Human USDC amount (e.g. "0.01"). Discovery uses this; Caddy PAYMENT-REQUIRED uses micro-USDC. */
   maxAmountRequired: string;
 }
 
@@ -309,6 +310,10 @@ export interface X402EndpointMetadata {
   ];
   facilitator: string;
   requirementTemplate: X402RequirementTemplate;
+  /** Human-readable USDC price for this endpoint (same as maxAmountRequired). */
+  amountUsdc: string;
+  /** Micro-USDC integer string (6 decimals) matching Caddy PAYMENT-REQUIRED amounts. */
+  amountMicro: string;
 }
 
 function resolveUsdcAmount(...candidates: Array<string | undefined>): string {
@@ -322,7 +327,28 @@ function resolveUsdcAmount(...candidates: Array<string | undefined>): string {
   return "0.01";
 }
 
+/** Convert a decimal USDC string to micro-USDC (6 dp) without float rounding. */
+export function usdcAmountToMicro(amountUsdc: string): string {
+  const trimmed = amountUsdc.trim();
+  const match = /^(\d+)(?:\.(\d{0,6}))?$/.exec(trimmed);
+  if (!match) {
+    // Fallback: treat non-canonical values as already micro or opaque.
+    const asNumber = Number(trimmed);
+    if (Number.isFinite(asNumber) && asNumber >= 0) {
+      return Math.round(asNumber * 1_000_000).toString();
+    }
+    return "0";
+  }
+  const whole = match[1] ?? "0";
+  const frac = (match[2] ?? "").padEnd(6, "0").slice(0, 6);
+  return (BigInt(whole) * 1_000_000n + BigInt(frac)).toString();
+}
+
 export function getX402EndpointMetadata(amountUsdc?: string): X402EndpointMetadata {
+  const resolvedUsdc = resolveUsdcAmount(
+    amountUsdc,
+    process.env.X402_PAYMENT_AMOUNT_USDC
+  );
   return {
     protocolVersion: 2,
     requiredHeaders: [
@@ -337,11 +363,10 @@ export function getX402EndpointMetadata(amountUsdc?: string): X402EndpointMetada
       network: process.env.X402_PAYMENT_NETWORK ?? "algorand-mainnet",
       asset: process.env.X402_USDC_ASSET_ID ?? "31566704",
       payTo: process.env.X402_PAYMENT_RECEIVER_ADDRESS ?? "REPLACE_WITH_PAYTO_ADDRESS",
-      maxAmountRequired: resolveUsdcAmount(
-        amountUsdc,
-        process.env.X402_PAYMENT_AMOUNT_USDC
-      )
-    }
+      maxAmountRequired: resolvedUsdc
+    },
+    amountUsdc: resolvedUsdc,
+    amountMicro: usdcAmountToMicro(resolvedUsdc)
   };
 }
 

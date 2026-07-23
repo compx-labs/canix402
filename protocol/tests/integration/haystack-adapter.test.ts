@@ -78,6 +78,13 @@ test("Haystack staking opportunity attaches stake enter and unstake/claim shapes
       (shape) => shape.shapeKey === "mainnet:haystack:v1:stake:hay"
     )
   );
+  assert.equal(enriched.compatibleExitShapes.length, 1);
+  assert.equal(
+    enriched.compatibleExitShapes[0]?.shapeKey,
+    "mainnet:haystack:v1:unstake:hay"
+  );
+  assert.deepEqual(enriched.compatibleExitShapes[0]?.requiredAssetIds, [3160000000]);
+  assert.equal(enriched.compatibleExitShapes[0]?.inputHints?.assetId, 3160000000);
 });
 
 test.after(() => {
