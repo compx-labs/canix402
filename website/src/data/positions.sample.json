@@ -1,0 +1,57 @@
+{
+  "data": [
+    {
+      "protocol": "tinyman",
+      "positionType": "lp",
+      "positionId": "tinyman:lp:1002541853",
+      "opportunityId": "tinyman:pool:1002541853",
+      "assetId": 1002541853,
+      "assetSymbol": "TMPOOL2",
+      "amountRaw": "1250000",
+      "amount": "1.250000",
+      "usdValue": 42.5,
+      "compatibleExitShapeKeys": [
+        "mainnet:tinyman:v2:removeLiquidity:multipleAssetsOut",
+        "mainnet:tinyman:v2:removeLiquidity:singleAssetOut"
+      ],
+      "compatibleManageShapeKeys": [],
+      "inputHints": {
+        "assetAId": 0,
+        "assetBId": 31566704,
+        "poolId": "1002541853"
+      }
+    },
+    {
+      "protocol": "reti",
+      "positionType": "staked",
+      "positionId": "reti:staked:12:2714574619",
+      "opportunityId": "reti-staking-12",
+      "assetId": 0,
+      "assetSymbol": "ALGO",
+      "amountRaw": "2000000000",
+      "amount": "2000.000000",
+      "usdValue": 400,
+      "compatibleExitShapeKeys": ["mainnet:reti:v1:unstake:algo"],
+      "compatibleManageShapeKeys": [],
+      "inputHints": {
+        "validatorId": 12,
+        "poolAppId": 2714574619,
+        "assetId": 0
+      }
+    }
+  ],
+  "protocols": [
+    { "protocol": "tinyman", "status": "ok", "positionCount": 1 },
+    { "protocol": "reti", "status": "ok", "positionCount": 1 }
+  ],
+  "totals": {
+    "usdValue": 442.5,
+    "rewardsUsd": null,
+    "borrowedUsd": null,
+    "netUsd": null
+  },
+  "meta": {
+    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "paymentRequired": true
+  }
+}

@@ -40,12 +40,17 @@ export const supportedProtocols = [
   "CompX",
   "Dork.fi",
   "Myth Finance",
-  "Haystack"
+  "Haystack",
+  "Réti"
 ] as const;
 
 export const defaultPaidPriceUsdc = "0.01";
 export const personalizedPriceUsdc = "0.05";
 export const positionsPriceUsdc = "0.005";
+export const executionQuotePriceUsdc = "0.1";
+export const strategyPublishPriceUsdc = "100";
+export const strategyRevisePriceUsdc = "1";
+export const strategyCompilePriceUsdc = "0.1";
 
 /** Canonical MCP tool names — aligned with API discovery metadata. */
 export const mcpToolNames = [

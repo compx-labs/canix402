@@ -21,7 +21,16 @@ const MCP_WELL_KNOWN = (
 ).replace(/\/+$/, "");
 const SUPPORT_EMAIL = "kieran@neonforge.ltd";
 const OPERATOR = "Neon Forge Ltd";
-const PROTOCOLS = ["Tinyman", "Pact", "Folks Finance", "CompX", "Dork.fi", "Myth Finance", "Haystack"] as const;
+const PROTOCOLS = [
+  "Tinyman",
+  "Pact",
+  "Folks Finance",
+  "CompX",
+  "Dork.fi",
+  "Myth Finance",
+  "Haystack",
+  "Réti"
+] as const;
 
 interface DiscoveryEndpoint {
   id: string;
@@ -112,7 +121,7 @@ function buildLlmsTxt(discovery: DiscoveryDocument): string {
 
 > x402-gated Algorand DeFi data and walletless transaction API for autonomous agents. Pay in USDC micropayments at the gateway edge, fetch normalized APY/TVL data, and build locally signable Haystack swap groups.
 
-Use the **Caddy gateway** (\`${GATEWAY}\`) for all API calls. Discovery, Haystack quotes, and opt-in preparation are free; data routes and Haystack swap transaction generation require x402 payment as advertised. The API never receives wallet keys or submits transactions. For the full integration guide in one file, see [llms-full.txt](${docs}/llms-full.txt).
+Use the **Caddy gateway** (\`${GATEWAY}\`) for all API calls. Discovery, execution shapes, strategies list/detail, Haystack quotes, and opt-in preparation are free; data routes, execution quotes, strategy publish/revise/compile, and Haystack swap transaction generation require x402 payment as advertised. The API never receives wallet keys or submits transactions. For the full integration guide in one file, see [llms-full.txt](${docs}/llms-full.txt).
 
 ## API (machine-readable)
 
@@ -154,7 +163,11 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
     opportunities: loadSample("opportunities.sample.json"),
     search: loadSample("opportunities-search.sample.json"),
     personalized: loadSample("opportunities-personalized.sample.json"),
-    protocol: loadSample("protocol-opportunities.sample.json")
+    protocol: loadSample("protocol-opportunities.sample.json"),
+    positions: loadSample("positions.sample.json"),
+    executionShapes: loadSample("execution-shapes.sample.json"),
+    executionQuotes: loadSample("execution-quotes.sample.json"),
+    strategies: loadSample("strategies.sample.json")
   };
 
   return `# CANIX402 — full agent integration guide
@@ -170,7 +183,7 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
 - **Support:** ${SUPPORT_EMAIL}
 - **Terms:** ${DOCS_SITE}/terms
 
-Opportunity responses are normalized records with fields such as \`protocol\`, \`opportunityType\`, \`opportunityId\`, \`assetPair\`, \`apy\`, \`apr\`, \`tvlUsd\`, \`sourceTimestamp\`, and \`fetchedAt\`. Numeric precision follows the published OpenAPI \`x-precision\` contract (typically 6 decimal places).
+Opportunity responses are normalized records with fields such as \`protocol\`, \`opportunityType\`, \`opportunityId\`, \`assetPair\`, \`apy\`, \`apr\`, \`tvlUsd\`, \`executionShapes\`, \`compatibleExitShapes\`, optional \`entryRequirements\` / \`capacity\` (Réti), \`sourceTimestamp\`, and \`fetchedAt\`. Numeric precision follows the published OpenAPI \`x-precision\` contract (typically 6 decimal places).
 
 ## Machine-readable contracts
 
@@ -186,7 +199,7 @@ Always call the **gateway**, not an internal upstream API. x402 enforcement, \`P
 
 ### MCP server
 
-Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${MCP_URL}\` (streamable-http). Metadata: \`${MCP_WELL_KNOWN}\`. Walletless: paid tool preflight returns payment requirements; retry with \`paymentSignature\`. Tools include \`canix_list_opportunities\`, \`canix_get_positions\`, \`canix_get_execution_quote\`, and free discovery helpers. See ${DOCS_SITE}/mcp.
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${MCP_URL}\` (streamable-http). Metadata: \`${MCP_WELL_KNOWN}\`. Walletless: paid tool preflight returns payment requirements; retry with \`paymentSignature\`. Tools include \`canix_list_opportunities\`, \`canix_list_execution_shapes\`, \`canix_get_positions\`, \`canix_get_execution_quote\`, strategy marketplace tools, and free discovery helpers. See ${DOCS_SITE}/mcp.
 
 ## x402 payment flow
 
@@ -220,11 +233,14 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 - \`GET /opportunities/search\` — filter by \`platform\`, \`type\`, \`minApy\`, \`maxApy\`, \`minTvlUsd\`.
 - \`GET /opportunities/personalized\` — requires \`address\` (Algorand account); premium price; matches opportunities to wallet-held assets.
 - \`GET /positions\` — requires \`address\` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
+- \`GET /execution/shapes\` — free catalog of verified shape keys and requiredInputs (metadata only).
+- \`POST /execution/quotes\` — batch unsigned transaction groups for verified shapes; flat ~0.1 USDC per request.
+- \`GET /strategies\` / \`GET /strategies/{strategyId}\` — free marketplace list/detail; publish 100 USDC, revise 1 USDC, compile 0.1 USDC.
 - Haystack swaps — call free \`POST /swaps/quote\`, sign and submit any group from free \`POST /swaps/optin\`, refresh the short-lived quote, then call paid \`POST /swaps/transactions\` for 0.005 USDC. Amounts are asset base units.
 - Walletless handoff — sign only the returned \`userSignIndexes\`, preserve Haystack pre-signed members and group order, and submit the complete group through the caller's Algod client.
 - Swap costs — the 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee/referral, DEX fees, price impact, and Algorand network fees.
 
-Free routes: \`/health\`, \`/metadata\`, \`/discovery\`, \`/openapi.json\`, \`/.well-known/x402.json\`, \`POST /swaps/quote\`, \`POST /swaps/optin\`.
+Free routes: \`/health\`, \`/metadata\`, \`/discovery\`, \`/openapi.json\`, \`/.well-known/x402.json\`, \`GET /execution/shapes\`, \`GET /strategies\`, \`POST /swaps/quote\`, \`POST /swaps/optin\`.
 
 ## Error catalog
 
@@ -254,6 +270,30 @@ ${JSON.stringify(samples.personalized, null, 2)}
 
 \`\`\`json
 ${JSON.stringify(samples.protocol, null, 2)}
+\`\`\`
+
+### GET /execution/shapes
+
+\`\`\`json
+${JSON.stringify(samples.executionShapes, null, 2)}
+\`\`\`
+
+### POST /execution/quotes
+
+\`\`\`json
+${JSON.stringify(samples.executionQuotes, null, 2)}
+\`\`\`
+
+### GET /positions
+
+\`\`\`json
+${JSON.stringify(samples.positions, null, 2)}
+\`\`\`
+
+### GET /strategies
+
+\`\`\`json
+${JSON.stringify(samples.strategies, null, 2)}
 \`\`\`
 
 ## Trust and disclaimer

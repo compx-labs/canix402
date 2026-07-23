@@ -39,14 +39,21 @@ const protocols = [
     summary: "Single-token HAY staking with dual USDC + HAY rewards.",
     notes:
       "On-chain EMA APR and TVL from staking app 3321763884; stake/unstake/claim via execution shapes."
+  },
+  {
+    name: "Réti",
+    summary:
+      "Open-pooling consensus staking — stake ALGO to a validator; pools allocate under each validator.",
+    notes:
+      "Per-validator opportunities (reti-staking-{validatorId}) with entryRequirements and capacity; stake/unstake via execution shapes. Quote-time eligibility is authoritative."
   }
 ];
 ---
 
 <BaseLayout
   title="Protocols | CANIX402"
-  description="See which Algorand DeFi protocols Canix402 covers — Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, and Haystack — and how each source is normalized into a shared opportunity schema."
-  keywords="Canix402 protocols, Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, Haystack, Algorand DeFi coverage"
+  description="See which Algorand DeFi protocols Canix402 covers — Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, Haystack, and Réti — and how each source is normalized into a shared opportunity schema."
+  keywords="Canix402 protocols, Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, Haystack, Réti, Algorand DeFi coverage"
 >
   <h1 class="page-title">Supported protocols</h1>
   <p class="muted">

@@ -1,0 +1,29 @@
+{
+  "data": [
+    {
+      "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+      "shapeVersion": "1.0.0",
+      "network": "mainnet",
+      "expiresAt": "2026-07-23T12:00:30.000Z",
+      "encodedTransactions": ["<base64-unsigned-txn-0>", "<base64-unsigned-txn-1>"],
+      "transactions": [
+        {
+          "type": "axfer",
+          "sender": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "fee": "1000",
+          "groupPresent": true
+        }
+      ],
+      "metadata": {
+        "poolAddress": "TINYPQOLADDRESSPLACEHOLDERAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "warnings": []
+    }
+  ],
+  "meta": {
+    "paymentRequired": true,
+    "executionSubmitted": false,
+    "quoteCount": 1,
+    "note": "Unsigned groups only. Sign and submit locally; Canix never receives wallet keys."
+  }
+}

@@ -1,4 +1,4 @@
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { formatOpportunitiesForAgent } from "../src/services/precision.js";
@@ -12,7 +12,8 @@ import { OpportunityMarketRecord } from "../src/types/opportunity.js";
  * them here would be non-deterministic. Instead we define canonical sample rows
  * and run them through the same precision formatter the API uses at the response
  * boundary, guaranteeing the checked-in samples honor the published precision
- * contract (6 dp standard, up to 12 dp for small non-zero values).
+ * contract (6 dp standard, up to 12 dp for small non-zero values) and attach
+ * executionShapes / compatibleExitShapes via the same enricher as live responses.
  */
 
 interface SampleFile {
@@ -26,6 +27,7 @@ const tinymanLp: OpportunityMarketRecord = {
   opportunityType: "lp",
   opportunityId: "tinyman:pool:1002541853",
   assetPair: "ALGO/USDC",
+  assetIds: [0, 31566704],
   apr: 10.512,
   apy: 12.5,
   yieldBasis: "apy",
@@ -38,8 +40,9 @@ const tinymanLp: OpportunityMarketRecord = {
 const folksLendingUsdc: OpportunityMarketRecord = {
   protocol: "folks-finance",
   opportunityType: "lending",
-  opportunityId: "folks:lending:31566704",
+  opportunityId: "folks-lending-971254667",
   assetPair: "USDC",
+  assetIds: [31566704],
   apy: 6.06,
   yieldBasis: "apy",
   tvlUsd: 29846.609471,
@@ -50,7 +53,7 @@ const folksLendingUsdc: OpportunityMarketRecord = {
 const folksLendingAlgo: OpportunityMarketRecord = {
   protocol: "folks-finance",
   opportunityType: "lending",
-  opportunityId: "folks:lending:0",
+  opportunityId: "folks-lending-971365552",
   assetPair: "ALGO",
   assetIds: [0],
   apy: 4.25,
@@ -60,16 +63,39 @@ const folksLendingAlgo: OpportunityMarketRecord = {
   fetchedAt: "2026-07-06T09:00:00.000Z"
 };
 
+const retiStaking: OpportunityMarketRecord = {
+  protocol: "reti",
+  opportunityType: "staking",
+  opportunityId: "reti-staking-12",
+  assetPair: "ALGO",
+  assetIds: [0],
+  apy: 8.5,
+  apr: 8.5,
+  yieldBasis: "apr",
+  tvlUsd: 125000.5,
+  sourceTimestamp: "2026-07-23T10:00:00.000Z",
+  fetchedAt: "2026-07-23T10:00:00.000Z",
+  entryRequirements: {
+    minAmount: { assetId: 0, amount: "1000000000" },
+    eligibilityFullyCheckable: true
+  },
+  capacity: {
+    stakerSlotsRemaining: 20,
+    algoRoomMicroAlgos: "50000000000",
+    acceptingStake: true
+  },
+  notes: "Réti validator-level consensus staking; quote-time eligibility checks are authoritative."
+};
+
 const tinymanLpWithAssetIds: OpportunityMarketRecord = {
   ...tinymanLp,
-  assetIds: [0, 31566704],
   notes: undefined
 };
 
 const files: SampleFile[] = [
   {
     filename: "opportunities.sample.json",
-    rows: [tinymanLp, folksLendingUsdc],
+    rows: [tinymanLp, retiStaking, folksLendingUsdc],
     meta: { limit: 10, offset: 0, includeInactive: false, paymentRequired: true }
   },
   {
@@ -79,7 +105,7 @@ const files: SampleFile[] = [
   },
   {
     filename: "opportunities-personalized.sample.json",
-    rows: [folksLendingAlgo, tinymanLpWithAssetIds],
+    rows: [folksLendingAlgo, tinymanLpWithAssetIds, retiStaking],
     meta: {
       limit: 10,
       offset: 0,
@@ -91,7 +117,7 @@ const files: SampleFile[] = [
   },
   {
     filename: "protocol-opportunities.sample.json",
-    rows: [tinymanLp2()],
+    rows: [retiStaking],
     meta: { limit: 25, offset: 0, includeInactive: false, paymentRequired: true }
   }
 ];
@@ -100,8 +126,8 @@ function tinymanLp2(): OpportunityMarketRecord {
   return { ...tinymanLp, notes: undefined };
 }
 
-function stripUndefined(record: OpportunityMarketRecord): OpportunityMarketRecord {
-  return JSON.parse(JSON.stringify(record)) as OpportunityMarketRecord;
+function stripUndefined(record: unknown): unknown {
+  return JSON.parse(JSON.stringify(record));
 }
 
 function main(): void {
@@ -111,6 +137,66 @@ function main(): void {
     const outputPath = resolve(process.cwd(), "../website/src/data", file.filename);
     writeFileSync(outputPath, `${JSON.stringify(payload, null, 2)}\n`, "utf-8");
   }
+
+  // Keep OpenAPI opportunity response examples aligned with website samples.
+  syncOpenApiOpportunityExamples();
+}
+
+function syncOpenApiOpportunityExamples(): void {
+  const openApiPath = resolve(process.cwd(), "openapi/openapi.json");
+  const openApi = JSON.parse(readFileSync(openApiPath, "utf-8")) as {
+    components?: {
+      examples?: Record<string, { summary?: string; value?: unknown }>;
+    };
+  };
+
+  if (!openApi.components?.examples) {
+    return;
+  }
+
+  const aggregate = JSON.parse(
+    readFileSync(
+      resolve(process.cwd(), "../website/src/data/opportunities.sample.json"),
+      "utf-8"
+    )
+  );
+  const search = JSON.parse(
+    readFileSync(
+      resolve(process.cwd(), "../website/src/data/opportunities-search.sample.json"),
+      "utf-8"
+    )
+  );
+  const personalized = JSON.parse(
+    readFileSync(
+      resolve(
+        process.cwd(),
+        "../website/src/data/opportunities-personalized.sample.json"
+      ),
+      "utf-8"
+    )
+  );
+  const protocol = JSON.parse(
+    readFileSync(
+      resolve(process.cwd(), "../website/src/data/protocol-opportunities.sample.json"),
+      "utf-8"
+    )
+  );
+
+  const examples = openApi.components.examples;
+  if (examples.AggregateOpportunitiesSample) {
+    examples.AggregateOpportunitiesSample.value = aggregate;
+  }
+  if (examples.FilteredOpportunitiesSample) {
+    examples.FilteredOpportunitiesSample.value = search;
+  }
+  if (examples.PersonalizedOpportunitiesSample) {
+    examples.PersonalizedOpportunitiesSample.value = personalized;
+  }
+  if (examples.ProtocolOpportunitiesSample) {
+    examples.ProtocolOpportunitiesSample.value = protocol;
+  }
+
+  writeFileSync(openApiPath, `${JSON.stringify(openApi, null, 2)}\n`, "utf-8");
 }
 
 main();

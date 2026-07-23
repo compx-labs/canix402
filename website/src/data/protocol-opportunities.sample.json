@@ -1,16 +1,84 @@
 {
   "data": [
     {
-      "protocol": "tinyman",
-      "opportunityType": "lp",
-      "opportunityId": "tinyman:pool:1002541853",
-      "assetPair": "ALGO/USDC",
-      "apr": 10.512,
-      "apy": 12.5,
-      "yieldBasis": "apy",
-      "tvlUsd": 2450000.5,
-      "sourceTimestamp": "2026-07-06T09:00:00.000Z",
-      "fetchedAt": "2026-07-06T09:00:00.000Z"
+      "protocol": "reti",
+      "opportunityType": "staking",
+      "opportunityId": "reti-staking-12",
+      "assetPair": "ALGO",
+      "assetIds": [
+        0
+      ],
+      "apy": 8.5,
+      "apr": 8.5,
+      "yieldBasis": "apr",
+      "tvlUsd": 125000.5,
+      "sourceTimestamp": "2026-07-23T10:00:00.000Z",
+      "fetchedAt": "2026-07-23T10:00:00.000Z",
+      "entryRequirements": {
+        "minAmount": {
+          "assetId": 0,
+          "amount": "1000000000"
+        },
+        "eligibilityFullyCheckable": true
+      },
+      "capacity": {
+        "stakerSlotsRemaining": 20,
+        "algoRoomMicroAlgos": "50000000000",
+        "acceptingStake": true
+      },
+      "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:reti:v1:stake:algo",
+          "protocol": "reti",
+          "protocolVersion": "v1",
+          "action": "stake",
+          "variant": "algo",
+          "title": "Réti ALGO stake to validator",
+          "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "validatorId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            0
+          ],
+          "inputHints": {
+            "validatorId": 12,
+            "assetId": 0,
+            "depositAssetId": 0
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:reti:v1:unstake:algo",
+          "protocol": "reti",
+          "protocolVersion": "v1",
+          "action": "unstake",
+          "variant": "algo",
+          "title": "Réti ALGO unstake from pool",
+          "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "validatorId",
+            "poolAppId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            0
+          ],
+          "inputHints": {
+            "validatorId": 12,
+            "assetId": 0,
+            "depositAssetId": 0
+          }
+        }
+      ]
     }
   ],
   "meta": {

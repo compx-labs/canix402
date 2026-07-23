@@ -5,12 +5,101 @@
       "opportunityType": "lp",
       "opportunityId": "tinyman:pool:1002541853",
       "assetPair": "ALGO/USDC",
+      "assetIds": [
+        0,
+        31566704
+      ],
       "apr": 10.512,
       "apy": 12.5,
       "yieldBasis": "apy",
       "tvlUsd": 2450000.5,
       "sourceTimestamp": "2026-07-06T09:00:00.000Z",
-      "fetchedAt": "2026-07-06T09:00:00.000Z"
+      "fetchedAt": "2026-07-06T09:00:00.000Z",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "flexible",
+          "title": "Tinyman v2 flexible add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Tinyman AMM v2 pool using flexible amounts. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolId": "tinyman:pool:1002541853"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:initial",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "initial",
+          "title": "Tinyman v2 initial add liquidity",
+          "summary": "Adds the first liquidity to a bootstrapped but empty Tinyman AMM v2 pool. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_initial_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolId": "tinyman:pool:1002541853"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:singleAsset",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "singleAsset",
+          "title": "Tinyman v2 single-asset add liquidity",
+          "summary": "Adds one-sided liquidity to an existing Tinyman AMM v2 pool. Tinyman performs an internal swap to balance the deposit and mints pool tokens. Generates the documented 2-transaction group (asset transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetBId",
+            "depositAssetId",
+            "depositAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolId": "tinyman:pool:1002541853"
+          }
+        }
+      ],
+      "compatibleExitShapes": []
     }
   ],
   "meta": {

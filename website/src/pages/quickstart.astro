@@ -7,13 +7,13 @@ import { config } from "../lib/config";
 
 <BaseLayout
   title="Quickstart | CANIX402"
-  description="Get an agent connected to Canix402 in four steps: read discovery and OpenAPI, probe free routes, then call paid opportunity endpoints with x402 USDC payment."
+  description="Get an agent connected to Canix402 in four steps: read discovery and OpenAPI, probe free routes (including execution shapes), then call paid opportunities, positions, or execution quotes with x402 USDC payment."
   keywords="Canix402 quickstart, agent onboarding, x402 integration, discovery, OpenAPI, Algorand DeFi API"
 >
   <h1 class="page-title">Quickstart</h1>
   <p class="muted">
-    Use the Caddy gateway URL as your base URL. Discovery and OpenAPI are free; paid data routes
-    require x402 USDC payment.
+    Use the Caddy gateway URL as your base URL. Discovery, OpenAPI, and
+    <code>GET /execution/shapes</code> are free; paid data and quote routes require x402 USDC payment.
   </p>
 
   <section class="panel">
@@ -56,13 +56,21 @@ import { config } from "../lib/config";
 
   <section class="panel">
     <h2>3. Probe free routes</h2>
-    <p>Health and metadata routes should return <code>200</code> without payment headers.</p>
-    <CodeBlock code={`curl -i ${config.gatewayBaseUrl}/health\ncurl -i ${config.gatewayBaseUrl}/metadata`} />
+    <p>
+      Health, metadata, <code>GET /execution/shapes</code>, and <code>GET /strategies</code> should
+      return <code>200</code> without payment headers.
+    </p>
+    <CodeBlock
+      code={`curl -i ${config.gatewayBaseUrl}/health\ncurl -i ${config.gatewayBaseUrl}/metadata\ncurl -i ${config.gatewayBaseUrl}/execution/shapes\ncurl -i ${config.gatewayBaseUrl}/strategies`}
+    />
   </section>
 
   <section class="panel">
     <h2>4. Call a paid route</h2>
-    <p>First call returns <code>402</code> with <code>PAYMENT-REQUIRED</code>. Retry with a signed payload.</p>
+    <p>
+      First call returns <code>402</code> with <code>PAYMENT-REQUIRED</code>. Retry with a signed
+      payload. Same pattern for opportunities, positions, and execution quotes.
+    </p>
     <PaymentFlow />
     <CodeBlock
       code={`curl -i ${config.gatewayBaseUrl}/opportunities\n\ncurl -i ${config.gatewayBaseUrl}/opportunities \\\n  -H 'PAYMENT-SIGNATURE: <base64-json-payload>'`}
