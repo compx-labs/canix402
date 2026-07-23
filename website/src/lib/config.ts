@@ -28,21 +28,14 @@ export const config = {
   indexerBaseUrl:
     import.meta.env.PUBLIC_INDEXER_BASE_URL ?? "https://mainnet-idx.4160.nodely.dev",
   alloTxBaseUrl: import.meta.env.PUBLIC_ALLO_TX_BASE_URL ?? "https://allo.info/tx",
+  nfdApiBaseUrl:
+    import.meta.env.PUBLIC_NFD_API_BASE_URL ?? "https://api.nf.domains",
   transactionsRefreshMs: Number(
     import.meta.env.PUBLIC_TRANSACTIONS_REFRESH_MS ?? "120000"
   )
 };
 
-export const supportedProtocols = [
-  "Tinyman",
-  "Pact",
-  "Folks Finance",
-  "CompX",
-  "Dork.fi",
-  "Myth Finance",
-  "Haystack",
-  "Réti"
-] as const;
+export { supportedProtocols } from "./protocols";
 
 export const defaultPaidPriceUsdc = "0.01";
 export const personalizedPriceUsdc = "0.05";

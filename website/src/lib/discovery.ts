@@ -121,6 +121,38 @@ export function formatEndpointPriceShort(endpoint: DiscoveryEndpoint): string {
   return `$${amount}`;
 }
 
+/** CSS class for colored endpoint tag pills (hierarchy by domain). */
+export function tagBadgeClass(tag: string): string {
+  const normalized = tag.toLowerCase().replace(/[^a-z0-9-]/g, "");
+  const known = [
+    "defi",
+    "opportunities",
+    "positions",
+    "wallet",
+    "execution",
+    "strategies",
+    "marketplace",
+    "swaps",
+    "haystack",
+    "protocol",
+    "search",
+    "personalized",
+    "discovery",
+    "system",
+    "openapi",
+    "agents",
+    "x402",
+    "x402-global-challenge",
+    "transactions",
+    "pricing",
+    "compx"
+  ];
+  if (known.includes(normalized)) {
+    return `badge badge-tag badge-tag-${normalized}`;
+  }
+  return "badge badge-tag";
+}
+
 export function formatEndpointTitle(endpoint: DiscoveryEndpoint): string {
   const fromId = endpoint.id
     .replace(/([a-z])([A-Z])/g, "$1 $2")

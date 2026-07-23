@@ -2,6 +2,7 @@
 import {
   formatEndpointPriceShort,
   formatEndpointTitle,
+  tagBadgeClass,
   type DiscoveryEndpoint
 } from "../lib/discovery";
 import { config } from "../lib/config";
@@ -69,7 +70,7 @@ function endpointParams(endpoint: DiscoveryEndpoint): string[] {
             <div class="endpoint-card-top">
               <div class="endpoint-card-tags">
                 {tags.map((tag) => (
-                  <span class="badge badge-tag">{tag}</span>
+                  <span class={tagBadgeClass(tag)}>{tag}</span>
                 ))}
               </div>
               <div class="endpoint-card-meta">

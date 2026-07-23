@@ -41,7 +41,7 @@ Shared Redis with CompX/Orbital (`compx-v2/docs/redis-usage.md`): CompX uses DB 
 
 ## 5) Go-Live Readiness
 
-- [x] Run protocol accuracy checks against source systems (live/production checks passed for Tinyman LP, Pact LP, Folks Finance escrow, and CompX; Dork.fi production still fails at on-chain submit).
+- [x] Run protocol accuracy checks against source systems (live/production checks passed for Tinyman LP, Pact LP, Folks Finance escrow, CompX, and Dork.fi lending).
 - [x] Confirm API consumer onboarding documentation is complete (quickstart/x402/MCP/endpoints/llms docs exist; examples still thin on execution quotes, positions, and Haystack swap flows).
 - [x] Complete launch checklist sign-off.
 
@@ -52,12 +52,13 @@ Shared Redis with CompX/Orbital (`compx-v2/docs/redis-usage.md`): CompX uses DB 
 - [x] Add MCP server (`mcp/` workspace, stdio transport, free + paid tools wrapping gateway endpoints).
   - [x] Include tools for opportunity discovery, execution quotes, and strategy marketplace (`canix_list_opportunities`, `canix_get_execution_quote`, `canix_list_strategies`, `canix_publish_strategy`, `canix_revise_strategy`, `canix_compile_strategy`, etc.).
   - [x] Link MCP server from docs and manifest.
-- [~] Enable GoPlausible facilitator catalog visibility (optional).
-  - [ ] Optional: verify the API appears in GoPlausible facilitator discovery (`GET https://facilitator.goplausible.xyz/discovery/resources`, filter for `canix402-api.compx.io`).
+- [x] Enable GoPlausible facilitator catalog visibility (optional).
+  - [x] Optional: verify the API appears in GoPlausible facilitator discovery (`GET https://facilitator.goplausible.xyz/discovery/resources`, filter for `canix402-api.compx.io`).
 - [x] Confirm trust metadata is complete and current (version, terms, contact, facilitator/payTo, example responses; see archive).
 - [ ] Add monitoring.
   - [ ] Track x402 requests, failed payments, successful settlements, referrers, and user agents.
   - [ ] Log which directories/agents send traffic.
+  - Note: the public website `/transactions` page surfaces recent on-chain settlement totals + NFD sender names from indexer data; that is not request/referrer/UA telemetry.
 - [x] Website/docs catch-up after protocol API review (deferred from first tranche):
   - [x] Refresh `website/src/data/discovery.snapshot.json` (include strategies; update execution-quote description).
   - [x] Refresh opportunity samples with `executionShapes`, `inputHints`, `entryRequirements`, `capacity`.
@@ -66,13 +67,13 @@ Shared Redis with CompX/Orbital (`compx-v2/docs/redis-usage.md`): CompX uses DB 
 
 ## 7) Wallet Positions Coverage (`GET /positions`)
 
-Collectors in `src/services/protocol-positions.ts` still emit always-on partial caveats that force protocol `status: "partial"` and null `totals.rewardsUsd` / `netUsd` (and CompX `borrowedUsd`). Close the real gaps, then stop warning once coverage is accurate.
+Collectors report per-protocol `coverage` (`suppliedUsdComplete` / `borrowedUsdComplete` / `rewardsUsdComplete`). Aggregate totals are null only when a real gap remains (unavailable source, unpriced rows, or failed debt/reward reads) — not from always-on caveats.
 
 - [x] **Tinyman farm staking / unclaimed rewards.** Farm commit keeps LP in the wallet and stakes the full LP balance (no partial stake), so farmed stake is already known from the LP position (annotated when committed). Unclaimed farm rewards come from `GET /staking/pool-programs/?pooler_address=…&committed_only=true` (`pooler.rewards.pending`), priced via Tinyman asset `price_in_usd`; `rewardsUsdComplete` is true only when that farm fetch + pricing succeed.
 - [x] **CompX per-user lending debt.** CompX collector reads `sdk.lending.getUserPosition(appId, address)` and emits `debt` rows from `UserPosition.borrowed` (USD via market `baseTokenPrice`); `borrowedUsdComplete` is true when those reads/prices succeed.
 - [x] **CompX pending staking rewards.** Pending = `stake * rewardPerToken / 1e15 - rewardDebt` (MasterChef); emitted as `reward` positions and priced via CompX pricing API; `rewardsUsdComplete` is true when those rewards are priced (or none exist).
-- [ ] After the above, stop hardcoding `rewardsUsdComplete: false` / `borrowedUsdComplete: false` for protocols whose coverage is complete, so aggregate totals are only `null` when a real gap or pricing failure remains.
-- [ ] Add/extend positions integration tests so always-on caveats cannot regress once a protocol’s coverage is marked complete.
+- [x] After the above, stop hardcoding `rewardsUsdComplete: false` / `borrowedUsdComplete: false` for protocols whose coverage is complete, so aggregate totals are only `null` when a real gap or pricing failure remains.
+- [x] Add/extend positions integration tests so always-on caveats cannot regress once a protocol’s coverage is marked complete.
 
 ## 8) Strategy Marketplace and Execution Layer
 
@@ -101,7 +102,7 @@ Canix should become the validation, discovery, transaction-generation, execution
   - [x] Add strategy error codes to typed catalog + discovery `errorCatalog`.
   - [x] Align base URL defaults and amount display (`amountUsdc` + `amountMicro`) across discovery/Caddy.
 - [x] Break `POST /execution/quotes` to batch `{ quotes: [{ shapeKey, input }, ...] }` → `data: ExecutableQuote[]` (flat 0.1 USDC per request; correlated `quoteIndex`/`shapeKey` on failure; no group merging).
-- [~] Dork.fi production lending live verification via gated `test:dorkfi-production` (`X402_DORKFI_EXECUTION_LIVE=1`; excluded from `test:ci`) currently fails at submit with an Algod incomplete-group rejection.
+- [x] Dork.fi production lending live verification passed via gated `test:dorkfi-production` (`X402_DORKFI_EXECUTION_LIVE=1`; excluded from `test:ci`) and user-agent mainnet submit testing.
 
 ### Protocol Transaction Shape Mapping (Blocking Foundation)
 

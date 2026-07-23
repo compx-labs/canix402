@@ -5,14 +5,14 @@ import { config } from "../lib/config";
 
 <BaseLayout
   title="Live Transactions | CANIX402"
-  description="Live inbound USDC payments to the CANIX402 x402 pay-to wallet. Shows the latest 30 received payments under 1 USDC, refreshed every 2 minutes."
-  keywords="Canix402 transactions, x402 payments, USDC, Algorand, live payments, pay-to wallet"
+  description="Live inbound USDC payments to the CANIX402 x402 pay-to wallet. Shows recent under-1-USDC settlements with totals and NFD sender names, refreshed every 2 minutes."
+  keywords="Canix402 transactions, x402 payments, USDC, Algorand, live payments, pay-to wallet, NFD"
 >
   <h1 class="page-title">Live Transactions</h1>
   <p class="muted page-lead">
     Inbound USDC payments received by the CANIX402 x402 pay-to wallet. Only payments
-    under 1 USDC are shown. Data is sourced from the Algorand Indexer and refreshed
-    every 2 minutes.
+    under 1 USDC are shown. Totals cover this recent window (not lifetime history).
+    Data is sourced from the Algorand Indexer and refreshed every 2 minutes.
   </p>
 
   <div class="transactions-meta panel">
@@ -26,6 +26,33 @@ import { config } from "../lib/config";
       Loading transactions…
     </p>
   </div>
+
+  <div
+    id="transactions-stats"
+    class="transactions-stats"
+    aria-label="Totals for the recent under-1-USDC payment window"
+    hidden
+  >
+    <div class="transactions-stat">
+      <span class="transactions-stat-label">Payments shown</span>
+      <span id="stat-count" class="transactions-stat-value">—</span>
+    </div>
+    <div class="transactions-stat">
+      <span class="transactions-stat-label">Total USDC</span>
+      <span id="stat-total" class="transactions-stat-value">—</span>
+    </div>
+    <div class="transactions-stat">
+      <span class="transactions-stat-label">Unique senders</span>
+      <span id="stat-senders" class="transactions-stat-value">—</span>
+    </div>
+    <div class="transactions-stat">
+      <span class="transactions-stat-label">Largest payment</span>
+      <span id="stat-largest" class="transactions-stat-value">—</span>
+    </div>
+  </div>
+  <p class="muted transactions-stats-note">
+    Totals reflect the recent under-1-USDC window loaded below — not all-time volume.
+  </p>
 
   <div class="transactions-table-wrap">
     <table class="endpoint-table transactions-table" aria-label="Recent inbound USDC payments">
@@ -54,19 +81,29 @@ import { config } from "../lib/config";
       payToAddress: config.payToAddress,
       usdcAssetId: config.usdcAssetId,
       indexerUrl: config.indexerBaseUrl,
+      nfdApiBaseUrl: config.nfdApiBaseUrl,
       txExplorerBase: config.alloTxBaseUrl,
       pollMs: config.transactionsRefreshMs
     })
   }}
 >
-  const { payToAddress, usdcAssetId, indexerUrl, txExplorerBase, pollMs } =
-    JSON.parse(txPageConfig);
+  const {
+    payToAddress,
+    usdcAssetId,
+    indexerUrl,
+    nfdApiBaseUrl,
+    txExplorerBase,
+    pollMs
+  } = JSON.parse(txPageConfig);
   const ONE_USDC_MICRO = 1_000_000;
   const MAX_ROWS = 30;
   const PAGE_SIZE = 50;
   const MAX_PAGES = 10;
+  const NFD_BATCH_SIZE = 20;
   /** @type {ReturnType<typeof setInterval> | null} */
   let refreshTimer = null;
+  /** @type {Map<string, string | null>} */
+  const nfdCache = new Map();
 
   /**
    * @param {string} address
@@ -102,6 +139,18 @@ import { config } from "../lib/config";
    */
   function alloTxUrl(txid) {
     return `${txExplorerBase}/${txid}`;
+  }
+
+  /**
+   * @param {string} value
+   */
+  function escapeHtml(value) {
+    return value
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
   }
 
   /**
@@ -145,7 +194,8 @@ import { config } from "../lib/config";
       round,
       roundTime,
       amount,
-      url: alloTxUrl(txid)
+      url: alloTxUrl(txid),
+      nfdName: /** @type {string | null} */ (null)
     };
   }
 
@@ -166,11 +216,51 @@ import { config } from "../lib/config";
   function renderEmpty(message) {
     const tbody = document.getElementById("transactions-body");
     if (!tbody) return;
-    tbody.innerHTML = `<tr><td colspan="5" class="muted">${message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="muted">${escapeHtml(message)}</td></tr>`;
   }
 
   /**
-   * @param {Array<{ txid: string; sender: string; round: number; roundTime: number; amount: number; url: string }>} rows
+   * @param {Array<{ amount: number; sender: string }>} rows
+   */
+  function renderStats(rows) {
+    const statsEl = document.getElementById("transactions-stats");
+    const countEl = document.getElementById("stat-count");
+    const totalEl = document.getElementById("stat-total");
+    const sendersEl = document.getElementById("stat-senders");
+    const largestEl = document.getElementById("stat-largest");
+    if (!statsEl || !countEl || !totalEl || !sendersEl || !largestEl) return;
+
+    if (rows.length === 0) {
+      statsEl.hidden = true;
+      return;
+    }
+
+    const totalMicro = rows.reduce((sum, row) => sum + row.amount, 0);
+    const uniqueSenders = new Set(rows.map((row) => row.sender)).size;
+    const largestMicro = Math.max(...rows.map((row) => row.amount));
+
+    countEl.textContent = rows.length.toLocaleString();
+    totalEl.textContent = formatUsdc(totalMicro);
+    sendersEl.textContent = uniqueSenders.toLocaleString();
+    largestEl.textContent = formatUsdc(largestMicro);
+    statsEl.hidden = false;
+  }
+
+  /**
+   * @param {string} sender
+   * @param {string | null} nfdName
+   */
+  function formatSenderCell(sender, nfdName) {
+    const safeSender = escapeHtml(sender);
+    if (nfdName) {
+      const safeName = escapeHtml(nfdName);
+      return `<span class="transactions-nfd" title="${safeSender}">${safeName}</span>`;
+    }
+    return `<code class="transactions-address" title="${safeSender}">${escapeHtml(truncateAddress(sender))}</code>`;
+  }
+
+  /**
+   * @param {Array<{ txid: string; sender: string; round: number; roundTime: number; amount: number; url: string; nfdName: string | null }>} rows
    */
   function renderRows(rows) {
     const tbody = document.getElementById("transactions-body");
@@ -186,12 +276,78 @@ import { config } from "../lib/config";
         (row) => `<tr>
           <td>${formatTime(row.roundTime)}</td>
           <td>${formatUsdc(row.amount)}</td>
-          <td><code class="transactions-address" title="${row.sender}">${truncateAddress(row.sender)}</code></td>
+          <td>${formatSenderCell(row.sender, row.nfdName)}</td>
           <td>${row.round.toLocaleString()}</td>
-          <td><a href="${row.url}" target="_blank" rel="noopener noreferrer">${truncateAddress(row.txid)}</a></td>
+          <td><a href="${escapeHtml(row.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(truncateAddress(row.txid))}</a></td>
         </tr>`
       )
       .join("");
+  }
+
+  /**
+   * @param {string[]} addresses
+   */
+  async function lookupNfdBatch(addresses) {
+    if (addresses.length === 0) return;
+
+    const params = new URLSearchParams({ view: "tiny" });
+    for (const address of addresses) {
+      params.append("address", address);
+    }
+
+    const url = `${nfdApiBaseUrl.replace(/\/$/, "")}/nfd/lookup?${params.toString()}`;
+    try {
+      const response = await fetch(url);
+      if (response.status === 404) {
+        for (const address of addresses) {
+          nfdCache.set(address, null);
+        }
+        return;
+      }
+      if (!response.ok) {
+        for (const address of addresses) {
+          if (!nfdCache.has(address)) nfdCache.set(address, null);
+        }
+        return;
+      }
+
+      const payload = await response.json();
+      if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
+        for (const address of addresses) {
+          nfdCache.set(address, null);
+        }
+        return;
+      }
+
+      for (const address of addresses) {
+        const entry = /** @type {Record<string, unknown> | undefined} */ (
+          payload[address]
+        );
+        const name =
+          entry && typeof entry.name === "string" && entry.name.length > 0
+            ? entry.name
+            : null;
+        nfdCache.set(address, name);
+      }
+    } catch {
+      for (const address of addresses) {
+        if (!nfdCache.has(address)) nfdCache.set(address, null);
+      }
+    }
+  }
+
+  /**
+   * @param {string[]} addresses
+   */
+  async function resolveNfdNames(addresses) {
+    const unique = [...new Set(addresses.filter(Boolean))];
+    const missing = unique.filter((address) => !nfdCache.has(address));
+
+    for (let index = 0; index < missing.length; index += NFD_BATCH_SIZE) {
+      await lookupNfdBatch(missing.slice(index, index + NFD_BATCH_SIZE));
+    }
+
+    return nfdCache;
   }
 
   async function fetchTransactions() {
@@ -241,18 +397,31 @@ import { config } from "../lib/config";
     try {
       setStatus("Fetching latest transactions…");
       const rows = await fetchTransactions();
+      renderStats(rows);
       renderRows(rows);
 
+      const totalMicro = rows.reduce((sum, row) => sum + row.amount, 0);
       const refreshedAt = new Date().toLocaleString(undefined, {
         dateStyle: "medium",
         timeStyle: "short"
       });
       setStatus(
-        `Showing ${rows.length} payment${rows.length === 1 ? "" : "s"} under 1 USDC. Last refreshed ${refreshedAt}.`
+        rows.length === 0
+          ? `No payments under 1 USDC in this window. Last refreshed ${refreshedAt}.`
+          : `Showing ${rows.length} payment${rows.length === 1 ? "" : "s"} totaling ${formatUsdc(totalMicro)}. Last refreshed ${refreshedAt}.`
       );
+
+      if (rows.length > 0) {
+        await resolveNfdNames(rows.map((row) => row.sender));
+        for (const row of rows) {
+          row.nfdName = nfdCache.get(row.sender) ?? null;
+        }
+        renderRows(rows);
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       setStatus(`Unable to load transactions: ${message}`, true);
+      renderStats([]);
       renderEmpty("Unable to load transactions.");
     }
   }
