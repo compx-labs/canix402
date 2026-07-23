@@ -32,6 +32,8 @@ import {
 } from "./parse-input.js";
 import {
   PactPoolState,
+  addressToStringForPact,
+  createPactBuilderAlgodClient,
   mapAssetsToPactAmounts,
   normalizeSuggestedParamsForPact,
   resolvePactPoolState
@@ -119,7 +121,7 @@ function resolveDependencies(): PactAddLiquidityAndFarmTwoSidedDependencies {
       }) as unknown as algosdk.Transaction[],
     buildStakeTxs: (escrow, amount) =>
       escrow.buildStakeTxs(amount) as unknown as algosdk.Transaction[],
-    getSuggestedParams: async (algod) => algod.getTransactionParams().do(),
+    getSuggestedParams: async () => createPactBuilderAlgodClient().getTransactionParams().do(),
     ...dependencyOverrides
   };
 }
@@ -271,16 +273,34 @@ export const pactAddLiquidityAndFarmTwoSidedShape: TransactionShapeSpec<
     }
 
     const suggestedParams = normalizeSuggestedParamsForPact(
-      await dependencies.getSuggestedParams(context.algod)
+      await dependencies.getSuggestedParams(createPactBuilderAlgodClient())
     );
     state.farm.farm.setSuggestedParams(suggestedParams as never);
     escrow.setSuggestedParams(suggestedParams as never);
+
+    const userAddress = addressToStringForPact(input.userAddress, "user");
+    const poolEscrowAddress = addressToStringForPact(
+      state.pool.escrowAddress,
+      "pool.escrowAddress"
+    );
+    const farmEscrowAddress = addressToStringForPact(
+      escrow.address,
+      "farmEscrow.address"
+    );
+    (escrow as { userAddress: string }).userAddress = addressToStringForPact(
+      escrow.userAddress,
+      "farmEscrow.userAddress"
+    );
+    (escrow as { address: string }).address = farmEscrowAddress;
+    // Keep resolved state consistent for validate() comparisons.
+    state.pool.escrowAddress = poolEscrowAddress;
+    state.farm.escrowAddress = farmEscrowAddress;
 
     let combined: algosdk.Transaction[];
     try {
       const addTxns = dependencies.buildAddLiquidityTxs(state.pool.pool, {
         liquidityAddition,
-        address: input.userAddress,
+        address: userAddress,
         suggestedParams
       });
       const stakeTxns = dependencies.buildStakeTxs(
@@ -294,9 +314,26 @@ export const pactAddLiquidityAndFarmTwoSidedShape: TransactionShapeSpec<
       }
       algosdk.assignGroupID(combined);
     } catch (error) {
+      const causeMessage =
+        error instanceof Error ? error.message : typeof error === "string" ? error : "";
+      const malformed =
+        /address seems to be malformed/i.test(causeMessage) ||
+        /malformed/i.test(causeMessage);
       throw new ShapeBuildError(
-        "Failed to generate Pact add-liquidity-and-farm transactions.",
-        { cause: error }
+        malformed
+          ? "Failed to generate Pact add-liquidity-and-farm transactions (address seems to be malformed)."
+          : "Failed to generate Pact add-liquidity-and-farm transactions.",
+        {
+          cause: error,
+          details: malformed
+            ? {
+                userAddress,
+                poolEscrowAddress,
+                farmEscrowAddress,
+                farmEscrowUserAddress: escrow.userAddress
+              }
+            : undefined
+        }
       );
     }
 

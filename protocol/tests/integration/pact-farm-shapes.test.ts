@@ -6,6 +6,10 @@ import type { Escrow, Farm, LiquidityAddition, Pool } from "@pactfi/pactsdk";
 
 import { buildApp } from "../../src/app.js";
 import {
+  TransactionShapeRegistry,
+  compileExecutableQuote
+} from "../../src/execution/index.js";
+import {
   pactAddLiquidityAndFarmTwoSidedShape,
   pactFarmClaimRewardsShape,
   pactFarmDeployEscrowShape,
@@ -496,4 +500,75 @@ test("POST /execution/quotes returns Pact addLiquidityAndFarm quote", async () =
   assert.equal(body.data[0]?.transactions.length, 5);
   assert.equal(body.data[0]?.metadata.stakeAmount, "69650");
   await app.close();
+});
+
+test("addLiquidityAndFarm coerces algosdk v3 Address fields before Pact stake builders", async () => {
+  const liquidityAddition = {
+    primaryAssetAmount: 50_000,
+    secondaryAssetAmount: 100_000,
+    slippagePct: 0.5,
+    effect: {
+      mintedLiquidityTokens: 70_000,
+      minimumMintedLiquidityTokens: 69_650,
+      amplifier: 0,
+      bonusPct: 0,
+      txFee: 3000
+    }
+  } as LiquidityAddition;
+
+  const state = farmState();
+  // Simulate the dual-algosdk bug: Escrow fields arrived as algosdk v3 Address objects.
+  (state.escrow as { userAddress: unknown }).userAddress = USER.addr;
+  (state.escrow as { address: unknown }).address = FARM_ESCROW.addr;
+  state.escrowAddress = FARM_ESCROW.addr as unknown as string;
+
+  let observedUserAddress: unknown;
+  let observedEscrowAddress: unknown;
+
+  const pool = pactPoolState();
+  (pool as { escrowAddress: unknown }).escrowAddress = POOL_ESCROW.addr;
+
+  setPactAddLiquidityAndFarmTwoSidedDependenciesForTests({
+    resolvePoolState: async () => pool,
+    resolveFarmState: async () => state,
+    prepareAddLiquidity: () => liquidityAddition,
+    buildAddLiquidityTxs: () => buildAddLiquidityGroup(),
+    buildStakeTxs: (escrow, amount) => {
+      observedUserAddress = escrow.userAddress;
+      observedEscrowAddress = escrow.address;
+      return buildStakeGroup(BigInt(amount));
+    },
+    getSuggestedParams: async () => suggestedParams(1000)
+  });
+
+  const registry = new TransactionShapeRegistry();
+  registry.register(pactAddLiquidityAndFarmTwoSidedShape);
+  const quote = await compileExecutableQuote(
+    registry,
+    pactAddLiquidityAndFarmTwoSidedShape.key,
+    {
+      userAddress: USER_ADDRESS,
+      farmAppId: PACT_FARM_APP_ID,
+      poolAppId: PACT_POOL_APP_ID,
+      assetAId: USDC_ID,
+      assetAAmount: "100000",
+      assetBId: ALGO_ID,
+      assetBAmount: "50000",
+      maxSlippageBps: 50
+    },
+    {
+      network: "mainnet",
+      algod: new algosdk.Algodv2("", "http://localhost", ""),
+      now: () => Date.UTC(2026, 6, 23, 12, 0, 0),
+      quoteTtlMs: 30_000
+    }
+  );
+
+  assert.equal(typeof observedUserAddress, "string");
+  assert.equal(typeof observedEscrowAddress, "string");
+  assert.equal(observedUserAddress, USER_ADDRESS);
+  assert.equal(observedEscrowAddress, FARM_ESCROW_ADDRESS);
+  assert.equal(typeof pool.escrowAddress, "string");
+  assert.equal(pool.escrowAddress, POOL_ESCROW_ADDRESS);
+  assert.equal(quote.transactions.length, 5);
 });

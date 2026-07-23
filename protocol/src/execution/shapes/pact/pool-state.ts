@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import algosdk, { Algodv2 } from "algosdk";
 import { PactClient } from "@pactfi/pactsdk";
 import type { Pool, PoolState, PoolType } from "@pactfi/pactsdk";
@@ -5,6 +6,17 @@ import type { Pool, PoolState, PoolType } from "@pactfi/pactsdk";
 import { ShapeStateError } from "../../errors.js";
 import type { ExecutionNetwork } from "../../types.js";
 import { parseAssetId } from "./parse-input.js";
+
+/**
+ * @pactfi/pactsdk is published as CJS and nests algosdk v2. Canix depends on
+ * algosdk v3 (ESM). Mixing Address / SuggestedParams values across those copies
+ * produces "address seems to be malformed" inside Pact's Transaction builders.
+ */
+const require = createRequire(import.meta.url);
+const pactSdkRequire = createRequire(require.resolve("@pactfi/pactsdk"));
+const pactBuilderAlgodSdk = pactSdkRequire("algosdk") as typeof import("algosdk");
+
+const ALGORAND_ADDRESS_RE = /^[A-Z2-7]{58}$/;
 
 /**
  * Execution-focused view of a Pact liquidity pool. Resolved from chain via the
@@ -134,7 +146,7 @@ export async function resolvePactPoolState(params: {
   return {
     network,
     poolAppId: pool.appId,
-    escrowAddress: pool.getEscrowAddress(),
+    escrowAddress: addressToStringForPact(pool.getEscrowAddress(), "pool.escrowAddress"),
     primaryAssetId,
     secondaryAssetId,
     liquidityAssetId,
@@ -168,10 +180,14 @@ function resolveDependencies(): PactPoolStateDependencies {
   };
 }
 
-function defaultCreatePactClient(algod: Algodv2, network: ExecutionNetwork): PactClient {
-  // Pact SDK bundles algosdk v2; cast through unknown for v3 client compatibility.
+function defaultCreatePactClient(_algod: Algodv2, network: ExecutionNetwork): PactClient {
+  // Prefer Pact's nested algosdk client so Address values match builders.
+  // Still wrap for camelCase / bytes → kebab-case / base64 when callers inject
+  // a v3 algod (tests), and keep creator coercion for defense in depth.
   return new PactClient(
-    createPactCompatibleAlgodClient(algod) as unknown as ConstructorParameters<typeof PactClient>[0],
+    createPactCompatibleAlgodClient(createPactBuilderAlgodClient()) as unknown as ConstructorParameters<
+      typeof PactClient
+    >[0],
     {
       network
     }
@@ -183,8 +199,59 @@ async function defaultFetchPoolById(client: PactClient, poolAppId: number): Prom
 }
 
 /**
+ * Algod client constructed with the same CommonJS algosdk instance nested under
+ * @pactfi/pactsdk. Use this for farm/pool builders and suggested-params fetches.
+ */
+export function createPactBuilderAlgodClient(): Algodv2 {
+  const server = process.env.X402_ALGOD_URL ?? "https://mainnet-api.algonode.cloud";
+  const token = process.env.X402_ALGOD_TOKEN ?? "";
+  return new pactBuilderAlgodSdk.Algodv2(token, trimTrailingSlash(server), "") as unknown as Algodv2;
+}
+
+export function getPactBuilderAlgodSdk(): typeof import("algosdk") {
+  return pactBuilderAlgodSdk;
+}
+
+/**
+ * Coerce algosdk v3 Address (or any toString-able address) to a plain base32
+ * string that Pact's nested algosdk v2 decodeAddress accepts.
+ */
+export function addressToStringForPact(value: unknown, label: string): string {
+  if (typeof value === "string") {
+    if (!ALGORAND_ADDRESS_RE.test(value)) {
+      throw new ShapeStateError(`Pact ${label} address seems to be malformed.`, {
+        details: { field: label, value }
+      });
+    }
+    return value;
+  }
+
+  if (value !== null && typeof value === "object") {
+    const asString =
+      typeof (value as { toString?: unknown }).toString === "function"
+        ? (value as { toString: () => string }).toString()
+        : "";
+    if (ALGORAND_ADDRESS_RE.test(asString)) {
+      return asString;
+    }
+  }
+
+  throw new ShapeStateError(`Pact ${label} address seems to be malformed.`, {
+    details: {
+      field: label,
+      typeof: typeof value,
+      value:
+        value === null || value === undefined
+          ? String(value)
+          : Object.prototype.toString.call(value)
+    }
+  });
+}
+
+/**
  * Pact SDK 0.8.x parses Algod responses using algosdk v2 field names and
- * base64 strings. algosdk v3 returns camelCase fields and Uint8Array values.
+ * base64 strings. algosdk v3 returns camelCase fields, Uint8Array values, and
+ * Address objects for creator / account fields.
  */
 export function createPactCompatibleAlgodClient(algod: Algodv2): Algodv2 {
   return new Proxy(algod, {
@@ -210,6 +277,15 @@ export function createPactCompatibleAlgodClient(algod: Algodv2): Algodv2 {
         };
       }
 
+      if (property === "getTransactionParams") {
+        return (...args: unknown[]) => {
+          const request = (target.getTransactionParams as AlgodMethod).apply(target, args);
+          return wrapAlgodRequest(request, (value) =>
+            normalizeSuggestedParamsForPact(value as algosdk.SuggestedParams)
+          );
+        };
+      }
+
       return Reflect.get(target, property, receiver);
     }
   });
@@ -218,8 +294,14 @@ export function createPactCompatibleAlgodClient(algod: Algodv2): Algodv2 {
 export function normalizeSuggestedParamsForPact(
   params: algosdk.SuggestedParams
 ): algosdk.SuggestedParams {
-  const firstRound = toPactNumber(params.firstValid, "firstValid");
-  const lastRound = toPactNumber(params.lastValid, "lastValid");
+  const raw = params as algosdk.SuggestedParams & {
+    firstRound?: unknown;
+    lastRound?: unknown;
+  };
+  // algosdk v3 uses firstValid/lastValid; Pact's nested v2 uses firstRound/lastRound.
+  const firstRound = toPactNumber(raw.firstValid ?? raw.firstRound, "firstValid");
+  const lastRound = toPactNumber(raw.lastValid ?? raw.lastRound, "lastValid");
+  const genesisHash = normalizeGenesisHashForPact(raw.genesisHash);
   return {
     ...params,
     fee: toPactNumber(params.fee, "fee"),
@@ -227,7 +309,8 @@ export function normalizeSuggestedParamsForPact(
     firstValid: firstRound,
     lastValid: lastRound,
     firstRound,
-    lastRound
+    lastRound,
+    ...(genesisHash === undefined ? {} : { genesisHash })
   } as unknown as algosdk.SuggestedParams;
 }
 
@@ -248,15 +331,18 @@ function normalizeApplicationResponseForPact<T>(response: T): T {
 
   const params = response.params;
   const globalState = params["global-state"] ?? params.globalState;
-  if (globalState === undefined) {
-    return response;
-  }
+  const creator = params.creator;
 
   return {
     ...response,
     params: {
       ...params,
-      "global-state": normalizeStateEntries(globalState)
+      ...(creator === undefined
+        ? {}
+        : { creator: coerceAddressField(creator, "application.creator") }),
+      ...(globalState === undefined
+        ? {}
+        : { "global-state": normalizeStateEntries(globalState) })
     }
   } as T;
 }
@@ -287,9 +373,13 @@ function normalizeAccountResponseForPact<T>(response: T): T {
 
   const appsLocalState = response["apps-local-state"] ?? response.appsLocalState;
   const assets = response.assets;
+  const address = response.address;
 
   return {
     ...response,
+    ...(address === undefined
+      ? {}
+      : { address: coerceAddressField(address, "account.address") }),
     "apps-local-state": normalizeAppsLocalState(appsLocalState),
     ...(assets === undefined
       ? {}
@@ -311,6 +401,42 @@ function normalizeAccountResponseForPact<T>(response: T): T {
             : assets
         })
   } as T;
+}
+
+/**
+ * Soft coerce used inside algod response wrappers — never throw mid-fetch so
+ * unrelated fields can still be read; builders call addressToStringForPact.
+ */
+function coerceAddressField(value: unknown, _label: string): unknown {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (value !== null && typeof value === "object") {
+    const asString =
+      typeof (value as { toString?: unknown }).toString === "function"
+        ? (value as { toString: () => string }).toString()
+        : "";
+    if (ALGORAND_ADDRESS_RE.test(asString)) {
+      return asString;
+    }
+  }
+  return value;
+}
+
+function normalizeGenesisHashForPact(value: unknown): string | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  if (value instanceof Uint8Array) {
+    return Buffer.from(value).toString("base64");
+  }
+  if (ArrayBuffer.isView(value)) {
+    return Buffer.from(value.buffer, value.byteOffset, value.byteLength).toString("base64");
+  }
+  return undefined;
 }
 
 function normalizeAppsLocalState(value: unknown): unknown {

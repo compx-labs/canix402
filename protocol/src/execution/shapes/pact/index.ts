@@ -74,7 +74,10 @@ export type {
   PactFarmStateDependencies
 } from "./farm-state.js";
 export {
+  addressToStringForPact,
+  createPactBuilderAlgodClient,
   createPactCompatibleAlgodClient,
+  getPactBuilderAlgodSdk,
   resolvePactPoolState,
   mapAssetsToPactAmounts,
   setPactPoolStateDependenciesForTests

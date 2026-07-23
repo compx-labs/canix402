@@ -20,6 +20,7 @@ import {
 } from "./parse-input.js";
 import {
   PactPoolState,
+  createPactBuilderAlgodClient,
   normalizeSuggestedParamsForPact,
   resolvePactPoolState
 } from "./pool-state.js";
@@ -81,7 +82,7 @@ function resolveDependencies(): PactRemoveLiquidityProportionalDependencies {
         amount: options.amount,
         suggestedParams: options.suggestedParams as never
       }) as unknown as algosdk.Transaction[],
-    getSuggestedParams: async (algod) => algod.getTransactionParams().do(),
+    getSuggestedParams: async () => createPactBuilderAlgodClient().getTransactionParams().do(),
     ...dependencyOverrides
   };
 }
@@ -152,7 +153,9 @@ export const pactRemoveLiquidityProportionalShape: TransactionShapeSpec<
 
     let rawTxns: algosdk.Transaction[];
     try {
-      const suggestedParams = await dependencies.getSuggestedParams(context.algod);
+      const suggestedParams = await dependencies.getSuggestedParams(
+        createPactBuilderAlgodClient()
+      );
       rawTxns = dependencies.buildRemoveLiquidityTxs(state.pool, {
         address: input.userAddress,
         amount: toSdkAmount(input.poolTokenAmount, "poolTokenAmount"),
