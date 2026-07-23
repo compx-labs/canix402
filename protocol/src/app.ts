@@ -5,7 +5,10 @@ import {
   CompXAdapterError,
   DorkFiAdapterError,
   FolksFinanceAdapterError,
+  HaystackAdapterError,
+  MythFinanceAdapterError,
   PactAdapterError,
+  RetiAdapterError,
   TinymanAdapterError
 } from "./adapters/index.js";
 import { AccountAssetsError } from "./services/account-assets.js";
@@ -13,6 +16,22 @@ import { AllPositionSourcesUnavailableError } from "./services/aggregate-positio
 import { WalletSnapshotError } from "./services/wallet-snapshot.js";
 import { ApiError } from "./types/index.js";
 import { registerRoutes } from "./routes/index.js";
+
+function isUpstreamAdapterError(error: unknown): boolean {
+  return (
+    error instanceof TinymanAdapterError ||
+    error instanceof PactAdapterError ||
+    error instanceof FolksFinanceAdapterError ||
+    error instanceof CompXAdapterError ||
+    error instanceof DorkFiAdapterError ||
+    error instanceof MythFinanceAdapterError ||
+    error instanceof HaystackAdapterError ||
+    error instanceof RetiAdapterError ||
+    error instanceof AccountAssetsError ||
+    error instanceof WalletSnapshotError ||
+    error instanceof AllPositionSourcesUnavailableError
+  );
+}
 
 export function buildApp() {
   const app = Fastify({
@@ -31,18 +50,11 @@ export function buildApp() {
             details
           }
         }
-      : error instanceof TinymanAdapterError
-          || error instanceof PactAdapterError
-          || error instanceof FolksFinanceAdapterError
-          || error instanceof CompXAdapterError
-          || error instanceof DorkFiAdapterError
-          || error instanceof AccountAssetsError
-          || error instanceof WalletSnapshotError
-          || error instanceof AllPositionSourcesUnavailableError
+      : isUpstreamAdapterError(error)
         ? {
             error: {
               code: "INTERNAL_ERROR",
-              message: error.message
+              message: error instanceof Error ? error.message : "Upstream adapter error."
             }
           }
         : {
@@ -52,19 +64,7 @@ export function buildApp() {
             }
           };
 
-    const statusCode =
-      details
-        ? 400
-        : error instanceof TinymanAdapterError
-          || error instanceof PactAdapterError
-          || error instanceof FolksFinanceAdapterError
-          || error instanceof CompXAdapterError
-          || error instanceof DorkFiAdapterError
-          || error instanceof AccountAssetsError
-          || error instanceof WalletSnapshotError
-          || error instanceof AllPositionSourcesUnavailableError
-          ? 502
-          : 500;
+    const statusCode = details ? 400 : isUpstreamAdapterError(error) ? 502 : 500;
 
     reply.status(statusCode).send(payload);
   });

@@ -19,6 +19,7 @@ import {
   type StrategyPublishBody,
   type StrategyReviseBody
 } from "../types/strategy-schema.js";
+import { resolvePublicBaseUrl } from "../constants/public-url.js";
 import {
   createStrategyStoreFromEnv,
   type StrategyStore
@@ -388,8 +389,7 @@ async function defaultMintStrategyNft(input: {
     ""
   );
   const suggested = await algod.getTransactionParams().do();
-  const publicBase =
-    process.env.X402_PUBLIC_BASE_URL?.trim() ?? "https://api.canix402.compx.io";
+  const publicBase = resolvePublicBaseUrl();
 
   // Placeholder URL; rewritten mentally as strategies/{id} after mint — ASA url
   // max 96 bytes, so keep a stable ARC-3 template path.

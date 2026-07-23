@@ -37,6 +37,9 @@ const FOLKS_UNSTAKE_IMMEDIATE =
 const MYTH_MINT_LST = "mainnet:myth-finance:dualstake-v1:mint:lst";
 const MYTH_REDEEM_LST = "mainnet:myth-finance:dualstake-v1:redeem:lst";
 const RETI_STAKE_ALGO = "mainnet:reti:v1:stake:algo";
+const RETI_UNSTAKE_ALGO = "mainnet:reti:v1:unstake:algo";
+const HAYSTACK_STAKING_OPPORTUNITY_ID = "haystack-staking-hay";
+const HAYSTACK_UNSTAKE_HAY = "mainnet:haystack:v1:unstake:hay";
 
 type ShapeStep = {
   shapeKey: string;
@@ -131,6 +134,16 @@ const FOLKS_XALGO_STAKING_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
 /** Liquid-staking exit path for Myth dualSTAKE redeem. */
 const MYTH_DUALSTAKE_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
   { shapeKey: MYTH_REDEEM_LST, order: 0 }
+];
+
+/** Exit path for Réti validator unstake. */
+const RETI_STAKING_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: RETI_UNSTAKE_ALGO, order: 0 }
+];
+
+/** Exit path for Haystack HAY unstake (and claim). */
+const HAYSTACK_STAKING_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: HAYSTACK_UNSTAKE_HAY, order: 0 }
 ];
 
 export function attachExecutionShapesToOpportunity(
@@ -269,7 +282,7 @@ function orderEnterShapes(
 
 /**
  * Exit shapes are looked up by key (not listForOpportunity, which is enter-only).
- * Only liquid-staking opportunities attach exits today.
+ * Liquid-staking, Réti, and Haystack staking opportunities attach exits.
  */
 function orderExitShapes(
   record: OpportunityMarketRecord,
@@ -322,6 +335,12 @@ function resolveExitSteps(
   }
   if (isMythDualStakeOpportunity(record)) {
     return MYTH_DUALSTAKE_EXIT_STEPS;
+  }
+  if (isRetiStakingOpportunity(record)) {
+    return RETI_STAKING_EXIT_STEPS;
+  }
+  if (isHaystackStakingOpportunity(record)) {
+    return HAYSTACK_STAKING_EXIT_STEPS;
   }
   return [];
 }
@@ -571,27 +590,31 @@ function buildRequiredAssetIds(record: OpportunityMarketRecord): number[] {
   return [];
 }
 
-/** Receipt token (xALGO / tALGO / dualSTAKE LST) for liquid-staking exits. */
+/**
+ * Assets required to exit: LST receipt for liquid-staking, ALGO for Réti,
+ * HAY for Haystack unstake.
+ */
 function buildExitRequiredAssetIds(record: OpportunityMarketRecord): number[] {
-  if (!isLiquidStakingOpportunity(record)) {
-    return [];
-  }
-  if (record.protocol === "myth-finance") {
+  if (isMythDualStakeOpportunity(record)) {
     const receipt = record.assetIds?.[2];
     return receipt !== undefined ? [receipt] : [];
   }
-  const receipt = record.assetIds?.[1];
-  return receipt !== undefined ? [receipt] : [];
+  if (isLiquidStakingOpportunity(record)) {
+    const receipt = record.assetIds?.[1];
+    return receipt !== undefined ? [receipt] : [];
+  }
+  if (isRetiStakingOpportunity(record) || isHaystackStakingOpportunity(record)) {
+    const primary = record.assetIds?.[0];
+    return primary !== undefined ? [primary] : [];
+  }
+  return [];
 }
 
 function buildExitInputHints(
   record: OpportunityMarketRecord
 ): OpportunityExecutionInputHints {
-  if (!isLiquidStakingOpportunity(record)) {
-    return {};
-  }
   const hints: OpportunityExecutionInputHints = {};
-  if (record.protocol === "myth-finance") {
+  if (isMythDualStakeOpportunity(record)) {
     const appId =
       parseTrailingAppId(record.opportunityId, "myth-staking-") ??
       parseTrailingAppId(record.opportunityId, "myth-farm-");
@@ -605,12 +628,35 @@ function buildExitInputHints(
     }
     return hints;
   }
-  const receipt = record.assetIds?.[1];
-  if (receipt !== undefined) {
-    hints.assetId = receipt;
-    hints.depositAssetId = receipt;
+  if (isLiquidStakingOpportunity(record)) {
+    const receipt = record.assetIds?.[1];
+    if (receipt !== undefined) {
+      hints.assetId = receipt;
+      hints.depositAssetId = receipt;
+    }
+    return hints;
   }
-  return hints;
+  if (isRetiStakingOpportunity(record)) {
+    const validatorId = parseTrailingAppId(record.opportunityId, "reti-staking-");
+    if (validatorId !== null) {
+      hints.validatorId = validatorId;
+    }
+    const primary = record.assetIds?.[0];
+    if (primary !== undefined) {
+      hints.assetId = primary;
+      hints.depositAssetId = primary;
+    }
+    return hints;
+  }
+  if (isHaystackStakingOpportunity(record)) {
+    const primary = record.assetIds?.[0];
+    if (primary !== undefined) {
+      hints.assetId = primary;
+      hints.depositAssetId = primary;
+    }
+    return hints;
+  }
+  return {};
 }
 
 function isLiquidStakingOpportunity(record: OpportunityMarketRecord): boolean {
@@ -619,8 +665,15 @@ function isLiquidStakingOpportunity(record: OpportunityMarketRecord): boolean {
       (record.opportunityId === TINYMAN_TALGO_STAKING_OPPORTUNITY_ID ||
         record.opportunityId === TINYMAN_STALGO_STAKING_OPPORTUNITY_ID)) ||
     (record.protocol === "folks-finance" &&
-      record.opportunityId === FOLKS_XALGO_STAKING_OPPORTUNITY_ID) ||
-    isMythDualStakeOpportunity(record)
+      record.opportunityId === FOLKS_XALGO_STAKING_OPPORTUNITY_ID)
+  );
+}
+
+function isHaystackStakingOpportunity(record: OpportunityMarketRecord): boolean {
+  return (
+    record.protocol === "haystack" &&
+    record.opportunityType === "staking" &&
+    record.opportunityId === HAYSTACK_STAKING_OPPORTUNITY_ID
   );
 }
 

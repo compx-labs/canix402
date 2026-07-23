@@ -11,6 +11,7 @@ import {
   MCP_SERVER_TRANSPORT,
   MCP_TOOL_NAMES
 } from "../constants/mcp.js";
+import { resolvePublicBaseUrl } from "../constants/public-url.js";
 import {
   endpointPolicyMatrix,
   getX402EndpointMetadata
@@ -18,7 +19,6 @@ import {
 import { ApiSuccess } from "../types/api.js";
 import { DiscoveryDocument, DiscoveryEndpointDescriptor } from "../types/discovery.js";
 
-const DEFAULT_PUBLIC_BASE_URL = "https://canix402-api.compx.io";
 const DEFAULT_DOCS_URL = "https://canix402.compx.io/x402";
 const DEFAULT_LLMS_TXT_URL = "https://canix402.compx.io/llms.txt";
 
@@ -282,9 +282,34 @@ function buildDiscoveryDocument(): DiscoveryDocument {
         description: "Request validation failed."
       },
       {
+        code: "NOT_FOUND",
+        httpStatus: 404,
+        description: "Requested resource was not found."
+      },
+      {
         code: "INTERNAL_ERROR",
         httpStatus: 500,
         description: "Internal server error."
+      },
+      {
+        code: "STRATEGY_VALIDATION_ERROR",
+        httpStatus: 400,
+        description: "Strategy publish/revise/compile payload failed validation."
+      },
+      {
+        code: "STRATEGY_NOT_FOUND",
+        httpStatus: 404,
+        description: "Strategy document was not found."
+      },
+      {
+        code: "STRATEGY_FORBIDDEN",
+        httpStatus: 403,
+        description: "Caller is not allowed to revise or compile this strategy."
+      },
+      {
+        code: "STRATEGY_CONFLICT",
+        httpStatus: 409,
+        description: "Strategy revise cooldown or conflicting state prevented the request."
       }
     ]
   };
@@ -333,11 +358,7 @@ interface X402DiscoveryManifest {
 }
 
 function buildWellKnownX402FanOut(): { version: 1; resources: string[] } {
-  const publicBaseUrl = trimTrailingSlash(
-    process.env.X402_PUBLIC_BASE_URL
-      ?? process.env.PUBLIC_GATEWAY_BASE_URL
-      ?? DEFAULT_PUBLIC_BASE_URL
-  );
+  const publicBaseUrl = trimTrailingSlash(resolvePublicBaseUrl());
   const paidEndpoints = endpointPolicyMatrix.filter((endpoint) => endpoint.access === "paid");
 
   return {
@@ -350,11 +371,7 @@ function buildWellKnownX402FanOut(): { version: 1; resources: string[] } {
 }
 
 function buildX402Manifest(): X402DiscoveryManifest {
-  const publicBaseUrl = trimTrailingSlash(
-    process.env.X402_PUBLIC_BASE_URL
-      ?? process.env.PUBLIC_GATEWAY_BASE_URL
-      ?? DEFAULT_PUBLIC_BASE_URL
-  );
+  const publicBaseUrl = resolvePublicBaseUrl();
   const docsUrl =
     process.env.X402_DOCS_URL ?? process.env.PUBLIC_DOCS_URL ?? DEFAULT_DOCS_URL;
   const llmsTxtUrl =
@@ -592,11 +609,7 @@ function trimTrailingSlash(value: string): string {
 }
 
 function getPublicBaseUrl(): string {
-  return trimTrailingSlash(
-    process.env.X402_PUBLIC_BASE_URL
-      ?? process.env.PUBLIC_GATEWAY_BASE_URL
-      ?? DEFAULT_PUBLIC_BASE_URL
-  );
+  return resolvePublicBaseUrl();
 }
 
 function getDocsSiteUrl(): string {

@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 import { Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 
+import { resolvePublicBaseUrl } from "../constants/public-url.js";
+
 const publicDir = resolve(dirname(fileURLToPath(import.meta.url)), "../../public");
 
 const faviconPng = readFileSync(resolve(publicDir, "favicon.png"));
@@ -19,11 +21,7 @@ const DEFAULT_DESCRIPTION =
 const DOCS_URL = "https://canix402.compx.io";
 
 function publicBaseUrl(): string {
-  return (
-    process.env.X402_PUBLIC_BASE_URL
-    ?? process.env.PUBLIC_GATEWAY_BASE_URL
-    ?? "https://canix402-api.compx.io"
-  ).replace(/\/$/, "");
+  return resolvePublicBaseUrl();
 }
 
 function buildRootHtml(): string {

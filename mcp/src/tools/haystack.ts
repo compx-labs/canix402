@@ -24,7 +24,8 @@ const DisabledProtocolSchema = z.enum([
   "TAlgo"
 ]);
 const TransactionPayloadSchema = z.object({
-  iv: z.string().min(1),
+  // Haystack may return an empty IV; protocol /swaps/* accepts it.
+  iv: z.string(),
   data: z.string().min(1)
 });
 const QuoteSchema = z.object({

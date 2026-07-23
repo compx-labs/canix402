@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 
 import { fetchOpportunitiesForProtocol } from "../services/aggregate-opportunities.js";
+import { filterOpportunitiesByActivity } from "../services/opportunity-activity.js";
 import { rankOpportunitiesByApy } from "../services/opportunity-ranking.js";
 import { formatOpportunitiesForAgent } from "../services/precision.js";
 import { ApiSuccess } from "../types/index.js";
@@ -38,7 +39,10 @@ export function registerProtocolRoutes(app: FastifyInstance) {
         includeInactive = false
       } = request.query;
 
-      const data = await fetchOpportunitiesForProtocol(protocol);
+      const data = filterOpportunitiesByActivity(
+        await fetchOpportunitiesForProtocol(protocol),
+        includeInactive
+      );
       const pagedData = rankOpportunitiesByApy(data).slice(offset, offset + limit);
 
       return {

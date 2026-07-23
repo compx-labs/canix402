@@ -586,7 +586,14 @@ test("Réti staking attaches stake enter with validatorId hint", () => {
   assert.equal(enriched.executionShapes[0]?.shapeKey, "mainnet:reti:v1:stake:algo");
   assert.equal(enriched.executionShapes[0]?.inputHints?.validatorId, 12);
   assert.deepEqual(enriched.executionShapes[0]?.requiredAssetIds, [0]);
-  assert.deepEqual(enriched.compatibleExitShapes, []);
+  assert.equal(enriched.compatibleExitShapes.length, 1);
+  assert.equal(
+    enriched.compatibleExitShapes[0]?.shapeKey,
+    "mainnet:reti:v1:unstake:algo"
+  );
+  assert.deepEqual(enriched.compatibleExitShapes[0]?.requiredAssetIds, [0]);
+  assert.equal(enriched.compatibleExitShapes[0]?.inputHints?.validatorId, 12);
+  assert.equal(enriched.compatibleExitShapes[0]?.inputHints?.assetId, 0);
 
   const position = attachExecutionShapesToPosition({
     protocol: "reti",

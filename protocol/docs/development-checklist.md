@@ -94,12 +94,12 @@ Canix should become the validation, discovery, transaction-generation, execution
 - [x] Attach ordered enter-only `executionShapes` (+ `executionReady`, `requiredAssetIds`, typed `inputHints`) to every opportunity response; empty array means research-only.
 - [x] Surface Tinyman tALGO and Folks xALGO liquid staking as `opportunityType: "staking"` rows (consensus APR from Foundation bonus + fee share; Tinyman 8% fee / Folks `ConsensusState.fee`).
 - [x] Attach `compatibleExitShapeKeys` / `compatibleManageShapeKeys` on position records.
-- [ ] Attach Réti + Haystack `compatibleExitShapes` on opportunities (`resolveExitSteps` today only covers Tinyman/Folks/Myth; positions already expose exit keys).
-- [ ] API hygiene follow-ups (deferred from protocol API review first tranche):
-  - [ ] Implement or remove dead `includeInactive` query param on opportunity routes.
-  - [ ] Map Myth/Haystack/Réti adapter errors to 502 in global handler (parity with other adapters).
-  - [ ] Add strategy error codes to typed catalog + discovery `errorCatalog`.
-  - [ ] Align base URL defaults and amount display (`amountUsdc` + `amountMicro`) across discovery/Caddy.
+- [x] Attach Réti + Haystack `compatibleExitShapes` on opportunities (`resolveExitSteps` today only covers Tinyman/Folks/Myth; positions already expose exit keys).
+- [x] API hygiene follow-ups (deferred from protocol API review first tranche):
+  - [x] Implement or remove dead `includeInactive` query param on opportunity routes.
+  - [x] Map Myth/Haystack/Réti adapter errors to 502 in global handler (parity with other adapters).
+  - [x] Add strategy error codes to typed catalog + discovery `errorCatalog`.
+  - [x] Align base URL defaults and amount display (`amountUsdc` + `amountMicro`) across discovery/Caddy.
 - [x] Break `POST /execution/quotes` to batch `{ quotes: [{ shapeKey, input }, ...] }` → `data: ExecutableQuote[]` (flat 0.1 USDC per request; correlated `quoteIndex`/`shapeKey` on failure; no group merging).
 - [~] Dork.fi production lending live verification via gated `test:dorkfi-production` (`X402_DORKFI_EXECUTION_LIVE=1`; excluded from `test:ci`) currently fails at submit with an Algod incomplete-group rejection.
 

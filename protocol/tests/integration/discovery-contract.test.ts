@@ -169,7 +169,33 @@ test("paid discovery endpoints include complete x402 descriptors", async () => {
     assert.equal(typeof endpoint.x402?.requirementTemplate.asset, "string");
     assert.equal(typeof endpoint.x402?.requirementTemplate.payTo, "string");
     assert.equal(typeof endpoint.x402?.requirementTemplate.maxAmountRequired, "string");
+    assert.equal(typeof endpoint.x402?.amountUsdc, "string");
+    assert.equal(typeof endpoint.x402?.amountMicro, "string");
+    assert.equal(
+      endpoint.x402?.amountUsdc,
+      endpoint.x402?.requirementTemplate.maxAmountRequired
+    );
   }
+
+  await app.close();
+});
+
+test("discovery error catalog includes strategy codes", async () => {
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "GET",
+    url: "/discovery"
+  });
+  assert.equal(response.statusCode, 200);
+  const payload = response.json() as { data: DiscoveryDocument };
+  const codes = new Set(payload.data.errorCatalog.map((entry) => entry.code));
+  assert.ok(codes.has("STRATEGY_VALIDATION_ERROR"));
+  assert.ok(codes.has("STRATEGY_NOT_FOUND"));
+  assert.ok(codes.has("STRATEGY_FORBIDDEN"));
+  assert.ok(codes.has("STRATEGY_CONFLICT"));
+  assert.ok(codes.has("NOT_FOUND"));
 
   await app.close();
 });

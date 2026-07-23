@@ -6,6 +6,7 @@ import {
   fetchOpportunitiesForProtocols,
   SUPPORTED_AGGREGATE_PROTOCOLS
 } from "../services/aggregate-opportunities.js";
+import { filterOpportunitiesByActivity } from "../services/opportunity-activity.js";
 import { rankOpportunitiesByApy } from "../services/opportunity-ranking.js";
 import { formatOpportunitiesForAgent } from "../services/precision.js";
 import { selectPersonalizedOpportunities } from "../services/personalized-opportunities.js";
@@ -49,8 +50,11 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
         protocol
       } = request.query;
 
-      const data = await fetchOpportunitiesForProtocols(
-        protocol ? [protocol] : SUPPORTED_AGGREGATE_PROTOCOLS
+      const data = filterOpportunitiesByActivity(
+        await fetchOpportunitiesForProtocols(
+          protocol ? [protocol] : SUPPORTED_AGGREGATE_PROTOCOLS
+        ),
+        includeInactive
       );
 
       const pagedData = rankOpportunitiesByApy(data).slice(offset, offset + limit);
@@ -96,7 +100,8 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
       const types = parseOpportunityTypeFilters(type);
 
       const data = await fetchOpportunitiesForProtocols(platforms);
-      const filtered = data.filter((row) => {
+      const filtered = filterOpportunitiesByActivity(data, includeInactive).filter(
+        (row) => {
         if (types.length > 0 && !types.includes(row.opportunityType)) {
           return false;
         }
@@ -156,12 +161,16 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
       }
 
       const holdings = await fetchAccountHoldings(address);
-      const data = await fetchOpportunitiesForProtocols(SUPPORTED_AGGREGATE_PROTOCOLS);
+      const data = filterOpportunitiesByActivity(
+        await fetchOpportunitiesForProtocols(SUPPORTED_AGGREGATE_PROTOCOLS),
+        includeInactive
+      );
 
       const personalized = selectPersonalizedOpportunities(
         data,
         holdings,
-        offset + limit
+        offset + limit,
+        { includeInactive }
       ).slice(offset, offset + limit);
 
       return reply.send({

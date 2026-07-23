@@ -22,12 +22,14 @@ export interface PersonalizedHoldings {
 export function selectPersonalizedOpportunities(
   opportunities: readonly OpportunityMarketRecord[],
   heldAssetIdsOrHoldings: ReadonlySet<number> | PersonalizedHoldings,
-  limit: number
+  limit: number,
+  options: { includeInactive?: boolean } = {}
 ): OpportunityMarketRecord[] {
   const holdings = normalizeHoldings(heldAssetIdsOrHoldings);
+  const includeInactive = options.includeInactive === true;
 
   const matched = opportunities.filter((opportunity) =>
-    matchesPersonalizedOpportunity(opportunity, holdings)
+    matchesPersonalizedOpportunity(opportunity, holdings, { includeInactive })
   );
 
   matched.sort((a, b) => {
@@ -58,7 +60,8 @@ function normalizeHoldings(
 
 export function matchesPersonalizedOpportunity(
   opportunity: OpportunityMarketRecord,
-  holdings: PersonalizedHoldings
+  holdings: PersonalizedHoldings,
+  options: { includeInactive?: boolean } = {}
 ): boolean {
   const assetMatch = (opportunity.assetIds ?? []).some((assetId) =>
     holdings.heldAssetIds.has(assetId)
@@ -68,7 +71,11 @@ export function matchesPersonalizedOpportunity(
   }
 
   const capacity = opportunity.capacity;
-  if (capacity !== undefined && capacity.acceptingStake === false) {
+  if (
+    options.includeInactive !== true &&
+    capacity !== undefined &&
+    capacity.acceptingStake === false
+  ) {
     return false;
   }
 
