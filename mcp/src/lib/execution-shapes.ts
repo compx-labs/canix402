@@ -399,6 +399,26 @@ export const EXECUTION_SHAPES = [
     summary: "Claim accrued USDC and HAY rewards from the Haystack staking pool",
     docsPath: "protocol/docs/execution-shapes/haystack-claim-rewards.md",
     priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:reti:v1:stake:algo",
+    protocol: "reti",
+    protocolVersion: "v1",
+    action: "stake",
+    variant: "algo",
+    summary: "Stake ALGO to a Réti validator (registry allocates to a pool)",
+    docsPath: "protocol/docs/execution-shapes/reti-stake-algo.md",
+    priceUsdc: "0.10"
+  },
+  {
+    shapeKey: "mainnet:reti:v1:unstake:algo",
+    protocol: "reti",
+    protocolVersion: "v1",
+    action: "unstake",
+    variant: "algo",
+    summary: "Unstake ALGO from a Réti staking pool",
+    docsPath: "protocol/docs/execution-shapes/reti-unstake-algo.md",
+    priceUsdc: "0.10"
   }
 ] as const;
 

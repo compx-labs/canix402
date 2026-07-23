@@ -1,4 +1,7 @@
 export type {
+  OpportunityCapacity,
+  OpportunityEntryGate,
+  OpportunityEntryRequirements,
   OpportunityExecutionInputHints,
   OpportunityExecutionShape,
   OpportunityMarketRecord,

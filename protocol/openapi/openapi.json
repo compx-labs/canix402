@@ -878,7 +878,7 @@
     "/protocols/{protocol}/opportunities": {
       "get": {
         "summary": "Top 25 DeFi opportunities for a single protocol ranked by APY",
-        "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, or haystack. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
+        "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, or reti. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": [
           "defi",
           "opportunities",
@@ -898,7 +898,8 @@
                 "compx",
                 "dorkfi",
                 "myth-finance",
-                "haystack"
+                "haystack",
+                "reti"
               ]
             }
           },
@@ -1761,7 +1762,8 @@
               "compx",
               "dorkfi",
               "myth-finance",
-              "haystack"
+              "haystack",
+              "reti"
             ]
           },
           "opportunityType": {
@@ -1839,6 +1841,12 @@
               "$ref": "#/components/schemas/OpportunityExecutionShape"
             },
             "description": "Exit shapes for closing this opportunity when known (e.g. Folks xALGO unstake, Tinyman tALGO burn). Empty means discover exits via positions or canix_list_execution_shapes / the shape catalog."
+          },
+          "entryRequirements": {
+            "$ref": "#/components/schemas/OpportunityEntryRequirements"
+          },
+          "capacity": {
+            "$ref": "#/components/schemas/OpportunityCapacity"
           }
         }
       },
@@ -1952,7 +1960,8 @@
               "compx",
               "dorkfi",
               "myth-finance",
-              "haystack"
+              "haystack",
+              "reti"
             ]
           },
           "positionType": {
@@ -2064,7 +2073,8 @@
               "compx",
               "dorkfi",
               "myth-finance",
-              "haystack"
+              "haystack",
+              "reti"
             ]
           },
           "status": {
@@ -3297,6 +3307,19 @@
             "type": "string",
             "minLength": 58,
             "maxLength": 58
+          },
+          "farmAppId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "escrowAppId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "validatorId": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "R\u00e9ti validator id (stake target). Amounts never appear in hints."
           }
         }
       },
@@ -3712,6 +3735,187 @@
           "meta": {
             "type": "object",
             "additionalProperties": true
+          }
+        }
+      },
+      "OpportunityAmountRequirement": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "assetId",
+          "amount"
+        ],
+        "properties": {
+          "assetId": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Asset id (0 = ALGO)."
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "description": "Minimum amount in base units as a decimal string."
+          }
+        }
+      },
+      "OpportunityEntryGate": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "assetId"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "asa"
+                ]
+              },
+              "assetId": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "minBalance": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "creator"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "asa-creator"
+                ]
+              },
+              "creator": {
+                "type": "string",
+                "minLength": 58,
+                "maxLength": 58
+              },
+              "minBalance": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "nfd"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "nfd-linked-creators"
+                ]
+              },
+              "nfd": {
+                "type": "string",
+                "minLength": 1,
+                "description": "NFD app id or name used for linked-creator gating."
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "nfdRoot"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "nfd-root-segment"
+                ]
+              },
+              "nfdRoot": {
+                "type": "string",
+                "minLength": 1,
+                "description": "NFD root app id or name for segment ownership gating."
+              }
+            }
+          }
+        ]
+      },
+      "OpportunityEntryRequirements": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Discovery-time entry eligibility. Quote-time on-chain checks remain authoritative.",
+        "properties": {
+          "minAmount": {
+            "$ref": "#/components/schemas/OpportunityAmountRequirement"
+          },
+          "gates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpportunityEntryGate"
+            }
+          },
+          "gateMatch": {
+            "type": "string",
+            "enum": [
+              "any",
+              "all"
+            ],
+            "description": "How multiple ASA gates combine. R\u00e9ti uses any."
+          },
+          "eligibilityFullyCheckable": {
+            "type": "boolean",
+            "description": "False when gates include NFD/creator kinds that personalized matching cannot resolve."
+          }
+        }
+      },
+      "OpportunityCapacity": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "stakerSlotsRemaining",
+          "algoRoomMicroAlgos",
+          "acceptingStake"
+        ],
+        "properties": {
+          "stakerSlotsRemaining": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Remaining staker ledger slots across pools, or null if unknown."
+          },
+          "algoRoomMicroAlgos": {
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Remaining ALGO headroom in microAlgos, or null if unknown."
+          },
+          "acceptingStake": {
+            "type": "boolean"
           }
         }
       }

@@ -27,11 +27,18 @@ import {
   fetchCompXOpportunities,
   fetchCompXTokenPrices,
   mythStakingOpportunityId,
+  retiStakingOpportunityId,
   MYTH_DS_REGISTRY_APP_ID,
   MYTH_TINYMAN_APP_ID,
   MYTH_ARC59_ROUTER_APP_ID,
-  MYTH_SIMULATE_SENDER
+  MYTH_SIMULATE_SENDER,
+  RETI_VALIDATOR_REGISTRY_APP_ID
 } from "../adapters/index.js";
+import {
+  retiGetStakedPoolsForAccount,
+  retiGetStakerInfo,
+  retiGetValidatorConfig
+} from "../reti/abi.js";
 import {
   STALGO_ASSET_ID,
   TALGO_ASSET_ID
@@ -1894,6 +1901,137 @@ export async function collectMythFinancePositions(
   snapshot: WalletSnapshot
 ): Promise<ProtocolPositionsCollection> {
   return collectMythDualStakeWalletPositions(snapshot, address);
+}
+
+/**
+ * Réti positions are per staked pool (ledger entry). Unstake requires poolAppId.
+ */
+export async function collectRetiPositions(
+  address: string,
+  _snapshot: WalletSnapshot
+): Promise<ProtocolPositionsCollection> {
+  const warnings: string[] = [];
+  const positions: PositionMarketRecord[] = [];
+  const algod = createPositionsAlgodClient();
+  const registryAppId = readRetiRegistryAppId();
+
+  let poolKeys;
+  try {
+    poolKeys = await retiGetStakedPoolsForAccount(algod, address, registryAppId);
+  } catch (error) {
+    return {
+      positions: [],
+      warnings: [`Réti staked pools unavailable: ${errorMessage(error)}`]
+    };
+  }
+
+  if (poolKeys.length === 0) {
+    return { positions: [], warnings };
+  }
+
+  let algoUsd: number | null = null;
+  try {
+    const prices = await fetchTinymanAssetUsdPrices([0]);
+    algoUsd = prices.get(0) ?? null;
+  } catch (error) {
+    warnings.push(`Réti ALGO USD pricing unavailable: ${errorMessage(error)}`);
+  }
+
+  const configCache = new Map<string, Awaited<ReturnType<typeof retiGetValidatorConfig>>>();
+
+  for (const poolKey of poolKeys) {
+    const validatorId = Number(poolKey.validatorId);
+    const poolAppId = Number(poolKey.poolAppId);
+    if (!Number.isInteger(validatorId) || validatorId < 1 || poolAppId < 1) {
+      continue;
+    }
+
+    let stakerInfo;
+    try {
+      stakerInfo = await retiGetStakerInfo(algod, poolAppId, address);
+    } catch (error) {
+      warnings.push(
+        `Réti pool ${poolAppId} staker info unavailable: ${errorMessage(error)}`
+      );
+      continue;
+    }
+
+    if (stakerInfo.balance <= 0n) {
+      continue;
+    }
+
+    const cacheKey = String(validatorId);
+    let config = configCache.get(cacheKey);
+    if (config === undefined) {
+      try {
+        config = await retiGetValidatorConfig(algod, validatorId, registryAppId);
+        configCache.set(cacheKey, config);
+      } catch (error) {
+        warnings.push(
+          `Réti validator ${validatorId} config unavailable: ${errorMessage(error)}`
+        );
+      }
+    }
+
+    const rewardTokenId = config !== undefined ? Number(config.rewardTokenId) : 0;
+
+    positions.push({
+      protocol: "reti",
+      positionType: "staked",
+      positionId: `reti:staked:${validatorId}:${poolAppId}`,
+      opportunityId: retiStakingOpportunityId(validatorId),
+      assetId: 0,
+      assetSymbol: "ALGO",
+      amountRaw: stakerInfo.balance.toString(),
+      amount: formatUnits(stakerInfo.balance, 6),
+      usdValue: tokenUsdValue(stakerInfo.balance, 6, algoUsd),
+      notes:
+        `Réti stake in validator ${validatorId} pool app ${poolAppId}. ` +
+        `totalRewarded=${stakerInfo.totalRewarded.toString()} µALGO` +
+        (rewardTokenId > 0
+          ? `; rewardTokenBalance=${stakerInfo.rewardTokenBalance.toString()} of ASA ${rewardTokenId}`
+          : ""),
+      inputHints: {
+        validatorId,
+        poolAppId,
+        assetId: 0,
+        depositAssetId: 0
+      }
+    });
+
+    if (rewardTokenId > 0 && stakerInfo.rewardTokenBalance > 0n) {
+      positions.push({
+        protocol: "reti",
+        positionType: "reward",
+        positionId: `reti:reward:${validatorId}:${poolAppId}:${rewardTokenId}`,
+        opportunityId: retiStakingOpportunityId(validatorId),
+        assetId: rewardTokenId,
+        assetSymbol: `ASA-${rewardTokenId}`,
+        amountRaw: stakerInfo.rewardTokenBalance.toString(),
+        amount: formatUnits(stakerInfo.rewardTokenBalance, 6),
+        usdValue: null,
+        notes: `Pending Réti reward-token balance for validator ${validatorId}.`,
+        inputHints: {
+          validatorId,
+          poolAppId,
+          assetId: rewardTokenId
+        }
+      });
+    }
+  }
+
+  return { positions, warnings };
+}
+
+function readRetiRegistryAppId(): number {
+  const raw = process.env.RETI_VALIDATOR_REGISTRY_APP_ID?.trim();
+  if (raw) {
+    const value = Number(raw);
+    if (Number.isInteger(value) && value >= 1) {
+      return value;
+    }
+  }
+  return RETI_VALIDATOR_REGISTRY_APP_ID;
 }
 
 export async function collectHaystackPositions(

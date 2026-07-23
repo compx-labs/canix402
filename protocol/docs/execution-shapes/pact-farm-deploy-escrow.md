@@ -19,8 +19,9 @@
 }
 ```
 
-`farmAppId` may also be supplied as a numeric `poolId` (farm opportunity ids are
-emitted as `{farmAppId}:farm`).
+`farmAppId` may also be supplied as a numeric `poolId` for farm-only shapes.
+Farm opportunity ids remain `{farmAppId}:farm`. Enter hints set `farmAppId` and,
+when known, the distinct AMM `poolAppId` (not the farm id).
 
 ## Expected transaction group
 

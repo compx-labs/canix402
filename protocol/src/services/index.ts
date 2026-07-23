@@ -23,9 +23,11 @@ export type {
 } from "./protocol-positions.js";
 export {
   fetchHeldAssetIds,
+  fetchAccountHoldings,
   setAccountAssetsDependenciesForTests,
   AccountAssetsError
 } from "./account-assets.js";
+export type { AccountHoldings } from "./account-assets.js";
 export {
   emptyWalletSnapshot,
   fetchWalletSnapshot,
@@ -45,7 +47,11 @@ export {
   resolveAssetDecimals,
   setAssetDecimalsDependenciesForTests
 } from "./asset-decimals.js";
-export { selectPersonalizedOpportunities } from "./personalized-opportunities.js";
+export {
+  selectPersonalizedOpportunities,
+  matchesPersonalizedOpportunity
+} from "./personalized-opportunities.js";
+export type { PersonalizedHoldings } from "./personalized-opportunities.js";
 export {
   PRECISION_DEFAULT_DECIMALS,
   PRECISION_MAX_DECIMALS,

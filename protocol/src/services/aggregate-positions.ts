@@ -11,6 +11,7 @@ import {
   collectHaystackPositions,
   collectMythFinancePositions,
   collectPactPositions,
+  collectRetiPositions,
   collectTinymanPositions,
   type PositionCollectionContext,
   type ProtocolPositionsCollection,
@@ -31,7 +32,8 @@ export const SUPPORTED_POSITION_PROTOCOLS = [
   "compx",
   "dorkfi",
   "myth-finance",
-  "haystack"
+  "haystack",
+  "reti"
 ] as const satisfies readonly Protocol[];
 
 export class AllPositionSourcesUnavailableError extends Error {
@@ -218,6 +220,7 @@ function resolveCollectors(): PositionCollectors {
     dorkfi: collectDorkFiPositions,
     "myth-finance": collectMythFinancePositions,
     haystack: collectHaystackPositions,
+    reti: collectRetiPositions,
     ...collectorOverrides
   };
 }

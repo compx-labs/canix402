@@ -36,6 +36,7 @@ const FOLKS_UNSTAKE_IMMEDIATE =
   "mainnet:folks-finance:xalgo-v1:unstake:immediate";
 const MYTH_MINT_LST = "mainnet:myth-finance:dualstake-v1:mint:lst";
 const MYTH_REDEEM_LST = "mainnet:myth-finance:dualstake-v1:redeem:lst";
+const RETI_STAKE_ALGO = "mainnet:reti:v1:stake:algo";
 
 type ShapeStep = {
   shapeKey: string;
@@ -107,6 +108,11 @@ const MYTH_DUALSTAKE_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
   { shapeKey: MYTH_MINT_LST, order: 0 }
 ];
 
+/** Exclusive enter path for Réti validator stake. */
+const RETI_STAKING_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: RETI_STAKE_ALGO, order: 0 }
+];
+
 /** Liquid-staking exit path for Tinyman tALGO burn. */
 const TINYMAN_TALGO_STAKING_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
   { shapeKey: TINYMAN_BURN_TALGO, order: 0 }
@@ -151,8 +157,12 @@ export function attachExecutionShapesToOpportunity(
       toOpportunityExecutionShape(entry, exitRequiredAssetIds, exitInputHints)
   );
 
+  // poolAppId on market records is adapter-only metadata for hint building
+  // (e.g. Pact farm → AMM pool). Keep it out of the public opportunity surface.
+  const { poolAppId: _poolAppId, ...publicRecord } = record;
+
   return {
-    ...record,
+    ...publicRecord,
     executionReady: executionShapes.length > 0,
     executionShapes,
     compatibleExitShapes
@@ -244,6 +254,12 @@ function orderEnterShapes(
 
   if (isMythDualStakeOpportunity(record)) {
     return orderBySteps(shapes, MYTH_DUALSTAKE_ENTER_STEPS, {
+      exclusive: true
+    });
+  }
+
+  if (isRetiStakingOpportunity(record)) {
+    return orderBySteps(shapes, RETI_STAKING_ENTER_STEPS, {
       exclusive: true
     });
   }
@@ -441,6 +457,18 @@ function buildInputHints(
     return hints;
   }
 
+  if (record.protocol === "reti") {
+    const validatorId = parseTrailingAppId(record.opportunityId, "reti-staking-");
+    if (validatorId !== null) {
+      hints.validatorId = validatorId;
+    }
+    if (assetIds[0] !== undefined) {
+      hints.assetId = assetIds[0];
+      hints.depositAssetId = assetIds[0];
+    }
+    return hints;
+  }
+
   if (record.protocol === "tinyman" || record.protocol === "pact") {
     if (
       record.protocol === "tinyman" &&
@@ -469,15 +497,24 @@ function buildInputHints(
         hints.depositAssetId = only;
       }
     }
-    const poolId = stripOpportunityTypeSuffix(record.opportunityId);
-    if (poolId.length > 0) {
-      hints.poolId = poolId;
-    }
     if (record.protocol === "pact" && record.opportunityType === "farm") {
-      const farmAppId = Number(poolId);
+      const farmId = stripOpportunityTypeSuffix(record.opportunityId);
+      const farmAppId = Number(farmId);
       if (Number.isInteger(farmAppId) && farmAppId >= 1) {
         hints.farmAppId = farmAppId;
       }
+      // Composite addLiquidityAndFarm needs the AMM pool, which is distinct from
+      // the farm app. Adapters set record.poolAppId from farm→pool metadata.
+      // Do not overload poolId with the farm id (that broke poolAppId validation).
+      if (record.poolAppId !== undefined) {
+        hints.poolAppId = record.poolAppId;
+      }
+      return hints;
+    }
+
+    const poolId = stripOpportunityTypeSuffix(record.opportunityId);
+    if (poolId.length > 0) {
+      hints.poolId = poolId;
     }
     return hints;
   }
@@ -593,6 +630,14 @@ function isMythDualStakeOpportunity(record: OpportunityMarketRecord): boolean {
     (record.opportunityType === "staking" || record.opportunityType === "farm") &&
     (record.opportunityId.startsWith("myth-staking-") ||
       record.opportunityId.startsWith("myth-farm-"))
+  );
+}
+
+function isRetiStakingOpportunity(record: OpportunityMarketRecord): boolean {
+  return (
+    record.protocol === "reti" &&
+    record.opportunityType === "staking" &&
+    record.opportunityId.startsWith("reti-staking-")
   );
 }
 

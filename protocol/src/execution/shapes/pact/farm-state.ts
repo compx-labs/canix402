@@ -243,8 +243,9 @@ export function parseFarmAppId(value: unknown): number {
 }
 
 /**
- * Resolve farm app id from `farmAppId`, or a numeric `poolId` (farm opportunity
- * ids are emitted as `{farmAppId}:farm`, and hints reuse `poolId` for that suffix).
+ * Resolve farm app id from `farmAppId`, or a numeric `poolId` fallback used by
+ * older farm-only clients. Prefer `farmAppId` when both are present — composite
+ * addLiquidityAndFarm shapes also carry a distinct AMM `poolAppId` / `poolId`.
  */
 export function resolveFarmAppIdFromInput(value: Record<string, unknown>): number {
   if (value.farmAppId !== undefined) {

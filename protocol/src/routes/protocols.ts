@@ -6,9 +6,15 @@ import {
   fetchCompXOpportunities,
   fetchFolksFinanceOpportunities,
   fetchDorkFiOpportunities,
+  fetchHaystackOpportunities,
+  fetchMythFinanceOpportunities,
+  fetchRetiOpportunities,
   FolksFinanceAdapterError,
+  HaystackAdapterError,
+  MythFinanceAdapterError,
   fetchPactOpportunities,
   PactAdapterError,
+  RetiAdapterError,
   fetchTinymanOpportunities,
   TinymanAdapterError
 } from "../adapters/index.js";
@@ -61,6 +67,12 @@ export function registerProtocolRoutes(app: FastifyInstance) {
           data = await fetchCompXOpportunities();
         } else if (protocol === "dorkfi") {
           data = await fetchDorkFiOpportunities();
+        } else if (protocol === "myth-finance") {
+          data = await fetchMythFinanceOpportunities();
+        } else if (protocol === "haystack") {
+          data = await fetchHaystackOpportunities();
+        } else if (protocol === "reti") {
+          data = await fetchRetiOpportunities();
         }
       } catch (error) {
         if (
@@ -68,7 +80,10 @@ export function registerProtocolRoutes(app: FastifyInstance) {
           error instanceof PactAdapterError ||
           error instanceof FolksFinanceAdapterError ||
           error instanceof CompXAdapterError ||
-          error instanceof DorkFiAdapterError
+          error instanceof DorkFiAdapterError ||
+          error instanceof MythFinanceAdapterError ||
+          error instanceof HaystackAdapterError ||
+          error instanceof RetiAdapterError
         ) {
           throw error;
         }

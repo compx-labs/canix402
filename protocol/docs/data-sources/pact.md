@@ -50,6 +50,7 @@ One pool can emit multiple opportunities:
 |---|---|---|
 | `on_chain_id` (pool) | `opportunityId` (`:lp`) | LP ids are suffixed `:lp` |
 | `on_chain_id` (farm) | `opportunityId` (`:farm`) | Farm ids are suffixed `:farm` |
+| `on_chain_id` (pool) / `farm.pool` | market `poolAppId` (internal) | Joined AMM pool app id; copied into `executionShapes[].inputHints.poolAppId` for `addLiquidityAndFarm` |
 | `primary_asset.unit_name` + `secondary_asset.unit_name` | `assetPair` | Falls back to `unknown/unknown` when missing |
 | `apr_7d_all` (or `apr_7d`) | `apy` (`lp`) | Decimal fraction -> percentage points; required for LP output |
 | (adapter policy) | `yieldBasis` | Always `apr` |
