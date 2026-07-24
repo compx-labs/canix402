@@ -174,6 +174,17 @@ export async function assertFreeEndpoint(
     return;
   }
 
+  if (path === "/ready") {
+    const data = body.data as Record<string, unknown> | undefined;
+    if (
+      data?.service !== "canix402"
+      || (data?.status !== "ready" && data?.status !== "degraded")
+    ) {
+      throw new Error(`${path}: unexpected ready payload`);
+    }
+    return;
+  }
+
   if (path === "/metadata") {
     const data = body.data as Record<string, unknown> | undefined;
     if (data?.service !== "canix402") {

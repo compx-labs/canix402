@@ -33,6 +33,24 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     tags: ["system"]
   },
   {
+    id: "ready",
+    method: "GET",
+    pathPattern: "/ready",
+    access: "free",
+    summary: "Service readiness check (Algod required; Redis soft)",
+    tags: ["system"]
+  },
+  {
+    id: "metrics",
+    method: "GET",
+    pathPattern: "/metrics",
+    access: "free",
+    summary: "Prometheus metrics scrape endpoint (internal)",
+    description:
+      "Prometheus text exposition format. Intended for internal scrapes on the protocol component (:3000). Not exposed on the public Caddy gateway.",
+    tags: ["system", "observability"]
+  },
+  {
     id: "metadata",
     method: "GET",
     pathPattern: "/metadata",
@@ -384,6 +402,8 @@ const paidPathMatchers = [
 const freePathMatchers = [
   /^\/$/,
   /^\/health$/,
+  /^\/ready$/,
+  /^\/metrics$/,
   /^\/metadata$/,
   /^\/discovery$/,
   /^\/openapi\.json$/,

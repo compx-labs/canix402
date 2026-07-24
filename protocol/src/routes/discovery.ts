@@ -444,6 +444,8 @@ function buildLlmsText(includeAllEndpoints = false): string {
       endpoint.access === "free"
       && ![
         "health",
+        "ready",
+        "metrics",
         "metadata",
         "root",
         "faviconIco",

@@ -85,6 +85,9 @@ function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): Pro
 
 export const productionFreeEndpoints: ProductionEndpoint[] = endpointPolicyMatrix
   .filter((entry) => entry.access === "free")
+  // `/metrics` is free on the protocol process but intentionally omitted from the
+  // public Caddy free list (internal scrape on :3000 only).
+  .filter((entry) => entry.id !== "metrics")
   .map(toProductionEndpoint);
 
 export const productionPaidEndpoints: ProductionEndpoint[] = endpointPolicyMatrix

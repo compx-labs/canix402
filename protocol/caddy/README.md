@@ -10,8 +10,9 @@ single source directory.
 ## Route Access Policy
 
 - Free routes: `GET /`, `GET /logo.png`, `GET /banner.png`, `GET /health`,
-  `GET /metadata`, `GET /discovery`, `GET /openapi.json`, `POST /swaps/quote`,
-  `POST /swaps/optin`
+  `GET /ready`, `GET /metadata`, `GET /discovery`, `GET /openapi.json`,
+  `POST /swaps/quote`, `POST /swaps/optin`
+  (`GET /metrics` is free on the protocol process only; not proxied as free on Caddy)
 - Paid routes emit `accepts[].extra.tag = x402-global-challenge` for facilitator
   Global Hackathon discovery filtering.
   - Caddyfile `accept { extra { tag ... } }` is parsed into the plugin config.

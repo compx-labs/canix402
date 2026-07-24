@@ -8,6 +8,12 @@
 | Dockerfile path | `Dockerfile` |
 | Internal port | `3000` |
 | Public route | **None** |
+| Health check path | `/ready` (readiness; Algod required, Redis soft) |
+| Liveness | `/health` (process up) |
+
+Scrape Prometheus metrics from the **internal** protocol component at
+`http://<protocol-component>:3000/metrics`. Do **not** expose `/metrics` on the
+public Caddy gateway.
 
 ## Caddy gateway (public)
 
@@ -83,6 +89,7 @@ Website stays on `canix402.compx.io` → website component.
 
 ```sh
 curl -s https://canix402-api.compx.io/health
+curl -s https://canix402-api.compx.io/ready
 curl -s -o /dev/null -w "%{http_code}\n" https://canix402-api.compx.io/opportunities
 curl -s -o /dev/null -w "%{http_code}\n" "https://canix402-api.compx.io/positions?address=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
 curl -s -o /dev/null -w "%{http_code}\n" -X POST https://canix402-api.compx.io/execution/quotes \
@@ -90,5 +97,8 @@ curl -s -o /dev/null -w "%{http_code}\n" -X POST https://canix402-api.compx.io/e
   -d '{"shapeKey":"mainnet:tinyman:v2:addLiquidity:flexible","input":{"userAddress":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ","assetAId":31566704,"assetAAmount":"1000000","assetBId":0,"assetBAmount":"1000000","maxSlippageBps":50}}'
 ```
 
-Expect `200` on health and `402` on paid routes. The `/positions` preflight must
+Expect `200` on health and ready, and `402` on paid routes. The `/positions` preflight must
 advertise `5000` micro-USDC in `PAYMENT-REQUIRED`.
+
+For degraded upstream / readiness incidents, see
+[`incident-response.md`](incident-response.md).

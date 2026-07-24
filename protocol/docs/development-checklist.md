@@ -8,11 +8,7 @@ Status legend:
 - [~] In progress
 - [x] Done
 
-## 1) Initial Delivery Mode (No Storage)
 
-- [~] Add retry behavior for upstream calls (Algod/Haystack 429 retry + adapter timeouts + degraded aggregate via `Promise.allSettled` are implemented; Tinyman/Pact/Dork.fi HTTP fetch paths still have no general retry loop).
-- [ ] Add request-level tracing/logging for upstream calls.
-- [ ] Validate response-time targets under expected baseline load.
 
 ## 2) Caching Design and Redis Rollout (Planned Next Phase)
 
@@ -34,10 +30,10 @@ Shared Redis with CompX/Orbital (`compx-v2/docs/redis-usage.md`): CompX uses DB 
 ## 4) Deployment and Operations
 
 - [x] Define deployment target and runtime config strategy (DigitalOcean App Platform + Caddy gateway documented in `docs/deployment-do-app-platform.md`; formal env promotion / secrets rotation still TBD).
-- [ ] Add health probes and readiness checks (`/health` is static OK only; no readiness/upstream dependency probes).
-- [ ] Add structured logs and baseline metrics.
-- [ ] Add alerting for upstream adapter failures and latency spikes.
-- [ ] Document incident response path for degraded upstream data quality.
+- [x] Add health probes and readiness checks (`GET /health` liveness; `GET /ready` readiness with Algod required and Redis soft/degraded).
+- [x] Add structured logs and baseline metrics (pino JSON + Prometheus `GET /metrics` on protocol `:3000`; public Caddy exposes `/ready` but not `/metrics`).
+- [x] Add alerting for upstream adapter failures and latency spikes (documented thresholds in `docs/incident-response.md`; vendor/PagerDuty wiring still TBD).
+- [x] Document incident response path for degraded upstream data quality (`docs/incident-response.md`).
 
 ## 5) Go-Live Readiness
 
@@ -107,7 +103,7 @@ Canix should become the validation, discovery, transaction-generation, execution
 ### Protocol Transaction Shape Mapping (Blocking Foundation)
 
 - [~] Inventory executable actions for each integrated DeFi protocol (Tinyman, Pact, Folks Finance, CompX, Dork.fi). Tinyman LP + Tinyman farm commit/uncommit/claimRewards/addLiquidityAndFarm + Tinyman tALGO mint/burn + stALGO restake increase/decrease/claim + Folks escrow deposit/withdraw + Folks xALGO immediate stake/unstake + Pact LP add/remove + Pact farm deployEscrow/stake/unstake/claimRewards/addLiquidityAndFarm + CompX lending/staking + Dork.fi lending deposit/withdraw mapped. Still missing for execution: Tinyman swap, Folks wallet-direct deposit/withdraw, Folks xALGO delayed stake/claim and stake-and-deposit. Alpha Arcade staking parked pending ARC-56.
-- [~] Map the exact transaction shape/group required for each supported action (for example: Tinyman add LP, remove LP, swap; Pact add/remove LP; lending deposit/withdraw; staking/farm enter/exit where supported). Folks escrow deposit/withdraw + Folks xALGO immediate stake/unstake + Pact LP + Pact farm + CompX lending/staking + Dork.fi lending deposit/withdraw documented under `docs/execution-shapes/`.
+- [x] Map the exact transaction shape/group required for each supported action. All registered shapes (Tinyman LP/farm/liquid-stake/restake, Folks escrow + xALGO immediate, Pact LP/farm, CompX lending/staking, Dork.fi lending, Myth dual-stake, Haystack HAY staking, Réti) documented under `docs/execution-shapes/` and linked from `shape-docs.ts`. Unsupported actions (Tinyman swap, Folks wallet-direct, Folks xALGO delayed) remain on the inventory item above.
 - [ ] Verify every transaction shape against protocol SDKs, docs, on-chain app specs, and successful dry-run/localnet or testnet executions.
 - [~] Define typed transaction-shape specs with required inputs, derived values, app/asset IDs, foreign arrays, boxes, fees, group ordering, signer roles, and validation rules. Tinyman LP + Tinyman farm + Tinyman tALGO/stALGO liquid-stake/restake + Folks escrow deposit/withdraw + Folks xALGO immediate stake/unstake + Pact LP + Pact farm + CompX lending/staking + Dork.fi lending deposit/withdraw implemented.
 - [~] Build golden fixtures for each supported protocol/action so generated groups can be compared deterministically. Tinyman + Folks + Pact + CompX + Dork.fi integration fixtures in CI (mock-SDK deterministic groups; not separate committed golden JSON blobs).
