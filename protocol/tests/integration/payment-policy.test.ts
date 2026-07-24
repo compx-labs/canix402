@@ -55,3 +55,10 @@ test("strategy marketplace policy is method-aware with publish/revise/compile pr
   assert.equal(revise?.priceUsdc, process.env.X402_PRICE_STRATEGY_REVISE_USDC ?? "1");
   assert.equal(compile?.priceUsdc, process.env.X402_PRICE_STRATEGY_COMPILE_USDC ?? "0.1");
 });
+
+test("ready and metrics are free system routes", () => {
+  assert.equal(classifyEndpointAccess("/ready", "GET"), "free");
+  assert.equal(classifyEndpointAccess("/metrics", "GET"), "free");
+  assert.ok(endpointPolicyMatrix.some((endpoint) => endpoint.id === "ready"));
+  assert.ok(endpointPolicyMatrix.some((endpoint) => endpoint.id === "metrics"));
+});

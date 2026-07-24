@@ -11,6 +11,8 @@ import {
   RetiAdapterError,
   TinymanAdapterError
 } from "./adapters/index.js";
+import { setAppLogger } from "./observability/logger.js";
+import { recordHttpRequest } from "./observability/metrics.js";
 import { AccountAssetsError } from "./services/account-assets.js";
 import { AllPositionSourcesUnavailableError } from "./services/aggregate-positions.js";
 import { WalletSnapshotError } from "./services/wallet-snapshot.js";
@@ -34,13 +36,43 @@ function isUpstreamAdapterError(error: unknown): boolean {
 }
 
 export function buildApp() {
+  const isProduction = process.env.NODE_ENV === "production";
   const app = Fastify({
-    logger: true
+    logger: {
+      level: process.env.LOG_LEVEL ?? (isProduction ? "info" : "info"),
+      redact: {
+        paths: [
+          "req.headers.authorization",
+          "req.headers.cookie",
+          'req.headers["payment-signature"]',
+          "X402_ALGOD_TOKEN",
+          "REDIS_URL"
+        ],
+        remove: true
+      }
+    }
   }).withTypeProvider<TypeBoxTypeProvider>();
+
+  setAppLogger(app.log);
+
+  app.addHook("onRequest", async (request) => {
+    (request as { metricsStartedAt?: bigint }).metricsStartedAt = process.hrtime.bigint();
+  });
+
+  app.addHook("onResponse", async (request, reply) => {
+    const startedAt = (request as { metricsStartedAt?: bigint }).metricsStartedAt;
+    const durationSeconds =
+      startedAt === undefined
+        ? 0
+        : Number(process.hrtime.bigint() - startedAt) / 1e9;
+    const route =
+      request.routeOptions?.url ?? request.url.split("?")[0] ?? "unknown";
+    recordHttpRequest(request.method, route, reply.statusCode, durationSeconds);
+  });
 
   registerRoutes(app);
 
-  app.setErrorHandler((error, _request, reply) => {
+  app.setErrorHandler((error, request, reply) => {
     const details = getValidationDetails(error);
     const payload: ApiError = details
       ? {
@@ -65,6 +97,27 @@ export function buildApp() {
           };
 
     const statusCode = details ? 400 : isUpstreamAdapterError(error) ? 502 : 500;
+    const code = payload.error.code;
+
+    if (statusCode >= 500) {
+      request.log.error(
+        {
+          err: error,
+          code,
+          statusCode
+        },
+        "Request failed"
+      );
+    } else if (statusCode >= 400) {
+      request.log.warn(
+        {
+          err: error instanceof Error ? error.message : error,
+          code,
+          statusCode
+        },
+        "Request rejected"
+      );
+    }
 
     reply.status(statusCode).send(payload);
   });

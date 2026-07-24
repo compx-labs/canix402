@@ -82,6 +82,65 @@
         }
       }
     },
+    "/ready": {
+      "get": {
+        "summary": "Service readiness check (Algod required; Redis soft)",
+        "tags": [
+          "system"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Ready or degraded (Algod reachable)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadyResponse"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/ReadyResponseSample"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Not ready (Algod unreachable)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "summary": "Prometheus metrics scrape endpoint (internal)",
+        "description": "Prometheus text exposition format. Intended for internal scrapes on the protocol component (:3000). Not exposed on the public Caddy gateway.",
+        "tags": [
+          "system",
+          "observability"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Prometheus metrics",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/metadata": {
       "get": {
         "summary": "Service metadata and policy surface",
@@ -3288,6 +3347,85 @@
           }
         }
       },
+      "ReadyResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "service",
+              "status",
+              "checks"
+            ],
+            "properties": {
+              "service": {
+                "type": "string",
+                "enum": [
+                  "canix402"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ready",
+                  "degraded",
+                  "not_ready"
+                ]
+              },
+              "checks": {
+                "type": "object",
+                "required": [
+                  "algod",
+                  "redis"
+                ],
+                "properties": {
+                  "algod": {
+                    "type": "object",
+                    "required": [
+                      "ok"
+                    ],
+                    "properties": {
+                      "ok": {
+                        "type": "boolean"
+                      },
+                      "latencyMs": {
+                        "type": "number"
+                      },
+                      "error": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "redis": {
+                    "type": "object",
+                    "required": [
+                      "configured",
+                      "ok"
+                    ],
+                    "properties": {
+                      "configured": {
+                        "type": "boolean"
+                      },
+                      "ok": {
+                        "type": "boolean"
+                      },
+                      "latencyMs": {
+                        "type": "number"
+                      },
+                      "error": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "EndpointPolicyEntry": {
         "type": "object",
         "required": [
@@ -4242,6 +4380,25 @@
           "data": {
             "service": "canix402",
             "status": "ok"
+          }
+        }
+      },
+      "ReadyResponseSample": {
+        "summary": "Ready service",
+        "value": {
+          "data": {
+            "service": "canix402",
+            "status": "ready",
+            "checks": {
+              "algod": {
+                "ok": true,
+                "latencyMs": 42
+              },
+              "redis": {
+                "configured": false,
+                "ok": true
+              }
+            }
           }
         }
       },

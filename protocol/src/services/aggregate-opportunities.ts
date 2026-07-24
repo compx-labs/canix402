@@ -1,6 +1,4 @@
 import {
-  CompXAdapterError,
-  DorkFiAdapterError,
   fetchCompXOpportunities,
   fetchDorkFiOpportunities,
   fetchFolksFinanceOpportunities,
@@ -8,14 +6,10 @@ import {
   fetchMythFinanceOpportunities,
   fetchPactOpportunities,
   fetchRetiOpportunities,
-  fetchTinymanOpportunities,
-  FolksFinanceAdapterError,
-  HaystackAdapterError,
-  MythFinanceAdapterError,
-  PactAdapterError,
-  RetiAdapterError,
-  TinymanAdapterError
+  fetchTinymanOpportunities
 } from "../adapters/index.js";
+import { getAppLogger } from "../observability/logger.js";
+import { recordAdapterRequest } from "../observability/metrics.js";
 import { OpportunityMarketRecord } from "../types/opportunity.js";
 import type { Protocol } from "../routes/schemas.js";
 import {
@@ -78,6 +72,7 @@ export async function fetchOpportunitiesWithErrors(
 
   const data: OpportunityMarketRecord[] = [];
   const errors: Array<{ protocol: Protocol; message: string }> = [];
+  const log = getAppLogger();
 
   results.forEach((result, index) => {
     const protocol = protocols[index] as Protocol;
@@ -88,6 +83,14 @@ export async function fetchOpportunitiesWithErrors(
     const message =
       result.reason instanceof Error ? result.reason.message : String(result.reason);
     errors.push({ protocol, message });
+    log.warn(
+      {
+        event: "adapter_degraded",
+        protocol,
+        err: message
+      },
+      "Opportunity adapter failed"
+    );
   });
 
   return { data, errors };
@@ -113,45 +116,51 @@ export async function fetchOpportunitiesForProtocol(
 async function fetchOpportunitiesForProtocolUncached(
   protocol: Protocol
 ): Promise<OpportunityMarketRecord[]> {
+  const started = process.hrtime.bigint();
   try {
-    if (protocol === "tinyman") {
-      return await fetchTinymanOpportunities();
-    }
-    if (protocol === "pact") {
-      return await fetchPactOpportunities();
-    }
-    if (protocol === "folks-finance") {
-      return await fetchFolksFinanceOpportunities();
-    }
-    if (protocol === "compx") {
-      return await fetchCompXOpportunities();
-    }
-    if (protocol === "dorkfi") {
-      return await fetchDorkFiOpportunities();
-    }
-    if (protocol === "myth-finance") {
-      return await fetchMythFinanceOpportunities();
-    }
-    if (protocol === "haystack") {
-      return await fetchHaystackOpportunities();
-    }
-    if (protocol === "reti") {
-      return await fetchRetiOpportunities();
-    }
+    const records = await fetchOpportunitiesForProtocolUncachedInner(protocol);
+    recordAdapterRequest(
+      protocol,
+      "ok",
+      Number(process.hrtime.bigint() - started) / 1e9
+    );
+    return records;
   } catch (error) {
-    if (
-      error instanceof TinymanAdapterError ||
-      error instanceof PactAdapterError ||
-      error instanceof FolksFinanceAdapterError ||
-      error instanceof CompXAdapterError ||
-      error instanceof DorkFiAdapterError ||
-      error instanceof MythFinanceAdapterError ||
-      error instanceof HaystackAdapterError ||
-      error instanceof RetiAdapterError
-    ) {
-      throw error;
-    }
+    recordAdapterRequest(
+      protocol,
+      "error",
+      Number(process.hrtime.bigint() - started) / 1e9
+    );
     throw error;
+  }
+}
+
+async function fetchOpportunitiesForProtocolUncachedInner(
+  protocol: Protocol
+): Promise<OpportunityMarketRecord[]> {
+  if (protocol === "tinyman") {
+    return await fetchTinymanOpportunities();
+  }
+  if (protocol === "pact") {
+    return await fetchPactOpportunities();
+  }
+  if (protocol === "folks-finance") {
+    return await fetchFolksFinanceOpportunities();
+  }
+  if (protocol === "compx") {
+    return await fetchCompXOpportunities();
+  }
+  if (protocol === "dorkfi") {
+    return await fetchDorkFiOpportunities();
+  }
+  if (protocol === "myth-finance") {
+    return await fetchMythFinanceOpportunities();
+  }
+  if (protocol === "haystack") {
+    return await fetchHaystackOpportunities();
+  }
+  if (protocol === "reti") {
+    return await fetchRetiOpportunities();
   }
 
   return [];

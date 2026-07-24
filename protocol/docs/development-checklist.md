@@ -30,10 +30,10 @@ Shared Redis with CompX/Orbital (`compx-v2/docs/redis-usage.md`): CompX uses DB 
 ## 4) Deployment and Operations
 
 - [x] Define deployment target and runtime config strategy (DigitalOcean App Platform + Caddy gateway documented in `docs/deployment-do-app-platform.md`; formal env promotion / secrets rotation still TBD).
-- [ ] Add health probes and readiness checks (`/health` is static OK only; no readiness/upstream dependency probes).
-- [ ] Add structured logs and baseline metrics.
-- [ ] Add alerting for upstream adapter failures and latency spikes.
-- [ ] Document incident response path for degraded upstream data quality.
+- [x] Add health probes and readiness checks (`GET /health` liveness; `GET /ready` readiness with Algod required and Redis soft/degraded).
+- [x] Add structured logs and baseline metrics (pino JSON + Prometheus `GET /metrics` on protocol `:3000`; public Caddy exposes `/ready` but not `/metrics`).
+- [x] Add alerting for upstream adapter failures and latency spikes (documented thresholds in `docs/incident-response.md`; vendor/PagerDuty wiring still TBD).
+- [x] Document incident response path for degraded upstream data quality (`docs/incident-response.md`).
 
 ## 5) Go-Live Readiness
 

@@ -1,5 +1,8 @@
 import { Redis } from "ioredis";
 
+import { getAppLogger } from "../observability/logger.js";
+import { recordCacheOp } from "../observability/metrics.js";
+
 /**
  * Redis cache for Canix protocol.
  *
@@ -69,36 +72,96 @@ function getRedisClient(
 
     redisClient.on("error", (error: Error) => {
       // Fail-open: log but do not crash the API process.
-      console.error("[canix402:redis]", error.message);
+      getAppLogger().error(
+        { event: "redis_error", err: error.message },
+        "Redis client error"
+      );
     });
 
     return redisClient;
   } catch (error) {
-    console.error(
-      "[canix402:redis] failed to create client",
-      error instanceof Error ? error.message : error
+    getAppLogger().error(
+      {
+        event: "redis_error",
+        err: error instanceof Error ? error.message : String(error)
+      },
+      "Failed to create Redis client"
     );
     redisClient = null;
     return null;
   }
 }
 
+export async function pingRedisCache(
+  timeoutMs = 2_000,
+  env: NodeJS.ProcessEnv = process.env
+): Promise<{
+  configured: boolean;
+  ok: boolean;
+  latencyMs?: number;
+  error?: string;
+}> {
+  if (!isOpportunityCacheEnabled(env)) {
+    return { configured: false, ok: true };
+  }
+
+  const client = getRedisClient(env);
+  if (!client) {
+    return {
+      configured: true,
+      ok: false,
+      error: "Redis client unavailable"
+    };
+  }
+
+  const started = Date.now();
+  try {
+    const result = await withTimeout(
+      client.ping(),
+      timeoutMs,
+      "redis ping timeout"
+    );
+    return {
+      configured: true,
+      ok: result === "PONG",
+      latencyMs: Date.now() - started,
+      ...(result === "PONG" ? {} : { error: `Unexpected PING response: ${result}` })
+    };
+  } catch (error) {
+    return {
+      configured: true,
+      ok: false,
+      latencyMs: Date.now() - started,
+      error: error instanceof Error ? error.message : String(error)
+    };
+  }
+}
+
 export async function getCacheJson<T>(key: string): Promise<T | null> {
   const client = getRedisClient();
   if (!client) {
+    recordCacheOp("get", "skip");
     return null;
   }
 
   try {
     const value = await client.get(key);
     if (!value) {
+      recordCacheOp("get", "miss");
       return null;
     }
+    recordCacheOp("get", "hit");
     return JSON.parse(value) as T;
   } catch (error) {
-    console.error(
-      `[canix402:redis] get failed for ${key}:`,
-      error instanceof Error ? error.message : error
+    recordCacheOp("get", "error");
+    getAppLogger().error(
+      {
+        event: "redis_error",
+        op: "get",
+        key,
+        err: error instanceof Error ? error.message : String(error)
+      },
+      "Redis get failed"
     );
     return null;
   }
@@ -111,16 +174,24 @@ export async function setCacheJson<T>(
 ): Promise<boolean> {
   const client = getRedisClient();
   if (!client || ttlSeconds <= 0) {
+    recordCacheOp("set", "skip");
     return false;
   }
 
   try {
     await client.setex(key, ttlSeconds, JSON.stringify(value));
+    recordCacheOp("set", "hit");
     return true;
   } catch (error) {
-    console.error(
-      `[canix402:redis] set failed for ${key}:`,
-      error instanceof Error ? error.message : error
+    recordCacheOp("set", "error");
+    getAppLogger().error(
+      {
+        event: "redis_error",
+        op: "set",
+        key,
+        err: error instanceof Error ? error.message : String(error)
+      },
+      "Redis set failed"
     );
     return false;
   }
@@ -165,4 +236,26 @@ export function resetRedisCacheForTests(): void {
     }
   }
   redisClient = null;
+}
+
+function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  message: string
+): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(message));
+    }, timeoutMs);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error);
+      }
+    );
+  });
 }
