@@ -118,7 +118,7 @@ export function createHaystackService(
             type: input.type ?? "fixed-input",
             disabledProtocols: (input.disabledProtocols ?? []) as Protocol[],
             maxGroupSize: input.maxGroupSize ?? 16,
-            maxDepth: input.maxDepth ?? 4,
+            maxDepth: input.maxDepth ?? 3,
             // Opt-ins are prepared by the separate walletless endpoint.
             optIn: false
           })
