@@ -277,7 +277,13 @@ export async function collectTinymanPositions(
         amountRaw: pendingRaw.toString(),
         amount: formatUnits(pendingRaw, decimals),
         usdValue: tokenUsdValue(pendingRaw, decimals, priceUsd),
-        caveats: ["Unclaimed Tinyman farm reward (pending / unpaid)."]
+        caveats: ["Unclaimed Tinyman farm reward (pending / unpaid)."],
+        // Claim shape accepts poolId as poolAddress; host synthesis should not scrape positionId.
+        inputHints: {
+          programId,
+          ...(poolAddress ? { poolId: poolAddress } : {}),
+          assetId: rewardAssetId
+        }
       });
     }
   }

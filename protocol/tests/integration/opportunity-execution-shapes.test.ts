@@ -237,12 +237,22 @@ test("LP positions expose exit shapes and staking positions expose unstake/claim
     assetSymbol: "TINY",
     amountRaw: "1",
     amount: "1",
-    usdValue: 1
+    usdValue: 1,
+    inputHints: {
+      programId: 258,
+      poolId: "pool",
+      assetId: 2200000000
+    }
   });
   assert.deepEqual(farmReward.compatibleManageShapeKeys, [
     "mainnet:tinyman:staking-v1:farm:claimRewards"
   ]);
   assert.deepEqual(farmReward.compatibleExitShapeKeys, []);
+  assert.deepEqual(farmReward.inputHints, {
+    programId: 258,
+    poolId: "pool",
+    assetId: 2200000000
+  });
 
   const staked = attachExecutionShapesToPosition({
     protocol: "compx",

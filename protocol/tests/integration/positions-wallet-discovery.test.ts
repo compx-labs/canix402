@@ -194,6 +194,11 @@ test("Tinyman emits pending farm rewards and marks farmed LP", async () => {
     assert.equal(reward?.amountRaw, "1500000");
     assert.equal(reward?.amount, "1.5");
     assert.equal(reward?.usdValue, 0.0015);
+    assert.deepEqual(reward?.inputHints, {
+      programId: 258,
+      poolId: "2PIFZW53RHCSFSYMCFUBW4XOCXOMB7XOYQSQ6KGT3KVGJTL4HM6COZRNMM",
+      assetId: 2200000000
+    });
     assert.equal(result.coverage?.rewardsUsdComplete, true);
     assert.equal(result.warnings.length, 0);
   } finally {
