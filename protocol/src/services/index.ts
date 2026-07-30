@@ -98,7 +98,8 @@ export type {
 } from "./consensus-staking-apr.js";
 export {
   HaystackRouterError,
-  createHaystackService
+  createHaystackService,
+  DEFAULT_DISABLED_HAYSTACK_PROTOCOLS
 } from "./haystack-router.js";
 export type {
   HaystackErrorKind,

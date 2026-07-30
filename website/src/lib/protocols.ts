@@ -69,6 +69,14 @@ export const protocols = [
     notes:
       "Per-validator opportunities (reti-staking-{validatorId}) with entryRequirements and capacity; stake/unstake via execution shapes. Quote-time eligibility is authoritative.",
     logo: "/protocols/reti.png"
+  },
+  {
+    slug: "alpha-arcade",
+    name: "Alpha Arcade",
+    summary: "ALPHA fee-sharing staking — stake ALPHA to earn USDC from prediction-market fees.",
+    notes:
+      "On-chain pool 3626756314; trailing fee APR estimate; stake/unstake/claim via execution shapes.",
+    logo: "/protocols/alpha-arcade.svg"
   }
 ] as const satisfies readonly SupportedProtocol[];
 

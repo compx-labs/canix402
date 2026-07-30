@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 
 import {
+  AlphaArcadeAdapterError,
   CompXAdapterError,
   DorkFiAdapterError,
   FolksFinanceAdapterError,
@@ -29,6 +30,7 @@ function isUpstreamAdapterError(error: unknown): boolean {
     error instanceof MythFinanceAdapterError ||
     error instanceof HaystackAdapterError ||
     error instanceof RetiAdapterError ||
+    error instanceof AlphaArcadeAdapterError ||
     error instanceof AccountAssetsError ||
     error instanceof WalletSnapshotError ||
     error instanceof AllPositionSourcesUnavailableError

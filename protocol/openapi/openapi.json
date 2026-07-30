@@ -937,7 +937,7 @@
     "/protocols/{protocol}/opportunities": {
       "get": {
         "summary": "Top 25 DeFi opportunities for a single protocol ranked by APY",
-        "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, or reti. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
+        "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, or alpha-arcade. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": [
           "defi",
           "opportunities",
@@ -958,7 +958,8 @@
                 "dorkfi",
                 "myth-finance",
                 "haystack",
-                "reti"
+                "reti",
+                "alpha-arcade"
               ]
             }
           },
@@ -1043,7 +1044,7 @@
     "/execution/shapes": {
       "get": {
         "summary": "List verified execution shape catalog metadata",
-        "description": "Returns the live catalog of verified transaction shapes (shapeKey, requiredInputs, opportunityRole, docsPath). Catalog metadata only — does not compile quotes or return unsigned transactions. Use POST /execution/quotes to compile executable groups.",
+        "description": "Returns the live catalog of verified transaction shapes (shapeKey, requiredInputs, opportunityRole, docsPath). Catalog metadata only \u2014 does not compile quotes or return unsigned transactions. Use POST /execution/quotes to compile executable groups.",
         "tags": [
           "execution",
           "discovery",
@@ -1067,7 +1068,7 @@
     "/execution/quotes": {
       "post": {
         "summary": "Compile a verified transaction shape into unsigned Algorand transactions",
-        "description": "Compile one or more verified execution shapes into unsigned Algorand transaction groups. Request body is `{ quotes: [{ shapeKey, input }, ...] }` (min 1). Response `data` is an array of ExecutableQuote in request order — groups are never merged. On failure the whole request fails and `error.details` includes `quoteIndex` and `shapeKey`. x402 price is flat ~0.10 USDC per request (not per quote item). Canix never signs or submits transactions.",
+        "description": "Compile one or more verified execution shapes into unsigned Algorand transaction groups. Request body is `{ quotes: [{ shapeKey, input }, ...] }` (min 1). Response `data` is an array of ExecutableQuote in request order \u2014 groups are never merged. On failure the whole request fails and `error.details` includes `quoteIndex` and `shapeKey`. x402 price is flat ~0.10 USDC per request (not per quote item). Canix never signs or submits transactions.",
         "tags": [
           "execution",
           "transactions",
@@ -1846,7 +1847,8 @@
               "dorkfi",
               "myth-finance",
               "haystack",
-              "reti"
+              "reti",
+              "alpha-arcade"
             ]
           },
           "opportunityType": {
@@ -2044,7 +2046,8 @@
               "dorkfi",
               "myth-finance",
               "haystack",
-              "reti"
+              "reti",
+              "alpha-arcade"
             ]
           },
           "positionType": {
@@ -2157,7 +2160,8 @@
               "dorkfi",
               "myth-finance",
               "haystack",
-              "reti"
+              "reti",
+              "alpha-arcade"
             ]
           },
           "status": {
@@ -2909,9 +2913,12 @@
           },
           "disabledProtocols": {
             "type": "array",
+            "description": "Additional DEX protocols to exclude from routing. Tinyman (v1), Humble, Algofi, and Algomint are always disabled by canix402.",
             "items": {
               "type": "string",
               "enum": [
+                "Tinyman",
+                "Humble",
                 "TinymanV2",
                 "Algofi",
                 "Algomint",
@@ -3641,7 +3648,7 @@
           "validatorId": {
             "type": "integer",
             "minimum": 1,
-            "description": "Réti validator id (stake target). Amounts never appear in hints."
+            "description": "R\u00e9ti validator id (stake target). Amounts never appear in hints."
           }
         }
       },
@@ -4195,7 +4202,7 @@
               "any",
               "all"
             ],
-            "description": "How multiple ASA gates combine. Réti uses any."
+            "description": "How multiple ASA gates combine. R\u00e9ti uses any."
           },
           "eligibilityFullyCheckable": {
             "type": "boolean",
@@ -4704,7 +4711,7 @@
                 "algoRoomMicroAlgos": "50000000000",
                 "acceptingStake": true
               },
-              "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+              "notes": "R\u00e9ti validator-level consensus staking; quote-time eligibility checks are authoritative.",
               "executionReady": true,
               "executionShapes": [
                 {
@@ -4713,8 +4720,8 @@
                   "protocolVersion": "v1",
                   "action": "stake",
                   "variant": "algo",
-                  "title": "Réti ALGO stake to validator",
-                  "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+                  "title": "R\u00e9ti ALGO stake to validator",
+                  "summary": "Stakes ALGO to a R\u00e9ti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas \u00d72, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -4738,8 +4745,8 @@
                   "protocolVersion": "v1",
                   "action": "unstake",
                   "variant": "algo",
-                  "title": "Réti ALGO unstake from pool",
-                  "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+                  "title": "R\u00e9ti ALGO unstake from pool",
+                  "summary": "Removes ALGO stake from a R\u00e9ti staking pool via StakingPool.removeStake. Builds gas \u00d72, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -5184,7 +5191,7 @@
                 "algoRoomMicroAlgos": "50000000000",
                 "acceptingStake": true
               },
-              "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+              "notes": "R\u00e9ti validator-level consensus staking; quote-time eligibility checks are authoritative.",
               "executionReady": true,
               "executionShapes": [
                 {
@@ -5193,8 +5200,8 @@
                   "protocolVersion": "v1",
                   "action": "stake",
                   "variant": "algo",
-                  "title": "Réti ALGO stake to validator",
-                  "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+                  "title": "R\u00e9ti ALGO stake to validator",
+                  "summary": "Stakes ALGO to a R\u00e9ti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas \u00d72, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -5218,8 +5225,8 @@
                   "protocolVersion": "v1",
                   "action": "unstake",
                   "variant": "algo",
-                  "title": "Réti ALGO unstake from pool",
-                  "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+                  "title": "R\u00e9ti ALGO unstake from pool",
+                  "summary": "Removes ALGO stake from a R\u00e9ti staking pool via StakingPool.removeStake. Builds gas \u00d72, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -5279,7 +5286,7 @@
                 "algoRoomMicroAlgos": "50000000000",
                 "acceptingStake": true
               },
-              "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+              "notes": "R\u00e9ti validator-level consensus staking; quote-time eligibility checks are authoritative.",
               "executionReady": true,
               "executionShapes": [
                 {
@@ -5288,8 +5295,8 @@
                   "protocolVersion": "v1",
                   "action": "stake",
                   "variant": "algo",
-                  "title": "Réti ALGO stake to validator",
-                  "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+                  "title": "R\u00e9ti ALGO stake to validator",
+                  "summary": "Stakes ALGO to a R\u00e9ti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas \u00d72, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -5313,8 +5320,8 @@
                   "protocolVersion": "v1",
                   "action": "unstake",
                   "variant": "algo",
-                  "title": "Réti ALGO unstake from pool",
-                  "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+                  "title": "R\u00e9ti ALGO unstake from pool",
+                  "summary": "Removes ALGO stake from a R\u00e9ti staking pool via StakingPool.removeStake. Builds gas \u00d72, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",

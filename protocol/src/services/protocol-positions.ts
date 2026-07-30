@@ -1,4 +1,5 @@
 import algosdk, { Algodv2 } from "algosdk";
+import { getStakingPosition } from "@alpha-arcade/sdk";
 import {
   ConsensusState,
   MainnetConsensusConfig,
@@ -15,13 +16,14 @@ import { makeFarmFromRawState } from "@pactfi/pactsdk";
 import { AlgorandClient } from "@algorandfoundation/algokit-utils";
 import { DualStake } from "@myth-finance/dualstake-ts-sdk";
 
-import { CompXSDK, standardToMicro, type UserPosition } from "@compx/sdk";
-
 import {
   FOLKS_XALGO_STAKING_OPPORTUNITY_ID,
   HAYSTACK_STAKING_OPPORTUNITY_ID,
   HAY_ASSET_ID,
   USDC_ASSET_ID,
+  ALPHA_ARCADE_STAKING_OPPORTUNITY_ID,
+  ALPHA_ARCADE_STAKING_APP_ID,
+  ALPHA_ASSET_ID,
   TINYMAN_STALGO_STAKING_OPPORTUNITY_ID,
   TINYMAN_TALGO_STAKING_OPPORTUNITY_ID,
   fetchCompXOpportunities,
@@ -58,7 +60,6 @@ import {
 import {
   resolveCompXStakingPoolState
 } from "../execution/shapes/compx/pool-state.js";
-import { createCompXBuilderAlgodClient } from "../execution/shapes/compx/shared.js";
 import {
   underlyingFromScaledDeposits
 } from "../execution/shapes/dorkfi/abi.js";
@@ -1107,30 +1108,8 @@ export async function collectFolksFinancePositions(
           ]
         });
       }
-      for (const borrow of loan.borrows) {
-        if (borrow.borrowBalance <= 0n) {
-          continue;
-        }
-        const entry = poolsByAppId.get(borrow.poolAppId);
-        positions.push({
-          protocol: "folks-finance",
-          positionType: "debt",
-          positionId: `folks-finance:debt:${loan.escrowAddress}:${borrow.poolAppId}`,
-          opportunityId: `folks-lending-${borrow.poolAppId}`,
-          assetId: borrow.assetId,
-          assetSymbol: entry?.symbol ?? null,
-          amountRaw: borrow.borrowBalance.toString(),
-          amount: formatUnits(
-            borrow.borrowBalance,
-            entry?.pool.assetDecimals ?? 0
-          ),
-          usdValue: scaledUsd(borrow.borrowBalanceValue, 14),
-          healthFactor,
-          caveats: [
-            `${result.value.loanType} loan escrow ${loan.escrowAddress}.`
-          ]
-        });
-      }
+      // Borrow/debt positions are intentionally omitted — canix402 does not
+      // surface lending debt in portfolio responses.
     }
   }
 
@@ -1149,27 +1128,17 @@ export async function collectFolksFinancePositions(
             ["supplied", "lp", "staked"].includes(position.positionType)
           )
           .every((position) => position.usdValue !== null),
-      borrowedUsdComplete: failedLoanSources === 0,
+      borrowedUsdComplete: true,
       rewardsUsdComplete: true
     }
   };
 }
 
-interface CompXPositionCollectorDependencies {
-  getUserPosition: (
-    appId: number,
-    userAddress: string
-  ) => Promise<UserPosition>;
-}
-
-let compxPositionCollectorOverrides:
-  | Partial<CompXPositionCollectorDependencies>
-  | undefined;
-
 export function setCompXPositionCollectorDependenciesForTests(
-  overrides?: Partial<CompXPositionCollectorDependencies>
+  _overrides?: unknown
 ): void {
-  compxPositionCollectorOverrides = overrides;
+  // CompX portfolio collection no longer reads per-user lending debt, so there
+  // are no collector overrides to inject. Kept as a no-op for existing tests.
 }
 
 export async function collectCompXPositions(
@@ -1187,8 +1156,6 @@ export async function collectCompXPositions(
   walletHoldings.set(0, snapshot.amount);
   const positions: PositionMarketRecord[] = [];
   const warnings: string[] = [];
-  let debtReadsFailed = false;
-  const getUserPosition = resolveCompXGetUserPosition(context);
   const pendingRewardAssetIds = new Set<number>();
   const rewardDecimalsByAssetId = new Map<number, number>();
 
@@ -1202,30 +1169,11 @@ export async function collectCompXPositions(
             throw new Error("invalid market application id");
           }
 
-          let userPosition: UserPosition | undefined;
-          try {
-            userPosition = await getUserPosition(appId, address);
-          } catch (error) {
-            // Missing deposit/loan boxes are expected for wallets with no
-            // activity in a market — treat as an empty position, not a failure.
-            if (isMissingCompXPositionBoxError(error)) {
-              userPosition = emptyCompXUserPosition(appId, address);
-            } else {
-              debtReadsFailed = true;
-              warnings.push(
-                `${opportunity.opportunityId}:debt: ${errorMessage(error)}`
-              );
-            }
-          }
-
           const lstTokenId = opportunity.assetIds?.[1];
           const hasWalletLst =
             lstTokenId === undefined ||
             getWalletAssetBalance(snapshot, lstTokenId) > 0n;
-          const hasDebt =
-            userPosition !== undefined && userPosition.borrowed > 0;
-
-          if (!hasWalletLst && !hasDebt) {
+          if (!hasWalletLst) {
             return;
           }
 
@@ -1237,37 +1185,7 @@ export async function collectCompXPositions(
             userAssetHoldings: walletHoldings
           });
 
-          if (hasDebt) {
-            const decimals = state.market.baseTokenDecimals;
-            const borrowedRaw = standardToMicro(
-              userPosition!.borrowed,
-              decimals
-            );
-            const usdValue =
-              Number.isFinite(state.market.baseTokenPrice) &&
-              state.market.baseTokenPrice >= 0
-                ? userPosition!.borrowed * state.market.baseTokenPrice
-                : null;
-            const healthFactor = Number.isFinite(userPosition!.healthFactor)
-              ? userPosition!.healthFactor
-              : null;
-            positions.push({
-              protocol: "compx",
-              positionType: "debt",
-              positionId: `compx:debt:${appId}`,
-              opportunityId: opportunity.opportunityId,
-              assetId: state.baseTokenId,
-              assetSymbol: opportunity.assetPair,
-              amountRaw: borrowedRaw.toString(),
-              amount: formatUnits(borrowedRaw, decimals),
-              usdValue:
-                usdValue !== null && Number.isFinite(usdValue) ? usdValue : null,
-              healthFactor,
-              sourceTimestamp: opportunity.sourceTimestamp
-            });
-          }
-
-          if (!hasWalletLst || state.userLstBalance === 0n) {
+          if (state.userLstBalance === 0n) {
             return;
           }
           const totalDeposits = BigInt(Math.trunc(state.market.totalDeposits));
@@ -1416,9 +1334,6 @@ export async function collectCompXPositions(
   }
 
   const sourceWarnings = [...warnings];
-  const hasUnpricedDebt = positions.some(
-    (position) => position.positionType === "debt" && position.usdValue === null
-  );
   const hasUnpricedRewards = positions.some(
     (position) =>
       position.positionType === "reward" && position.usdValue === null
@@ -1443,7 +1358,7 @@ export async function collectCompXPositions(
             ["supplied", "lp", "staked"].includes(position.positionType)
           )
           .every((position) => position.usdValue !== null),
-      borrowedUsdComplete: !debtReadsFailed && !hasUnpricedDebt,
+      borrowedUsdComplete: true,
       rewardsUsdComplete: !hasUnpricedRewards
     }
   };
@@ -1462,64 +1377,6 @@ function compxPendingStakingRewardRaw(
   }
   const accrued = (stake * rewardPerToken) / COMPX_STAKING_REWARD_PRECISION;
   return accrued > rewardDebt ? accrued - rewardDebt : 0n;
-}
-
-function resolveCompXGetUserPosition(
-  context: PositionCollectionContext
-): CompXPositionCollectorDependencies["getUserPosition"] {
-  if (compxPositionCollectorOverrides?.getUserPosition !== undefined) {
-    return compxPositionCollectorOverrides.getUserPosition;
-  }
-  const algod =
-    context.algodRequestGate === undefined
-      ? createCompXBuilderAlgodClient()
-      : (withAlgodRequestGate(
-          createCompXBuilderAlgodClient(),
-          context.algodRequestGate
-        ) as Algodv2);
-  const network =
-    process.env.COMPX_NETWORK?.trim().toLowerCase() === "testnet"
-      ? "testnet"
-      : "mainnet";
-  const sdk = new CompXSDK({ algodClient: algod, network });
-  return (appId, userAddress) =>
-    sdk.lending.getUserPosition(appId, userAddress);
-}
-
-function isMissingCompXPositionBoxError(error: unknown): boolean {
-  const status =
-    (error as { status?: number; statusCode?: number } | undefined) ?? undefined;
-  if (status?.status === 404 || status?.statusCode === 404) {
-    return true;
-  }
-  const message = errorMessage(error).toLowerCase();
-  return (
-    message.includes("box not found") ||
-    message.includes("no application box") ||
-    message.includes("no deposit record") ||
-    message.includes("no loan record")
-  );
-}
-
-function emptyCompXUserPosition(
-  appId: number,
-  userAddress: string
-): UserPosition {
-  return {
-    address: userAddress,
-    appId,
-    supplied: 0,
-    lstBalance: 0,
-    borrowed: 0,
-    collateral: 0,
-    collateralAssetId: 0,
-    userIndexWad: 0n,
-    principal: 0n,
-    lastDebtChange: 0,
-    healthFactor: Infinity,
-    maxBorrow: 0,
-    isLiquidatable: false
-  };
 }
 
 export async function collectDorkFiPositions(
@@ -1544,15 +1401,9 @@ export async function collectDorkFiPositions(
   let indexed: ProtocolPositionsCollection;
   try {
     indexed = await deps.fetchIndexedPositions(address);
-  } catch (indexedError) {
-    onChain.warnings.unshift(
-      `Dork.fi indexed debt/health source unavailable: ${errorMessage(indexedError)}`
-    );
-    onChain.coverage = {
-      suppliedUsdComplete: false,
-      borrowedUsdComplete: false,
-      rewardsUsdComplete: true
-    };
+  } catch {
+    // Indexed USD aggregates are optional. Never surface debt/health warnings —
+    // borrow/debt is out of scope for portfolio responses.
     if (
       onChain.positions.length === 0 &&
       onChain.warnings.some((warning) =>
@@ -1560,19 +1411,31 @@ export async function collectDorkFiPositions(
       )
     ) {
       throw new Error(
-        `Dork.fi position sources unavailable: ${onChain.warnings.join("; ")}`
+        `Dork.fi on-chain ASA supply unavailable: ${onChain.warnings.join("; ")}`
       );
     }
-    return onChain;
+    return {
+      positions: onChain.positions,
+      warnings: onChain.warnings.filter(
+        (warning) => !warning.includes("on-chain ASA supply unavailable")
+      ),
+      coverage: {
+        suppliedUsdComplete:
+          onChain.coverage?.suppliedUsdComplete ??
+          onChain.positions.every((position) => position.usdValue !== null),
+        borrowedUsdComplete: true,
+        rewardsUsdComplete: true
+      }
+    };
   }
 
-  // ASA market rows first (executable); indexed USD/debt/HF second (informational).
+  // ASA market rows first (executable); indexed USD supply second (informational).
   return {
     positions: [...onChain.positions, ...indexed.positions],
     warnings: [...onChain.warnings, ...indexed.warnings],
     coverage: {
       suppliedUsdComplete: indexed.coverage?.suppliedUsdComplete ?? true,
-      borrowedUsdComplete: indexed.coverage?.borrowedUsdComplete ?? true,
+      borrowedUsdComplete: true,
       rewardsUsdComplete: true
     }
   };
@@ -1634,9 +1497,9 @@ export function normalizeDorkFiHealthRecords(
     }
     const poolAppId = parseSafePositiveInteger(record.appId);
     const suppliedRaw = parseUnsignedBigInt(record.totalCollateralValue);
-    const debtRaw = parseUnsignedBigInt(record.totalBorrowValue);
     const healthFactor = parseNullableNonNegativeNumber(record.healthFactor);
-    if (poolAppId === null || suppliedRaw === null || debtRaw === null) {
+    // totalBorrowValue is ignored — debt/borrow positions are not surfaced.
+    if (poolAppId === null || suppliedRaw === null) {
       warnings.push("Dork.fi health API returned an invalid Algorand record.");
       continue;
     }
@@ -1663,22 +1526,6 @@ export function normalizeDorkFiHealthRecords(
         caveats
       });
     }
-    if (debtRaw > 0n) {
-      positions.push({
-        protocol: "dorkfi",
-        positionType: "debt",
-        positionId: `dorkfi:debt-usd:${poolAppId}`,
-        opportunityId: null,
-        assetId: null,
-        assetSymbol: "USD",
-        amountRaw: debtRaw.toString(),
-        amount: formatUnits(debtRaw, 12),
-        usdValue: scaledUsd(debtRaw, 12),
-        healthFactor,
-        ...(sourceTimestamp ? { sourceTimestamp } : {}),
-        caveats
-      });
-    }
   }
 
   return {
@@ -1686,7 +1533,7 @@ export function normalizeDorkFiHealthRecords(
     warnings,
     coverage: {
       suppliedUsdComplete: warnings.length === 0,
-      borrowedUsdComplete: warnings.length === 0,
+      borrowedUsdComplete: true,
       rewardsUsdComplete: true
     }
   };
@@ -2337,6 +2184,120 @@ export async function collectHaystackPositions(
       usdValue: tokenUsdValue(record.pendingRewardsHay, hayDecimals, hayUsd),
       caveats: [
         "Pending HAY from staker box; live accrual may be higher until the next drip/claim."
+      ]
+    });
+  }
+
+  const rewardsComplete =
+    !warnings.some((warning) => warning.includes("USD pricing")) &&
+    !positions.some(
+      (position) =>
+        position.positionType === "reward" && position.usdValue === null
+    );
+
+  return {
+    positions,
+    warnings,
+    coverage: {
+      suppliedUsdComplete:
+        positions
+          .filter((position) => position.positionType === "staked")
+          .every((position) => position.usdValue !== null),
+      borrowedUsdComplete: true,
+      rewardsUsdComplete: rewardsComplete
+    }
+  };
+}
+
+export async function collectAlphaArcadePositions(
+  address: string,
+  _snapshot: WalletSnapshot
+): Promise<ProtocolPositionsCollection> {
+  const warnings: string[] = [];
+  const positions: PositionMarketRecord[] = [];
+
+  let stakingPosition;
+  try {
+    const algod = createPositionsAlgodClient();
+    const indexer = new algosdk.Indexer(
+      process.env.X402_INDEXER_TOKEN ?? "",
+      trimTrailingSlash(
+        process.env.X402_INDEXER_URL ?? "https://mainnet-idx.algonode.cloud"
+      ),
+      ""
+    );
+    stakingPosition = await getStakingPosition(
+      {
+        algodClient: algod,
+        indexerClient: indexer,
+        signer: algosdk.makeEmptyTransactionSigner(),
+        activeAddress: address,
+        matcherAppId: 3_078_581_851,
+        usdcAssetId: USDC_ASSET_ID,
+        stakingAppId: ALPHA_ARCADE_STAKING_APP_ID,
+        alphaAssetId: ALPHA_ASSET_ID
+      },
+      address
+    );
+  } catch (error) {
+    return {
+      positions: [],
+      warnings: [`Alpha Arcade staking position unavailable: ${errorMessage(error)}`]
+    };
+  }
+
+  if (!stakingPosition.optedIn && stakingPosition.staked <= 0 && stakingPosition.claimable <= 0) {
+    return { positions: [], warnings };
+  }
+
+  const assetIds = [ALPHA_ASSET_ID, USDC_ASSET_ID];
+  const decimalsByAssetId = await resolveAssetDecimals(assetIds).catch(() => {
+    warnings.push("Alpha Arcade asset decimals unavailable; defaulting to 6.");
+    return new Map<number, number>();
+  });
+  const alphaDecimals = decimalsByAssetId.get(ALPHA_ASSET_ID) ?? 6;
+  const usdcDecimals = decimalsByAssetId.get(USDC_ASSET_ID) ?? 6;
+
+  let prices = new Map<number, number | null>();
+  try {
+    prices = await fetchTinymanAssetUsdPrices(assetIds);
+  } catch (error) {
+    warnings.push(`Alpha Arcade USD pricing unavailable: ${errorMessage(error)}`);
+  }
+  const alphaUsd = prices.get(ALPHA_ASSET_ID) ?? null;
+  const usdcUsd = prices.get(USDC_ASSET_ID) ?? 1;
+
+  const stakedRaw = BigInt(stakingPosition.staked);
+  const claimableRaw = BigInt(stakingPosition.claimable);
+
+  if (stakedRaw > 0n) {
+    positions.push({
+      protocol: "alpha-arcade",
+      positionType: "staked",
+      positionId: `alpha-arcade:staked:${ALPHA_ARCADE_STAKING_APP_ID}`,
+      opportunityId: ALPHA_ARCADE_STAKING_OPPORTUNITY_ID,
+      assetId: ALPHA_ASSET_ID,
+      assetSymbol: "ALPHA",
+      amountRaw: stakedRaw.toString(),
+      amount: formatUnits(stakedRaw, alphaDecimals),
+      usdValue: tokenUsdValue(stakedRaw, alphaDecimals, alphaUsd),
+      notes: "Alpha Arcade fee-sharing pool staked ALPHA (local state)."
+    });
+  }
+
+  if (claimableRaw > 0n) {
+    positions.push({
+      protocol: "alpha-arcade",
+      positionType: "reward",
+      positionId: `alpha-arcade:reward:${ALPHA_ARCADE_STAKING_APP_ID}:usdc`,
+      opportunityId: ALPHA_ARCADE_STAKING_OPPORTUNITY_ID,
+      assetId: USDC_ASSET_ID,
+      assetSymbol: "USDC",
+      amountRaw: claimableRaw.toString(),
+      amount: formatUnits(claimableRaw, usdcDecimals),
+      usdValue: tokenUsdValue(claimableRaw, usdcDecimals, usdcUsd),
+      caveats: [
+        "Claimable USDC includes accrued rewards against the current accumulator."
       ]
     });
   }

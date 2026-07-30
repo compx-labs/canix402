@@ -131,6 +131,56 @@ test("Dork.fi merges ASA supply with indexed USD aggregate and keeps withdraw ac
   assert.equal(result.coverage?.borrowedUsdComplete, true);
 });
 
+test("Dork.fi indexed source failure does not emit debt/health warnings", async () => {
+  setDorkFiPositionCollectorDependenciesForTests({
+    fetchIndexedPositions: async () => {
+      throw new Error("health API down");
+    },
+    resolveMarketState: async (params) => {
+      if (params.marketAppId === DORKFI_MAINNET_USDC_MARKET_APP_ID) {
+        return usdcMarketState();
+      }
+      return usdcMarketState({
+        poolAppId: params.poolAppId,
+        marketAppId: params.marketAppId,
+        assetId: params.assetId,
+        userNTokenBalance: 0n,
+        symbol: "OTHER",
+        catalogMarket: {
+          symbol: "OTHER",
+          poolAppId: params.poolAppId,
+          marketAppId: params.marketAppId,
+          nTokenAppId: 1,
+          assetId: params.assetId,
+          decimals: 6,
+          tokenStandard: "asa"
+        }
+      });
+    }
+  });
+
+  const result = await collectDorkFiPositions(ADDRESS, emptyWalletSnapshot(ADDRESS));
+  assert.equal(result.warnings.length, 0);
+  assert.equal(
+    result.warnings.some((warning) =>
+      /debt|health/i.test(warning)
+    ),
+    false
+  );
+  assert.equal(result.coverage?.borrowedUsdComplete, true);
+  assert.ok(
+    result.positions.some(
+      (position) =>
+        position.opportunityId ===
+        "dorkfi:algorand:3333688282:31566704:lending"
+    )
+  );
+  assert.equal(
+    result.positions.some((position) => position.positionType === "debt"),
+    false
+  );
+});
+
 test("Dork.fi paused markets are skipped quietly and do not hide USDC supply", async () => {
   setDorkFiPositionCollectorDependenciesForTests({
     fetchIndexedPositions: async () =>

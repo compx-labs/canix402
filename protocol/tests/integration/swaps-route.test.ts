@@ -223,6 +223,24 @@ test("service rejects stale and address-mismatched quotes before upstream calls"
   );
 });
 
+test("quote request accepts Tinyman and Humble in disabledProtocols", async () => {
+  const app = await createApp(mockService());
+  const response = await app.inject({
+    method: "POST",
+    url: "/swaps/quote",
+    payload: {
+      address: ADDRESS,
+      fromAssetId: 0,
+      toAssetId: 31566704,
+      amount: "1000000",
+      disabledProtocols: ["Tinyman", "Humble", "Algofi", "Algomint"]
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  await app.close();
+});
+
 test("quote request validates amount, route depth, and slippage bounds", async () => {
   const app = await createApp(mockService());
   const badQuote = await app.inject({

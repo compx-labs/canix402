@@ -42,6 +42,8 @@
     "test:haystack-production": "tsx --test tests/live/haystack-production-swap.test.ts",
     "test:haystack-staking-production": "tsx --test tests/live/haystack-staking-production-test.test.ts",
     "test:haystack-staking-execution-live": "npm run test:haystack-staking-production",
+    "test:alpha-arcade-staking-production": "tsx --test tests/live/alpha-arcade-staking-production-test.test.ts",
+    "test:alpha-arcade-staking-execution-live": "npm run test:alpha-arcade-staking-production",
     "test:production-smoke": "tsx scripts/production-smoke.ts",
     "test:tinyman-live": "npm run test:live",
     "build:caddy-x402": "mkdir -p .bin && xcaddy build --output .bin/caddy-x402 --with github.com/algorandecosystem/caddy-x402avm=./caddy",
@@ -58,6 +60,7 @@
   },
   "dependencies": {
     "@algorandfoundation/algokit-utils": "^9.2.0",
+    "@alpha-arcade/sdk": "^0.4.11",
     "@aws-sdk/client-s3": "^3.1090.0",
     "@compx/sdk": "^2.1.5",
     "@fastify/type-provider-typebox": "^6.1.0",

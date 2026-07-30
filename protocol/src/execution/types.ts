@@ -20,7 +20,8 @@ export type ExecutionProtocol =
   | "dorkfi"
   | "myth-finance"
   | "haystack"
-  | "reti";
+  | "reti"
+  | "alpha-arcade";
 
 /**
  * Fully-qualified identity for a transaction shape. The stable string key is

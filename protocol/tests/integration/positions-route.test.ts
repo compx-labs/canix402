@@ -83,6 +83,11 @@ test("aggregate returns every protocol status and preserves safe amounts", async
       positions: [],
       warnings: [],
       coverage: COMPLETE_COVERAGE
+    }),
+    "alpha-arcade": async () => ({
+      positions: [],
+      warnings: [],
+      coverage: COMPLETE_COVERAGE
     })
   });
 
@@ -93,10 +98,11 @@ test("aggregate returns every protocol status and preserves safe amounts", async
     (response.data[0]?.compatibleExitShapeKeys.length ?? 0) > 0,
     "LP positions should expose Tinyman remove-liquidity exit shapes"
   );
-  // Folks unavailable nulls every USD total (fail-closed for missing sources).
+  // Folks unavailable nulls supplied/rewards USD totals, but borrowed stays
+  // complete (debt/lending is out of scope for portfolio responses).
   assert.deepEqual(response.totals, {
     suppliedUsd: null,
-    borrowedUsd: null,
+    borrowedUsd: 0,
     rewardsUsd: null,
     netUsd: null
   });
@@ -110,7 +116,8 @@ test("aggregate returns every protocol status and preserves safe amounts", async
       { protocol: "dorkfi", status: "ok" },
       { protocol: "myth-finance", status: "ok" },
       { protocol: "haystack", status: "ok" },
-      { protocol: "reti", status: "ok" }
+      { protocol: "reti", status: "ok" },
+      { protocol: "alpha-arcade", status: "ok" }
     ]
   );
 });
@@ -143,7 +150,8 @@ test("aggregate bounds concurrent protocol collectors and preserves protocol ord
     dorkfi: collector("dorkfi"),
     "myth-finance": collector("myth-finance"),
     haystack: collector("haystack"),
-    reti: collector("reti")
+    reti: collector("reti"),
+    "alpha-arcade": collector("alpha-arcade")
   });
 
   try {
@@ -246,7 +254,8 @@ test("aggregate calculates complete supplied, borrowed, reward, and net totals",
     dorkfi: emptyCollector,
     "myth-finance": emptyCollector,
     haystack: emptyCollector,
-    reti: emptyCollector
+    reti: emptyCollector,
+    "alpha-arcade": emptyCollector
   });
 
   const response = await fetchWalletPositions(VALID_ADDRESS);
@@ -326,7 +335,8 @@ test("complete Tinyman/CompX coverage does not hard-null wallet totals", async (
     dorkfi: emptyCollector,
     "myth-finance": emptyCollector,
     haystack: emptyCollector,
-    reti: emptyCollector
+    reti: emptyCollector,
+    "alpha-arcade": emptyCollector
   });
 
   const response = await fetchWalletPositions(VALID_ADDRESS);
@@ -384,7 +394,8 @@ test("rewards-only incomplete coverage nulls rewardsUsd and netUsd only", async 
     dorkfi: emptyCollector,
     "myth-finance": emptyCollector,
     haystack: emptyCollector,
-    reti: emptyCollector
+    reti: emptyCollector,
+    "alpha-arcade": emptyCollector
   });
 
   const response = await fetchWalletPositions(VALID_ADDRESS);
@@ -434,7 +445,8 @@ test("collector warnings without coverage no longer hard-null borrowed/rewards",
     dorkfi: emptyCollector,
     "myth-finance": emptyCollector,
     haystack: emptyCollector,
-    reti: emptyCollector
+    reti: emptyCollector,
+    "alpha-arcade": emptyCollector
   });
 
   const response = await fetchWalletPositions(VALID_ADDRESS);
@@ -446,7 +458,7 @@ test("collector warnings without coverage no longer hard-null borrowed/rewards",
   });
 });
 
-test("Dork.fi indexed health records normalize supplied debt and health", () => {
+test("Dork.fi indexed health records normalize supplied USD only (no debt)", () => {
   const result = normalizeDorkFiHealthRecords([
     {
       network: "algorand-mainnet",
@@ -458,7 +470,7 @@ test("Dork.fi indexed health records normalize supplied debt and health", () => 
     }
   ]);
 
-  assert.equal(result.positions.length, 2);
+  assert.equal(result.positions.length, 1);
   assert.deepEqual(
     result.positions.map((position) => ({
       type: position.positionType,
@@ -476,18 +488,11 @@ test("Dork.fi indexed health records normalize supplied debt and health", () => 
         usdValue: 12.5,
         healthFactor: 4.1667,
         sourceTimestamp: "2026-07-13T12:00:00.000Z"
-      },
-      {
-        type: "debt",
-        positionId: "dorkfi:debt-usd:3333688282",
-        opportunityId: null,
-        usdValue: 3,
-        healthFactor: 4.1667,
-        sourceTimestamp: "2026-07-13T12:00:00.000Z"
       }
     ]
   );
   assert.deepEqual(result.warnings, []);
+  assert.equal(result.coverage?.borrowedUsdComplete, true);
   assert.ok(
     (result.positions[0]?.caveats ?? []).some((caveat) =>
       caveat.includes("Not executable")
@@ -568,6 +573,7 @@ function setAllCollectors(
     dorkfi: collector,
     "myth-finance": collector,
     haystack: collector,
-    reti: collector
+    reti: collector,
+    "alpha-arcade": collector
   });
 }

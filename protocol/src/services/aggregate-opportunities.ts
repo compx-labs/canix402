@@ -1,4 +1,5 @@
 import {
+  fetchAlphaArcadeOpportunities,
   fetchCompXOpportunities,
   fetchDorkFiOpportunities,
   fetchFolksFinanceOpportunities,
@@ -31,7 +32,8 @@ export const SUPPORTED_AGGREGATE_PROTOCOLS = [
   "dorkfi",
   "myth-finance",
   "haystack",
-  "reti"
+  "reti",
+  "alpha-arcade"
 ] as const;
 
 const OPPORTUNITY_CACHE_NETWORK = "mainnet";
@@ -161,6 +163,9 @@ async function fetchOpportunitiesForProtocolUncachedInner(
   }
   if (protocol === "reti") {
     return await fetchRetiOpportunities();
+  }
+  if (protocol === "alpha-arcade") {
+    return await fetchAlphaArcadeOpportunities();
   }
 
   return [];

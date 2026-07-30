@@ -5,6 +5,7 @@ import type {
   WalletPositionsResponse
 } from "../types/position.js";
 import {
+  collectAlphaArcadePositions,
   collectCompXPositions,
   collectDorkFiPositions,
   collectFolksFinancePositions,
@@ -33,7 +34,8 @@ export const SUPPORTED_POSITION_PROTOCOLS = [
   "dorkfi",
   "myth-finance",
   "haystack",
-  "reti"
+  "reti",
+  "alpha-arcade"
 ] as const satisfies readonly Protocol[];
 
 export class AllPositionSourcesUnavailableError extends Error {
@@ -111,7 +113,8 @@ export async function fetchWalletPositions(
     const protocol = SUPPORTED_POSITION_PROTOCOLS[index]!;
     if (result.status === "rejected") {
       coverage.suppliedUsdComplete = false;
-      coverage.borrowedUsdComplete = false;
+      // Borrow/debt is out of scope for portfolio totals — do not null borrowedUsd
+      // when a protocol collector fails.
       coverage.rewardsUsdComplete = false;
       protocols.push({
         protocol,
@@ -223,6 +226,7 @@ function resolveCollectors(): PositionCollectors {
     "myth-finance": collectMythFinancePositions,
     haystack: collectHaystackPositions,
     reti: collectRetiPositions,
+    "alpha-arcade": collectAlphaArcadePositions,
     ...collectorOverrides
   };
 }

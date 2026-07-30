@@ -40,6 +40,9 @@ const RETI_STAKE_ALGO = "mainnet:reti:v1:stake:algo";
 const RETI_UNSTAKE_ALGO = "mainnet:reti:v1:unstake:algo";
 const HAYSTACK_STAKING_OPPORTUNITY_ID = "haystack-staking-hay";
 const HAYSTACK_UNSTAKE_HAY = "mainnet:haystack:v1:unstake:hay";
+const ALPHA_ARCADE_STAKING_OPPORTUNITY_ID = "alpha-arcade-staking-alpha";
+const ALPHA_ARCADE_UNSTAKE_ALPHA = "mainnet:alpha-arcade:v1:unstake:alpha";
+const ALPHA_ARCADE_CLAIM_REWARDS = "mainnet:alpha-arcade:v1:claimRewards:usdc";
 
 type ShapeStep = {
   shapeKey: string;
@@ -144,6 +147,12 @@ const RETI_STAKING_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
 /** Exit path for Haystack HAY unstake (and claim). */
 const HAYSTACK_STAKING_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
   { shapeKey: HAYSTACK_UNSTAKE_HAY, order: 0 }
+];
+
+/** Exit / claim path for Alpha Arcade ALPHA unstake + USDC reward claim. */
+const ALPHA_ARCADE_STAKING_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: ALPHA_ARCADE_UNSTAKE_ALPHA, order: 0 },
+  { shapeKey: ALPHA_ARCADE_CLAIM_REWARDS, order: 0 }
 ];
 
 export function attachExecutionShapesToOpportunity(
@@ -341,6 +350,9 @@ function resolveExitSteps(
   }
   if (isHaystackStakingOpportunity(record)) {
     return HAYSTACK_STAKING_EXIT_STEPS;
+  }
+  if (isAlphaArcadeStakingOpportunity(record)) {
+    return ALPHA_ARCADE_STAKING_EXIT_STEPS;
   }
   return [];
 }
@@ -607,6 +619,10 @@ function buildExitRequiredAssetIds(record: OpportunityMarketRecord): number[] {
     const primary = record.assetIds?.[0];
     return primary !== undefined ? [primary] : [];
   }
+  if (isAlphaArcadeStakingOpportunity(record)) {
+    const primary = record.assetIds?.[0];
+    return primary !== undefined ? [primary] : [];
+  }
   return [];
 }
 
@@ -656,6 +672,14 @@ function buildExitInputHints(
     }
     return hints;
   }
+  if (isAlphaArcadeStakingOpportunity(record)) {
+    const primary = record.assetIds?.[0];
+    if (primary !== undefined) {
+      hints.assetId = primary;
+      hints.depositAssetId = primary;
+    }
+    return hints;
+  }
   return {};
 }
 
@@ -674,6 +698,14 @@ function isHaystackStakingOpportunity(record: OpportunityMarketRecord): boolean 
     record.protocol === "haystack" &&
     record.opportunityType === "staking" &&
     record.opportunityId === HAYSTACK_STAKING_OPPORTUNITY_ID
+  );
+}
+
+function isAlphaArcadeStakingOpportunity(record: OpportunityMarketRecord): boolean {
+  return (
+    record.protocol === "alpha-arcade" &&
+    record.opportunityType === "staking" &&
+    record.opportunityId === ALPHA_ARCADE_STAKING_OPPORTUNITY_ID
   );
 }
 

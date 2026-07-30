@@ -1,4 +1,5 @@
 import { TransactionShapeRegistry } from "./registry.js";
+import { alphaArcadeShapes } from "./shapes/alpha-arcade/index.js";
 import { compxShapes } from "./shapes/compx/index.js";
 import { dorkfiShapes } from "./shapes/dorkfi/index.js";
 import { folksFinanceShapes } from "./shapes/folks-finance/index.js";
@@ -68,6 +69,20 @@ export type {
   RetiStakeState,
   RetiUnstakeState
 } from "./shapes/reti/index.js";
+export {
+  alphaArcadeStakeAlphaShape,
+  alphaArcadeUnstakeAlphaShape,
+  alphaArcadeClaimRewardsShape,
+  alphaArcadeShapes,
+  resolveAlphaArcadeStakingState,
+  ALPHA_ARCADE_STAKING_APP_ID
+} from "./shapes/alpha-arcade/index.js";
+export type {
+  AlphaArcadeStakeAlphaInput,
+  AlphaArcadeUnstakeAlphaInput,
+  AlphaArcadeClaimRewardsInput,
+  AlphaArcadeStakingState
+} from "./shapes/alpha-arcade/index.js";
 
 /**
  * Build a registry pre-loaded with every verified transaction shape. Callers
@@ -84,7 +99,8 @@ export function createExecutionRegistry(): TransactionShapeRegistry {
     ...dorkfiShapes,
     ...mythFinanceShapes,
     ...haystackShapes,
-    ...retiShapes
+    ...retiShapes,
+    ...alphaArcadeShapes
   ]) {
     registry.register(shape);
   }

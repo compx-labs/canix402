@@ -12,7 +12,8 @@ const ProtocolSchema = z.enum([
   "dorkfi",
   "myth-finance",
   "haystack",
-  "reti"
+  "reti",
+  "alpha-arcade"
 ]);
 const AlgorandAddressSchema = z.string().length(58);
 const AssetIdSchema = z.union([
@@ -25,6 +26,8 @@ const AmountSchema = z.union([
 ]);
 const SwapTypeSchema = z.enum(["fixed-input", "fixed-output"]);
 const DisabledProtocolSchema = z.enum([
+  "Tinyman",
+  "Humble",
   "TinymanV2",
   "Algofi",
   "Algomint",

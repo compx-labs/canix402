@@ -94,9 +94,8 @@ Other emitted fields:
 
 - Current mode is on-demand fetch per request.
 - `getAllMarkets()` performs multiple on-chain reads (and may simulate APR) per market.
-- Wallet positions call `sdk.lending.getUserPosition(appId, address)` per lending
-  opportunity to read `UserPosition.borrowed` (and related health fields). Markets
-  with neither wallet LST nor debt are skipped after that read.
+- Wallet positions read wallet LST holdings plus market state for supplied
+  balances only. Borrow/debt is not surfaced in portfolio responses.
 - CompX staking pending rewards are derived MasterChef-style as
   `stake * rewardPerToken / 1e15 - rewardDebt` from pool + staker box state, then
   priced with `sdk.pricing.getTokenPrices`.
