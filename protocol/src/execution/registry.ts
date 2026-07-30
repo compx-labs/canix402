@@ -165,6 +165,21 @@ export async function compileExecutableQuote(
   const createdAt = new Date(now).toISOString();
   const expiresAt = new Date(now + ttl).toISOString();
 
+  const groupTransactions = buildResult.groupTransactions;
+  const userSignIndexes =
+    groupTransactions === undefined
+      ? undefined
+      : groupTransactions
+          .filter((member) => member.signer === "user")
+          .map((member) => member.index);
+
+  const encodedTransactions =
+    groupTransactions === undefined
+      ? buildResult.transactions.map((txn) => encodeUnsignedTransactionBase64(txn))
+      : groupTransactions
+          .filter((member) => member.signer === "user")
+          .map((member) => member.encodedTransaction);
+
   return {
     shapeKey: shape.key,
     shapeVersion: shape.shapeVersion,
@@ -172,9 +187,9 @@ export async function compileExecutableQuote(
     createdAt,
     expiresAt,
     transactions: serialized,
-    encodedTransactions: buildResult.transactions.map((txn) =>
-      encodeUnsignedTransactionBase64(txn)
-    ),
+    encodedTransactions,
+    ...(groupTransactions === undefined ? {} : { groupTransactions }),
+    ...(userSignIndexes === undefined ? {} : { userSignIndexes }),
     warnings: [...(buildResult.warnings ?? []), ...validation.warnings],
     metadata: buildResult.metadata
   };

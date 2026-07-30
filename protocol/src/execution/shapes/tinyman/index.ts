@@ -85,7 +85,8 @@ export type {
 } from "./farm-uncommit.js";
 export {
   tinymanFarmClaimRewardsShape,
-  setTinymanFarmClaimRewardsDependenciesForTests
+  setTinymanFarmClaimRewardsDependenciesForTests,
+  classifyClaimGroupTransactions
 } from "./farm-claim-rewards.js";
 export type {
   TinymanFarmClaimRewardsInput,

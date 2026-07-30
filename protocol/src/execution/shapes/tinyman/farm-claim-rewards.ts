@@ -4,12 +4,14 @@ import { getStakingAppID } from "@tinymanorg/tinyman-js-sdk";
 import { InvalidShapeInputError, ShapeBuildError, ShapeStateError } from "../../errors.js";
 import { normalizeTransactions } from "../../normalize-transaction.js";
 import {
+  ExecutableQuoteGroupTransaction,
   ShapeBuildContext,
   ShapeBuildResult,
   ShapeValidationResult,
   TransactionShapeIdentity,
   TransactionShapeSpec,
-  buildShapeKey
+  buildShapeKey,
+  encodeUnsignedTransactionBase64
 } from "../../types.js";
 import {
   parseFarmAddress,
@@ -53,6 +55,7 @@ export interface TinymanFarmClaimRewardsDependencies {
     poolAddress: string;
     poolerAddress: string;
   }) => Promise<Transaction[]>;
+  claimApiBaseUrl: () => string;
 }
 
 let dependencyOverrides: Partial<TinymanFarmClaimRewardsDependencies> | undefined;
@@ -67,6 +70,8 @@ function resolveDependencies(): TinymanFarmClaimRewardsDependencies {
   return {
     getStakingAppId: (network) => getStakingAppID(network),
     prepareClaimTransactions: defaultPrepareClaimTransactions,
+    claimApiBaseUrl: () =>
+      process.env.TINYMAN_API_BASE_URL ?? "https://mainnet.analytics.tinyman.org/api/v1",
     ...dependencyOverrides
   };
 }
@@ -77,13 +82,14 @@ export const tinymanFarmClaimRewardsShape: TransactionShapeSpec<
 > = {
   identity: IDENTITY,
   key: buildShapeKey(IDENTITY),
-  shapeVersion: "1.0.0",
+  shapeVersion: "1.1.0",
   title: "Tinyman farm claim pending rewards",
   description:
     "Claims unpaid Tinyman farm rewards for a staking program. Transaction bytes are prepared by " +
-    "the Tinyman Analytics API (`POST /staking/rewards/prepare-claim-transactions/`); Canix " +
-    "normalizes and validates the unsigned group for local signing. Does not call the Analytics " +
-    "submit endpoint.",
+    "the Tinyman Analytics API (`POST /staking/rewards/prepare-claim-transactions/`). User legs are " +
+    "returned for local signing; the TINY distribution leg is protocol-authorized via Analytics " +
+    "`POST /staking/rewards/claim/` (Tinyman cosigns the distribution account and submits). Does " +
+    "not call the Analytics claim endpoint itself.",
   supportedOpportunityTypes: ["farm"],
   opportunityRole: "manage",
   requiredInputs: ["userAddress", "programId", "poolAddress"],
@@ -91,7 +97,7 @@ export const tinymanFarmClaimRewardsShape: TransactionShapeSpec<
     {
       kind: "api",
       description:
-        "Tinyman Analytics POST /api/v1/staking/rewards/prepare-claim-transactions/"
+        "Tinyman Analytics POST /api/v1/staking/rewards/prepare-claim-transactions/ and POST /api/v1/staking/rewards/claim/"
     }
   ],
 
@@ -160,17 +166,55 @@ export const tinymanFarmClaimRewardsShape: TransactionShapeSpec<
     // Analytics fee-pools within the group (e.g. user appl fee 2000 + farm axfer fee 0).
     // Top up the user's paying txn when the pool is short; never rewrite non-user senders.
     const feeAdjusted = ensureGroupFeePool(transactions, input.userAddress);
+    const normalized = normalizeTransactions(feeAdjusted);
+    const groupTransactions = classifyClaimGroupTransactions(normalized, input.userAddress);
+
+    const userLegs = groupTransactions.filter((member) => member.signer === "user");
+    const protocolLegs = groupTransactions.filter((member) => member.signer === "protocol");
+
+    if (userLegs.length === 0) {
+      throw new ShapeBuildError(
+        "Tinyman claim group has no user-signed transaction for the pooler address."
+      );
+    }
+    if (protocolLegs.length === 0) {
+      throw new ShapeBuildError(
+        "Tinyman claim group is missing the protocol distribution transfer."
+      );
+    }
+
+    // Distribution account (e.g. 2X5655…) is Tinyman-keyed (sig-type=sig), not a
+    // LogicSig. Clients must not sign it; Analytics claim cosigns and submits.
+    const claimBase = trimTrailingSlash(dependencies.claimApiBaseUrl());
+    const claimUrl = `${claimBase}/staking/rewards/claim/`;
+    const distributionSenders = [
+      ...new Set(
+        protocolLegs.map((member) => {
+          const txn = normalized[member.index];
+          return txn === undefined ? undefined : txn.sender.toString();
+        }).filter((sender): sender is string => sender !== undefined)
+      )
+    ];
 
     return {
-      transactions: normalizeTransactions(feeAdjusted),
+      transactions: normalized,
+      groupTransactions,
       warnings: [
-        "Claim group prepared by Tinyman Analytics; verify app calls and amounts before signing."
+        "Claim group prepared by Tinyman Analytics; verify app calls and amounts before signing.",
+        "Non-user legs are Tinyman distribution transfers (protocol key, not LogicSig). " +
+          "Sign only encodedTransactions / userSignIndexes, then POST the user-signed blob " +
+          `and unsigned protocol txn(s) to ${claimUrl} — do not submit the incomplete group to algod.`
       ],
       metadata: {
         stakingAppId: state.stakingAppId,
         programId: state.programId,
         poolAddress: state.poolAddress,
-        transactionCount: feeAdjusted.length
+        transactionCount: normalized.length,
+        submitMode: "tinyman-analytics-claim",
+        claimUrl,
+        distributionAddresses: distributionSenders,
+        unsignedProtocolTransactions: protocolLegs.map((member) => member.encodedTransaction),
+        userSignIndexes: userLegs.map((member) => member.index)
       }
     };
   },
@@ -200,9 +244,20 @@ export const tinymanFarmClaimRewardsShape: TransactionShapeSpec<
       );
     }
 
+    const hasUserTxn = group.some((txn) => txn.sender === input.userAddress);
+    if (!hasUserTxn) {
+      errors.push("Claim group must include at least one transaction from userAddress.");
+    }
+
+    const hasProtocolTxn = group.some((txn) => txn.sender !== input.userAddress);
+    if (!hasProtocolTxn) {
+      errors.push(
+        "Claim group must include a non-user distribution transfer (Tinyman rewards account)."
+      );
+    }
+
     for (const txn of group) {
       if (txn.sender !== input.userAddress && txn.type === "appl") {
-        // Analytics may include fee-payer or other members; warn rather than hard-fail.
         warnings.push(
           `Application call sender ${txn.sender} differs from userAddress; confirm before signing.`
         );
@@ -227,6 +282,32 @@ export const tinymanFarmClaimRewardsShape: TransactionShapeSpec<
     return { valid: errors.length === 0, errors, warnings };
   }
 };
+
+/**
+ * Label each group member as user-signed or protocol-authorized. Protocol legs
+ * (Tinyman distribution account) are never exposed as user-signable.
+ */
+export function classifyClaimGroupTransactions(
+  transactions: readonly Transaction[],
+  userAddress: string
+): ExecutableQuoteGroupTransaction[] {
+  return transactions.map((txn, index) => {
+    const encodedTransaction = encodeUnsignedTransactionBase64(txn);
+    if (txn.sender.toString() === userAddress) {
+      return {
+        index,
+        signer: "user" as const,
+        encodedTransaction
+      };
+    }
+    return {
+      index,
+      signer: "protocol" as const,
+      encodedTransaction
+      // No signedTransaction: Tinyman cosigns at POST /staking/rewards/claim/.
+    };
+  });
+}
 
 /**
  * Ensure the group's pooled fees cover `n × MIN_ALGO_FEE`. When short, raise the

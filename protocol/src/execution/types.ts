@@ -67,6 +67,30 @@ export interface ShapeBuildContext {
 }
 
 /**
+ * Who authorizes a member of an executable quote group.
+ * - user: client must sign with the wallet key for `txn.sender`
+ * - logicsig: already LogicSig-authorized; `signedTransaction` is present
+ * - protocol: authorized by a protocol-controlled key (not the user). Either
+ *   `signedTransaction` is present for algod submit, or shape metadata
+ *   describes a protocol cosign/submit endpoint (e.g. Tinyman Analytics claim)
+ */
+export type ExecutableQuoteSigner = "user" | "logicsig" | "protocol";
+
+/**
+ * Per-transaction authorization for multi-signer groups (Haystack-style).
+ * When present on a quote, clients must sign only `signer === "user"` members
+ * and use `signedTransaction` (or the shape's cosign/submit path) for others.
+ */
+export interface ExecutableQuoteGroupTransaction {
+  index: number;
+  signer: ExecutableQuoteSigner;
+  /** Base64-encoded unsigned transaction (msgpack). */
+  encodedTransaction: string;
+  /** Base64-encoded signed blob when authorization is already attached. */
+  signedTransaction?: string;
+}
+
+/**
  * Output of a shape's build step: the unsigned transaction group plus any
  * build-specific metadata surfaced on the executable quote.
  */
@@ -74,6 +98,11 @@ export interface ShapeBuildResult {
   transactions: Transaction[];
   metadata: Record<string, unknown>;
   warnings?: string[];
+  /**
+   * Optional per-txn authorization. When set, `compileExecutableQuote` exposes
+   * it on the quote and restricts `encodedTransactions` to user-signed legs.
+   */
+  groupTransactions?: ExecutableQuoteGroupTransaction[];
 }
 
 export interface ShapeValidationResult {
@@ -174,7 +203,8 @@ export interface SerializedTransaction {
 
 /**
  * The result of compiling a strategy leg into an executable, verified group.
- * Contains unsigned transactions only; signing is the caller's responsibility.
+ * Signing is the caller's responsibility for user legs. Multi-signer shapes may
+ * attach protocol/LogicSig authorization via `groupTransactions`.
  */
 export interface ExecutableQuote {
   shapeKey: TransactionShapeKey;
@@ -182,10 +212,22 @@ export interface ExecutableQuote {
   identity: TransactionShapeIdentity;
   createdAt: string;
   expiresAt: string;
-  /** Structured, fixture-friendly view of the group. */
+  /** Structured, fixture-friendly view of the full group (all senders). */
   transactions: SerializedTransaction[];
-  /** Base64-encoded unsigned transactions (msgpack), in group order, for signing. */
+  /**
+   * Base64-encoded unsigned transactions the client must sign with a user key.
+   * For single-signer shapes this is the full group. For multi-signer shapes
+   * this is only the `signer === "user"` legs (never protocol/LogicSig senders).
+   */
   encodedTransactions: string[];
+  /**
+   * Full group with per-txn signer metadata. Present when the shape produces
+   * non-user authorization (LogicSig or protocol cosign). Prefer this over
+   * assuming every `transactions[]` member is user-signable.
+   */
+  groupTransactions?: ExecutableQuoteGroupTransaction[];
+  /** Indexes into `groupTransactions` / the full group that the user must sign. */
+  userSignIndexes?: number[];
   warnings: string[];
   metadata: Record<string, unknown>;
 }
