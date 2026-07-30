@@ -33,6 +33,13 @@ import {
 const DEFAULT_HAYSTACK_API_BASE_URL = "https://hayrouter.txnlab.dev/api";
 const DEFAULT_QUOTE_TTL_MS = 30_000;
 const DEFAULT_OPT_IN_TTL_MS = 120_000;
+/** Always excluded from Haystack routing (legacy / unmaintained venues). */
+export const DEFAULT_DISABLED_HAYSTACK_PROTOCOLS = [
+  "Tinyman",
+  "Humble",
+  "Algofi",
+  "Algomint"
+] as const;
 
 export type HaystackErrorKind = "configuration" | "validation" | "rate-limit" | "upstream";
 
@@ -116,7 +123,12 @@ export function createHaystackService(
             toASAID: BigInt(input.toAssetId),
             amount: BigInt(input.amount),
             type: input.type ?? "fixed-input",
-            disabledProtocols: (input.disabledProtocols ?? []) as Protocol[],
+            disabledProtocols: [
+              ...new Set([
+                ...DEFAULT_DISABLED_HAYSTACK_PROTOCOLS,
+                ...(input.disabledProtocols ?? [])
+              ])
+            ] as Protocol[],
             maxGroupSize: input.maxGroupSize ?? 16,
             maxDepth: input.maxDepth ?? 3,
             // Opt-ins are prepared by the separate walletless endpoint.

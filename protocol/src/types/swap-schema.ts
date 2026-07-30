@@ -13,6 +13,8 @@ const AssetIdSchema = Type.Union([
 const AlgorandAddressSchema = Type.String({ minLength: 58, maxLength: 58 });
 
 const DisabledProtocolSchema = Type.Union([
+  Type.Literal("Tinyman"),
+  Type.Literal("Humble"),
   Type.Literal("TinymanV2"),
   Type.Literal("Algofi"),
   Type.Literal("Algomint"),
