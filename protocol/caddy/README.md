@@ -11,7 +11,8 @@ single source directory.
 
 - Free routes: `GET /`, `GET /logo.png`, `GET /banner.png`, `GET /health`,
   `GET /ready`, `GET /metadata`, `GET /discovery`, `GET /openapi.json`,
-  `POST /swaps/quote`, `POST /swaps/optin`
+  `POST /swaps/quote`, `POST /swaps/optin`,
+  `GET /public/agents/brownie/positions` (Brownie Bot showcase wallet only)
   (`GET /metrics` is free on the protocol process only; not proxied as free on Caddy)
 - Paid routes emit `accepts[].extra.tag = x402-global-challenge` for facilitator
   Global Hackathon discovery filtering.

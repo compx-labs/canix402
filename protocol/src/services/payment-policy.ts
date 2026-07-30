@@ -220,6 +220,16 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     priceUsdc: process.env.X402_PRICE_POSITIONS_USDC ?? "0.005"
   },
   {
+    id: "publicBrowniePositions",
+    method: "GET",
+    pathPattern: "/public/agents/brownie/positions",
+    access: "free",
+    summary: "Public DeFi positions for the Brownie Bot showcase wallet",
+    description:
+      "Free showcase route that returns normalized DeFi positions for the Brownie Bot treasury wallet only. The wallet address is hardcoded server-side — this is not a general free /positions browser. Use GET /positions?address= for arbitrary wallets (paid).",
+    tags: ["defi", "positions", "agents", "showcase"]
+  },
+  {
     id: "haystackSwapTransactions",
     method: "POST",
     pathPattern: "/swaps/transactions",
@@ -422,7 +432,8 @@ const freePathMatchers = [
   /^\/swaps\/quote$/,
   /^\/swaps\/optin$/,
   /^\/pricing$/,
-  /^\/execution\/shapes$/
+  /^\/execution\/shapes$/,
+  /^\/public\/agents\/brownie\/positions$/
 ];
 
 export function classifyEndpointAccess(

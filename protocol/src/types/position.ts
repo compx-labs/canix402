@@ -57,5 +57,7 @@ export interface WalletPositionsResponse {
   meta: {
     address: string;
     fetchedAt: string;
+    /** Present on free public showcase routes (e.g. Brownie Bot). */
+    agentId?: string;
   };
 }

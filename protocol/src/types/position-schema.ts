@@ -57,7 +57,8 @@ export const WalletPositionsResponseSchema = Type.Object({
   }),
   meta: Type.Object({
     address: Type.String(),
-    fetchedAt: Type.String({ format: "date-time" })
+    fetchedAt: Type.String({ format: "date-time" }),
+    agentId: Type.Optional(Type.String({ minLength: 1 }))
   })
 });
 
