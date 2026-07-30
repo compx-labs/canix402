@@ -125,8 +125,13 @@ export const haystackStakeHayShape: TransactionShapeSpec<
     const warnings: string[] = [];
 
     if (input.amount > state.userHayBalance) {
-      warnings.push(
-        `User HAY balance (${state.userHayBalance.toString()}) is below the requested stake amount.`
+      throw new InvalidShapeInputError(
+        `Insufficient HAY balance to stake: have ${state.userHayBalance.toString()}, need ${input.amount.toString()}.`,
+        {
+          have: state.userHayBalance.toString(),
+          need: input.amount.toString(),
+          assetId: state.hayAssetId
+        }
       );
     }
 
@@ -182,7 +187,24 @@ export const haystackStakeHayShape: TransactionShapeSpec<
         atc
       });
     } catch (error) {
+      if (isClientSideSimulateFailure(error)) {
+        throw new InvalidShapeInputError(
+          "Haystack stake group failed simulation for the provided inputs.",
+          {
+            rootCause: extractErrorMessage(error),
+            amount: input.amount.toString(),
+            userHayBalance: state.userHayBalance.toString(),
+            assetId: state.hayAssetId
+          }
+        );
+      }
+      if (error instanceof ShapeBuildError) {
+        throw error;
+      }
       throw new ShapeBuildError("Failed to generate Haystack stake transactions.", {
+        details: {
+          rootCause: extractErrorMessage(error)
+        },
         cause: error
       });
     }
@@ -397,4 +419,41 @@ export function buildMockStakeGroup(params: {
   );
   algosdk.assignGroupID(txns);
   return txns;
+}
+
+function extractErrorMessage(error: unknown): string | undefined {
+  if (error instanceof Error) {
+    const detailsRoot =
+      error instanceof ShapeBuildError &&
+      error.details !== undefined &&
+      typeof error.details === "object" &&
+      error.details !== null &&
+      "rootCause" in error.details &&
+      typeof (error.details as { rootCause?: unknown }).rootCause === "string"
+        ? (error.details as { rootCause: string }).rootCause
+        : undefined;
+    if (detailsRoot !== undefined && detailsRoot.length > 0) {
+      return detailsRoot;
+    }
+    if (error.message.length > 0) {
+      return error.message;
+    }
+    if (error.cause !== undefined) {
+      return extractErrorMessage(error.cause);
+    }
+  }
+  if (typeof error === "string" && error.length > 0) {
+    return error;
+  }
+  return undefined;
+}
+
+function isClientSideSimulateFailure(error: unknown): boolean {
+  const message = extractErrorMessage(error)?.toLowerCase() ?? "";
+  return (
+    message.includes("underflow on subtracting") ||
+    message.includes("overspend") ||
+    message.includes("insufficient funds") ||
+    message.includes("balance is below")
+  );
 }

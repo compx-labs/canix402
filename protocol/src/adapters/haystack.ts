@@ -10,7 +10,7 @@ import {
 
 export const HAYSTACK_STAKING_OPPORTUNITY_ID = "haystack-staking-hay";
 
-/** On-chain EMA fields use 1e6 = 100% (ratio); convert to percentage points. */
+/** On-chain EMA fields use 1e6 = 1% (percentage points × 1e6). */
 const HAYSTACK_APR_FIXED_POINT = 1_000_000;
 
 export class HaystackAdapterError extends Error {
@@ -130,7 +130,7 @@ export function normalizeHaystackStakingOpportunity(input: {
       contextNotes: [
         `Haystack single-token HAY staking (app ${snapshot.appId}). ` +
           `APR combines on-chain emaAPRUsdc (${aprUsdc.toFixed(2)}%) and emaAPRHay ` +
-          `(${aprHay.toFixed(2)}%) where 1e6 = 100%. Dual USDC+HAY rewards.`
+          `(${aprHay.toFixed(2)}%) where 1e6 = 1%. Dual USDC+HAY rewards.`
       ]
     })
   };
@@ -141,7 +141,7 @@ export function fixedPointAprToPercentage(value: bigint): number | null {
   if (!Number.isFinite(asNumber) || asNumber < 0) {
     return null;
   }
-  return (asNumber / HAYSTACK_APR_FIXED_POINT) * 100;
+  return asNumber / HAYSTACK_APR_FIXED_POINT;
 }
 
 async function fetchHaystackPoolSnapshot(

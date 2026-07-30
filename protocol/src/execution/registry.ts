@@ -1,4 +1,10 @@
-import { ShapeBuildError, ShapeNotFoundError, ShapeStateError, ShapeValidationError } from "./errors.js";
+import {
+  InvalidShapeInputError,
+  ShapeBuildError,
+  ShapeNotFoundError,
+  ShapeStateError,
+  ShapeValidationError
+} from "./errors.js";
 import {
   DEFAULT_QUOTE_TTL_MS,
   ExecutableQuote,
@@ -132,7 +138,11 @@ export async function compileExecutableQuote(
   try {
     buildResult = await shape.build(context, input, state);
   } catch (error) {
-    if (error instanceof ShapeBuildError || error instanceof ShapeStateError) {
+    if (
+      error instanceof ShapeBuildError ||
+      error instanceof ShapeStateError ||
+      error instanceof InvalidShapeInputError
+    ) {
       throw error;
     }
     throw new ShapeBuildError(`Failed to build transaction group for shape "${key}".`, {

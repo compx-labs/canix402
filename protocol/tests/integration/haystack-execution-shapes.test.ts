@@ -4,6 +4,7 @@ import test from "node:test";
 import algosdk from "algosdk";
 
 import {
+  InvalidShapeInputError,
   ShapeStateError,
   TransactionShapeRegistry,
   compileExecutableQuote,
@@ -98,7 +99,7 @@ function stakingState(overrides: Partial<HaystackStakingState> = {}): HaystackSt
 
 test("stake shape compiles a 3-txn group for a first-time staker", async () => {
   const state = stakingState({ staker: { hasBox: false, stake: 0n, pendingRewardsUsdc: 0n, pendingRewardsHay: 0n } });
-  const amount = 100_000_000n;
+  const amount = 1_000_000n;
 
   setHaystackStakeHayDependenciesForTests({
     resolveState: async () => state,
@@ -135,7 +136,7 @@ test("stake shape compiles a 3-txn group for a first-time staker", async () => {
 
 test("stake shape compiles a 2-txn group (no MBR) for a returning staker", async () => {
   const state = stakingState({ staker: { hasBox: true, stake: 1_000_000n, pendingRewardsUsdc: 0n, pendingRewardsHay: 0n } });
-  const amount = 50_000_000n;
+  const amount = 5_000_000n;
 
   setHaystackStakeHayDependenciesForTests({
     resolveState: async () => state,
@@ -197,6 +198,46 @@ test("stake shape validates MBR payment and stakeHay selector", () => {
     payment: { receiver: APP_ADDRESS, amount: "0" }
   };
   assert.equal(haystackStakeHayShape.validate(wrongMbrGroup, input, state).valid, false);
+});
+
+test("stake shape rejects amount above user HAY balance", async () => {
+  const state = stakingState({
+    staker: { hasBox: true, stake: 1_000_000n, pendingRewardsUsdc: 0n, pendingRewardsHay: 0n },
+    userHayBalance: 100n
+  });
+
+  setHaystackStakeHayDependenciesForTests({
+    resolveState: async () => state,
+    getSuggestedParams: async () => suggestedParams(1000),
+    finalizeComposerGroup: async () => {
+      throw new Error("finalize should not be called when balance is insufficient");
+    }
+  });
+
+  const registry = new TransactionShapeRegistry();
+  registry.register(haystackStakeHayShape);
+
+  await assert.rejects(
+    () =>
+      compileExecutableQuote(
+        registry,
+        haystackStakeHayShape.key,
+        { userAddress: USER_ADDRESS, amount: "500" },
+        buildContext()
+      ),
+    (error: unknown) => {
+      assert.ok(error instanceof InvalidShapeInputError);
+      assert.match(error.message, /Insufficient HAY balance/);
+      assert.deepEqual(error.details, {
+        have: "100",
+        need: "500",
+        assetId: HAY_ASSET_ID
+      });
+      return true;
+    }
+  );
+
+  setHaystackStakeHayDependenciesForTests(undefined);
 });
 
 test("unstake shape rejects amount above staked balance at resolveState", async () => {

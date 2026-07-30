@@ -157,8 +157,12 @@ export const tinymanFarmClaimRewardsShape: TransactionShapeSpec<
       );
     }
 
+    // Analytics fee-pools within the group (e.g. user appl fee 2000 + farm axfer fee 0).
+    // Top up the user's paying txn when the pool is short; never rewrite non-user senders.
+    const feeAdjusted = ensureGroupFeePool(transactions, input.userAddress);
+
     return {
-      transactions: normalizeTransactions(transactions),
+      transactions: normalizeTransactions(feeAdjusted),
       warnings: [
         "Claim group prepared by Tinyman Analytics; verify app calls and amounts before signing."
       ],
@@ -166,7 +170,7 @@ export const tinymanFarmClaimRewardsShape: TransactionShapeSpec<
         stakingAppId: state.stakingAppId,
         programId: state.programId,
         poolAddress: state.poolAddress,
-        transactionCount: transactions.length
+        transactionCount: feeAdjusted.length
       }
     };
   },
@@ -203,9 +207,17 @@ export const tinymanFarmClaimRewardsShape: TransactionShapeSpec<
           `Application call sender ${txn.sender} differs from userAddress; confirm before signing.`
         );
       }
-      if (BigInt(txn.fee) < MIN_ALGO_FEE) {
-        errors.push(`Transaction fee must be at least ${MIN_ALGO_FEE.toString()} microAlgos.`);
-      }
+    }
+
+    // Algorand fee-pools within a group: total fees must cover n × minFee.
+    // Per-txn fee < 1000 is valid when siblings cover the shortfall.
+    const pooledFees = group.reduce((sum, txn) => sum + BigInt(txn.fee), 0n);
+    const requiredPool = BigInt(group.length) * MIN_ALGO_FEE;
+    if (pooledFees < requiredPool) {
+      errors.push(
+        `Group fee pool must be at least ${requiredPool.toString()} microAlgos ` +
+          `(${group.length} × ${MIN_ALGO_FEE.toString()}), got ${pooledFees.toString()}.`
+      );
     }
 
     if (group.length > 1 && group.some((txn) => !txn.groupPresent)) {
@@ -215,6 +227,53 @@ export const tinymanFarmClaimRewardsShape: TransactionShapeSpec<
     return { valid: errors.length === 0, errors, warnings };
   }
 };
+
+/**
+ * Ensure the group's pooled fees cover `n × MIN_ALGO_FEE`. When short, raise the
+ * user-sent transaction fee (preferring an app call) and reassign the group id.
+ */
+function ensureGroupFeePool(transactions: Transaction[], userAddress: string): Transaction[] {
+  const requiredPool = BigInt(transactions.length) * MIN_ALGO_FEE;
+  const pooledFees = transactions.reduce((sum, txn) => sum + BigInt(txn.fee), 0n);
+  if (pooledFees >= requiredPool) {
+    return transactions;
+  }
+
+  const shortfall = requiredPool - pooledFees;
+  const userTxnIndex = transactions.findIndex(
+    (txn) =>
+      txn.sender.toString() === userAddress && txn.type === algosdk.TransactionType.appl
+  );
+  const fallbackIndex = transactions.findIndex(
+    (txn) => txn.sender.toString() === userAddress
+  );
+  const targetIndex = userTxnIndex >= 0 ? userTxnIndex : fallbackIndex;
+  if (targetIndex < 0) {
+    throw new ShapeBuildError(
+      "Tinyman claim group fee pool is below the minimum and no user-paid transaction is available to top up.",
+      {
+        details: {
+          pooledFees: pooledFees.toString(),
+          requiredPool: requiredPool.toString()
+        }
+      }
+    );
+  }
+
+  const adjusted = transactions.map((txn, index) => {
+    if (index !== targetIndex) {
+      return txn;
+    }
+    txn.fee = BigInt(txn.fee) + shortfall;
+    txn.flatFee = true;
+    return txn;
+  });
+
+  if (adjusted.length > 1) {
+    algosdk.assignGroupID(adjusted);
+  }
+  return adjusted;
+}
 
 async function defaultPrepareClaimTransactions(params: {
   fetchImpl: typeof fetch;
