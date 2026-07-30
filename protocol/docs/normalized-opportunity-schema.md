@@ -14,7 +14,7 @@ This document defines the stable `OpportunityRecordV1` contract published by
 
 ### Required fields
 
-- `protocol`: `tinyman | pact | folks-finance | compx | dorkfi | myth-finance | haystack | reti`
+- `protocol`: `tinyman | pact | folks-finance | compx | dorkfi | myth-finance | haystack | reti | alpha-arcade`
 - `opportunityType`: `lp | farm | staking | lending`
 - `opportunityId`: stable protocol-local identifier
 - `assetPair`: market label (pair or single-asset label)
@@ -150,6 +150,7 @@ Per-protocol policy:
 | Dork.fi all supported types | `apy` | Source field is `apy` |
 | Myth Finance dualSTAKE | `apr` | Consensus APR net of fees (+ farm APR when present) |
 | Réti staking | `apr` | Consensus APR net of validator commission |
+| Alpha Arcade staking | `apr` | Trailing ~7d USDC fee inflows annualized vs ALPHA TVL |
 
 ## Identifier Patterns
 
@@ -163,6 +164,7 @@ Per-protocol policy:
   (pool app id, not market app id; markets share a pool and are distinguished by asset id)
 - Myth: `myth-staking-<appId>`, `myth-farm-<appId>`
 - Réti: `reti-staking-<validatorId>` (one row per validator; pools allocate under that validator)
+- Alpha Arcade: `alpha-arcade-staking-alpha`
 
 Fallback identifiers are allowed when source fields are missing; such rows include
 a caveat in `notes`.

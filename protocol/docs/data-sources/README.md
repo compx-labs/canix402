@@ -12,6 +12,7 @@ This section tracks protocol-specific source contracts and normalization rules.
 - [Myth Finance](myth-finance.md)
 - [Haystack](haystack.md)
 - [Réti](reti.md)
+- [Alpha Arcade](alpha-arcade.md)
 
 ## Planned Protocols
 

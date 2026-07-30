@@ -5,6 +5,7 @@ import type {
   WalletPositionsResponse
 } from "../types/position.js";
 import {
+  collectAlphaArcadePositions,
   collectCompXPositions,
   collectDorkFiPositions,
   collectFolksFinancePositions,
@@ -33,7 +34,8 @@ export const SUPPORTED_POSITION_PROTOCOLS = [
   "dorkfi",
   "myth-finance",
   "haystack",
-  "reti"
+  "reti",
+  "alpha-arcade"
 ] as const satisfies readonly Protocol[];
 
 export class AllPositionSourcesUnavailableError extends Error {
@@ -224,6 +226,7 @@ function resolveCollectors(): PositionCollectors {
     "myth-finance": collectMythFinancePositions,
     haystack: collectHaystackPositions,
     reti: collectRetiPositions,
+    "alpha-arcade": collectAlphaArcadePositions,
     ...collectorOverrides
   };
 }

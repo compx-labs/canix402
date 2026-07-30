@@ -6,7 +6,8 @@ export type AdapterName =
   | "dorkfi"
   | "myth-finance"
   | "haystack"
-  | "reti";
+  | "reti"
+  | "alpha-arcade";
 
 export {
   fetchTinymanOpportunities,
@@ -88,3 +89,15 @@ export {
   RETI_STAKING_OPPORTUNITY_ID_PREFIX,
   RETI_VALIDATOR_REGISTRY_APP_ID
 } from "../reti/constants.js";
+export {
+  fetchAlphaArcadeOpportunities,
+  normalizeAlphaArcadeStakingOpportunity,
+  setAlphaArcadeAdapterDependenciesForTests,
+  annualizeTrailingFeeApr,
+  ALPHA_ARCADE_STAKING_OPPORTUNITY_ID,
+  ALPHA_ARCADE_STAKING_APP_ID,
+  ALPHA_ASSET_ID,
+  TRAILING_APR_WINDOW_DAYS,
+  AlphaArcadeAdapterError
+} from "./alpha-arcade.js";
+export type { AlphaArcadePoolSnapshot } from "./alpha-arcade.js";

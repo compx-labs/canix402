@@ -87,7 +87,13 @@ export const EXECUTION_SHAPE_DOCS_PATHS: Readonly<Record<string, string>> = {
   "mainnet:reti:v1:stake:algo":
     "protocol/docs/execution-shapes/reti-stake-algo.md",
   "mainnet:reti:v1:unstake:algo":
-    "protocol/docs/execution-shapes/reti-unstake-algo.md"
+    "protocol/docs/execution-shapes/reti-unstake-algo.md",
+  "mainnet:alpha-arcade:v1:stake:alpha":
+    "protocol/docs/execution-shapes/alpha-arcade-stake-alpha.md",
+  "mainnet:alpha-arcade:v1:unstake:alpha":
+    "protocol/docs/execution-shapes/alpha-arcade-unstake-alpha.md",
+  "mainnet:alpha-arcade:v1:claimRewards:usdc":
+    "protocol/docs/execution-shapes/alpha-arcade-claim-rewards-usdc.md"
 };
 
 export function getExecutionShapeDocsPath(shapeKey: string): string | undefined {

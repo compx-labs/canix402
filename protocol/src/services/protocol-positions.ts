@@ -1,4 +1,5 @@
 import algosdk, { Algodv2 } from "algosdk";
+import { getStakingPosition } from "@alpha-arcade/sdk";
 import {
   ConsensusState,
   MainnetConsensusConfig,
@@ -20,6 +21,9 @@ import {
   HAYSTACK_STAKING_OPPORTUNITY_ID,
   HAY_ASSET_ID,
   USDC_ASSET_ID,
+  ALPHA_ARCADE_STAKING_OPPORTUNITY_ID,
+  ALPHA_ARCADE_STAKING_APP_ID,
+  ALPHA_ASSET_ID,
   TINYMAN_STALGO_STAKING_OPPORTUNITY_ID,
   TINYMAN_TALGO_STAKING_OPPORTUNITY_ID,
   fetchCompXOpportunities,
@@ -2180,6 +2184,120 @@ export async function collectHaystackPositions(
       usdValue: tokenUsdValue(record.pendingRewardsHay, hayDecimals, hayUsd),
       caveats: [
         "Pending HAY from staker box; live accrual may be higher until the next drip/claim."
+      ]
+    });
+  }
+
+  const rewardsComplete =
+    !warnings.some((warning) => warning.includes("USD pricing")) &&
+    !positions.some(
+      (position) =>
+        position.positionType === "reward" && position.usdValue === null
+    );
+
+  return {
+    positions,
+    warnings,
+    coverage: {
+      suppliedUsdComplete:
+        positions
+          .filter((position) => position.positionType === "staked")
+          .every((position) => position.usdValue !== null),
+      borrowedUsdComplete: true,
+      rewardsUsdComplete: rewardsComplete
+    }
+  };
+}
+
+export async function collectAlphaArcadePositions(
+  address: string,
+  _snapshot: WalletSnapshot
+): Promise<ProtocolPositionsCollection> {
+  const warnings: string[] = [];
+  const positions: PositionMarketRecord[] = [];
+
+  let stakingPosition;
+  try {
+    const algod = createPositionsAlgodClient();
+    const indexer = new algosdk.Indexer(
+      process.env.X402_INDEXER_TOKEN ?? "",
+      trimTrailingSlash(
+        process.env.X402_INDEXER_URL ?? "https://mainnet-idx.algonode.cloud"
+      ),
+      ""
+    );
+    stakingPosition = await getStakingPosition(
+      {
+        algodClient: algod,
+        indexerClient: indexer,
+        signer: algosdk.makeEmptyTransactionSigner(),
+        activeAddress: address,
+        matcherAppId: 3_078_581_851,
+        usdcAssetId: USDC_ASSET_ID,
+        stakingAppId: ALPHA_ARCADE_STAKING_APP_ID,
+        alphaAssetId: ALPHA_ASSET_ID
+      },
+      address
+    );
+  } catch (error) {
+    return {
+      positions: [],
+      warnings: [`Alpha Arcade staking position unavailable: ${errorMessage(error)}`]
+    };
+  }
+
+  if (!stakingPosition.optedIn && stakingPosition.staked <= 0 && stakingPosition.claimable <= 0) {
+    return { positions: [], warnings };
+  }
+
+  const assetIds = [ALPHA_ASSET_ID, USDC_ASSET_ID];
+  const decimalsByAssetId = await resolveAssetDecimals(assetIds).catch(() => {
+    warnings.push("Alpha Arcade asset decimals unavailable; defaulting to 6.");
+    return new Map<number, number>();
+  });
+  const alphaDecimals = decimalsByAssetId.get(ALPHA_ASSET_ID) ?? 6;
+  const usdcDecimals = decimalsByAssetId.get(USDC_ASSET_ID) ?? 6;
+
+  let prices = new Map<number, number | null>();
+  try {
+    prices = await fetchTinymanAssetUsdPrices(assetIds);
+  } catch (error) {
+    warnings.push(`Alpha Arcade USD pricing unavailable: ${errorMessage(error)}`);
+  }
+  const alphaUsd = prices.get(ALPHA_ASSET_ID) ?? null;
+  const usdcUsd = prices.get(USDC_ASSET_ID) ?? 1;
+
+  const stakedRaw = BigInt(stakingPosition.staked);
+  const claimableRaw = BigInt(stakingPosition.claimable);
+
+  if (stakedRaw > 0n) {
+    positions.push({
+      protocol: "alpha-arcade",
+      positionType: "staked",
+      positionId: `alpha-arcade:staked:${ALPHA_ARCADE_STAKING_APP_ID}`,
+      opportunityId: ALPHA_ARCADE_STAKING_OPPORTUNITY_ID,
+      assetId: ALPHA_ASSET_ID,
+      assetSymbol: "ALPHA",
+      amountRaw: stakedRaw.toString(),
+      amount: formatUnits(stakedRaw, alphaDecimals),
+      usdValue: tokenUsdValue(stakedRaw, alphaDecimals, alphaUsd),
+      notes: "Alpha Arcade fee-sharing pool staked ALPHA (local state)."
+    });
+  }
+
+  if (claimableRaw > 0n) {
+    positions.push({
+      protocol: "alpha-arcade",
+      positionType: "reward",
+      positionId: `alpha-arcade:reward:${ALPHA_ARCADE_STAKING_APP_ID}:usdc`,
+      opportunityId: ALPHA_ARCADE_STAKING_OPPORTUNITY_ID,
+      assetId: USDC_ASSET_ID,
+      assetSymbol: "USDC",
+      amountRaw: claimableRaw.toString(),
+      amount: formatUnits(claimableRaw, usdcDecimals),
+      usdValue: tokenUsdValue(claimableRaw, usdcDecimals, usdcUsd),
+      caveats: [
+        "Claimable USDC includes accrued rewards against the current accumulator."
       ]
     });
   }

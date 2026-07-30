@@ -13,7 +13,8 @@ const ProtocolSchema = z.enum([
   "dorkfi",
   "myth-finance",
   "haystack",
-  "reti"
+  "reti",
+  "alpha-arcade"
 ]);
 
 export interface PaidRequestContext {

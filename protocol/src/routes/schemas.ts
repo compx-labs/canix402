@@ -8,7 +8,8 @@ export const SupportedProtocolValues = [
   "dorkfi",
   "myth-finance",
   "haystack",
-  "reti"
+  "reti",
+  "alpha-arcade"
 ] as const;
 export const SupportedOpportunityTypeValues = ["lp", "farm", "staking", "lending"] as const;
 
