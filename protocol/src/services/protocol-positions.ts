@@ -1980,6 +1980,7 @@ export async function collectRetiPositions(
   }
 
   const configCache = new Map<string, Awaited<ReturnType<typeof retiGetValidatorConfig>>>();
+  const poolReadFailures: string[] = [];
 
   for (const poolKey of poolKeys) {
     const validatorId = Number(poolKey.validatorId);
@@ -1992,7 +1993,9 @@ export async function collectRetiPositions(
     try {
       stakerInfo = await retiGetStakerInfo(algod, poolAppId, address);
     } catch (error) {
-      warnings.push(
+      // Isolate per-pool failures: do not mark the whole Réti protocol partial
+      // when other pools index successfully (Brownie treats any ≠ ok as blocking).
+      poolReadFailures.push(
         `Réti pool ${poolAppId} staker info unavailable: ${errorMessage(error)}`
       );
       continue;
@@ -2072,6 +2075,14 @@ export async function collectRetiPositions(
   );
   if (hasUnpricedRewards) {
     warnings.push("Réti reward-token USD pricing is unavailable.");
+  }
+
+  const stakedCount = positions.filter(
+    (position) => position.positionType === "staked"
+  ).length;
+  // Surface pool read failures only when they wipe the Réti snapshot.
+  if (stakedCount === 0 && poolReadFailures.length > 0) {
+    warnings.push(...poolReadFailures);
   }
 
   return {

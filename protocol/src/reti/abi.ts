@@ -5,6 +5,7 @@ import algosdk, {
 } from "algosdk";
 
 import {
+  RETI_GET_STAKER_INFO_EXTRA_FEE_MICRO_ALGOS,
   RETI_SIMULATE_SENDER,
   RETI_VALIDATOR_REGISTRY_APP_ID
 } from "./constants.js";
@@ -138,9 +139,21 @@ async function simulateMethodCall(params: {
   method: algosdk.ABIMethod;
   methodArgs?: algosdk.ABIArgument[];
   sender?: string;
+  /** Surplus µALGO above minFee to fund inner txn fees (e.g. opup). */
+  extraFeeMicroAlgos?: bigint;
 }): Promise<unknown> {
   const sender = params.sender ?? RETI_SIMULATE_SENDER;
   const suggestedParams = await params.algod.getTransactionParams().do();
+  const extraFee = params.extraFeeMicroAlgos ?? 0n;
+  const minFee = BigInt(suggestedParams.minFee ?? 1000);
+  const callParams =
+    extraFee > 0n
+      ? {
+          ...suggestedParams,
+          flatFee: true,
+          fee: minFee + extraFee
+        }
+      : suggestedParams;
   const atc = new AtomicTransactionComposer();
   atc.addMethodCall({
     appID: params.appId,
@@ -148,7 +161,7 @@ async function simulateMethodCall(params: {
     methodArgs: params.methodArgs ?? [],
     sender,
     signer: makeEmptyTransactionSigner(),
-    suggestedParams
+    suggestedParams: callParams
   });
 
   const simRequest = new algosdk.modelsv2.SimulateRequest({
@@ -382,7 +395,9 @@ export async function retiGetStakerInfo(
     appId: Number(poolAppId),
     method: GET_STAKER_INFO_METHOD,
     methodArgs: [staker],
-    sender: staker
+    // Pay fees from the simulate sink so empty-balance wallets still read.
+    // Staker is only an ABI arg; the pool does not require Txn.Sender === staker.
+    extraFeeMicroAlgos: RETI_GET_STAKER_INFO_EXTRA_FEE_MICRO_ALGOS
   });
   return decodeStakerInfo(value);
 }

@@ -27,3 +27,11 @@ export const RETI_ZERO_ADDRESS =
 
 /** Default max fee for Réti app calls that may cover inner-txn opcodes. */
 export const RETI_APP_CALL_MAX_FEE_MICRO_ALGOS = 240_000n;
+
+/**
+ * Extra fee for `getStakerInfo` simulate/app calls.
+ * The pool method walks the stakers box and calls `increaseOpcodeBudget`
+ * (inner delete-app opups). Without surplus fee those inners fail with
+ * "group fee 0.0A too small". Matches Réti UI (`extraFee: 20_000`).
+ */
+export const RETI_GET_STAKER_INFO_EXTRA_FEE_MICRO_ALGOS = 20_000n;
