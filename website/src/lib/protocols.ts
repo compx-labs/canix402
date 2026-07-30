@@ -76,7 +76,7 @@ export const protocols = [
     summary: "ALPHA fee-sharing staking — stake ALPHA to earn USDC from prediction-market fees.",
     notes:
       "On-chain pool 3626756314; trailing fee APR estimate; stake/unstake/claim via execution shapes.",
-    logo: "/protocols/alpha-arcade.svg"
+    logo: "/protocols/alpha-arcade.png"
   }
 ] as const satisfies readonly SupportedProtocol[];
 

@@ -13,6 +13,7 @@ import type { HaystackQuote } from "../../src/types/swap-schema.js";
 
 const ADDRESS = "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ";
 const OTHER_ADDRESS = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ";
+const GOLD_ASSET_ID = 246516580;
 
 function quote(overrides: Partial<HaystackQuote> = {}): HaystackQuote {
   return {
@@ -203,6 +204,36 @@ test("Haystack route maps upstream rate limits without leaking upstream details"
 
   assert.equal(response.statusCode, 429);
   assert.equal(response.json().error.message, "Haystack rate limit exceeded; retry later.");
+  await app.close();
+});
+
+test("Haystack route surfaces upstream message details for unhandled SDK failures", async () => {
+  const service = mockService();
+  service.getQuote = async () => {
+    throw new HaystackRouterError(
+      "Unable to fetch a Haystack swap quote.",
+      "upstream",
+      { upstreamMessage: "response.quotes is not iterable" }
+    );
+  };
+  const app = await createApp(service);
+  const response = await app.inject({
+    method: "POST",
+    url: "/swaps/quote",
+    payload: {
+      address: ADDRESS,
+      fromAssetId: GOLD_ASSET_ID,
+      toAssetId: 31566704,
+      amount: "400392"
+    }
+  });
+
+  assert.equal(response.statusCode, 502);
+  assert.equal(response.json().error.message, "Unable to fetch a Haystack swap quote.");
+  assert.equal(
+    response.json().error.details.upstreamMessage,
+    "response.quotes is not iterable"
+  );
   await app.close();
 });
 
