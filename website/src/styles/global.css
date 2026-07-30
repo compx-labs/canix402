@@ -799,48 +799,128 @@ main {
   display: none;
 }
 
+.agent-about {
+  padding: 1rem 1.15rem;
+}
+
 .agent-about p {
   max-width: 62ch;
+  margin-top: 0.35rem;
+  font-size: 0.95rem;
 }
 
 .agent-meta-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.85rem 1.25rem;
-  margin: 1.25rem 0 0;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.65rem 1rem;
+  margin: 1rem 0 0;
 }
 
 .agent-meta-list dt {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted, #9aa0a6);
 }
 
 .agent-meta-list dd {
-  margin: 0.3rem 0 0;
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
 }
 
 .agent-status {
-  margin: 1rem 0 0;
+  margin: 0.85rem 0 0;
+  font-size: 0.85rem;
+}
+
+.agent-portfolio-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 1rem;
+  margin-top: 1.25rem;
+  align-items: start;
 }
 
 .agent-section {
-  margin-top: 1.75rem;
+  margin-top: 1.25rem;
+  min-width: 0;
+}
+
+.agent-section--card {
+  margin-top: 0;
+  padding: 0.95rem 1rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(18, 20, 26, 0.55);
+}
+
+.agent-section--transactions {
+  margin-top: 1rem;
 }
 
 .agent-section .section-header {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.65rem;
 }
 
 .agent-section .section-header h2 {
-  margin-bottom: 0.35rem;
+  margin: 0 0 0.25rem;
+  font-size: 1.15rem;
 }
 
 .agent-section .section-header p {
   margin: 0;
-  max-width: 62ch;
+  max-width: none;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.agent-stats {
+  margin-top: 0.65rem;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+}
+
+.agent-stats .transactions-stat {
+  padding: 0.55rem 0.65rem;
+}
+
+.agent-stats .transactions-stat-label {
+  margin-bottom: 0.2rem;
+  font-size: 0.65rem;
+}
+
+.agent-stats .transactions-stat-value {
+  font-size: 0.92rem;
+}
+
+.agent-table-wrap {
+  margin-top: 0.75rem;
+  max-height: 22rem;
+  overflow: auto;
+}
+
+.agent-section--transactions .agent-table-wrap {
+  max-height: 18rem;
+}
+
+.agent-table th,
+.agent-table td {
+  padding: 0.45rem 0.55rem;
+  font-size: 0.82rem;
+}
+
+.agent-table th {
+  position: sticky;
+  top: 0;
+  background: #12141a;
+  z-index: 1;
+}
+
+@media (max-width: 900px) {
+  .agent-portfolio-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .code-block {

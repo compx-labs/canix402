@@ -93,89 +93,88 @@ const alloAccountUrl = `${config.alloAccountBaseUrl}/${wallet}`;
       <p id="agent-status" class="muted agent-status" aria-live="polite">Loading portfolio…</p>
     </section>
 
-    <section class="agent-section">
-      <div class="section-header">
-        <h2>Holdings</h2>
-        <p class="muted">Liquid ALGO and ASA balances from the Algorand Indexer, priced via free <code>POST /pricing</code>. Balances under 0.01 asset units are hidden.</p>
-      </div>
-      <div id="holdings-stats" class="transactions-stats" hidden>
-        <div class="transactions-stat">
-          <span class="transactions-stat-label">Assets shown</span>
-          <span id="holdings-count" class="transactions-stat-value">—</span>
+    <div class="agent-portfolio-grid">
+      <section class="agent-section agent-section--card">
+        <div class="section-header">
+          <h2>Wallet assets</h2>
+          <p class="muted">Liquid balances (Indexer). Under 0.01 units hidden.</p>
         </div>
-        <div class="transactions-stat">
-          <span class="transactions-stat-label">Est. liquid USD</span>
-          <span id="holdings-total" class="transactions-stat-value">—</span>
+        <div id="holdings-stats" class="transactions-stats agent-stats" hidden>
+          <div class="transactions-stat">
+            <span class="transactions-stat-label">Assets</span>
+            <span id="holdings-count" class="transactions-stat-value">—</span>
+          </div>
+          <div class="transactions-stat">
+            <span class="transactions-stat-label">Liquid USD</span>
+            <span id="holdings-total" class="transactions-stat-value">—</span>
+          </div>
         </div>
-      </div>
-      <div class="transactions-table-wrap">
-        <table class="endpoint-table transactions-table" aria-label="Brownie Bot liquid holdings">
-          <thead>
-            <tr>
-              <th>Asset</th>
-              <th>Amount</th>
-              <th>USD</th>
-            </tr>
-          </thead>
-          <tbody id="holdings-body">
-            <tr><td colspan="3" class="muted">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+        <div class="transactions-table-wrap agent-table-wrap">
+          <table class="endpoint-table transactions-table agent-table" aria-label="Brownie Bot liquid holdings">
+            <thead>
+              <tr>
+                <th>Asset</th>
+                <th>Amount</th>
+                <th>USD</th>
+              </tr>
+            </thead>
+            <tbody id="holdings-body">
+              <tr><td colspan="3" class="muted">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-    <section class="agent-section">
-      <div class="section-header">
-        <h2>DeFi positions</h2>
-        <p class="muted">
-          Normalized positions from
-          <code>GET /public/agents/brownie/positions</code> (Brownie showcase only).
-        </p>
-      </div>
-      <div id="positions-stats" class="transactions-stats" hidden>
-        <div class="transactions-stat">
-          <span class="transactions-stat-label">Positions</span>
-          <span id="positions-count" class="transactions-stat-value">—</span>
+      <section class="agent-section agent-section--card">
+        <div class="section-header">
+          <h2>DeFi positions</h2>
+          <p class="muted">From <code>/public/agents/brownie/positions</code>.</p>
         </div>
-        <div class="transactions-stat">
-          <span class="transactions-stat-label">Supplied USD</span>
-          <span id="positions-supplied" class="transactions-stat-value">—</span>
+        <div id="positions-stats" class="transactions-stats agent-stats" hidden>
+          <div class="transactions-stat">
+            <span class="transactions-stat-label">Positions</span>
+            <span id="positions-count" class="transactions-stat-value">—</span>
+          </div>
+          <div class="transactions-stat">
+            <span class="transactions-stat-label">Supplied</span>
+            <span id="positions-supplied" class="transactions-stat-value">—</span>
+          </div>
+          <div class="transactions-stat">
+            <span class="transactions-stat-label">Rewards</span>
+            <span id="positions-rewards" class="transactions-stat-value">—</span>
+          </div>
+          <div class="transactions-stat">
+            <span class="transactions-stat-label">Net</span>
+            <span id="positions-net" class="transactions-stat-value">—</span>
+          </div>
         </div>
-        <div class="transactions-stat">
-          <span class="transactions-stat-label">Rewards USD</span>
-          <span id="positions-rewards" class="transactions-stat-value">—</span>
+        <p id="positions-caveats" class="muted transactions-stats-note" hidden></p>
+        <div class="transactions-table-wrap agent-table-wrap">
+          <table class="endpoint-table transactions-table agent-table" aria-label="Brownie Bot DeFi positions">
+            <thead>
+              <tr>
+                <th>Protocol</th>
+                <th>Type</th>
+                <th>Asset</th>
+                <th>Amount</th>
+                <th>USD</th>
+              </tr>
+            </thead>
+            <tbody id="positions-body">
+              <tr><td colspan="5" class="muted">Loading…</td></tr>
+            </tbody>
+          </table>
         </div>
-        <div class="transactions-stat">
-          <span class="transactions-stat-label">Net USD</span>
-          <span id="positions-net" class="transactions-stat-value">—</span>
-        </div>
-      </div>
-      <p id="positions-caveats" class="muted transactions-stats-note" hidden></p>
-      <div class="transactions-table-wrap">
-        <table class="endpoint-table transactions-table" aria-label="Brownie Bot DeFi positions">
-          <thead>
-            <tr>
-              <th>Protocol</th>
-              <th>Type</th>
-              <th>Asset</th>
-              <th>Amount</th>
-              <th>USD</th>
-            </tr>
-          </thead>
-          <tbody id="positions-body">
-            <tr><td colspan="5" class="muted">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+      </section>
+    </div>
 
-    <section class="agent-section">
+    <section class="agent-section agent-section--card agent-section--transactions">
       <div class="section-header">
         <h2>Latest transactions</h2>
         <p class="muted">Recent on-chain activity for the treasury wallet (Indexer).</p>
       </div>
-      <div class="transactions-table-wrap">
-        <table class="endpoint-table transactions-table" aria-label="Brownie Bot latest transactions">
+      <div class="transactions-table-wrap agent-table-wrap">
+        <table class="endpoint-table transactions-table agent-table" aria-label="Brownie Bot latest transactions">
           <thead>
             <tr>
               <th>Time</th>
