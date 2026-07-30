@@ -22,6 +22,9 @@ const PROGRAM = algosdk.generateAccount().addr.toString();
 const GENESIS_HASH = new Uint8Array(32).fill(3);
 const STAKING_APP_ID = 649588853;
 const LP_ASSET_ID = 1002590888;
+const DISTRIBUTION = "2X5655WLATREYROKXQJJMD5U4RKCHVX3LS23TTB4PEVMCGD7Q6FP7PCOYY";
+const REWARD_ASSET_ID = 2_200_000_000;
+const POOL = "2PIFZW53RHCSFSYMCFUBW4XOCXOMB7XOYQSQ6KGT3KVGJTL4HM6COZRNMM";
 
 function suggestedParams(fee: number): algosdk.SuggestedParams {
   return {
@@ -52,9 +55,31 @@ function farmState(overrides: Partial<TinymanFarmState> = {}): TinymanFarmState 
     programAccount: PROGRAM,
     liquidityAssetId: LP_ASSET_ID,
     userLpBalance: 5_000_000n,
-    poolAddress: "2PIFZW53RHCSFSYMCFUBW4XOCXOMB7XOYQSQ6KGT3KVGJTL4HM6COZRNMM",
+    poolAddress: POOL,
     ...overrides
   };
+}
+
+function buildClaimGroup(options?: {
+  userFee?: number;
+  farmFee?: number;
+}): algosdk.Transaction[] {
+  const appl = algosdk.makeApplicationNoOpTxnFromObject({
+    sender: USER_ADDRESS,
+    appIndex: STAKING_APP_ID,
+    appArgs: [new TextEncoder().encode("claim")],
+    suggestedParams: suggestedParams(options?.userFee ?? 2000)
+  });
+  const axfer = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+    sender: DISTRIBUTION,
+    receiver: USER_ADDRESS,
+    assetIndex: REWARD_ASSET_ID,
+    amount: 1_000_000n,
+    suggestedParams: suggestedParams(options?.farmFee ?? 0)
+  });
+  const group = [appl, axfer];
+  algosdk.assignGroupID(group);
+  return group;
 }
 
 test("compiles Tinyman farm uncommit with commitAmount 0", async () => {
@@ -100,20 +125,11 @@ test("compiles Tinyman farm uncommit with commitAmount 0", async () => {
   );
 });
 
-test("compiles Tinyman farm claimRewards from Analytics-prepared bytes", async () => {
+test("compiles Tinyman farm claimRewards with user-only encodedTransactions", async () => {
   setTinymanFarmClaimRewardsDependenciesForTests({
     getStakingAppId: () => STAKING_APP_ID,
-    prepareClaimTransactions: async () => {
-      const params = suggestedParams(2000);
-      return [
-        algosdk.makeApplicationNoOpTxnFromObject({
-          sender: USER_ADDRESS,
-          appIndex: STAKING_APP_ID,
-          appArgs: [new TextEncoder().encode("claim")],
-          suggestedParams: params
-        })
-      ];
-    }
+    prepareClaimTransactions: async () => buildClaimGroup(),
+    claimApiBaseUrl: () => "https://mainnet.analytics.tinyman.org/api/v1"
   });
 
   const registry = new TransactionShapeRegistry();
@@ -124,39 +140,44 @@ test("compiles Tinyman farm claimRewards from Analytics-prepared bytes", async (
     {
       userAddress: USER_ADDRESS,
       programId: 258,
-      poolAddress: "2PIFZW53RHCSFSYMCFUBW4XOCXOMB7XOYQSQ6KGT3KVGJTL4HM6COZRNMM"
+      poolAddress: POOL
     },
     buildContext()
   );
 
   assert.equal(quote.shapeKey, tinymanFarmClaimRewardsShape.key);
-  assert.equal(quote.transactions.length, 1);
+  assert.equal(quote.transactions.length, 2);
+  assert.equal(quote.encodedTransactions.length, 1);
+  assert.deepEqual(quote.userSignIndexes, [0]);
+  assert.ok(quote.groupTransactions);
+  assert.equal(quote.groupTransactions!.length, 2);
+  assert.equal(quote.groupTransactions![0]!.signer, "user");
+  assert.equal(quote.groupTransactions![1]!.signer, "protocol");
+  assert.equal(quote.groupTransactions![1]!.signedTransaction, undefined);
+  assert.equal(quote.transactions[1]!.sender, DISTRIBUTION);
+
+  const userTxn = algosdk.decodeUnsignedTransaction(
+    Buffer.from(quote.encodedTransactions[0]!, "base64")
+  );
+  assert.equal(userTxn.sender.toString(), USER_ADDRESS);
+
+  assert.equal(quote.metadata.submitMode, "tinyman-analytics-claim");
+  assert.equal(
+    quote.metadata.claimUrl,
+    "https://mainnet.analytics.tinyman.org/api/v1/staking/rewards/claim/"
+  );
+  assert.deepEqual(quote.metadata.unsignedProtocolTransactions, [
+    quote.groupTransactions![1]!.encodedTransaction
+  ]);
+  assert.ok(
+    (quote.warnings ?? []).some((warning) => warning.includes("protocol key"))
+  );
 });
 
 test("compiles Tinyman farm claimRewards with fee-pooled sibling axfer (fee 0)", async () => {
-  const farmAccount = algosdk.generateAccount();
-  const rewardAssetId = 2_200_000_000;
-
   setTinymanFarmClaimRewardsDependenciesForTests({
     getStakingAppId: () => STAKING_APP_ID,
-    prepareClaimTransactions: async () => {
-      const appl = algosdk.makeApplicationNoOpTxnFromObject({
-        sender: USER_ADDRESS,
-        appIndex: STAKING_APP_ID,
-        appArgs: [new TextEncoder().encode("claim")],
-        suggestedParams: suggestedParams(2000)
-      });
-      const axfer = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-        sender: farmAccount.addr,
-        receiver: USER_ADDRESS,
-        assetIndex: rewardAssetId,
-        amount: 1_000_000n,
-        suggestedParams: suggestedParams(0)
-      });
-      const group = [appl, axfer];
-      algosdk.assignGroupID(group);
-      return group;
-    }
+    prepareClaimTransactions: async () => buildClaimGroup({ userFee: 2000, farmFee: 0 })
   });
 
   const registry = new TransactionShapeRegistry();
@@ -167,7 +188,7 @@ test("compiles Tinyman farm claimRewards with fee-pooled sibling axfer (fee 0)",
     {
       userAddress: USER_ADDRESS,
       programId: 258,
-      poolAddress: "2PIFZW53RHCSFSYMCFUBW4XOCXOMB7XOYQSQ6KGT3KVGJTL4HM6COZRNMM"
+      poolAddress: POOL
     },
     buildContext()
   );
@@ -176,33 +197,15 @@ test("compiles Tinyman farm claimRewards with fee-pooled sibling axfer (fee 0)",
   assert.equal(quote.transactions[0]!.fee, "2000");
   assert.equal(quote.transactions[1]!.fee, "0");
   assert.ok(quote.transactions.every((txn) => txn.groupPresent));
+  assert.equal(quote.encodedTransactions.length, 1);
 });
 
 test("tops up user appl fee when Analytics claim group fee pool is short", async () => {
-  const farmAccount = algosdk.generateAccount();
-  const rewardAssetId = 2_200_000_000;
-
   setTinymanFarmClaimRewardsDependenciesForTests({
     getStakingAppId: () => STAKING_APP_ID,
-    prepareClaimTransactions: async () => {
+    prepareClaimTransactions: async () =>
       // Pool = 1000 + 0 = 1000, but 2 × 1000 is required → top up user appl to 2000.
-      const appl = algosdk.makeApplicationNoOpTxnFromObject({
-        sender: USER_ADDRESS,
-        appIndex: STAKING_APP_ID,
-        appArgs: [new TextEncoder().encode("claim")],
-        suggestedParams: suggestedParams(1000)
-      });
-      const axfer = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-        sender: farmAccount.addr,
-        receiver: USER_ADDRESS,
-        assetIndex: rewardAssetId,
-        amount: 1_000_000n,
-        suggestedParams: suggestedParams(0)
-      });
-      const group = [appl, axfer];
-      algosdk.assignGroupID(group);
-      return group;
-    }
+      buildClaimGroup({ userFee: 1000, farmFee: 0 })
   });
 
   const registry = new TransactionShapeRegistry();
@@ -213,7 +216,7 @@ test("tops up user appl fee when Analytics claim group fee pool is short", async
     {
       userAddress: USER_ADDRESS,
       programId: 258,
-      poolAddress: "2PIFZW53RHCSFSYMCFUBW4XOCXOMB7XOYQSQ6KGT3KVGJTL4HM6COZRNMM"
+      poolAddress: POOL
     },
     buildContext()
   );
@@ -222,6 +225,7 @@ test("tops up user appl fee when Analytics claim group fee pool is short", async
   assert.equal(quote.transactions[0]!.fee, "2000");
   assert.equal(quote.transactions[1]!.fee, "0");
   assert.equal(quote.transactions[0]!.sender, USER_ADDRESS);
+  assert.equal(quote.encodedTransactions.length, 1);
 });
 
 test.after(() => {

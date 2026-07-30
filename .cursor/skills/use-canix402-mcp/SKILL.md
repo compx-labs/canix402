@@ -146,13 +146,26 @@ For `canix_get_execution_quote`:
    - the group still matches the user's stated intent and spending limits
 6. Decode each item in that quote's `encodedTransactions` as an unsigned Algorand
    transaction and sign it with the key for that transaction's sender.
+   When `groupTransactions` / `userSignIndexes` are present, `encodedTransactions`
+   already contains **only** user legs — do not attempt to sign `signer:
+   "protocol"` or `"logicsig"` members with a mnemonic.
 7. Preserve order and group IDs within each quote. Do not rebuild, regroup, or
    modify quoted transactions after validation. Submit each quote's group
    separately (and in `order` / prerequisite sequence when opening multi-step
    opportunities such as Folks).
-8. Submit all signed blobs atomically before expiry. If expired, request and
-   pay for a fresh quote unless the service explicitly supports refreshing it
-   without another payment.
+8. Assemble the full submit set:
+   - If every `groupTransactions` member is `signer: "user"`, or
+     `groupTransactions` is absent: submit signed `encodedTransactions` to algod.
+   - If a member has `signedTransaction`, concatenate it in group order with
+     user-signed blobs (Haystack-style) and submit to algod.
+   - If `metadata.submitMode === "tinyman-analytics-claim"`: sign user legs,
+     then `POST` to `metadata.claimUrl` with
+     `{ signed_transactions: [userSignedB64], transactions: metadata.unsignedProtocolTransactions }`.
+     Tinyman cosigns the distribution account and submits — do not send an
+     incomplete group to algod.
+9. Complete submission before expiry. If expired, request and pay for a fresh
+   quote unless the service explicitly supports refreshing it without another
+   payment.
 
 Example for a single user signer on the first quote:
 
@@ -169,6 +182,27 @@ const signed = quote.encodedTransactions.map((encoded: string) => {
 });
 
 await algod.sendRawTransaction(signed).do();
+```
+
+Tinyman farm `claimRewards` (multi-signer / protocol cosign):
+
+```typescript
+const quote = response.data[0];
+// encodedTransactions is user-only; distribution sender is never here
+const userSigned = algosdk.signTransaction(
+  algosdk.decodeUnsignedTransaction(
+    Buffer.from(quote.encodedTransactions[0], "base64"),
+  ),
+  account.sk,
+);
+const claimRes = await fetch(quote.metadata.claimUrl, {
+  method: "POST",
+  headers: { "content-type": "application/json", accept: "application/json" },
+  body: JSON.stringify({
+    signed_transactions: [Buffer.from(userSigned.blob).toString("base64")],
+    transactions: quote.metadata.unsignedProtocolTransactions,
+  }),
+});
 ```
 
 Some shapes require multiple signers. Resolve keys by decoded transaction

@@ -118,6 +118,17 @@ export const TransactionShapeIdentitySchema = Type.Object({
   variant: Type.String()
 });
 
+export const ExecutableQuoteGroupTransactionSchema = Type.Object({
+  index: Type.Integer({ minimum: 0 }),
+  signer: Type.Union([
+    Type.Literal("user"),
+    Type.Literal("logicsig"),
+    Type.Literal("protocol")
+  ]),
+  encodedTransaction: Type.String({ minLength: 1 }),
+  signedTransaction: Type.Optional(Type.String({ minLength: 1 }))
+});
+
 export const ExecutableQuoteSchema = Type.Object({
   shapeKey: Type.String(),
   shapeVersion: Type.String(),
@@ -126,6 +137,10 @@ export const ExecutableQuoteSchema = Type.Object({
   expiresAt: Type.String({ format: "date-time" }),
   transactions: Type.Array(SerializedTransactionSchema),
   encodedTransactions: Type.Array(Type.String()),
+  groupTransactions: Type.Optional(
+    Type.Array(ExecutableQuoteGroupTransactionSchema, { minItems: 1 })
+  ),
+  userSignIndexes: Type.Optional(Type.Array(Type.Integer({ minimum: 0 }))),
   warnings: Type.Array(Type.String()),
   metadata: Type.Record(Type.String(), Type.Unknown())
 });
