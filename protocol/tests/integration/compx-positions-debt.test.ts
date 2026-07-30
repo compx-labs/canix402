@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { MarketData, StakingPoolState, UserPosition } from "@compx/sdk";
+import type { MarketData, StakingPoolState } from "@compx/sdk";
 
 import { setCompXSdkDependenciesForTests } from "../../src/adapters/index.js";
 import {
@@ -34,7 +34,7 @@ test.afterEach(() => {
   setAssetDecimalsDependenciesForTests(undefined);
 });
 
-test("CompX collector emits lending debt from getUserPosition.borrowed", async () => {
+test("CompX collector never emits lending debt positions", async () => {
   setAssetDecimalsDependenciesForTests({
     createAlgodClient: () => ({}) as never,
     getAssetById: async () => ({ params: { decimals: 6 } })
@@ -58,117 +58,12 @@ test("CompX collector emits lending debt from getUserPosition.borrowed", async (
   setCompXLendingMarketStateDependenciesForTests({
     getMarket: async () => marketData()
   });
-  setCompXPositionCollectorDependenciesForTests({
-    getUserPosition: async () =>
-      userPosition({
-        borrowed: 2.5,
-        healthFactor: 1.8,
-        principal: 2_500_000n
-      })
-  });
 
   const result = await collectCompXPositions(
     ADDRESS,
     walletSnapshot([{ assetId: LST_ID, amount: 1_000_000n }])
   );
 
-  const debt = result.positions.find(
-    (position) => position.positionType === "debt"
-  );
-  assert.ok(debt);
-  assert.equal(debt.positionId, `compx:debt:${MARKET_APP_ID}`);
-  assert.equal(debt.amountRaw, "2500000");
-  assert.equal(debt.amount, "2.5");
-  assert.equal(debt.usdValue, 2.5);
-  assert.equal(debt.healthFactor, 1.8);
-  assert.equal(result.coverage?.borrowedUsdComplete, true);
-  assert.equal(
-    result.warnings.includes(
-      "CompX per-user lending debt is not exposed by the installed SDK."
-    ),
-    false
-  );
-});
-
-test("CompX collector marks borrowedUsdComplete false when getUserPosition fails", async () => {
-  setAssetDecimalsDependenciesForTests({
-    createAlgodClient: () => ({}) as never,
-    getAssetById: async () => ({ params: { decimals: 6 } })
-  });
-  setCompXSdkDependenciesForTests({
-    getAllMarketsFn: async () => [marketData()],
-    getAllPoolsFn: async () => [],
-    getAssetsInfoFn: async () => [
-      {
-        id: USDC_ID,
-        name: "USDC",
-        unitName: "USDC",
-        decimals: 6,
-        total: 0n,
-        frozen: false
-      }
-    ],
-    getPoolAprFn: async () => null,
-    getTokenPricesFn: async () => ({})
-  });
-  setCompXLendingMarketStateDependenciesForTests({
-    getMarket: async () => marketData()
-  });
-  setCompXPositionCollectorDependenciesForTests({
-    getUserPosition: async () => {
-      throw new Error("box read failed");
-    }
-  });
-
-  const result = await collectCompXPositions(
-    ADDRESS,
-    walletSnapshot([{ assetId: LST_ID, amount: 1_000_000n }])
-  );
-
-  assert.equal(result.coverage?.borrowedUsdComplete, false);
-  assert.match(result.warnings.join("; "), /:debt: box read failed/);
-});
-
-test("CompX collector treats missing deposit/loan boxes as empty debt, not a failure", async () => {
-  setAssetDecimalsDependenciesForTests({
-    createAlgodClient: () => ({}) as never,
-    getAssetById: async () => ({ params: { decimals: 6 } })
-  });
-  setCompXSdkDependenciesForTests({
-    getAllMarketsFn: async () => [marketData()],
-    getAllPoolsFn: async () => [],
-    getAssetsInfoFn: async () => [
-      {
-        id: USDC_ID,
-        name: "USDC",
-        unitName: "USDC",
-        decimals: 6,
-        total: 0n,
-        frozen: false
-      }
-    ],
-    getPoolAprFn: async () => null,
-    getTokenPricesFn: async () => ({})
-  });
-  setCompXLendingMarketStateDependenciesForTests({
-    getMarket: async () => marketData()
-  });
-  setCompXPositionCollectorDependenciesForTests({
-    getUserPosition: async () => {
-      const error = new Error(
-        "Network request error. Received status 404 (Not Found): box not found"
-      ) as Error & { status: number };
-      error.status = 404;
-      throw error;
-    }
-  });
-
-  const result = await collectCompXPositions(
-    ADDRESS,
-    walletSnapshot([{ assetId: LST_ID, amount: 1_000_000n }])
-  );
-
-  assert.equal(result.coverage?.borrowedUsdComplete, true);
   assert.equal(
     result.positions.some((position) => position.positionType === "debt"),
     false
@@ -176,6 +71,10 @@ test("CompX collector treats missing deposit/loan boxes as empty debt, not a fai
   assert.equal(
     result.warnings.some((warning) => warning.includes(":debt:")),
     false
+  );
+  assert.equal(result.coverage?.borrowedUsdComplete, true);
+  assert.ok(
+    result.positions.some((position) => position.positionType === "supplied")
   );
 });
 
@@ -211,9 +110,6 @@ test("CompX collector emits pending staking rewards from rewardPerToken and rewa
       rewardDebt: 1_000_000n
     }),
     nowSeconds: () => 1_700_000_000
-  });
-  setCompXPositionCollectorDependenciesForTests({
-    getUserPosition: async () => userPosition()
   });
 
   const result = await collectCompXPositions(
@@ -280,25 +176,6 @@ function marketData(): MarketData {
     protocolShareBps: 1000,
     borrowIndexWad: 1003201766370n,
     lastUpdateTimestamp: 1_783_450_230
-  };
-}
-
-function userPosition(overrides?: Partial<UserPosition>): UserPosition {
-  return {
-    address: ADDRESS,
-    appId: MARKET_APP_ID,
-    supplied: 0,
-    lstBalance: 1,
-    borrowed: 0,
-    collateral: 0,
-    collateralAssetId: LST_ID,
-    userIndexWad: 0n,
-    principal: 0n,
-    lastDebtChange: 0,
-    healthFactor: Infinity,
-    maxBorrow: 0,
-    isLiquidatable: false,
-    ...overrides
   };
 }
 

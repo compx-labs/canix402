@@ -63,10 +63,10 @@ Shared Redis with CompX/Orbital (`compx-v2/docs/redis-usage.md`): CompX uses DB 
 
 ## 7) Wallet Positions Coverage (`GET /positions`)
 
-Collectors report per-protocol `coverage` (`suppliedUsdComplete` / `borrowedUsdComplete` / `rewardsUsdComplete`). Aggregate totals are null only when a real gap remains (unavailable source, unpriced rows, or failed debt/reward reads) — not from always-on caveats.
+Collectors report per-protocol `coverage` (`suppliedUsdComplete` / `borrowedUsdComplete` / `rewardsUsdComplete`). Aggregate totals are null only when a real gap remains (unavailable source, unpriced rows, or failed reward reads) — not from always-on caveats. Borrow/debt is out of scope for portfolio responses (`borrowedUsdComplete` stays true; debt rows are not emitted for CompX, Folks, or Dork.fi).
 
 - [x] **Tinyman farm staking / unclaimed rewards.** Farm commit keeps LP in the wallet and stakes the full LP balance (no partial stake), so farmed stake is already known from the LP position (annotated when committed). Unclaimed farm rewards come from `GET /staking/pool-programs/?pooler_address=…&committed_only=true` (`pooler.rewards.pending`), priced via Tinyman asset `price_in_usd`; `rewardsUsdComplete` is true only when that farm fetch + pricing succeed.
-- [x] **CompX per-user lending debt.** CompX collector reads `sdk.lending.getUserPosition(appId, address)` and emits `debt` rows from `UserPosition.borrowed` (USD via market `baseTokenPrice`); `borrowedUsdComplete` is true when those reads/prices succeed.
+- [x] **CompX / Folks / Dork.fi lending debt omitted.** Portfolio collectors do not emit `debt` rows or debt/health incompleteness warnings; `borrowedUsdComplete` remains true.
 - [x] **CompX pending staking rewards.** Pending = `stake * rewardPerToken / 1e15 - rewardDebt` (MasterChef); emitted as `reward` positions and priced via CompX pricing API; `rewardsUsdComplete` is true when those rewards are priced (or none exist).
 - [x] After the above, stop hardcoding `rewardsUsdComplete: false` / `borrowedUsdComplete: false` for protocols whose coverage is complete, so aggregate totals are only `null` when a real gap or pricing failure remains.
 - [x] Add/extend positions integration tests so always-on caveats cannot regress once a protocol’s coverage is marked complete.

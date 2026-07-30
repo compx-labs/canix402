@@ -111,7 +111,8 @@ export async function fetchWalletPositions(
     const protocol = SUPPORTED_POSITION_PROTOCOLS[index]!;
     if (result.status === "rejected") {
       coverage.suppliedUsdComplete = false;
-      coverage.borrowedUsdComplete = false;
+      // Borrow/debt is out of scope for portfolio totals — do not null borrowedUsd
+      // when a protocol collector fails.
       coverage.rewardsUsdComplete = false;
       protocols.push({
         protocol,

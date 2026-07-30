@@ -29,12 +29,13 @@ surface:
   opportunity discovery — pool app id, not market app id)
 - `inputHints`: `{ poolAppId, marketAppId, assetId }` for withdraw quotes
 
-When the indexed health API is available, pool-level USD supplied/debt rows are
+When the indexed health API is available, pool-level USD supplied rows are
 **merged** (not substituted) for totals and health factor:
 
-- `positionId`: `dorkfi:supplied-usd:<poolAppId>` / `dorkfi:debt-usd:<poolAppId>`
+- `positionId`: `dorkfi:supplied-usd:<poolAppId>`
 - `opportunityId`: `null`
 - no exit/manage shapes (informational only)
+- borrow/debt rows are never emitted
 
 ASA `amountRaw` is the wallet **nToken** balance (withdraw-shape units). Estimated
 underlying ASA is derived as `(nToken * depositIndex) / 1e18` for notes only —
@@ -44,8 +45,8 @@ without the full custom group).
 Paused catalog markets are skipped quietly. If at least one ASA supply row is
 built, per-market probe failures are not surfaced as protocol warnings.
 
-If the indexed source is unavailable, only ASA rows are returned and Dork.fi is
-reported as `partial` with aggregate USD totals `null`.
+If the indexed source is unavailable, only ASA rows are returned with no
+debt/health warning — `borrowedUsd` stays complete (debt is out of scope).
 
 ## Normalized Output Fields
 
