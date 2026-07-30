@@ -133,6 +133,97 @@ test("compiles Tinyman farm claimRewards from Analytics-prepared bytes", async (
   assert.equal(quote.transactions.length, 1);
 });
 
+test("compiles Tinyman farm claimRewards with fee-pooled sibling axfer (fee 0)", async () => {
+  const farmAccount = algosdk.generateAccount();
+  const rewardAssetId = 2_200_000_000;
+
+  setTinymanFarmClaimRewardsDependenciesForTests({
+    getStakingAppId: () => STAKING_APP_ID,
+    prepareClaimTransactions: async () => {
+      const appl = algosdk.makeApplicationNoOpTxnFromObject({
+        sender: USER_ADDRESS,
+        appIndex: STAKING_APP_ID,
+        appArgs: [new TextEncoder().encode("claim")],
+        suggestedParams: suggestedParams(2000)
+      });
+      const axfer = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+        sender: farmAccount.addr,
+        receiver: USER_ADDRESS,
+        assetIndex: rewardAssetId,
+        amount: 1_000_000n,
+        suggestedParams: suggestedParams(0)
+      });
+      const group = [appl, axfer];
+      algosdk.assignGroupID(group);
+      return group;
+    }
+  });
+
+  const registry = new TransactionShapeRegistry();
+  registry.register(tinymanFarmClaimRewardsShape);
+  const quote = await compileExecutableQuote(
+    registry,
+    tinymanFarmClaimRewardsShape.key,
+    {
+      userAddress: USER_ADDRESS,
+      programId: 258,
+      poolAddress: "2PIFZW53RHCSFSYMCFUBW4XOCXOMB7XOYQSQ6KGT3KVGJTL4HM6COZRNMM"
+    },
+    buildContext()
+  );
+
+  assert.equal(quote.transactions.length, 2);
+  assert.equal(quote.transactions[0]!.fee, "2000");
+  assert.equal(quote.transactions[1]!.fee, "0");
+  assert.ok(quote.transactions.every((txn) => txn.groupPresent));
+});
+
+test("tops up user appl fee when Analytics claim group fee pool is short", async () => {
+  const farmAccount = algosdk.generateAccount();
+  const rewardAssetId = 2_200_000_000;
+
+  setTinymanFarmClaimRewardsDependenciesForTests({
+    getStakingAppId: () => STAKING_APP_ID,
+    prepareClaimTransactions: async () => {
+      // Pool = 1000 + 0 = 1000, but 2 × 1000 is required → top up user appl to 2000.
+      const appl = algosdk.makeApplicationNoOpTxnFromObject({
+        sender: USER_ADDRESS,
+        appIndex: STAKING_APP_ID,
+        appArgs: [new TextEncoder().encode("claim")],
+        suggestedParams: suggestedParams(1000)
+      });
+      const axfer = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+        sender: farmAccount.addr,
+        receiver: USER_ADDRESS,
+        assetIndex: rewardAssetId,
+        amount: 1_000_000n,
+        suggestedParams: suggestedParams(0)
+      });
+      const group = [appl, axfer];
+      algosdk.assignGroupID(group);
+      return group;
+    }
+  });
+
+  const registry = new TransactionShapeRegistry();
+  registry.register(tinymanFarmClaimRewardsShape);
+  const quote = await compileExecutableQuote(
+    registry,
+    tinymanFarmClaimRewardsShape.key,
+    {
+      userAddress: USER_ADDRESS,
+      programId: 258,
+      poolAddress: "2PIFZW53RHCSFSYMCFUBW4XOCXOMB7XOYQSQ6KGT3KVGJTL4HM6COZRNMM"
+    },
+    buildContext()
+  );
+
+  assert.equal(quote.transactions.length, 2);
+  assert.equal(quote.transactions[0]!.fee, "2000");
+  assert.equal(quote.transactions[1]!.fee, "0");
+  assert.equal(quote.transactions[0]!.sender, USER_ADDRESS);
+});
+
 test.after(() => {
   setTinymanFarmUncommitDependenciesForTests();
   setTinymanFarmClaimRewardsDependenciesForTests();

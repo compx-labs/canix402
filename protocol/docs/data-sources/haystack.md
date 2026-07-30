@@ -20,7 +20,7 @@ This document defines the Haystack staking adapter contract used by canix402.
 | `assetPair` | `HAY/USDC+HAY` |
 | `assetIds` | `[3160000000, 31566704]` (HAY, USDC) |
 | `yieldBasis` | `apr` |
-| `apy` / `apr` | sum of on-chain `emaAPRUsdc` + `emaAPRHay` (1e6 = 100%) |
+| `apy` / `apr` | sum of on-chain `emaAPRUsdc` + `emaAPRHay` (1e6 = 1%) |
 | `tvlUsd` | `staked` × HAY USD |
 
 Paused pools (`paus != 0`) are omitted.

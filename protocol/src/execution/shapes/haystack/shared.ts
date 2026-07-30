@@ -157,10 +157,22 @@ export async function finalizeComposerGroup(params: FinalizeComposerGroupParams)
     );
     return prepared.buildGroup().map((txnWithSigner) => txnWithSigner.txn);
   } catch (error) {
+    const rootCause = extractErrorMessage(error);
     throw new ShapeBuildError("Failed to finalize Haystack staking transaction group.", {
+      details: rootCause === undefined ? undefined : { rootCause },
       cause: error
     });
   }
+}
+
+function extractErrorMessage(error: unknown): string | undefined {
+  if (error instanceof Error && error.message.length > 0) {
+    return error.message;
+  }
+  if (typeof error === "string" && error.length > 0) {
+    return error;
+  }
+  return undefined;
 }
 
 export function addAssetOptInToComposer(params: {

@@ -11,9 +11,9 @@ import { attachExecutionShapesToOpportunity } from "../../src/services/opportuni
 import { executionRegistry } from "../../src/execution/index.js";
 import type { OpportunityMarketRecord } from "../../src/types/opportunity.js";
 
-test("fixedPointAprToPercentage treats 1e6 as 100%", () => {
-  assert.equal(fixedPointAprToPercentage(1_000_000n), 100);
-  assert.ok(Math.abs((fixedPointAprToPercentage(83540n) ?? 0) - 8.354) < 0.0001);
+test("fixedPointAprToPercentage treats 1e6 as 1%", () => {
+  assert.equal(fixedPointAprToPercentage(1_000_000n), 1);
+  assert.ok(Math.abs((fixedPointAprToPercentage(83540n) ?? 0) - 0.08354) < 0.0001);
 });
 
 test("normalizeHaystackStakingOpportunity combines EMA APR components", () => {
@@ -23,8 +23,8 @@ test("normalizeHaystackStakingOpportunity combines EMA APR components", () => {
       hayAssetId: 3160000000,
       usdcAssetId: 31566704,
       totalStaked: 1_000_000_000_000n,
-      emaAprUsdc: 2_000_000n, // 200%
-      emaAprHay: 50_000n, // 5%
+      emaAprUsdc: 2_000_000n, // 2%
+      emaAprHay: 50_000n, // 0.05%
       paused: false
     },
     hayUsdPrice: 0.02,
@@ -35,7 +35,7 @@ test("normalizeHaystackStakingOpportunity combines EMA APR components", () => {
   assert.equal(record?.opportunityId, HAYSTACK_STAKING_OPPORTUNITY_ID);
   assert.equal(record?.protocol, "haystack");
   assert.equal(record?.yieldBasis, "apr");
-  assert.equal(record?.apr, 205);
+  assert.equal(record?.apr, 2.05);
   assert.equal(record?.tvlUsd, 20_000);
   assert.deepEqual(record?.assetIds, [3160000000, 31566704]);
 });
