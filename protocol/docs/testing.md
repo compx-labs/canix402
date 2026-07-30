@@ -385,6 +385,28 @@ The test requires `X402_CLIENT_MNEMONIC`, at least **0.105 USDC** (0.1 USDC swap
 input plus the 0.005 USDC x402 charge), and enough ALGO for opt-ins and network
 fees. It is skipped unless explicitly enabled and is excluded from CI.
 
+## Haystack GOLD→USDC quote diagnostic
+
+[`tests/live/haystack-gold-usdc-quote.test.ts`](../tests/live/haystack-gold-usdc-quote.test.ts)
+probes the failing **Meld Gold (`246516580`) → USDC (`31566704`)** quote path
+without submitting a swap:
+
+```sh
+X402_HAYSTACK_GOLD_QUOTE_LIVE=1 npm run test:live:haystack-gold-quote
+```
+
+It quotes **0.400392 GOLD (400392 base units)** through:
+
+1. production `POST /swaps/quote`
+2. Haystack `fetchQuote` directly with canix402's default disabled protocols
+   (`Tinyman`, `Humble`, `Algofi`, `Algomint`), `maxDepth=3`, `optIn=false`
+3. local `createHaystackService().getQuote()` when `HAYSTACK_API_KEY` is set
+
+On failure it prints elapsed time, HTTP status, and truncated bodies for each
+probe so upstream 5xx / gateway errors are visible. Requires
+`X402_CLIENT_MNEMONIC` (address only; no GOLD spend). Skipped unless enabled;
+excluded from CI.
+
 ## Tinyman production liquidity tests
 
 Production on-chain tests live in [`tests/live/tinyman-production-test.test.ts`](../tests/live/tinyman-production-test.test.ts).

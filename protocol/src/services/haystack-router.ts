@@ -311,25 +311,39 @@ function normalizeQuote(
     quotedAmount: response.quote.toString(),
     createdAt: new Date(createdAt).toISOString(),
     expiresAt: new Date(createdAt + quoteTtlMs).toISOString(),
-    requiredAppOptIns: response.requiredAppOptIns.map((appId) =>
+    requiredAppOptIns: asArray(response.requiredAppOptIns).map((appId) =>
       BigInt(appId).toString()
     ),
     txnPayload: response.txnPayload,
-    ...(response.usdIn === undefined ? {} : { usdIn: response.usdIn }),
-    ...(response.usdOut === undefined ? {} : { usdOut: response.usdOut }),
-    ...(response.userPriceImpact === undefined
+    ...(response.usdIn === undefined || response.usdIn === null
+      ? {}
+      : { usdIn: response.usdIn }),
+    ...(response.usdOut === undefined || response.usdOut === null
+      ? {}
+      : { usdOut: response.usdOut }),
+    ...(response.userPriceImpact === undefined || response.userPriceImpact === null
       ? {}
       : { userPriceImpact: response.userPriceImpact }),
     ...(response.marketPriceImpact === undefined
+      || response.marketPriceImpact === null
       ? {}
       : { marketPriceImpact: response.marketPriceImpact }),
-    ...(response.priceBaseline === undefined
+    ...(response.priceBaseline === undefined || response.priceBaseline === null
       ? {}
       : { priceBaseline: response.priceBaseline }),
-    route: [...response.route],
-    quotes: [...response.quotes],
-    protocolFees: { ...response.protocolFees }
+    route: [...asArray(response.route)],
+    // Haystack occasionally returns null here for multi-hop aggregator routes.
+    quotes: [...asArray(response.quotes)],
+    protocolFees: { ...asRecord(response.protocolFees) }
   };
+}
+
+function asArray<T>(value: T[] | null | undefined): T[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function asRecord(value: Record<string, number> | null | undefined): Record<string, number> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 
 function denormalizeQuote(quote: HaystackQuote): FetchQuoteResponse {
@@ -513,22 +527,22 @@ async function runHaystackRequest<T>(
 function mapHaystackError(error: unknown, fallbackMessage: string): HaystackRouterError {
   if (error instanceof HaystackRouterError) return error;
   const status = extractStatus(error);
+  const details = extractUpstreamDetails(error, status);
   if (status === 429) {
     return new HaystackRouterError(
       "Haystack rate limit exceeded; retry later.",
-      "rate-limit"
+      "rate-limit",
+      details
     );
   }
   if (status !== undefined && status >= 400 && status < 500) {
     return new HaystackRouterError(
       "Haystack rejected the swap request.",
       "validation",
-      { upstreamStatus: status }
+      details
     );
   }
-  return new HaystackRouterError(fallbackMessage, "upstream", {
-    ...(status === undefined ? {} : { upstreamStatus: status })
-  });
+  return new HaystackRouterError(fallbackMessage, "upstream", details);
 }
 
 function extractStatus(error: unknown): number | undefined {
@@ -545,6 +559,42 @@ function extractStatus(error: unknown): number | undefined {
     }
   }
   return undefined;
+}
+
+function extractUpstreamDetails(
+  error: unknown,
+  status: number | undefined
+): Record<string, unknown> | undefined {
+  if (!error || typeof error !== "object") {
+    return status === undefined ? undefined : { upstreamStatus: status };
+  }
+
+  const record = error as Record<string, unknown>;
+  const details: Record<string, unknown> = {};
+  if (status !== undefined) details.upstreamStatus = status;
+
+  const statusText = record.statusText;
+  if (typeof statusText === "string" && statusText.length > 0) {
+    details.upstreamStatusText = statusText;
+  }
+
+  const message = record.message;
+  if (typeof message === "string" && message.length > 0) {
+    details.upstreamMessage = truncateDiagnostic(message);
+  }
+
+  const data = record.data;
+  if (typeof data === "string" && data.length > 0) {
+    details.upstreamBody = truncateDiagnostic(data);
+  } else if (data !== undefined) {
+    details.upstreamBody = truncateDiagnostic(JSON.stringify(data));
+  }
+
+  return Object.keys(details).length > 0 ? details : undefined;
+}
+
+function truncateDiagnostic(value: string, maxLength = 500): string {
+  return value.length <= maxLength ? value : `${value.slice(0, maxLength)}…`;
 }
 
 function encodeBase64(value: Uint8Array): string {
