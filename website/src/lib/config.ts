@@ -28,11 +28,23 @@ export const config = {
   indexerBaseUrl:
     import.meta.env.PUBLIC_INDEXER_BASE_URL ?? "https://mainnet-idx.4160.nodely.dev",
   alloTxBaseUrl: import.meta.env.PUBLIC_ALLO_TX_BASE_URL ?? "https://allo.info/tx",
+  alloAccountBaseUrl:
+    import.meta.env.PUBLIC_ALLO_ACCOUNT_BASE_URL ?? "https://allo.info/account",
   nfdApiBaseUrl:
     import.meta.env.PUBLIC_NFD_API_BASE_URL ?? "https://api.nf.domains",
   transactionsRefreshMs: Number(
     import.meta.env.PUBLIC_TRANSACTIONS_REFRESH_MS ?? "120000"
-  )
+  ),
+  brownieBotWallet:
+    import.meta.env.PUBLIC_BROWNIE_BOT_WALLET ??
+    "KPEZM2DSFHOOHG7RPDECCBTD6FRN2LPSSRJMMFVCFSIHGES4BXBJHPUBVQ",
+  publicBrowniePositionsUrl:
+    import.meta.env.PUBLIC_BROWNIE_POSITIONS_URL ??
+    `${gatewayBaseUrl}/public/agents/brownie/positions`,
+  pricingUrl: import.meta.env.PUBLIC_PRICING_URL ?? `${gatewayBaseUrl}/pricing`,
+  tinymanAnalyticsBaseUrl:
+    import.meta.env.PUBLIC_TINYMAN_ANALYTICS_BASE_URL ??
+    "https://mainnet.analytics.tinyman.org/api/v1"
 };
 
 export { supportedProtocols } from "./protocols";

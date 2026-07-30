@@ -1,0 +1,772 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { config } from "../lib/config";
+
+const wallet = config.brownieBotWallet;
+const truncatedWallet =
+  wallet.length > 16 ? `${wallet.slice(0, 8)}…${wallet.slice(-8)}` : wallet;
+const alloAccountUrl = `${config.alloAccountBaseUrl}/${wallet}`;
+---
+
+<BaseLayout
+  title="User Agents | CANIX402"
+  description="Meet autonomous agents powered by Canix402 — starting with Brownie Bot, an Algorand community treasury that researches DeFi with x402-paid tools and executes under local policy."
+  keywords="Canix402 user agents, Brownie Bot, autonomous Algorand treasury, DeFi agent, x402, ZeroSignal"
+>
+  <h1 class="page-title">User Agents</h1>
+  <p class="muted page-lead">
+    Autonomous agents that use Canix402 for research, positions, and execution quotes.
+    Live portfolio data below is read from the Algorand Indexer and a Brownie-only public
+    positions showcase — general wallet browsing remains paid via
+    <code>GET /positions</code>.
+  </p>
+
+  <div class="agent-tabs" role="tablist" aria-label="User agents">
+    <button
+      type="button"
+      class="agent-tab is-active"
+      role="tab"
+      id="tab-brownie"
+      aria-selected="true"
+      aria-controls="panel-brownie"
+      data-agent-tab="brownie"
+    >
+      Brownie Bot
+    </button>
+    <button
+      type="button"
+      class="agent-tab"
+      role="tab"
+      id="tab-coming-soon"
+      aria-selected="false"
+      aria-controls="panel-coming-soon"
+      data-agent-tab="coming-soon"
+    >
+      Coming soon
+    </button>
+  </div>
+
+  <div
+    class="agent-panel"
+    role="tabpanel"
+    id="panel-brownie"
+    aria-labelledby="tab-brownie"
+    data-agent-panel="brownie"
+  >
+    <section class="panel agent-about">
+      <h2>About Brownie Bot</h2>
+      <p>
+        Brownie Bot is an autonomous community treasury on Algorand mainnet. Once per day it
+        reads liquid balances and Canix402 DeFi positions, researches personalized and global
+        opportunities, asks a ZeroSignal model for a diversified plan, validates that plan
+        against deterministic policy limits, and — when signing is enabled — signs and submits
+        execution groups locally. Canix402 never receives the mnemonic.
+      </p>
+      <dl class="agent-meta-list">
+        <div>
+          <dt>Network</dt>
+          <dd>Algorand mainnet</dd>
+        </div>
+        <div>
+          <dt>Treasury</dt>
+          <dd>
+            <a href={alloAccountUrl} target="_blank" rel="noopener noreferrer">
+              <code class="transactions-address" title={wallet}>{truncatedWallet}</code>
+            </a>
+          </dd>
+        </div>
+        <div>
+          <dt>Stack</dt>
+          <dd>Canix402 MCP · ZeroSignal · local policy &amp; signing</dd>
+        </div>
+        <div>
+          <dt>Source</dt>
+          <dd>
+            <a
+              href="https://github.com/compx-labs/brownie-bot"
+              target="_blank"
+              rel="noopener noreferrer">compx-labs/brownie-bot</a
+            >
+          </dd>
+        </div>
+      </dl>
+      <p id="agent-status" class="muted agent-status" aria-live="polite">Loading portfolio…</p>
+    </section>
+
+    <section class="agent-section">
+      <div class="section-header">
+        <h2>Holdings</h2>
+        <p class="muted">Liquid ALGO and ASA balances from the Algorand Indexer, priced via free <code>POST /pricing</code>. Balances under 0.01 asset units are hidden.</p>
+      </div>
+      <div id="holdings-stats" class="transactions-stats" hidden>
+        <div class="transactions-stat">
+          <span class="transactions-stat-label">Assets shown</span>
+          <span id="holdings-count" class="transactions-stat-value">—</span>
+        </div>
+        <div class="transactions-stat">
+          <span class="transactions-stat-label">Est. liquid USD</span>
+          <span id="holdings-total" class="transactions-stat-value">—</span>
+        </div>
+      </div>
+      <div class="transactions-table-wrap">
+        <table class="endpoint-table transactions-table" aria-label="Brownie Bot liquid holdings">
+          <thead>
+            <tr>
+              <th>Asset</th>
+              <th>Amount</th>
+              <th>USD</th>
+            </tr>
+          </thead>
+          <tbody id="holdings-body">
+            <tr><td colspan="3" class="muted">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="agent-section">
+      <div class="section-header">
+        <h2>DeFi positions</h2>
+        <p class="muted">
+          Normalized positions from
+          <code>GET /public/agents/brownie/positions</code> (Brownie showcase only).
+        </p>
+      </div>
+      <div id="positions-stats" class="transactions-stats" hidden>
+        <div class="transactions-stat">
+          <span class="transactions-stat-label">Positions</span>
+          <span id="positions-count" class="transactions-stat-value">—</span>
+        </div>
+        <div class="transactions-stat">
+          <span class="transactions-stat-label">Supplied USD</span>
+          <span id="positions-supplied" class="transactions-stat-value">—</span>
+        </div>
+        <div class="transactions-stat">
+          <span class="transactions-stat-label">Rewards USD</span>
+          <span id="positions-rewards" class="transactions-stat-value">—</span>
+        </div>
+        <div class="transactions-stat">
+          <span class="transactions-stat-label">Net USD</span>
+          <span id="positions-net" class="transactions-stat-value">—</span>
+        </div>
+      </div>
+      <p id="positions-caveats" class="muted transactions-stats-note" hidden></p>
+      <div class="transactions-table-wrap">
+        <table class="endpoint-table transactions-table" aria-label="Brownie Bot DeFi positions">
+          <thead>
+            <tr>
+              <th>Protocol</th>
+              <th>Type</th>
+              <th>Asset</th>
+              <th>Amount</th>
+              <th>USD</th>
+            </tr>
+          </thead>
+          <tbody id="positions-body">
+            <tr><td colspan="5" class="muted">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="agent-section">
+      <div class="section-header">
+        <h2>Latest transactions</h2>
+        <p class="muted">Recent on-chain activity for the treasury wallet (Indexer).</p>
+      </div>
+      <div class="transactions-table-wrap">
+        <table class="endpoint-table transactions-table" aria-label="Brownie Bot latest transactions">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Type</th>
+              <th>Summary</th>
+              <th>Round</th>
+              <th>Transaction</th>
+            </tr>
+          </thead>
+          <tbody id="agent-tx-body">
+            <tr><td colspan="5" class="muted">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div
+    class="agent-panel"
+    role="tabpanel"
+    id="panel-coming-soon"
+    aria-labelledby="tab-coming-soon"
+    data-agent-panel="coming-soon"
+    hidden
+  >
+    <section class="panel">
+      <h2>More agents coming soon</h2>
+      <p class="muted">
+        A second Canix402-powered user agent will land here when it is ready. Until then,
+        explore Brownie Bot or build your own agent against the
+        <a href="/mcp">MCP</a> and <a href="/endpoints">API</a>.
+      </p>
+    </section>
+  </div>
+</BaseLayout>
+
+<script
+  is:inline
+  define:vars={{
+    agentPageConfig: JSON.stringify({
+      wallet: config.brownieBotWallet,
+      indexerUrl: config.indexerBaseUrl,
+      pricingUrl: config.pricingUrl,
+      positionsUrl: config.publicBrowniePositionsUrl,
+      tinymanAnalyticsUrl: config.tinymanAnalyticsBaseUrl,
+      txExplorerBase: config.alloTxBaseUrl,
+      pollMs: config.transactionsRefreshMs
+    })
+  }}
+>
+  const {
+    wallet,
+    indexerUrl,
+    pricingUrl,
+    positionsUrl,
+    tinymanAnalyticsUrl,
+    txExplorerBase,
+    pollMs
+  } = JSON.parse(agentPageConfig);
+
+  const MAX_TX_ROWS = 25;
+  const MICRO = 1_000_000;
+
+  /** @type {ReturnType<typeof setInterval> | null} */
+  let refreshTimer = null;
+
+  /**
+   * @param {string} value
+   */
+  function escapeHtml(value) {
+    return value
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  /**
+   * @param {string} address
+   */
+  function truncateAddress(address) {
+    if (address.length <= 16) return address;
+    return `${address.slice(0, 8)}…${address.slice(-8)}`;
+  }
+
+  /**
+   * @param {number | null | undefined} value
+   */
+  function formatUsd(value) {
+    if (value === null || value === undefined || !Number.isFinite(value)) {
+      return "—";
+    }
+    return value.toLocaleString(undefined, {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 2
+    });
+  }
+
+  /**
+   * @param {string | number} amount
+   * @param {number} decimals
+   */
+  function formatAmount(amount, decimals) {
+    const raw = typeof amount === "string" ? amount : String(amount);
+    if (!/^\d+$/.test(raw)) return raw;
+    if (decimals <= 0) return Number(raw).toLocaleString();
+    const padded = raw.padStart(decimals + 1, "0");
+    const whole = padded.slice(0, -decimals);
+    const frac = padded.slice(-decimals).replace(/0+$/, "");
+    const wholeFmt = Number(whole).toLocaleString();
+    return frac ? `${wholeFmt}.${frac}` : wholeFmt;
+  }
+
+  /**
+   * @param {number} unixSeconds
+   */
+  function formatTime(unixSeconds) {
+    if (!unixSeconds) return "—";
+    return new Date(unixSeconds * 1000).toLocaleString(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short"
+    });
+  }
+
+  /**
+   * @param {string} message
+   * @param {boolean} [isError]
+   */
+  function setStatus(message, isError = false) {
+    const statusEl = document.getElementById("agent-status");
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.classList.toggle("transactions-status-error", isError);
+  }
+
+  /**
+   * @param {string} tbodyId
+   * @param {number} colspan
+   * @param {string} message
+   */
+  function renderEmpty(tbodyId, colspan, message) {
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="${colspan}" class="muted">${escapeHtml(message)}</td></tr>`;
+  }
+
+  function setupTabs() {
+    const tabs = Array.from(
+      document.querySelectorAll("[data-agent-tab]")
+    );
+    const panels = Array.from(
+      document.querySelectorAll("[data-agent-panel]")
+    );
+
+    /**
+     * @param {string} id
+     */
+    function activate(id) {
+      for (const tab of tabs) {
+        const selected = tab.getAttribute("data-agent-tab") === id;
+        tab.classList.toggle("is-active", selected);
+        tab.setAttribute("aria-selected", selected ? "true" : "false");
+      }
+      for (const panel of panels) {
+        const match = panel.getAttribute("data-agent-panel") === id;
+        panel.hidden = !match;
+      }
+      if (id === "brownie" || id === "coming-soon") {
+        history.replaceState(null, "", `#${id}`);
+      }
+    }
+
+    for (const tab of tabs) {
+      tab.addEventListener("click", () => {
+        const id = tab.getAttribute("data-agent-tab");
+        if (id) activate(id);
+      });
+    }
+
+    const hash = window.location.hash.replace(/^#/, "");
+    if (hash === "coming-soon" || hash === "brownie") {
+      activate(hash);
+    }
+  }
+
+  /**
+   * @returns {Promise<{ holdings: Array<{ assetId: number; symbol: string; amountRaw: string; decimals: number; amount: string; usdValue: number | null }>; priced: boolean }>}
+   */
+  async function fetchHoldings() {
+    const response = await fetch(`${indexerUrl}/v2/accounts/${wallet}`);
+    if (!response.ok) {
+      throw new Error(`Indexer account request failed (${response.status})`);
+    }
+    const payload = await response.json();
+    const account = payload.account ?? {};
+    /** @type {Array<{ assetId: number; symbol: string; amountRaw: string; decimals: number; amount: string; usdValue: number | null }>} */
+    const holdings = [];
+
+    const algoRaw = String(account.amount ?? 0);
+    holdings.push({
+      assetId: 0,
+      symbol: "ALGO",
+      amountRaw: algoRaw,
+      decimals: 6,
+      amount: formatAmount(algoRaw, 6),
+      usdValue: null
+    });
+
+    const assets = Array.isArray(account.assets) ? account.assets : [];
+    for (const asset of assets) {
+      const amountRaw = String(asset.amount ?? 0);
+      if (amountRaw === "0") continue;
+      const assetId = Number(asset["asset-id"] ?? 0);
+      holdings.push({
+        assetId,
+        symbol: `ASA ${assetId}`,
+        amountRaw,
+        decimals: 0,
+        amount: amountRaw,
+        usdValue: null
+      });
+    }
+
+    const assetIds = holdings.map((h) => h.assetId);
+    /** @type {Record<string, number | null>} */
+    let pricesById = {};
+    let priced = false;
+
+    pricesById = await fetchUsdPrices(assetIds);
+    priced = Object.keys(pricesById).length > 0;
+
+    // Enrich ASA decimals/symbols from indexer when possible (best-effort, capped).
+    const asaHoldings = holdings.filter((h) => h.assetId !== 0).slice(0, 40);
+    await Promise.all(
+      asaHoldings.map(async (holding) => {
+        try {
+          const assetRes = await fetch(
+            `${indexerUrl}/v2/assets/${holding.assetId}`
+          );
+          if (!assetRes.ok) return;
+          const assetPayload = await assetRes.json();
+          const params = assetPayload.asset?.params ?? {};
+          const decimals = Number(params.decimals ?? 0);
+          const unit = typeof params["unit-name"] === "string"
+            ? params["unit-name"]
+            : typeof params.name === "string"
+              ? params.name
+              : holding.symbol;
+          holding.decimals = Number.isFinite(decimals) ? decimals : 0;
+          holding.symbol = unit || holding.symbol;
+          holding.amount = formatAmount(holding.amountRaw, holding.decimals);
+        } catch {
+          // keep defaults
+        }
+      })
+    );
+
+    for (const holding of holdings) {
+      const price = pricesById[String(holding.assetId)];
+      if (typeof price === "number" && Number.isFinite(price)) {
+        const human = Number(holding.amountRaw) / 10 ** holding.decimals;
+        holding.usdValue = Number.isFinite(human) ? human * price : null;
+      }
+    }
+
+    const MIN_AMOUNT = 0.01;
+    const visible = holdings.filter((h) => {
+      const human = Number(h.amountRaw) / 10 ** h.decimals;
+      return Number.isFinite(human) && human >= MIN_AMOUNT;
+    });
+
+    return { holdings: visible, priced };
+  }
+
+  /**
+   * Prefer Canix POST /pricing; fall back to Tinyman Analytics (browser CORS-safe).
+   * @param {number[]} assetIds
+   * @returns {Promise<Record<string, number>>}
+   */
+  async function fetchUsdPrices(assetIds) {
+    const unique = [...new Set(assetIds.filter((id) => Number.isFinite(id)))];
+    if (unique.length === 0) return {};
+
+    try {
+      const priceResponse = await fetch(pricingUrl, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ assetIds: unique })
+      });
+      if (priceResponse.ok) {
+        const pricePayload = await priceResponse.json();
+        const prices = Array.isArray(pricePayload.prices)
+          ? pricePayload.prices
+          : Array.isArray(pricePayload.data?.prices)
+            ? pricePayload.data.prices
+            : [];
+        /** @type {Record<string, number>} */
+        const mapped = {};
+        for (const entry of prices) {
+          const id = String(entry.assetId ?? entry.asset_id ?? "");
+          const priceUsd =
+            typeof entry.priceUsd === "number"
+              ? entry.priceUsd
+              : typeof entry.price === "number"
+                ? entry.price
+                : null;
+          if (id && typeof priceUsd === "number" && Number.isFinite(priceUsd)) {
+            mapped[id] = priceUsd;
+          }
+        }
+        if (Object.keys(mapped).length > 0) {
+          return mapped;
+        }
+      }
+    } catch {
+      // Gateway CORS may block until Caddy is redeployed — fall through.
+    }
+
+    return fetchTinymanUsdPrices(unique);
+  }
+
+  /**
+   * @param {number[]} assetIds
+   * @returns {Promise<Record<string, number>>}
+   */
+  async function fetchTinymanUsdPrices(assetIds) {
+    const base = tinymanAnalyticsUrl.replace(/\/$/, "");
+    /** @type {Record<string, number>} */
+    const mapped = {};
+
+    await Promise.all(
+      assetIds.slice(0, 40).map(async (assetId) => {
+        try {
+          const response = await fetch(`${base}/assets/${assetId}/`);
+          if (!response.ok) return;
+          const payload = await response.json();
+          const price = Number(payload.price_in_usd);
+          if (Number.isFinite(price) && price >= 0) {
+            mapped[String(assetId)] = price;
+          }
+        } catch {
+          // skip missing/unpriced assets
+        }
+      })
+    );
+
+    return mapped;
+  }
+
+  /**
+   * @param {Awaited<ReturnType<typeof fetchHoldings>>} result
+   */
+  function renderHoldings(result) {
+    const { holdings, priced } = result;
+    const stats = document.getElementById("holdings-stats");
+    const countEl = document.getElementById("holdings-count");
+    const totalEl = document.getElementById("holdings-total");
+    const tbody = document.getElementById("holdings-body");
+    if (!tbody) return;
+
+    if (holdings.length === 0) {
+      if (stats) stats.hidden = true;
+      renderEmpty(
+        "holdings-body",
+        3,
+        "No liquid holdings of 0.01 asset units or more."
+      );
+      return;
+    }
+
+    const valued = holdings.filter((h) => typeof h.usdValue === "number");
+    const totalUsd = valued.reduce((sum, h) => sum + (h.usdValue ?? 0), 0);
+
+    if (stats && countEl && totalEl) {
+      countEl.textContent = holdings.length.toLocaleString();
+      totalEl.textContent = priced && valued.length > 0 ? formatUsd(totalUsd) : "—";
+      stats.hidden = false;
+    }
+
+    tbody.innerHTML = holdings
+      .map(
+        (h) => `<tr>
+          <td><strong>${escapeHtml(h.symbol)}</strong><br /><span class="muted">${h.assetId === 0 ? "ALGO" : `ASA ${h.assetId}`}</span></td>
+          <td>${escapeHtml(h.amount)}</td>
+          <td>${formatUsd(h.usdValue)}</td>
+        </tr>`
+      )
+      .join("");
+  }
+
+  async function fetchPositions() {
+    const response = await fetch(positionsUrl);
+    if (!response.ok) {
+      throw new Error(`Positions request failed (${response.status})`);
+    }
+    return response.json();
+  }
+
+  /**
+   * @param {any} payload
+   */
+  function renderPositions(payload) {
+    const rows = Array.isArray(payload.data) ? payload.data : [];
+    const totals = payload.totals ?? {};
+    const protocols = Array.isArray(payload.protocols) ? payload.protocols : [];
+    const stats = document.getElementById("positions-stats");
+    const countEl = document.getElementById("positions-count");
+    const suppliedEl = document.getElementById("positions-supplied");
+    const rewardsEl = document.getElementById("positions-rewards");
+    const netEl = document.getElementById("positions-net");
+    const caveatsEl = document.getElementById("positions-caveats");
+    const tbody = document.getElementById("positions-body");
+    if (!tbody) return;
+
+    if (stats && countEl && suppliedEl && rewardsEl && netEl) {
+      countEl.textContent = rows.length.toLocaleString();
+      suppliedEl.textContent = formatUsd(totals.suppliedUsd);
+      rewardsEl.textContent = formatUsd(totals.rewardsUsd);
+      netEl.textContent = formatUsd(totals.netUsd);
+      stats.hidden = false;
+    }
+
+    const partial = protocols.filter(
+      (p) => p.status === "partial" || p.status === "unavailable"
+    );
+    if (caveatsEl) {
+      if (partial.length > 0) {
+        caveatsEl.hidden = false;
+        caveatsEl.textContent = `Incomplete protocol coverage: ${partial
+          .map((p) => `${p.protocol} (${p.status})`)
+          .join(", ")}.`;
+      } else {
+        caveatsEl.hidden = true;
+        caveatsEl.textContent = "";
+      }
+    }
+
+    if (rows.length === 0) {
+      renderEmpty("positions-body", 5, "No DeFi positions found.");
+      return;
+    }
+
+    tbody.innerHTML = rows
+      .map((row) => {
+        const symbol = row.assetSymbol ?? (row.assetId != null ? `ASA ${row.assetId}` : "—");
+        return `<tr>
+          <td>${escapeHtml(String(row.protocol ?? "—"))}</td>
+          <td>${escapeHtml(String(row.positionType ?? "—"))}</td>
+          <td>${escapeHtml(String(symbol))}</td>
+          <td>${escapeHtml(String(row.amount ?? "—"))}</td>
+          <td>${formatUsd(row.usdValue)}</td>
+        </tr>`;
+      })
+      .join("");
+  }
+
+  /**
+   * @param {Record<string, unknown>} txn
+   */
+  function summarizeTx(txn) {
+    const type = String(txn["tx-type"] ?? "unknown");
+    if (type === "pay") {
+      const payment = /** @type {Record<string, unknown>} */ (
+        txn["payment-transaction"] ?? {}
+      );
+      const amount = Number(payment.amount ?? 0);
+      return `ALGO ${formatAmount(String(amount), 6)}`;
+    }
+    if (type === "axfer") {
+      const transfer = /** @type {Record<string, unknown>} */ (
+        txn["asset-transfer-transaction"] ?? {}
+      );
+      const assetId = transfer["asset-id"];
+      const amount = Number(transfer.amount ?? 0);
+      return `ASA ${assetId}: ${amount.toLocaleString()}`;
+    }
+    if (type === "appl") {
+      const appl = /** @type {Record<string, unknown>} */ (
+        txn["application-transaction"] ?? {}
+      );
+      const appId = appl["application-id"];
+      return appId ? `App ${appId}` : "Application call";
+    }
+    return type;
+  }
+
+  async function fetchTransactions() {
+    const params = new URLSearchParams({ limit: String(MAX_TX_ROWS) });
+    const response = await fetch(
+      `${indexerUrl}/v2/accounts/${wallet}/transactions?${params.toString()}`
+    );
+    if (!response.ok) {
+      throw new Error(`Indexer transactions failed (${response.status})`);
+    }
+    const payload = await response.json();
+    return Array.isArray(payload.transactions) ? payload.transactions : [];
+  }
+
+  /**
+   * @param {Array<Record<string, unknown>>} transactions
+   */
+  function renderTransactions(transactions) {
+    const tbody = document.getElementById("agent-tx-body");
+    if (!tbody) return;
+
+    if (transactions.length === 0) {
+      renderEmpty("agent-tx-body", 5, "No recent transactions found.");
+      return;
+    }
+
+    tbody.innerHTML = transactions
+      .slice(0, MAX_TX_ROWS)
+      .map((txn) => {
+        const txid = String(txn.id ?? "");
+        const round = Number(txn["confirmed-round"] ?? 0);
+        const roundTime = Number(txn["round-time"] ?? 0);
+        const type = String(txn["tx-type"] ?? "—");
+        const url = `${txExplorerBase}/${txid}`;
+        return `<tr>
+          <td>${formatTime(roundTime)}</td>
+          <td>${escapeHtml(type)}</td>
+          <td>${escapeHtml(summarizeTx(txn))}</td>
+          <td>${round ? round.toLocaleString() : "—"}</td>
+          <td><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(truncateAddress(txid))}</a></td>
+        </tr>`;
+      })
+      .join("");
+  }
+
+  async function refreshPortfolio() {
+    const errors = [];
+
+    try {
+      const holdings = await fetchHoldings();
+      renderHoldings(holdings);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      errors.push(`holdings: ${message}`);
+      renderEmpty("holdings-body", 3, "Unable to load holdings.");
+      const stats = document.getElementById("holdings-stats");
+      if (stats) stats.hidden = true;
+    }
+
+    try {
+      const positions = await fetchPositions();
+      renderPositions(positions);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      errors.push(`positions: ${message}`);
+      renderEmpty("positions-body", 5, "Unable to load positions.");
+      const stats = document.getElementById("positions-stats");
+      if (stats) stats.hidden = true;
+    }
+
+    try {
+      const transactions = await fetchTransactions();
+      renderTransactions(transactions);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      errors.push(`transactions: ${message}`);
+      renderEmpty("agent-tx-body", 5, "Unable to load transactions.");
+    }
+
+    const refreshedAt = new Date().toLocaleString(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short"
+    });
+    if (errors.length > 0) {
+      setStatus(
+        `Partial refresh at ${refreshedAt}. ${errors.join("; ")}`,
+        true
+      );
+    } else {
+      setStatus(`Portfolio refreshed ${refreshedAt}. Auto-refresh every ${Math.round(pollMs / 1000)}s.`);
+    }
+  }
+
+  function startAutoRefresh() {
+    if (refreshTimer) clearInterval(refreshTimer);
+    refreshTimer = setInterval(refreshPortfolio, pollMs);
+  }
+
+  setupTabs();
+  refreshPortfolio();
+  startAutoRefresh();
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      refreshPortfolio();
+    }
+  });
+</script>

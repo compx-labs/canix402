@@ -934,6 +934,37 @@
         }
       }
     },
+    "/public/agents/brownie/positions": {
+      "get": {
+        "summary": "Public DeFi positions for the Brownie Bot showcase wallet",
+        "description": "Free showcase route that returns normalized DeFi positions for the Brownie Bot treasury wallet only. The wallet address is hardcoded server-side — this is not a general free /positions browser. Use GET /positions?address= for arbitrary wallets (paid).",
+        "tags": [
+          "defi",
+          "positions",
+          "agents",
+          "showcase"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Brownie Bot wallet position list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WalletPositionsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "502": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
     "/protocols/{protocol}/opportunities": {
       "get": {
         "summary": "Top 25 DeFi opportunities for a single protocol ranked by APY",
@@ -2255,6 +2286,10 @@
               "fetchedAt": {
                 "type": "string",
                 "format": "date-time"
+              },
+              "agentId": {
+                "type": "string",
+                "description": "Present on free public showcase routes (for example brownie)."
               }
             }
           }

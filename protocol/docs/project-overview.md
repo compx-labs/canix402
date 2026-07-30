@@ -172,6 +172,9 @@ A paid wallet data route priced at exactly 0.005 USDC:
 - Discovery and OpenAPI advertise the route as paid with `maxAmountRequired: "0.005"`.
 - Caddy enforces `X402_PRICE_POSITIONS_USDC=0.005`, which is encoded as `5000`
   micro-USDC in `PAYMENT-REQUIRED`.
+- A separate free showcase route `GET /public/agents/brownie/positions` returns
+  the same response shape for the Brownie Bot treasury wallet only (hardcoded
+  address; not a general free positions browser).
 
 ## Discovery Contract (Grade A)
 

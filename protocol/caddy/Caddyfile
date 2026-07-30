@@ -3,9 +3,22 @@
 }
 
 {$CADDY_SITE_ADDRESS} {
+	header {
+		Access-Control-Allow-Origin *
+		Access-Control-Allow-Methods "GET, POST, OPTIONS"
+		Access-Control-Allow-Headers "Content-Type, PAYMENT-SIGNATURE, PAYMENT-REQUIRED, PAYMENT-RESPONSE"
+	}
+
+	@options {
+		method OPTIONS
+	}
+	handle @options {
+		respond 204
+	}
+
 	@free {
 		method GET
-		path / /health /ready /metadata /discovery /openapi.json /llms.txt /llms-full.txt /robots.txt /favicon.ico /favicon.png /logo.png /banner.png /.well-known/x402 /.well-known/x402.json /.well-known/agent-card.json /.well-known/agent.json /.well-known/ai-plugin.json /swaps/quote /swaps/optin /pricing /execution/shapes /strategies /strategies/*
+		path / /health /ready /metadata /discovery /openapi.json /llms.txt /llms-full.txt /robots.txt /favicon.ico /favicon.png /logo.png /banner.png /.well-known/x402 /.well-known/x402.json /.well-known/agent-card.json /.well-known/agent.json /.well-known/ai-plugin.json /swaps/quote /swaps/optin /pricing /execution/shapes /strategies /strategies/* /public/agents/brownie/positions
 	}
 	handle @free {
 		reverse_proxy {$UPSTREAM_API}

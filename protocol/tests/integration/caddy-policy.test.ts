@@ -10,6 +10,10 @@ test("Caddy keeps free POST routes outside x402 enforcement", () => {
   assert.match(caddyfile, /@free \{[\s\S]*?path [^\n]*\/execution\/shapes/);
   assert.match(caddyfile, /@free \{[\s\S]*?path [^\n]*\/strategies/);
   assert.match(caddyfile, /@free \{[\s\S]*?path [^\n]*\/ready/);
+  assert.match(
+    caddyfile,
+    /@free \{[\s\S]*?path [^\n]*\/public\/agents\/brownie\/positions/
+  );
   assert.doesNotMatch(caddyfile, /@free \{[\s\S]*?path [^\n]*\/metrics/);
   assert.match(caddyfile, /@paid_strategy_publish/);
   assert.match(caddyfile, /@paid_strategy_revise/);

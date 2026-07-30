@@ -62,3 +62,16 @@ test("ready and metrics are free system routes", () => {
   assert.ok(endpointPolicyMatrix.some((endpoint) => endpoint.id === "ready"));
   assert.ok(endpointPolicyMatrix.some((endpoint) => endpoint.id === "metrics"));
 });
+
+test("Brownie showcase positions are free while arbitrary /positions stays paid", () => {
+  assert.equal(
+    classifyEndpointAccess("/public/agents/brownie/positions", "GET"),
+    "free"
+  );
+  assert.equal(classifyEndpointAccess("/positions", "GET"), "paid");
+  const showcase = endpointPolicyMatrix.find(
+    (endpoint) => endpoint.id === "publicBrowniePositions"
+  );
+  assert.equal(showcase?.access, "free");
+  assert.equal(showcase?.pathPattern, "/public/agents/brownie/positions");
+});
