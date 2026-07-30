@@ -44,7 +44,13 @@ export const config = {
   pricingUrl: import.meta.env.PUBLIC_PRICING_URL ?? `${gatewayBaseUrl}/pricing`,
   tinymanAnalyticsBaseUrl:
     import.meta.env.PUBLIC_TINYMAN_ANALYTICS_BASE_URL ??
-    "https://mainnet.analytics.tinyman.org/api/v1"
+    "https://mainnet.analytics.tinyman.org/api/v1",
+  tinymanAsaListUrl:
+    import.meta.env.PUBLIC_TINYMAN_ASA_LIST_URL ??
+    "https://asa-list.tinyman.org/assets.json",
+  tinymanAsaIconBaseUrl:
+    import.meta.env.PUBLIC_TINYMAN_ASA_ICON_BASE_URL ??
+    "https://asa-list.tinyman.org/assets"
 };
 
 export { supportedProtocols } from "./protocols";
