@@ -265,7 +265,6 @@ function ensureGroupFeePool(transactions: Transaction[], userAddress: string): T
       return txn;
     }
     txn.fee = BigInt(txn.fee) + shortfall;
-    txn.flatFee = true;
     return txn;
   });
 
