@@ -1,11 +1,16 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { config } from "../lib/config";
+import { protocols } from "../lib/protocols";
 
 const wallet = config.brownieBotWallet;
 const truncatedWallet =
   wallet.length > 16 ? `${wallet.slice(0, 8)}…${wallet.slice(-8)}` : wallet;
 const alloAccountUrl = `${config.alloAccountBaseUrl}/${wallet}`;
+
+const protocolLogos = Object.fromEntries(
+  protocols.map((protocol) => [protocol.slug, protocol.logo])
+);
 ---
 
 <BaseLayout
@@ -93,89 +98,88 @@ const alloAccountUrl = `${config.alloAccountBaseUrl}/${wallet}`;
       <p id="agent-status" class="muted agent-status" aria-live="polite">Loading portfolio…</p>
     </section>
 
-    <section class="agent-section">
-      <div class="section-header">
-        <h2>Holdings</h2>
-        <p class="muted">Liquid ALGO and ASA balances from the Algorand Indexer, priced via free <code>POST /pricing</code>. Balances under 0.01 asset units are hidden.</p>
-      </div>
-      <div id="holdings-stats" class="transactions-stats" hidden>
-        <div class="transactions-stat">
-          <span class="transactions-stat-label">Assets shown</span>
-          <span id="holdings-count" class="transactions-stat-value">—</span>
+    <div class="agent-portfolio-grid">
+      <section class="agent-section agent-section--card">
+        <div class="section-header">
+          <h2>Wallet assets</h2>
+          <p class="muted">Liquid balances (Indexer). Under 0.01 units hidden.</p>
         </div>
-        <div class="transactions-stat">
-          <span class="transactions-stat-label">Est. liquid USD</span>
-          <span id="holdings-total" class="transactions-stat-value">—</span>
+        <div id="holdings-stats" class="transactions-stats agent-stats" hidden>
+          <div class="transactions-stat">
+            <span class="transactions-stat-label">Assets</span>
+            <span id="holdings-count" class="transactions-stat-value">—</span>
+          </div>
+          <div class="transactions-stat">
+            <span class="transactions-stat-label">Liquid USD</span>
+            <span id="holdings-total" class="transactions-stat-value">—</span>
+          </div>
         </div>
-      </div>
-      <div class="transactions-table-wrap">
-        <table class="endpoint-table transactions-table" aria-label="Brownie Bot liquid holdings">
-          <thead>
-            <tr>
-              <th>Asset</th>
-              <th>Amount</th>
-              <th>USD</th>
-            </tr>
-          </thead>
-          <tbody id="holdings-body">
-            <tr><td colspan="3" class="muted">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+        <div class="transactions-table-wrap agent-table-wrap">
+          <table class="endpoint-table transactions-table agent-table" aria-label="Brownie Bot liquid holdings">
+            <thead>
+              <tr>
+                <th>Asset</th>
+                <th>Amount</th>
+                <th>USD</th>
+              </tr>
+            </thead>
+            <tbody id="holdings-body">
+              <tr><td colspan="3" class="muted">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-    <section class="agent-section">
-      <div class="section-header">
-        <h2>DeFi positions</h2>
-        <p class="muted">
-          Normalized positions from
-          <code>GET /public/agents/brownie/positions</code> (Brownie showcase only).
-        </p>
-      </div>
-      <div id="positions-stats" class="transactions-stats" hidden>
-        <div class="transactions-stat">
-          <span class="transactions-stat-label">Positions</span>
-          <span id="positions-count" class="transactions-stat-value">—</span>
+      <section class="agent-section agent-section--card">
+        <div class="section-header">
+          <h2>DeFi positions</h2>
+          <p class="muted">From <code>/public/agents/brownie/positions</code>.</p>
         </div>
-        <div class="transactions-stat">
-          <span class="transactions-stat-label">Supplied USD</span>
-          <span id="positions-supplied" class="transactions-stat-value">—</span>
+        <div id="positions-stats" class="transactions-stats agent-stats" hidden>
+          <div class="transactions-stat">
+            <span class="transactions-stat-label">Positions</span>
+            <span id="positions-count" class="transactions-stat-value">—</span>
+          </div>
+          <div class="transactions-stat">
+            <span class="transactions-stat-label">Supplied</span>
+            <span id="positions-supplied" class="transactions-stat-value">—</span>
+          </div>
+          <div class="transactions-stat">
+            <span class="transactions-stat-label">Rewards</span>
+            <span id="positions-rewards" class="transactions-stat-value">—</span>
+          </div>
+          <div class="transactions-stat">
+            <span class="transactions-stat-label">Net</span>
+            <span id="positions-net" class="transactions-stat-value">—</span>
+          </div>
         </div>
-        <div class="transactions-stat">
-          <span class="transactions-stat-label">Rewards USD</span>
-          <span id="positions-rewards" class="transactions-stat-value">—</span>
+        <p id="positions-caveats" class="muted transactions-stats-note" hidden></p>
+        <div class="transactions-table-wrap agent-table-wrap">
+          <table class="endpoint-table transactions-table agent-table" aria-label="Brownie Bot DeFi positions">
+            <thead>
+              <tr>
+                <th>Protocol</th>
+                <th>Type</th>
+                <th>Asset</th>
+                <th>Amount</th>
+                <th>USD</th>
+              </tr>
+            </thead>
+            <tbody id="positions-body">
+              <tr><td colspan="5" class="muted">Loading…</td></tr>
+            </tbody>
+          </table>
         </div>
-        <div class="transactions-stat">
-          <span class="transactions-stat-label">Net USD</span>
-          <span id="positions-net" class="transactions-stat-value">—</span>
-        </div>
-      </div>
-      <p id="positions-caveats" class="muted transactions-stats-note" hidden></p>
-      <div class="transactions-table-wrap">
-        <table class="endpoint-table transactions-table" aria-label="Brownie Bot DeFi positions">
-          <thead>
-            <tr>
-              <th>Protocol</th>
-              <th>Type</th>
-              <th>Asset</th>
-              <th>Amount</th>
-              <th>USD</th>
-            </tr>
-          </thead>
-          <tbody id="positions-body">
-            <tr><td colspan="5" class="muted">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+      </section>
+    </div>
 
-    <section class="agent-section">
+    <section class="agent-section agent-section--card agent-section--transactions">
       <div class="section-header">
         <h2>Latest transactions</h2>
         <p class="muted">Recent on-chain activity for the treasury wallet (Indexer).</p>
       </div>
-      <div class="transactions-table-wrap">
-        <table class="endpoint-table transactions-table" aria-label="Brownie Bot latest transactions">
+      <div class="transactions-table-wrap agent-table-wrap">
+        <table class="endpoint-table transactions-table agent-table" aria-label="Brownie Bot latest transactions">
           <thead>
             <tr>
               <th>Time</th>
@@ -221,6 +225,10 @@ const alloAccountUrl = `${config.alloAccountBaseUrl}/${wallet}`;
       pricingUrl: config.pricingUrl,
       positionsUrl: config.publicBrowniePositionsUrl,
       tinymanAnalyticsUrl: config.tinymanAnalyticsBaseUrl,
+      tinymanAsaListUrl: config.tinymanAsaListUrl,
+      tinymanAsaIconBaseUrl: config.tinymanAsaIconBaseUrl,
+      protocolLogos,
+      usdcAssetId: Number(config.usdcAssetId),
       txExplorerBase: config.alloTxBaseUrl,
       pollMs: config.transactionsRefreshMs
     })
@@ -232,6 +240,10 @@ const alloAccountUrl = `${config.alloAccountBaseUrl}/${wallet}`;
     pricingUrl,
     positionsUrl,
     tinymanAnalyticsUrl,
+    tinymanAsaListUrl,
+    tinymanAsaIconBaseUrl,
+    protocolLogos,
+    usdcAssetId,
     txExplorerBase,
     pollMs
   } = JSON.parse(agentPageConfig);
@@ -241,6 +253,10 @@ const alloAccountUrl = `${config.alloAccountBaseUrl}/${wallet}`;
 
   /** @type {ReturnType<typeof setInterval> | null} */
   let refreshTimer = null;
+  /** @type {Record<string, { unitName?: string; name?: string; logoPng?: string }> | null} */
+  let asaListCache = null;
+  /** @type {Promise<Record<string, { unitName?: string; name?: string; logoPng?: string }>> | null} */
+  let asaListPromise = null;
 
   /**
    * @param {string} value
@@ -252,6 +268,98 @@ const alloAccountUrl = `${config.alloAccountBaseUrl}/${wallet}`;
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#39;");
+  }
+
+  /**
+   * @returns {Promise<Record<string, { unitName?: string; name?: string; logoPng?: string }>>}
+   */
+  async function loadAsaList() {
+    if (asaListCache) return asaListCache;
+    if (asaListPromise) return asaListPromise;
+
+    asaListPromise = (async () => {
+      /** @type {Record<string, { unitName?: string; name?: string; logoPng?: string }>} */
+      const mapped = {};
+      try {
+        const response = await fetch(tinymanAsaListUrl);
+        if (!response.ok) return mapped;
+        const payload = await response.json();
+        if (!payload || typeof payload !== "object") return mapped;
+        for (const [id, entry] of Object.entries(payload)) {
+          if (!entry || typeof entry !== "object") continue;
+          const record = /** @type {Record<string, unknown>} */ (entry);
+          const logo = record.logo;
+          const logoPng =
+            logo && typeof logo === "object" && typeof /** @type {Record<string, unknown>} */ (logo).png === "string"
+              ? /** @type {string} */ (/** @type {Record<string, unknown>} */ (logo).png)
+              : `${tinymanAsaIconBaseUrl.replace(/\/$/, "")}/${id}/icon.png`;
+          mapped[String(id)] = {
+            unitName:
+              typeof record.unit_name === "string" ? record.unit_name : undefined,
+            name: typeof record.name === "string" ? record.name : undefined,
+            logoPng
+          };
+        }
+      } catch {
+        // Icons fall back to constructed CDN URLs below.
+      }
+      asaListCache = mapped;
+      return mapped;
+    })();
+
+    return asaListPromise;
+  }
+
+  /**
+   * @param {number | null | undefined} assetId
+   * @param {string | null | undefined} symbol
+   */
+  function assetCell(assetId, symbol) {
+    const id =
+      assetId === null || assetId === undefined || !Number.isFinite(Number(assetId))
+        ? null
+        : Number(assetId);
+    const meta = id === null ? undefined : asaListCache?.[String(id)];
+    const label =
+      (typeof symbol === "string" && symbol.length > 0 ? symbol : null) ||
+      meta?.unitName ||
+      meta?.name ||
+      (id === 0 ? "ALGO" : id === null ? "—" : `ASA ${id}`);
+    const iconUrl =
+      id === null
+        ? null
+        : meta?.logoPng ||
+          `${tinymanAsaIconBaseUrl.replace(/\/$/, "")}/${id}/icon.png`;
+    const idLabel = id === null ? "" : id === 0 ? "ALGO · 0" : `ASA ${id}`;
+
+    return `<span class="agent-asset-cell">
+      ${
+        iconUrl
+          ? `<img class="agent-asset-icon" src="${escapeHtml(iconUrl)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.style.visibility='hidden'" />`
+          : `<span class="agent-asset-icon agent-asset-icon--empty" aria-hidden="true"></span>`
+      }
+      <span class="agent-asset-text">
+        <strong>${escapeHtml(label)}</strong>
+        ${idLabel ? `<span class="muted">${escapeHtml(idLabel)}</span>` : ""}
+      </span>
+    </span>`;
+  }
+
+  /**
+   * @param {string | null | undefined} protocol
+   */
+  function protocolCell(protocol) {
+    const slug = typeof protocol === "string" ? protocol : "";
+    const logo = slug && protocolLogos?.[slug] ? String(protocolLogos[slug]) : "";
+    const label = slug || "—";
+    return `<span class="agent-protocol-cell">
+      ${
+        logo
+          ? `<img class="agent-protocol-icon" src="${escapeHtml(logo)}" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="this.style.visibility='hidden'" />`
+          : `<span class="agent-protocol-icon agent-protocol-icon--empty" aria-hidden="true"></span>`
+      }
+      <span>${escapeHtml(label)}</span>
+    </span>`;
   }
 
   /**
@@ -274,6 +382,22 @@ const alloAccountUrl = `${config.alloAccountBaseUrl}/${wallet}`;
       currency: "USD",
       maximumFractionDigits: 2
     });
+  }
+
+  /**
+   * Mainnet USDC is always $1 for display.
+   * @param {number | null | undefined} assetId
+   * @param {string | number | null | undefined} amount
+   * @param {number | null | undefined} usdValue
+   */
+  function resolveUsdValue(assetId, amount, usdValue) {
+    if (Number(assetId) === Number(usdcAssetId)) {
+      const units = typeof amount === "number" ? amount : Number(amount);
+      return Number.isFinite(units) ? units : null;
+    }
+    return typeof usdValue === "number" && Number.isFinite(usdValue)
+      ? usdValue
+      : null;
   }
 
   /**
@@ -407,6 +531,8 @@ const alloAccountUrl = `${config.alloAccountBaseUrl}/${wallet}`;
     let priced = false;
 
     pricesById = await fetchUsdPrices(assetIds);
+    // Mainnet USDC is always $1.
+    pricesById[String(usdcAssetId)] = 1;
     priced = Object.keys(pricesById).length > 0;
 
     // Enrich ASA decimals/symbols from indexer when possible (best-effort, capped).
@@ -489,6 +615,7 @@ const alloAccountUrl = `${config.alloAccountBaseUrl}/${wallet}`;
           }
         }
         if (Object.keys(mapped).length > 0) {
+          mapped[String(usdcAssetId)] = 1;
           return mapped;
         }
       }
@@ -496,7 +623,9 @@ const alloAccountUrl = `${config.alloAccountBaseUrl}/${wallet}`;
       // Gateway CORS may block until Caddy is redeployed — fall through.
     }
 
-    return fetchTinymanUsdPrices(unique);
+    const fallback = await fetchTinymanUsdPrices(unique);
+    fallback[String(usdcAssetId)] = 1;
+    return fallback;
   }
 
   /**
@@ -548,19 +677,26 @@ const alloAccountUrl = `${config.alloAccountBaseUrl}/${wallet}`;
       return;
     }
 
-    const valued = holdings.filter((h) => typeof h.usdValue === "number");
-    const totalUsd = valued.reduce((sum, h) => sum + (h.usdValue ?? 0), 0);
+    const valued = holdings.map((h) => ({
+      ...h,
+      usdValue: resolveUsdValue(h.assetId, h.amount, h.usdValue)
+    }));
+    const pricedRows = valued.filter((h) => typeof h.usdValue === "number");
+    const totalUsd = pricedRows.reduce((sum, h) => sum + (h.usdValue ?? 0), 0);
 
     if (stats && countEl && totalEl) {
       countEl.textContent = holdings.length.toLocaleString();
-      totalEl.textContent = priced && valued.length > 0 ? formatUsd(totalUsd) : "—";
+      totalEl.textContent =
+        (priced || pricedRows.length > 0) && pricedRows.length > 0
+          ? formatUsd(totalUsd)
+          : "—";
       stats.hidden = false;
     }
 
-    tbody.innerHTML = holdings
+    tbody.innerHTML = valued
       .map(
         (h) => `<tr>
-          <td><strong>${escapeHtml(h.symbol)}</strong><br /><span class="muted">${h.assetId === 0 ? "ALGO" : `ASA ${h.assetId}`}</span></td>
+          <td>${assetCell(h.assetId, h.symbol)}</td>
           <td>${escapeHtml(h.amount)}</td>
           <td>${formatUsd(h.usdValue)}</td>
         </tr>`
@@ -622,13 +758,14 @@ const alloAccountUrl = `${config.alloAccountBaseUrl}/${wallet}`;
 
     tbody.innerHTML = rows
       .map((row) => {
-        const symbol = row.assetSymbol ?? (row.assetId != null ? `ASA ${row.assetId}` : "—");
+        const symbol = row.assetSymbol ?? null;
+        const usd = resolveUsdValue(row.assetId, row.amount, row.usdValue);
         return `<tr>
-          <td>${escapeHtml(String(row.protocol ?? "—"))}</td>
+          <td>${protocolCell(row.protocol)}</td>
           <td>${escapeHtml(String(row.positionType ?? "—"))}</td>
-          <td>${escapeHtml(String(symbol))}</td>
+          <td>${assetCell(row.assetId, symbol)}</td>
           <td>${escapeHtml(String(row.amount ?? "—"))}</td>
-          <td>${formatUsd(row.usdValue)}</td>
+          <td>${formatUsd(usd)}</td>
         </tr>`;
       })
       .join("");
@@ -709,6 +846,12 @@ const alloAccountUrl = `${config.alloAccountBaseUrl}/${wallet}`;
 
   async function refreshPortfolio() {
     const errors = [];
+
+    try {
+      await loadAsaList();
+    } catch {
+      // Non-fatal: icons fall back to CDN URL pattern.
+    }
 
     try {
       const holdings = await fetchHoldings();
