@@ -580,6 +580,15 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "description": "Bypass Redis and refetch adapters; still writes a fresh cache entry. Default false.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
           }
         ],
         "responses": {
@@ -637,7 +646,7 @@
     "/opportunities/search": {
       "get": {
         "summary": "Caller-filtered opportunities across supported platforms",
-        "description": "Returns Algorand DeFi opportunities filtered by platform, opportunity type, APY range, and TVL threshold across supported sources. Use when an agent needs targeted discovery such as high-yield liquidity pools, lending markets, protocol-specific yield, or minimum-liquidity opportunities on Algorand. This endpoint provides normalized market data only; it does not build or submit transactions.",
+        "description": "Returns Algorand DeFi opportunities filtered by platform, opportunity type, APY range, TVL threshold, and optional ASA assetIds across supported sources. Use when an agent needs targeted discovery such as high-yield liquidity pools, lending markets, protocol-specific yield, minimum-liquidity opportunities, or yields for specific Algorand assets (assetIds=0 for ALGO). This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": [
           "defi",
           "opportunities",
@@ -683,6 +692,15 @@
             }
           },
           {
+            "name": "assetIds",
+            "in": "query",
+            "description": "Comma-separated Algorand ASA ids (0 = ALGO). Keeps opportunities whose assetIds intersect any requested id. Rows without assetIds do not match when this filter is set.",
+            "schema": {
+              "type": "string",
+              "example": "0,31566704"
+            }
+          },
+          {
             "name": "limit",
             "in": "query",
             "schema": {
@@ -705,6 +723,15 @@
             "in": "query",
             "schema": {
               "type": "boolean"
+            }
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "description": "Bypass Redis and refetch adapters; still writes a fresh cache entry. Default false.",
+            "schema": {
+              "type": "boolean",
+              "default": false
             }
           }
         ],
@@ -803,6 +830,15 @@
             "in": "query",
             "schema": {
               "type": "boolean"
+            }
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "description": "Bypass Redis and refetch adapters; still writes a fresh cache entry. Default false.",
+            "schema": {
+              "type": "boolean",
+              "default": false
             }
           }
         ],
@@ -937,7 +973,7 @@
     "/public/agents/brownie/positions": {
       "get": {
         "summary": "Public DeFi positions for the Brownie Bot showcase wallet",
-        "description": "Free showcase route that returns normalized DeFi positions for the Brownie Bot treasury wallet only. The wallet address is hardcoded server-side — this is not a general free /positions browser. Use GET /positions?address= for arbitrary wallets (paid).",
+        "description": "Free showcase route that returns normalized DeFi positions for the Brownie Bot treasury wallet only. The wallet address is hardcoded server-side \u2014 this is not a general free /positions browser. Use GET /positions?address= for arbitrary wallets (paid).",
         "tags": [
           "defi",
           "positions",
@@ -1017,6 +1053,15 @@
             "in": "query",
             "schema": {
               "type": "boolean"
+            }
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "description": "Bypass Redis and refetch adapters; still writes a fresh cache entry. Default false.",
+            "schema": {
+              "type": "boolean",
+              "default": false
             }
           }
         ],
@@ -1975,7 +2020,12 @@
           "limit",
           "offset",
           "includeInactive",
-          "paymentRequired"
+          "paymentRequired",
+          "cacheEnabled",
+          "cacheHit",
+          "cachedAt",
+          "cacheAgeMs",
+          "cacheTtlSec"
         ],
         "properties": {
           "limit": {
@@ -1989,6 +2039,35 @@
           },
           "paymentRequired": {
             "type": "boolean"
+          },
+          "cacheEnabled": {
+            "type": "boolean",
+            "description": "True when Redis opportunity cache is configured and not disabled."
+          },
+          "cacheHit": {
+            "type": "boolean",
+            "description": "True when every protocol fetch used in this response was served from Redis."
+          },
+          "cachedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Oldest cache write timestamp among protocols used; null when cache is disabled."
+          },
+          "cacheAgeMs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "Age of cachedAt relative to response time; informational only (no harsh stale flag)."
+          },
+          "cacheTtlSec": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Configured Redis TTL in seconds (default 180)."
           }
         }
       },
@@ -4891,7 +4970,12 @@
             "limit": 10,
             "offset": 0,
             "includeInactive": false,
-            "paymentRequired": true
+            "paymentRequired": true,
+            "cacheEnabled": false,
+            "cacheHit": false,
+            "cachedAt": null,
+            "cacheAgeMs": null,
+            "cacheTtlSec": 180
           }
         }
       },
@@ -5005,7 +5089,12 @@
             "limit": 25,
             "offset": 0,
             "includeInactive": false,
-            "paymentRequired": true
+            "paymentRequired": true,
+            "cacheEnabled": false,
+            "cacheHit": false,
+            "cachedAt": null,
+            "cacheAgeMs": null,
+            "cacheTtlSec": 180
           }
         }
       },
@@ -5287,7 +5376,12 @@
             "includeInactive": false,
             "paymentRequired": true,
             "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "heldAssetCount": 2
+            "heldAssetCount": 2,
+            "cacheEnabled": false,
+            "cacheHit": false,
+            "cachedAt": null,
+            "cacheAgeMs": null,
+            "cacheTtlSec": 180
           }
         }
       },
@@ -5380,7 +5474,12 @@
             "limit": 25,
             "offset": 0,
             "includeInactive": false,
-            "paymentRequired": true
+            "paymentRequired": true,
+            "cacheEnabled": false,
+            "cacheHit": false,
+            "cachedAt": null,
+            "cacheAgeMs": null,
+            "cacheTtlSec": 180
           }
         }
       },

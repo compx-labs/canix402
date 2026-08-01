@@ -77,6 +77,27 @@ Note: the payer wallet is client-side. Caddy only needs payment policy values
 (`pay_to`, `price`, `network`) and facilitator URL; it does not store a payer
 mnemonic/private key.
 
+## x402 request telemetry (structured logs)
+
+This tranche’s agent/request monitoring is **Caddy structured logs only** (no
+Prometheus counters, no admin dashboard). On paid-route outcomes the middleware
+emits zap fields:
+
+- `event`: `x402_payment_required` | `x402_verify_failed` |
+  `x402_settlement_failed` | `x402_payment_settled`
+- `path`, `method`, `user_agent`, `referer` (headers truncated; never logs
+  `PAYMENT-SIGNATURE` bodies)
+- Outcome extras when available: `payer`, `tx`, `network`, `reason`
+
+Filter DigitalOcean App Platform Caddy logs by `event` / `user_agent` /
+`referer` to watch which directories or agents hit the gateway. See
+`docs/incident-response.md` (x402 traffic section). Redeploy the **Caddy**
+gateway component for these fields to appear in production; a protocol-only
+redeploy is not enough.
+
+The public website `/transactions` page remains indexer-only settlement
+showcase and is not this telemetry.
+
 ## Production Docker (App Platform)
 
 Build the gateway from **`protocol/caddy`**:

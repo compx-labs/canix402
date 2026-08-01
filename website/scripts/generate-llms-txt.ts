@@ -167,7 +167,10 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
     positions: loadSample("positions.sample.json"),
     executionShapes: loadSample("execution-shapes.sample.json"),
     executionQuotes: loadSample("execution-quotes.sample.json"),
-    strategies: loadSample("strategies.sample.json")
+    strategies: loadSample("strategies.sample.json"),
+    swapsQuote: loadSample("swaps-quote.sample.json"),
+    swapsOptin: loadSample("swaps-optin.sample.json"),
+    swapsTransactions: loadSample("swaps-transactions.sample.json")
   };
 
   return `# CANIX402 — full agent integration guide
@@ -230,7 +233,7 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 
 - \`GET /opportunities\` — top aggregated opportunities ranked by APY (default limit 10).
 - \`GET /protocols/:protocol/opportunities\` — protocol slug e.g. \`tinyman\`, \`pact\`, \`folks-finance\`, \`compx\`, \`dorkfi\`, \`myth-finance\`, \`haystack\`, \`reti\`, \`alpha-arcade\`.
-- \`GET /opportunities/search\` — filter by \`platform\`, \`type\`, \`minApy\`, \`maxApy\`, \`minTvlUsd\`.
+- \`GET /opportunities/search\` — filter by \`platform\`, \`type\`, \`minApy\`, \`maxApy\`, \`minTvlUsd\`, \`assetIds\` (comma-separated ASA ids; 0 = ALGO; ANY intersection with opportunity.assetIds).
 - \`GET /opportunities/personalized\` — requires \`address\` (Algorand account); premium price; matches opportunities to wallet-held assets.
 - \`GET /positions\` — requires \`address\` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
 - \`GET /execution/shapes\` — free catalog of verified shape keys and requiredInputs (metadata only).
@@ -294,6 +297,24 @@ ${JSON.stringify(samples.positions, null, 2)}
 
 \`\`\`json
 ${JSON.stringify(samples.strategies, null, 2)}
+\`\`\`
+
+### POST /swaps/quote
+
+\`\`\`json
+${JSON.stringify(samples.swapsQuote, null, 2)}
+\`\`\`
+
+### POST /swaps/optin
+
+\`\`\`json
+${JSON.stringify(samples.swapsOptin, null, 2)}
+\`\`\`
+
+### POST /swaps/transactions
+
+\`\`\`json
+${JSON.stringify(samples.swapsTransactions, null, 2)}
 \`\`\`
 
 ## Trust and disclaimer

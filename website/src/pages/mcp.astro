@@ -46,6 +46,16 @@ import { config, mcpToolNames } from "../lib/config";
       does not retain quotes, sign transactions, or submit them; gateway responses pass through to
       the caller.
     </p>
+    <CodeBlock
+      code={`// Free quote\ncanix_get_quote({\n  address: "YOUR_ALGORAND_ADDRESS",\n  fromAssetId: 0,\n  toAssetId: 31566704,\n  amount: "1000000",\n  type: "fixed-input"\n})\n\n// Free opt-in (pass quote from previous step)\ncanix_optin({\n  address: "YOUR_ALGORAND_ADDRESS",\n  quote: { /* quote data */ }\n})\n\n// Paid swap — preflight, then retry with paymentSignature\ncanix_swap({\n  address: "YOUR_ALGORAND_ADDRESS",\n  quote: { /* fresh quote data */ },\n  slippage: 0.005\n})\ncanix_swap({\n  address: "YOUR_ALGORAND_ADDRESS",\n  quote: { /* fresh quote data */ },\n  slippage: 0.005,\n  paymentSignature: "<base64-json-payload>"\n})`}
+    />
+  </section>
+
+  <section class="panel">
+    <h2>Positions and execution quotes (paid tools)</h2>
+    <CodeBlock
+      code={`// Positions\ncanix_get_positions({ address: "YOUR_ALGORAND_ADDRESS" })\ncanix_get_positions({\n  address: "YOUR_ALGORAND_ADDRESS",\n  paymentSignature: "<base64-json-payload>"\n})\n\n// Execution quotes (batch)\ncanix_get_execution_quote({\n  quotes: [{\n    shapeKey: "mainnet:tinyman:v2:addLiquidity:flexible",\n    input: {\n      userAddress: "YOUR_ALGORAND_ADDRESS",\n      assetAId: 0,\n      assetAAmount: "1000000",\n      assetBId: 31566704,\n      assetBAmount: "1000000",\n      maxSlippageBps: 50\n    }\n  }]\n})\ncanix_get_execution_quote({\n  quotes: [/* same body */],\n  paymentSignature: "<base64-json-payload>"\n})`}
+    />
   </section>
 
   <section class="panel">

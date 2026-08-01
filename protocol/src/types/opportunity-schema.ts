@@ -174,7 +174,12 @@ export const OpportunitiesListMetaSchema = Type.Object({
   limit: Type.Integer(),
   offset: Type.Integer(),
   includeInactive: Type.Boolean(),
-  paymentRequired: Type.Boolean()
+  paymentRequired: Type.Boolean(),
+  cacheEnabled: Type.Boolean(),
+  cacheHit: Type.Boolean(),
+  cachedAt: Type.Union([Type.String({ format: "date-time" }), Type.Null()]),
+  cacheAgeMs: Type.Union([Type.Integer({ minimum: 0 }), Type.Null()]),
+  cacheTtlSec: Type.Integer({ minimum: 0 })
 });
 
 export const OpportunitiesListResponseSchema = Type.Object({

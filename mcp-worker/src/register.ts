@@ -267,13 +267,18 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
   server.registerTool(
     "canix_search_opportunities",
     {
-      description: "Search/filter opportunities via GET /opportunities/search. Paid ~0.01 USDC.",
+      description:
+        "Search/filter opportunities via GET /opportunities/search. Optional assetIds is a comma-separated list of ASA ids (0 = ALGO). Paid ~0.01 USDC.",
       inputSchema: {
         platform: z.string().optional(),
         type: z.string().optional(),
         minApy: z.number().optional(),
         maxApy: z.number().optional(),
         minTvlUsd: z.number().min(0).optional(),
+        assetIds: z
+          .string()
+          .optional()
+          .describe("Comma-separated ASA ids (0 = ALGO), e.g. \"0,31566704\""),
         limit: z.number().int().min(1).max(200).optional(),
         offset: z.number().int().min(0).optional(),
         includeInactive: z.boolean().optional(),
@@ -288,6 +293,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
           minApy: args.minApy,
           maxApy: args.maxApy,
           minTvlUsd: args.minTvlUsd,
+          assetIds: args.assetIds,
           limit: args.limit,
           offset: args.offset,
           includeInactive: args.includeInactive

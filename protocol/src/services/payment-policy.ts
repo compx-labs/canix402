@@ -161,7 +161,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     description:
       "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, Haystack, Réti, and Alpha Arcade. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
     tags: ["defi", "opportunities", HACKATHON_TAG],
-    queryParams: ["protocol", "limit", "offset", "includeInactive"]
+    queryParams: ["protocol", "limit", "offset", "includeInactive", "refresh"]
   },
   {
     id: "protocolOpportunities",
@@ -173,7 +173,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
       "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, or alpha-arcade. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
     tags: ["defi", "opportunities", "protocol", HACKATHON_TAG],
     pathParams: ["protocol"],
-    queryParams: ["limit", "offset", "includeInactive"]
+    queryParams: ["limit", "offset", "includeInactive", "refresh"]
   },
   {
     id: "filteredOpportunities",
@@ -182,7 +182,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     access: "paid",
     summary: "Caller-filtered opportunities across supported platforms",
     description:
-      "Returns Algorand DeFi opportunities filtered by platform, opportunity type, APY range, and TVL threshold across supported sources. Use when an agent needs targeted discovery such as high-yield liquidity pools, lending markets, protocol-specific yield, or minimum-liquidity opportunities on Algorand. This endpoint provides normalized market data only; it does not build or submit transactions.",
+      "Returns Algorand DeFi opportunities filtered by platform, opportunity type, APY range, TVL threshold, and optional ASA assetIds across supported sources. Use when an agent needs targeted discovery such as high-yield liquidity pools, lending markets, protocol-specific yield, minimum-liquidity opportunities, or yields for specific Algorand assets (assetIds=0 for ALGO). This endpoint provides normalized market data only; it does not build or submit transactions.",
     tags: ["defi", "opportunities", "search", HACKATHON_TAG],
     queryParams: [
       "platform",
@@ -190,9 +190,11 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
       "minApy",
       "maxApy",
       "minTvlUsd",
+      "assetIds",
       "limit",
       "offset",
-      "includeInactive"
+      "includeInactive",
+      "refresh"
     ]
   },
   {
@@ -204,7 +206,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     description:
       "Returns Algorand DeFi opportunities whose underlying assets match a supplied wallet's holdings, including opted-in ASAs with positive balance and native ALGO when held. Use when an agent needs wallet-aware yield ideas based on assets the account already owns, with normalized APY/APR, TVL, asset ids, source freshness, and caveats. This endpoint provides normalized market data only; it does not build or submit transactions.",
     tags: ["defi", "opportunities", "personalized", "wallet", HACKATHON_TAG],
-    queryParams: ["address", "limit", "offset", "includeInactive"],
+    queryParams: ["address", "limit", "offset", "includeInactive", "refresh"],
     priceUsdc: process.env.X402_PRICE_PERSONALIZED_USDC ?? "0.05"
   },
   {

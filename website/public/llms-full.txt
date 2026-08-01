@@ -84,7 +84,7 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 
 - `GET /opportunities` — top aggregated opportunities ranked by APY (default limit 10).
 - `GET /protocols/:protocol/opportunities` — protocol slug e.g. `tinyman`, `pact`, `folks-finance`, `compx`, `dorkfi`, `myth-finance`, `haystack`, `reti`, `alpha-arcade`.
-- `GET /opportunities/search` — filter by `platform`, `type`, `minApy`, `maxApy`, `minTvlUsd`.
+- `GET /opportunities/search` — filter by `platform`, `type`, `minApy`, `maxApy`, `minTvlUsd`, `assetIds` (comma-separated ASA ids; 0 = ALGO; ANY intersection with opportunity.assetIds).
 - `GET /opportunities/personalized` — requires `address` (Algorand account); premium price; matches opportunities to wallet-held assets.
 - `GET /positions` — requires `address` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
 - `GET /execution/shapes` — free catalog of verified shape keys and requiredInputs (metadata only).
@@ -925,6 +925,101 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
     "limit": 25,
     "offset": 0,
     "note": "strategyId equals the strategy NFT ASA id. Publish/revise/compile are paid; list/detail are free."
+  }
+}
+```
+
+### POST /swaps/quote
+
+```json
+{
+  "data": {
+    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "fromAssetId": "0",
+    "toAssetId": "31566704",
+    "amount": "1000000",
+    "type": "fixed-input",
+    "quotedAmount": "185000",
+    "createdAt": "2026-07-30T12:00:00.000Z",
+    "expiresAt": "2026-07-30T12:02:00.000Z",
+    "priceBaseline": 0.185,
+    "usdIn": 0.2,
+    "usdOut": 0.185,
+    "requiredAppOptIns": [
+      1234567890
+    ],
+    "route": [
+      {
+        "protocol": "tinyman",
+        "poolId": "1002541853"
+      }
+    ],
+    "quotes": [],
+    "protocolFees": [],
+    "txnPayload": "<opaque-haystack-quote-blob>",
+    "note": "Pass this quote object unchanged to /swaps/optin and /swaps/transactions. Refresh after any opt-in submit."
+  },
+  "meta": {
+    "paymentRequired": false,
+    "executionSubmitted": false
+  }
+}
+```
+
+### POST /swaps/optin
+
+```json
+{
+  "data": {
+    "required": true,
+    "transactions": [
+      {
+        "type": "axfer",
+        "note": "asset opt-in for toAssetId",
+        "encoded": "<base64-unsigned-txn-0>"
+      },
+      {
+        "type": "appl",
+        "note": "application opt-in for requiredAppOptIns[0]",
+        "encoded": "<base64-unsigned-txn-1>"
+      }
+    ],
+    "userSignIndexes": [
+      0,
+      1
+    ],
+    "createdAt": "2026-07-30T12:00:05.000Z",
+    "expiresAt": "2026-07-30T12:02:00.000Z"
+  },
+  "meta": {
+    "paymentRequired": false,
+    "executionSubmitted": false,
+    "note": "Empty transactions[] means no opt-ins are missing. Sign and submit locally, then fetch a fresh quote before /swaps/transactions."
+  }
+}
+```
+
+### POST /swaps/transactions
+
+```json
+{
+  "data": {
+    "encodedTransactions": [
+      "<base64-txn-0-user-sign>",
+      "<base64-txn-1-haystack-presigned>",
+      "<base64-txn-2-user-sign>"
+    ],
+    "userSignIndexes": [
+      0,
+      2
+    ],
+    "createdAt": "2026-07-30T12:00:30.000Z",
+    "expiresAt": "2026-07-30T12:02:00.000Z",
+    "note": "Sign only userSignIndexes members. Preserve Haystack pre-signed members and atomic group order. Submit the complete group via your own Algod client."
+  },
+  "meta": {
+    "paymentRequired": true,
+    "executionSubmitted": false
   }
 }
 ```

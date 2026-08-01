@@ -27,7 +27,9 @@ function createPaginationQuerySchema(defaultLimit: number) {
   return Type.Object({
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 200, default: defaultLimit })),
     offset: Type.Optional(Type.Integer({ minimum: 0, default: 0 })),
-    includeInactive: Type.Optional(Type.Boolean({ default: false }))
+    includeInactive: Type.Optional(Type.Boolean({ default: false })),
+    /** Bypass Redis and refetch adapters; still writes a fresh cache entry. */
+    refresh: Type.Optional(Type.Boolean({ default: false }))
   });
 }
 
@@ -55,11 +57,15 @@ export const FilteredOpportunitiesQuerySchema = Type.Object({
   minApy: Type.Optional(Type.Number()),
   maxApy: Type.Optional(Type.Number()),
   minTvlUsd: Type.Optional(Type.Number({ minimum: 0 })),
+  /** Comma-separated ASA ids (0 = ALGO). Matches opportunities whose assetIds intersect. */
+  assetIds: Type.Optional(Type.String()),
   limit: Type.Optional(
     Type.Integer({ minimum: 1, maximum: 200, default: FilteredOpportunitiesDefaultLimit })
   ),
   offset: Type.Optional(Type.Integer({ minimum: 0, default: 0 })),
-  includeInactive: Type.Optional(Type.Boolean({ default: false }))
+  includeInactive: Type.Optional(Type.Boolean({ default: false })),
+  /** Bypass Redis and refetch adapters; still writes a fresh cache entry. */
+  refresh: Type.Optional(Type.Boolean({ default: false }))
 });
 export type FilteredOpportunitiesQuery = Static<typeof FilteredOpportunitiesQuerySchema>;
 
@@ -74,7 +80,9 @@ export const PersonalizedOpportunitiesQuerySchema = Type.Object({
     })
   ),
   offset: Type.Optional(Type.Integer({ minimum: 0, default: 0 })),
-  includeInactive: Type.Optional(Type.Boolean({ default: false }))
+  includeInactive: Type.Optional(Type.Boolean({ default: false })),
+  /** Bypass Redis and refetch adapters; still writes a fresh cache entry. */
+  refresh: Type.Optional(Type.Boolean({ default: false }))
 });
 export type PersonalizedOpportunitiesQuery = Static<
   typeof PersonalizedOpportunitiesQuerySchema

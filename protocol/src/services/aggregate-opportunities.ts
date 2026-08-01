@@ -38,9 +38,27 @@ export const SUPPORTED_AGGREGATE_PROTOCOLS = [
 
 const OPPORTUNITY_CACHE_NETWORK = "mainnet";
 
+export interface OpportunityCacheMeta {
+  cacheEnabled: boolean;
+  cacheHit: boolean;
+  cachedAt: string | null;
+  cacheTtlSec: number;
+}
+
+export interface ProtocolFetchResult {
+  data: OpportunityMarketRecord[];
+  cacheHit: boolean;
+  cachedAt: string | null;
+}
+
 export interface AggregateFetchResult {
   data: OpportunityMarketRecord[];
   errors: Array<{ protocol: Protocol; message: string }>;
+  cache: OpportunityCacheMeta;
+}
+
+export interface FetchOpportunitiesOptions {
+  refresh?: boolean;
 }
 
 /**
@@ -51,35 +69,50 @@ export interface AggregateFetchResult {
  * callers can surface an error rather than an empty list.
  */
 export async function fetchOpportunitiesForProtocols(
-  protocols: readonly Protocol[]
+  protocols: readonly Protocol[],
+  options: FetchOpportunitiesOptions = {}
 ): Promise<OpportunityMarketRecord[]> {
-  const { data, errors } = await fetchOpportunitiesWithErrors(protocols);
-  if (data.length === 0 && errors.length > 0 && errors.length === protocols.length) {
-    throw new Error(errors[0]?.message ?? "All opportunity adapters failed.");
-  }
+  const { data } = await fetchOpportunitiesResult(protocols, options);
   return data;
 }
 
 /**
+ * Aggregate fetch with cache meta. Throws when every requested adapter fails
+ * (same semantics as {@link fetchOpportunitiesForProtocols}).
+ */
+export async function fetchOpportunitiesResult(
+  protocols: readonly Protocol[],
+  options: FetchOpportunitiesOptions = {}
+): Promise<{ data: OpportunityMarketRecord[]; cache: OpportunityCacheMeta }> {
+  const { data, errors, cache } = await fetchOpportunitiesWithErrors(protocols, options);
+  if (data.length === 0 && errors.length > 0 && errors.length === protocols.length) {
+    throw new Error(errors[0]?.message ?? "All opportunity adapters failed.");
+  }
+  return { data, cache };
+}
+
+/**
  * Like {@link fetchOpportunitiesForProtocols} but returns per-protocol errors
- * instead of discarding them. Useful for tooling that needs to report which
- * upstreams degraded.
+ * and cache freshness summary for list response meta.
  */
 export async function fetchOpportunitiesWithErrors(
-  protocols: readonly Protocol[]
+  protocols: readonly Protocol[],
+  options: FetchOpportunitiesOptions = {}
 ): Promise<AggregateFetchResult> {
   const results = await Promise.allSettled(
-    protocols.map((protocol) => fetchOpportunitiesForProtocol(protocol))
+    protocols.map((protocol) => fetchOpportunitiesForProtocolResult(protocol, options))
   );
 
   const data: OpportunityMarketRecord[] = [];
   const errors: Array<{ protocol: Protocol; message: string }> = [];
+  const fulfilled: ProtocolFetchResult[] = [];
   const log = getAppLogger();
 
   results.forEach((result, index) => {
     const protocol = protocols[index] as Protocol;
     if (result.status === "fulfilled") {
-      data.push(...result.value);
+      data.push(...result.value.data);
+      fulfilled.push(result.value);
       return;
     }
     const message =
@@ -95,24 +128,105 @@ export async function fetchOpportunitiesWithErrors(
     );
   });
 
-  return { data, errors };
+  return {
+    data,
+    errors,
+    cache: summarizeCacheMeta(fulfilled)
+  };
 }
 
-export async function fetchOpportunitiesForProtocol(
-  protocol: Protocol
-): Promise<OpportunityMarketRecord[]> {
+/** Single-protocol fetch that returns records plus cache stats for route meta. */
+export async function fetchOpportunitiesForProtocolResult(
+  protocol: Protocol,
+  options: FetchOpportunitiesOptions = {}
+): Promise<ProtocolFetchResult> {
   if (!isOpportunityCacheEnabled()) {
-    return fetchOpportunitiesForProtocolUncached(protocol);
+    const data = await fetchOpportunitiesForProtocolUncached(protocol);
+    return {
+      data,
+      cacheHit: false,
+      cachedAt: null
+    };
   }
 
   const key = opportunityCacheKey(OPPORTUNITY_CACHE_NETWORK, protocol);
   const ttl = getOpportunitiesCacheTtlSec();
-  const { value } = await getOrSetCacheJson(
+  const { value, cacheHit, cachedAt } = await getOrSetCacheJson(
     key,
     () => fetchOpportunitiesForProtocolUncached(protocol),
-    ttl
+    ttl,
+    { refresh: options.refresh === true }
   );
-  return value;
+  return { data: value, cacheHit, cachedAt };
+}
+
+/**
+ * Fetch opportunities for one protocol (records only). Prefer
+ * {@link fetchOpportunitiesForProtocolResult} when cache meta is needed.
+ */
+export async function fetchOpportunitiesForProtocol(
+  protocol: Protocol,
+  options: FetchOpportunitiesOptions = {}
+): Promise<OpportunityMarketRecord[]> {
+  const result = await fetchOpportunitiesForProtocolResult(protocol, options);
+  return result.data;
+}
+
+export function summarizeCacheMeta(
+  results: readonly ProtocolFetchResult[]
+): OpportunityCacheMeta {
+  const cacheEnabled = isOpportunityCacheEnabled();
+  const cacheTtlSec = getOpportunitiesCacheTtlSec();
+
+  if (!cacheEnabled || results.length === 0) {
+    return {
+      cacheEnabled,
+      cacheHit: false,
+      cachedAt: null,
+      cacheTtlSec
+    };
+  }
+
+  const cacheHit = results.every((result) => result.cacheHit);
+  const timestamps = results
+    .map((result) => result.cachedAt)
+    .filter((value): value is string => typeof value === "string" && value.length > 0);
+
+  // Oldest snapshot among protocols used (conservative aggregate age).
+  const cachedAt =
+    timestamps.length === 0
+      ? null
+      : timestamps.reduce((oldest, current) =>
+          Date.parse(current) < Date.parse(oldest) ? current : oldest
+        );
+
+  return {
+    cacheEnabled,
+    cacheHit,
+    cachedAt,
+    cacheTtlSec
+  };
+}
+
+export function cacheMetaForResponse(cache: OpportunityCacheMeta): {
+  cacheEnabled: boolean;
+  cacheHit: boolean;
+  cachedAt: string | null;
+  cacheAgeMs: number | null;
+  cacheTtlSec: number;
+} {
+  const cacheAgeMs =
+    cache.cachedAt === null
+      ? null
+      : Math.max(0, Date.now() - Date.parse(cache.cachedAt));
+
+  return {
+    cacheEnabled: cache.cacheEnabled,
+    cacheHit: cache.cacheHit,
+    cachedAt: cache.cachedAt,
+    cacheAgeMs: Number.isFinite(cacheAgeMs) ? cacheAgeMs : null,
+    cacheTtlSec: cache.cacheTtlSec
+  };
 }
 
 async function fetchOpportunitiesForProtocolUncached(
