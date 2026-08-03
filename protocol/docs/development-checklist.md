@@ -14,9 +14,7 @@ Status legend:
 - [~] Expand unit tests for normalization and adapter transforms (currently covered via integration test files; no dedicated `tests/unit/` suite yet).
 - [~] Finalize minimum quality gate before deploy (`test:ci` + GitHub CI for protocol/website/MCP/Docker; live execution suites intentionally excluded; formal launch sign-off still open).
 
-## 8) Strategy Marketplace and Execution Layer
-
-Canix should become the validation, discovery, transaction-generation, execution, fee-sharing, and performance-tracking layer for third-party strategies. External AI agents or human creators are responsible for creating strategies; Canix should not generate strategies itself.
+## 8) Execution Layer
 
 ### Protocol Transaction Shape Mapping (Blocking Foundation)
 
@@ -26,26 +24,7 @@ Canix should become the validation, discovery, transaction-generation, execution
 ### Validation and Safety
 
 - [ ] Dry-run/simulation endpoint without signing (optional follow-up).
-- [ ] Richer risk/caveat metadata on strategies.
-
-### Marketplace Discovery
-
-- [ ] Ranking/sorting beyond basic filters.
 
 ### Execution Compiler
 
-- [ ] Richer opportunity-state refresh during compile beyond shape build.
-
-### Fee Sharing and Monetization
-
-- [ ] Production smoke for weekly payout job.
-
-### Performance Tracking
-
-- [ ] Track strategy compile volume and payouts from chain notes.
-- [ ] Creator/strategy analytics endpoints.
-- [ ] Safeguards against misleading performance claims.
-
-### Tests and Quality Gates
-
-- [ ] Broader publish → compile → payout E2E against mainnet/facilitator.
+- [ ] Richer opportunity-state refresh during quote compilation beyond shape build.

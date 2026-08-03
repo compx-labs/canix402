@@ -1,34 +1,16 @@
-# Neon Forge — Strategies, Brownie Bot, and where this is all going
+# Neon Forge — Brownie Bot, and where this is all going
 
 Canix402 just got a lot more interesting.
 
-This update is about two pieces that fit together: **Strategies** on Canix402, and **Brownie Bot** — a proof-of-concept user-agent that shows what an autonomous treasury looks like when it actually talks to the network. We’re building Brownie in the open, and we intend to use it to manage our own community treasury once it hits v1.
+This update is about **Brownie Bot** — a proof-of-concept user-agent that shows what an autonomous treasury looks like when it actually talks to the network. We’re building Brownie in the open, and we intend to use it to manage our own community treasury once it hits v1.
 
-Both ideas are simple if you strip away the plumbing. Strategies are packaged DeFi playbooks. Brownie is a bot that can research, plan, and (when you’re ready) act — with the keys staying where they belong.
-
----
-
-## Strategies: recipes instead of raw opportunity soup
-
-Canix started as a way for agents to discover opportunities and get executable quotes. That’s powerful, but it still leaves every agent reinventing allocation logic from scratch.
-
-**Strategies** change that.
-
-A strategy is a named, weighted mix of verified DeFi actions — a recipe, not a black box. A creator might say: put 40% here, 35% there, 25% somewhere else. Each leg points at something Canix already knows how to quote and run. When someone wants to follow that playbook, Canix compiles it against a capital amount and returns unsigned transaction groups. No custody. Signing stays with the user or the bot.
-
-What that unlocks matters more than the mechanics:
-
-- **Creators** can ship a portfolio idea once and let others run it. Ownership rides on a tradable strategy NFT. When people use (compile) the strategy, half of that access fee flows weekly to whoever holds the NFT — useful playbooks can earn as they get used.
-- **Agents and operators** skip rebuilding allocation logic every day. Browse, inspect, allocate, execute under your own keys.
-- **The ecosystem** gets a shared marketplace layer. Canix doesn’t author the strategies. It validates, discovers, compiles, and shares fees so third parties can.
-
-That’s the conceptual leap: from “here’s what’s available” to “here’s a playbook the network can actually follow.”
+The idea is simple if you strip away the plumbing. Brownie researches, plans, and (when you’re ready) acts — with the keys staying where they belong.
 
 ---
 
 ## Brownie Bot: a POC that has to work in the real world
 
-Brownie Bot is our answer to a blunt question: *if Strategies and Canix402 are real, what does a user-agent look like when it runs against live Algorand DeFi?*
+Brownie Bot is our answer to a blunt question: *if Canix402 is real, what does a user-agent look like when it runs against live Algorand DeFi?*
 
 It’s an autonomous community treasury backend. Once a day it:
 
@@ -57,9 +39,7 @@ I’m optimistic. I’m also not pretending the path is clean.
 
 The **x402 global challenge** is real. Will we see meaningful volume — for ourselves and for others on Algorand? I hope so. We’re building as if the answer is yes. But the realities of crypto and blockchain give pause: liquidity is uneven, attention is elsewhere, and “great infrastructure” has never automatically meant “people show up.” Hopeful and clear-eyed at the same time. That’s the honest place to stand.
 
-And then there’s Strategies — which, if I’m being frank, is something I’ve somehow always been building.
-
-Back in **Algogator** in 2022 it was Opportunities. Then **Turbine Protocol**. Now **Canix402**. Different names, same itch: make DeFi composition discoverable, reusable, and executable — not just a spreadsheet of APYs. With Strategies on Canix, we might actually be edging toward a **Morpho-style** layer on Algorand… but for agents. Curated compositions, ownership, fee share, marketplace gravity. Not a copy of Morpho — a rhyme with it, pointed at the agent economy.
+Back in **Algogator** in 2022 it was Opportunities. Then **Turbine Protocol**. Now **Canix402**. Different names, same itch: make DeFi composition discoverable, reusable, and executable — not just a spreadsheet of APYs.
 
 ---
 
@@ -67,10 +47,10 @@ Back in **Algogator** in 2022 it was Opportunities. Then **Turbine Protocol**. N
 
 A little of what’s on the horizon:
 
-- **Signals** — social tokens around reputation, following, and conviction on strategies and creators. Strategies make ownership and usage economically linked; Signals could let communities rally around the people and playbooks they trust.
+- **Signals** — social tokens around reputation, following, and conviction on agents and creators.
 - **Marketplaces** where agents and humans compete for attention and top spots on leaderboards.
 - Hopefully, a broader **resurgence in DeFi activity** — not because of another narrative cycle alone, but because agents that can pay and execute create steady demand for real on-chain work.
 
-That’s the bet. Strategies are the product layer. Brownie is the proof that a user-agent can live on it. The rest is whether the network — and the wider x402 world — meets us halfway.
+That’s the bet. Brownie is the proof that a user-agent can live on Canix402. The rest is whether the network — and the wider x402 world — meets us halfway.
 
 We’re building either way.

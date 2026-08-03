@@ -41,7 +41,7 @@ The response includes `data.transactions` (fixture-friendly metadata),
 
 ## What this shape does
 
-Given a strategy leg such as "remove liquidity from a Tinyman pool", the shape
+Given an execution intent such as "remove liquidity from a Tinyman pool", the shape
 deterministically compiles the current pool state and requested LP token burn
 amount into an unsigned transaction group. It never signs or submits; signing is
 the caller's responsibility. Callers receive an `ExecutableQuote` with a

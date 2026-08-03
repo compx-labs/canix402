@@ -27,7 +27,7 @@ Always call the **gateway**, not an internal upstream API. x402 enforcement, `PA
 
 ### MCP server
 
-Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_list_execution_shapes`, `canix_get_positions`, `canix_get_execution_quote`, strategy marketplace tools, and free discovery helpers. See https://canix402.compx.io/mcp.
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_list_execution_shapes`, `canix_get_positions`, `canix_get_execution_quote`, and free discovery helpers. See https://canix402.compx.io/mcp.
 
 ## x402 payment flow
 
@@ -74,11 +74,6 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `POST /swaps/transactions` (0.005 USDC) — Build a walletless Haystack swap transaction group.
 - `GET /execution/shapes` (Free) — List verified execution shape catalog metadata.
 - `POST /execution/quotes` (0.1 USDC) — Compile one or more verified transaction shapes into unsigned Algorand transaction groups.
-- `GET /strategies` (Free) — List published strategies. Params: status=, tag=, creatorAddress=, limit=, offset=.
-- `GET /strategies/{strategyId}` (Free) — Get a strategy by strategyId (ASA id). Params: :strategyId.
-- `POST /strategies` (100 USDC) — Publish a new strategy (mints NFT, writes Spaces JSON).
-- `POST /strategies/{strategyId}` (1 USDC) — Revise a strategy composition (NFT holder only, 14-day cooldown). Params: :strategyId.
-- `POST /strategies/{strategyId}/compile` (0.1 USDC) — Compile a strategy into unsigned execution quotes. Params: :strategyId.
 
 ### Route notes
 
@@ -89,12 +84,11 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `GET /positions` — requires `address` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
 - `GET /execution/shapes` — free catalog of verified shape keys and requiredInputs (metadata only).
 - `POST /execution/quotes` — batch unsigned transaction groups for verified shapes; flat ~0.1 USDC per request.
-- `GET /strategies` / `GET /strategies/{strategyId}` — free marketplace list/detail; publish 100 USDC, revise 1 USDC, compile 0.1 USDC.
 - Haystack swaps — call free `POST /swaps/quote`, sign and submit any group from free `POST /swaps/optin`, refresh the short-lived quote, then call paid `POST /swaps/transactions` for 0.005 USDC. Amounts are asset base units.
 - Walletless handoff — sign only the returned `userSignIndexes`, preserve Haystack pre-signed members and group order, and submit the complete group through the caller's Algod client.
 - Swap costs — the 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee/referral, DEX fees, price impact, and Algorand network fees.
 
-Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-known/x402.json`, `GET /execution/shapes`, `GET /strategies`, `POST /swaps/quote`, `POST /swaps/optin`.
+Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-known/x402.json`, `GET /execution/shapes`, `POST /swaps/quote`, `POST /swaps/optin`.
 
 ## Error catalog
 
@@ -104,10 +98,6 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
 - `VALIDATION_ERROR` (HTTP 400) — Request validation failed.
 - `NOT_FOUND` (HTTP 404) — Requested resource was not found.
 - `INTERNAL_ERROR` (HTTP 500) — Internal server error.
-- `STRATEGY_VALIDATION_ERROR` (HTTP 400) — Strategy publish/revise/compile payload failed validation.
-- `STRATEGY_NOT_FOUND` (HTTP 404) — Strategy document was not found.
-- `STRATEGY_FORBIDDEN` (HTTP 403) — Caller is not allowed to revise or compile this strategy.
-- `STRATEGY_CONFLICT` (HTTP 409) — Strategy revise cooldown or conflicting state prevented the request.
 
 ## Sample responses (trimmed)
 
@@ -882,49 +872,6 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
   "meta": {
     "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
     "paymentRequired": true
-  }
-}
-```
-
-### GET /strategies
-
-```json
-{
-  "data": [
-    {
-      "schemaVersion": 1,
-      "strategyId": 1234567890,
-      "creatorAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-      "createdAt": "2026-07-01T00:00:00.000Z",
-      "lastRevisedAt": "2026-07-01T00:00:00.000Z",
-      "name": "Balanced ALGO LP + Réti stake",
-      "description": "Illustrative weight-based strategy: half Tinyman flexible add-liquidity, half Réti validator stake.",
-      "tags": [
-        "algo",
-        "lp",
-        "staking"
-      ],
-      "status": "published",
-      "legs": [
-        {
-          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
-          "opportunityId": "tinyman:pool:1002541853",
-          "weightBps": 5000
-        },
-        {
-          "shapeKey": "mainnet:reti:v1:stake:algo",
-          "opportunityId": "reti-staking-12",
-          "weightBps": 5000
-        }
-      ],
-      "holderFeeShareBps": 5000
-    }
-  ],
-  "meta": {
-    "paymentRequired": false,
-    "limit": 25,
-    "offset": 0,
-    "note": "strategyId equals the strategy NFT ASA id. Publish/revise/compile are paid; list/detail are free."
   }
 }
 ```

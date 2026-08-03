@@ -7,10 +7,7 @@ import {
   defaultPaidPriceUsdc,
   personalizedPriceUsdc,
   positionsPriceUsdc,
-  executionQuotePriceUsdc,
-  strategyPublishPriceUsdc,
-  strategyRevisePriceUsdc,
-  strategyCompilePriceUsdc
+  executionQuotePriceUsdc
 } from "../lib/config";
 ---
 
@@ -55,10 +52,7 @@ import {
       <code>{personalizedPriceUsdc} USDC</code>, while <code>/positions?address=</code> costs
       exactly <code>{positionsPriceUsdc} USDC</code> (<code>5000</code> micro-USDC).
       Batch execution quotes at <code>POST /execution/quotes</code> cost
-      <code>{executionQuotePriceUsdc} USDC</code> flat per request (not per quote item). Strategy
-      marketplace: publish <code>{strategyPublishPriceUsdc} USDC</code>, revise
-      <code>{strategyRevisePriceUsdc} USDC</code>, compile <code>{strategyCompilePriceUsdc} USDC</code>
-      (50% of compile fees go weekly to the strategy NFT holder). Haystack quote and prerequisite
+      <code>{executionQuotePriceUsdc} USDC</code> flat per request (not per quote item). Haystack quote and prerequisite
       opt-in generation are free; only <code>POST /swaps/transactions</code> costs
       <code>0.005 USDC</code>. Discovery x402 metadata exposes both <code>amountUsdc</code> and
       <code>amountMicro</code>; Caddy <code>PAYMENT-REQUIRED</code> uses micro-USDC.
@@ -118,7 +112,7 @@ import {
       <li>
         Tools include <code>canix_list_opportunities</code>,
         <code>canix_list_execution_shapes</code>, <code>canix_get_positions</code>,
-        <code>canix_get_execution_quote</code>, strategy marketplace tools, and free discovery helpers
+        <code>canix_get_execution_quote</code>, and free discovery helpers
       </li>
     </ul>
     <p>

@@ -202,7 +202,7 @@ export interface SerializedTransaction {
 }
 
 /**
- * The result of compiling a strategy leg into an executable, verified group.
+ * The result of compiling a verified execution shape into an executable group.
  * Signing is the caller's responsibility for user legs. Multi-signer shapes may
  * attach protocol/LogicSig authorization via `groupTransactions`.
  */

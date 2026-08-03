@@ -47,16 +47,16 @@ Shared Redis with CompX/Orbital (`compx-v2/docs/redis-usage.md`): CompX uses DB 
 ### 6) Discoverability and Agent Indexing
 
 - [x] Add MCP server (`mcp/` workspace, stdio transport, free + paid tools wrapping gateway endpoints).
-  - [x] Include tools for opportunity discovery, execution quotes, and strategy marketplace (`canix_list_opportunities`, `canix_get_execution_quote`, `canix_list_strategies`, `canix_publish_strategy`, `canix_revise_strategy`, `canix_compile_strategy`, etc.).
+  - [x] Include tools for opportunity discovery and execution quotes (`canix_list_opportunities`, `canix_get_execution_quote`, etc.).
   - [x] Link MCP server from docs and manifest.
 - [x] Enable GoPlausible facilitator catalog visibility (optional).
   - [x] Optional: verify the API appears in GoPlausible facilitator discovery (`GET https://facilitator.goplausible.xyz/discovery/resources`, filter for `canix402-api.compx.io`).
 - [x] Confirm trust metadata is complete and current (version, terms, contact, facilitator/payTo, example responses; see archive).
 - [x] Website/docs catch-up after protocol API review (deferred from first tranche):
-  - [x] Refresh `website/src/data/discovery.snapshot.json` (include strategies; update execution-quote description).
+  - [x] Refresh `website/src/data/discovery.snapshot.json` (update execution-quote description).
   - [x] Refresh opportunity samples with `executionShapes`, `inputHints`, `entryRequirements`, `capacity`.
   - [x] Add Réti to website protocol lists (`protocols.astro`, `config.ts`, llms generator).
-  - [x] Document strategies + `/positions` + `/execution/quotes` samples the way opportunities are shown today.
+  - [x] Document `/positions` + `/execution/quotes` samples the way opportunities are shown today.
 
 ### 7) Wallet Positions Coverage (`GET /positions`)
 
@@ -68,7 +68,7 @@ Collectors report per-protocol `coverage` (`suppliedUsdComplete` / `borrowedUsdC
 - [x] After the above, stop hardcoding `rewardsUsdComplete: false` / `borrowedUsdComplete: false` for protocols whose coverage is complete, so aggregate totals are only `null` when a real gap or pricing failure remains.
 - [x] Add/extend positions integration tests so always-on caveats cannot regress once a protocol’s coverage is marked complete.
 
-### 8) Strategy Marketplace and Execution Layer
+### 8) Execution Layer
 
 #### Execution API
 
@@ -91,7 +91,6 @@ Collectors report per-protocol `coverage` (`suppliedUsdComplete` / `borrowedUsdC
 - [x] API hygiene follow-ups (deferred from protocol API review first tranche):
   - [x] Implement or remove dead `includeInactive` query param on opportunity routes.
   - [x] Map Myth/Haystack/Réti adapter errors to 502 in global handler (parity with other adapters).
-  - [x] Add strategy error codes to typed catalog + discovery `errorCatalog`.
   - [x] Align base URL defaults and amount display (`amountUsdc` + `amountMicro`) across discovery/Caddy.
 - [x] Break `POST /execution/quotes` to batch `{ quotes: [{ shapeKey, input }, ...] }` → `data: ExecutableQuote[]` (flat 0.1 USDC per request; correlated `quoteIndex`/`shapeKey` on failure; no group merging).
 - [x] Dork.fi production lending live verification passed via gated `test:dorkfi-production` (`X402_DORKFI_EXECUTION_LIVE=1`; excluded from `test:ci`) and user-agent mainnet submit testing.
@@ -100,55 +99,6 @@ Collectors report per-protocol `coverage` (`suppliedUsdComplete` / `borrowedUsdC
 
 - [x] Map the exact transaction shape/group required for each supported action. All registered shapes (Tinyman LP/farm/liquid-stake/restake, Folks escrow + xALGO immediate, Pact LP/farm, CompX lending/staking, Dork.fi lending, Myth dual-stake, Haystack HAY staking, Réti, Alpha Arcade ALPHA staking) documented under `docs/execution-shapes/` and linked from `shape-docs.ts`. Unsupported actions (Tinyman swap, Folks wallet-direct, Folks xALGO delayed) remain on the inventory item above.
 - [x] Treat unsupported or unverified protocol actions as non-executable until a verified transaction-shape spec exists (`TransactionShapeRegistry` only compiles registered keys; unknown shapes return `ShapeNotFoundError`).
-
-#### Strategy Model and Contracts
-
-Design SoT: [`docs/strategies.md`](strategies.md).
-
-- [x] Define **weight-based bound composition** schema (`legs[]` with `shapeKey` + venue pin + `weightBps`; no amounts). `strategyId` ≡ ASA id.
-- [x] Explicitly reject raw/pre-built transaction groups in published strategy payloads.
-- [x] Define lifecycle statuses (`published`, `suspended`, `degraded`, `archived`).
-- [x] In-place revise metadata: `createdAt` / `lastRevisedAt` (no revision in id/URL); 14-day cooldown per `strategyId`.
-- [x] Publish API contract: list/detail (free); publish `$100`; revise `$1`; compile `$0.1`.
-
-#### Publishing and Creator Identity
-
-- [x] Add strategy publishing endpoint (`POST /strategies`, 100 USDC x402).
-- [x] Provenance `creatorAddress` (immutable) + tradable ARC-3 NFT (fee rights + revise rights follow holder).
-- [x] Revise permissions: NFT holder only; `POST /strategies/{strategyId}` at 1 USDC; 14d per strategy.
-- [x] Suspension via Spaces `status: suspended` (blocks list/compile).
-- [x] Creator-facing design note in `docs/strategies.md`.
-
-#### Validation and Safety
-
-- [x] Validate legs map only to registered verified shape keys; weights sum to 10_000; reject raw txn groups.
-- [x] Fail-closed compile if any required leg cannot quote. Agents own swaps / multi-asset funding; strategies are weight-based allocation recipes only.
-- [x] Degraded/suspended status when venues break or moderation applies.
-
-#### Marketplace Discovery
-
-- [x] Published strategy listing (`GET /strategies`) and detail (`GET /strategies/{strategyId}`).
-- [x] Fee disclosure: fixed 50% of compile access fee to NFT holder (weekly).
-- [x] Include strategy endpoints in payment-policy matrix (feeds discovery/OpenAPI/llms).
-- [x] Agent-readable marketplace examples on website.
-
-#### Execution Compiler
-
-- [x] Compile strategy via `POST /strategies/{strategyId}/compile` → scale weights → existing `/execution/quotes` machinery.
-- [x] Reject client-supplied composition; load Legs from Spaces only.
-- [x] Unsigned groups only; Canix does not sign/submit (layer B mutability accepted in v1).
-
-#### Fee Sharing and Monetization
-
-- [x] Fixed **50% NFT holder / 50% Canix** on strategy **compile** access fees; publish/revise Canix-only.
-- [x] Full x402 to Canix `payTo` (leaderboard); weekly redistribution from dedicated payout wallet.
-- [x] Tagged access notes `x402:v2:strategy:{strategyId}` for attribution; payout idempotency via payout-wallet outflows.
-- [x] Fee disclosure on strategy detail / compile meta.
-
-#### Tests and Quality Gates
-
-- [x] Unit/integration coverage for strategy schema, store, validate, revise cooldown.
-- [x] Negative tests for invalid legs, weight sum, raw txn rejection, revise cooldown.
 
 ## Archived 2026-07-08
 

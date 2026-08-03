@@ -2,7 +2,7 @@
 
 > x402-gated Algorand DeFi data and walletless transaction API for autonomous agents. Pay in USDC micropayments at the gateway edge, fetch normalized APY/TVL data, and build locally signable Haystack swap groups.
 
-Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. Discovery, execution shapes, strategies list/detail, Haystack quotes, and opt-in preparation are free; data routes, execution quotes, strategy publish/revise/compile, and Haystack swap transaction generation require x402 payment as advertised. The API never receives wallet keys or submits transactions. For the full integration guide in one file, see [llms-full.txt](https://canix402.compx.io/llms-full.txt).
+Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. Discovery, execution shapes, Haystack quotes, and opt-in preparation are free; data routes, execution quotes, and Haystack swap transaction generation require x402 payment as advertised. The API never receives wallet keys or submits transactions. For the full integration guide in one file, see [llms-full.txt](https://canix402.compx.io/llms-full.txt).
 
 ## API (machine-readable)
 
@@ -29,9 +29,6 @@ Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. D
 - [GET /positions](https://canix402-api.compx.io/positions): 0.005 USDC — Algorand DeFi positions held by a wallet
 - [POST /swaps/transactions](https://canix402-api.compx.io/swaps/transactions): 0.005 USDC — Build a walletless Haystack swap transaction group
 - [POST /execution/quotes](https://canix402-api.compx.io/execution/quotes): 0.1 USDC — Compile one or more verified transaction shapes into unsigned Algorand transaction groups
-- [POST /strategies](https://canix402-api.compx.io/strategies): 100 USDC — Publish a new strategy (mints NFT, writes Spaces JSON)
-- [POST /strategies/{strategyId}](https://canix402-api.compx.io/strategies/{strategyId}): 1 USDC — Revise a strategy composition (NFT holder only, 14-day cooldown)
-- [POST /strategies/{strategyId}/compile](https://canix402-api.compx.io/strategies/{strategyId}/compile): 0.1 USDC — Compile a strategy into unsigned execution quotes
 
 ## Optional
 

@@ -58,11 +58,11 @@ import { config } from "../lib/config";
   <section class="panel">
     <h2>3. Probe free routes</h2>
     <p>
-      Health, metadata, <code>GET /execution/shapes</code>, <code>GET /strategies</code>, and
+      Health, metadata, <code>GET /execution/shapes</code>, and
       <code>POST /swaps/quote</code> should return <code>200</code> without payment headers.
     </p>
     <CodeBlock
-      code={`curl -i ${config.gatewayBaseUrl}/health\ncurl -i ${config.gatewayBaseUrl}/metadata\ncurl -i ${config.gatewayBaseUrl}/execution/shapes\ncurl -i ${config.gatewayBaseUrl}/strategies\ncurl -i ${config.gatewayBaseUrl}/swaps/quote \\\n  -H 'content-type: application/json' \\\n  -d '{"address":"YOUR_ALGORAND_ADDRESS","fromAssetId":0,"toAssetId":31566704,"amount":"1000000","type":"fixed-input"}'`}
+      code={`curl -i ${config.gatewayBaseUrl}/health\ncurl -i ${config.gatewayBaseUrl}/metadata\ncurl -i ${config.gatewayBaseUrl}/execution/shapes\ncurl -i ${config.gatewayBaseUrl}/swaps/quote \\\n  -H 'content-type: application/json' \\\n  -d '{"address":"YOUR_ALGORAND_ADDRESS","fromAssetId":0,"toAssetId":31566704,"amount":"1000000","type":"fixed-input"}'`}
     />
   </section>
 

@@ -121,7 +121,7 @@ function buildLlmsTxt(discovery: DiscoveryDocument): string {
 
 > x402-gated Algorand DeFi data and walletless transaction API for autonomous agents. Pay in USDC micropayments at the gateway edge, fetch normalized APY/TVL data, and build locally signable Haystack swap groups.
 
-Use the **Caddy gateway** (\`${GATEWAY}\`) for all API calls. Discovery, execution shapes, strategies list/detail, Haystack quotes, and opt-in preparation are free; data routes, execution quotes, strategy publish/revise/compile, and Haystack swap transaction generation require x402 payment as advertised. The API never receives wallet keys or submits transactions. For the full integration guide in one file, see [llms-full.txt](${docs}/llms-full.txt).
+Use the **Caddy gateway** (\`${GATEWAY}\`) for all API calls. Discovery, execution shapes, Haystack quotes, and opt-in preparation are free; data routes, execution quotes, and Haystack swap transaction generation require x402 payment as advertised. The API never receives wallet keys or submits transactions. For the full integration guide in one file, see [llms-full.txt](${docs}/llms-full.txt).
 
 ## API (machine-readable)
 
@@ -167,7 +167,6 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
     positions: loadSample("positions.sample.json"),
     executionShapes: loadSample("execution-shapes.sample.json"),
     executionQuotes: loadSample("execution-quotes.sample.json"),
-    strategies: loadSample("strategies.sample.json"),
     swapsQuote: loadSample("swaps-quote.sample.json"),
     swapsOptin: loadSample("swaps-optin.sample.json"),
     swapsTransactions: loadSample("swaps-transactions.sample.json")
@@ -202,7 +201,7 @@ Always call the **gateway**, not an internal upstream API. x402 enforcement, \`P
 
 ### MCP server
 
-Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${MCP_URL}\` (streamable-http). Metadata: \`${MCP_WELL_KNOWN}\`. Walletless: paid tool preflight returns payment requirements; retry with \`paymentSignature\`. Tools include \`canix_list_opportunities\`, \`canix_list_execution_shapes\`, \`canix_get_positions\`, \`canix_get_execution_quote\`, strategy marketplace tools, and free discovery helpers. See ${DOCS_SITE}/mcp.
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${MCP_URL}\` (streamable-http). Metadata: \`${MCP_WELL_KNOWN}\`. Walletless: paid tool preflight returns payment requirements; retry with \`paymentSignature\`. Tools include \`canix_list_opportunities\`, \`canix_list_execution_shapes\`, \`canix_get_positions\`, \`canix_get_execution_quote\`, and free discovery helpers. See ${DOCS_SITE}/mcp.
 
 ## x402 payment flow
 
@@ -238,12 +237,11 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 - \`GET /positions\` — requires \`address\` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
 - \`GET /execution/shapes\` — free catalog of verified shape keys and requiredInputs (metadata only).
 - \`POST /execution/quotes\` — batch unsigned transaction groups for verified shapes; flat ~0.1 USDC per request.
-- \`GET /strategies\` / \`GET /strategies/{strategyId}\` — free marketplace list/detail; publish 100 USDC, revise 1 USDC, compile 0.1 USDC.
 - Haystack swaps — call free \`POST /swaps/quote\`, sign and submit any group from free \`POST /swaps/optin\`, refresh the short-lived quote, then call paid \`POST /swaps/transactions\` for 0.005 USDC. Amounts are asset base units.
 - Walletless handoff — sign only the returned \`userSignIndexes\`, preserve Haystack pre-signed members and group order, and submit the complete group through the caller's Algod client.
 - Swap costs — the 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee/referral, DEX fees, price impact, and Algorand network fees.
 
-Free routes: \`/health\`, \`/metadata\`, \`/discovery\`, \`/openapi.json\`, \`/.well-known/x402.json\`, \`GET /execution/shapes\`, \`GET /strategies\`, \`POST /swaps/quote\`, \`POST /swaps/optin\`.
+Free routes: \`/health\`, \`/metadata\`, \`/discovery\`, \`/openapi.json\`, \`/.well-known/x402.json\`, \`GET /execution/shapes\`, \`POST /swaps/quote\`, \`POST /swaps/optin\`.
 
 ## Error catalog
 
@@ -291,12 +289,6 @@ ${JSON.stringify(samples.executionQuotes, null, 2)}
 
 \`\`\`json
 ${JSON.stringify(samples.positions, null, 2)}
-\`\`\`
-
-### GET /strategies
-
-\`\`\`json
-${JSON.stringify(samples.strategies, null, 2)}
 \`\`\`
 
 ### POST /swaps/quote
