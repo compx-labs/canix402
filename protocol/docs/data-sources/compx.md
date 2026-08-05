@@ -105,8 +105,9 @@ Execution shapes: deposit / withdraw / borrow / repay ASA (`@compx/sdk` builders
 
 - Current mode is on-demand fetch per request.
 - `getAllMarkets()` performs multiple on-chain reads (and may simulate APR) per market.
-- Wallet positions read wallet LST holdings plus market state for supplied
-  balances only. Borrow/debt is not surfaced in portfolio responses.
+- Wallet positions read wallet LST holdings for supplied balances and
+  `getUserPosition` for executable `debt` rows (repay via `mainnet:compx:v1:repay:asa`).
+  Supplied positions may expose borrow as a manage shape for leverage-up.
 - CompX staking pending rewards are derived MasterChef-style as
   `stake * rewardPerToken / 1e15 - rewardDebt` from pool + staker box state, then
   priced with `sdk.pricing.getTokenPrices`.

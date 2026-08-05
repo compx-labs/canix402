@@ -185,7 +185,7 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
 - **Support:** ${SUPPORT_EMAIL}
 - **Terms:** ${DOCS_SITE}/terms
 
-Opportunity responses are normalized records with fields such as \`protocol\`, \`opportunityType\`, \`opportunityId\`, \`assetPair\`, \`apy\`, \`apr\`, \`tvlUsd\`, \`executionShapes\`, \`compatibleExitShapes\`, optional \`entryRequirements\` / \`capacity\` (Réti), \`sourceTimestamp\`, and \`fetchedAt\`. Numeric precision follows the published OpenAPI \`x-precision\` contract (typically 6 decimal places).
+Opportunity responses are normalized records with fields such as \`protocol\`, \`opportunityType\`, \`opportunityId\`, \`assetPair\`, \`apy\`, \`apr\`, optional \`borrowApr\` (borrow-side cost for lending markets), \`tvlUsd\`, \`executionShapes\`, \`compatibleExitShapes\`, optional \`entryRequirements\` / \`capacity\` (Réti), \`sourceTimestamp\`, and \`fetchedAt\`. Positions may include \`debt\` rows with repay exit shapes (CompX/Folks) or informational Dork.fi \`debt-usd\` aggregates. Numeric precision follows the published OpenAPI \`x-precision\` contract (typically 6 decimal places).
 
 ## Machine-readable contracts
 

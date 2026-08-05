@@ -22,36 +22,38 @@
       }
     },
     {
-      "protocol": "reti",
-      "positionType": "staked",
-      "positionId": "reti:staked:12:2714574619",
-      "opportunityId": "reti-staking-12",
-      "assetId": 0,
-      "assetSymbol": "ALGO",
-      "amountRaw": "2000000000",
-      "amount": "2000.000000",
-      "usdValue": 400,
-      "compatibleExitShapeKeys": ["mainnet:reti:v1:unstake:algo"],
+      "protocol": "compx",
+      "positionType": "debt",
+      "positionId": "compx:debt:3491050310",
+      "opportunityId": "compx-lending-3491050310",
+      "assetId": 31566704,
+      "assetSymbol": "USDC",
+      "amountRaw": "250000",
+      "amount": "0.250000",
+      "usdValue": 0.25,
+      "healthFactor": 1.8,
+      "compatibleExitShapeKeys": ["mainnet:compx:v1:repay:asa"],
       "compatibleManageShapeKeys": [],
+      "notes": "Locked collateral 500000 of asset 3491050311 (LST units).",
       "inputHints": {
-        "validatorId": 12,
-        "poolAppId": 2714574619,
-        "assetId": 0
+        "marketAppId": 3491050310,
+        "assetId": 31566704
       }
     }
   ],
   "protocols": [
-    { "protocol": "tinyman", "status": "ok", "positionCount": 1 },
-    { "protocol": "reti", "status": "ok", "positionCount": 1 }
+    { "protocol": "tinyman", "status": "ok", "positionCount": 1, "message": null },
+    { "protocol": "compx", "status": "ok", "positionCount": 1, "message": null }
   ],
   "totals": {
-    "usdValue": 442.5,
-    "rewardsUsd": null,
-    "borrowedUsd": null,
-    "netUsd": null
+    "suppliedUsd": 42.5,
+    "borrowedUsd": 0.25,
+    "rewardsUsd": 0,
+    "netUsd": 42.25
   },
   "meta": {
     "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "fetchedAt": "2026-08-05T12:00:00.000Z",
     "paymentRequired": true
   }
 }

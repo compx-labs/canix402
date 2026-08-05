@@ -7,7 +7,7 @@ export type SupportedProtocol = {
   logoVariant?: "wide";
 };
 
-export const protocols = [
+export const protocols: readonly SupportedProtocol[] = [
   {
     slug: "tinyman",
     name: "Tinyman",
@@ -26,21 +26,24 @@ export const protocols = [
     slug: "folks-finance",
     name: "Folks Finance",
     summary: "Lending opportunities from the Folks Finance Algorand SDK.",
-    notes: "Uses on-chain pool state and oracle pricing for TVL normalization.",
+    notes:
+      "Supply via deposit escrow; borrow/repay via loan escrow credit shapes. Emits borrowApr and executable debt positions.",
     logo: "/protocols/folks-finance.svg"
   },
   {
     slug: "compx",
     name: "CompX",
     summary: "Lending and staking opportunities via the CompX SDK.",
-    notes: "Covers lending markets and staking pools with optional active-only filtering.",
+    notes:
+      "Lending deposit/withdraw plus borrow/repay ASA shapes; staking pools with optional active-only filtering.",
     logo: "/protocols/compx.png"
   },
   {
     slug: "dorkfi",
     name: "Dork.fi",
     summary: "Cross-platform opportunities filtered to Algorand rows from Dork.fi static feed.",
-    notes: "API-first adapter with Algorand network filtering during normalization.",
+    notes:
+      "ASA lending deposit/withdraw/borrow/repay execution; indexed health may add informational debt-usd rows.",
     logo: "/protocols/dorkfi.png",
     logoVariant: "wide"
   },
@@ -78,6 +81,6 @@ export const protocols = [
       "On-chain pool 3626756314; trailing fee APR estimate; stake/unstake/claim via execution shapes.",
     logo: "/protocols/alpha-arcade.png"
   }
-] as const satisfies readonly SupportedProtocol[];
+];
 
 export const supportedProtocols = protocols.map((protocol) => protocol.name);

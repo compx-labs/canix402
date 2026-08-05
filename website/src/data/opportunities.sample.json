@@ -103,6 +103,118 @@
       "compatibleExitShapes": []
     },
     {
+      "protocol": "compx",
+      "opportunityType": "lending",
+      "opportunityId": "compx-lending-3491050310",
+      "assetPair": "USDC",
+      "assetIds": [
+        31566704,
+        3491050538
+      ],
+      "apy": 1.4,
+      "apr": 1.4,
+      "borrowApr": 8.5,
+      "yieldBasis": "apr",
+      "tvlUsd": 137.181191,
+      "sourceTimestamp": "2026-07-14T20:47:17.000Z",
+      "fetchedAt": "2026-07-17T12:41:14.931Z",
+      "notes": "CompX lending market 3491050310; util=4.4%; ltv=70.0%; APR-derived yields; borrowApr is the borrow cost.",
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:compx:v1:deposit:asa",
+          "protocol": "compx",
+          "protocolVersion": "v1",
+          "action": "deposit",
+          "variant": "asa",
+          "title": "CompX v1 ASA lending deposit",
+          "summary": "Deposits a base ASA into a CompX lending market and receives LST tokens.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "marketAppId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "marketAppId": 3491050310
+          }
+        },
+        {
+          "shapeKey": "mainnet:compx:v1:borrow:asa",
+          "protocol": "compx",
+          "protocolVersion": "v1",
+          "action": "borrow",
+          "variant": "asa",
+          "title": "CompX v1 ASA lending borrow",
+          "summary": "Borrows a base ASA from a CompX lending market against LST collateral.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "marketAppId",
+            "borrowAmount",
+            "collateralAmount"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "marketAppId": 3491050310
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:compx:v1:withdraw:asa",
+          "protocol": "compx",
+          "protocolVersion": "v1",
+          "action": "withdraw",
+          "variant": "asa",
+          "title": "CompX v1 ASA lending withdraw",
+          "summary": "Withdraws a base ASA from a CompX lending market by redeeming LST tokens.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "marketAppId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "marketAppId": 3491050310
+          }
+        },
+        {
+          "shapeKey": "mainnet:compx:v1:repay:asa",
+          "protocol": "compx",
+          "protocolVersion": "v1",
+          "action": "repay",
+          "variant": "asa",
+          "title": "CompX v1 ASA lending repay",
+          "summary": "Repays outstanding base-ASA debt on a CompX lending market.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "marketAppId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "marketAppId": 3491050310
+          }
+        }
+      ]
+    },
+    {
       "protocol": "reti",
       "opportunityType": "staking",
       "opportunityId": "reti-staking-12",
@@ -191,6 +303,8 @@
         31566704
       ],
       "apy": 6.06,
+      "apr": 5.9,
+      "borrowApr": 8.25,
       "yieldBasis": "apy",
       "tvlUsd": 29846.609471,
       "sourceTimestamp": "2026-07-06T08:55:00.000Z",

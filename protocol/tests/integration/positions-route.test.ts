@@ -458,7 +458,7 @@ test("collector warnings without coverage no longer hard-null borrowed/rewards",
   });
 });
 
-test("Dork.fi indexed health records normalize supplied USD only (no debt)", () => {
+test("Dork.fi indexed health records normalize supplied and debt USD aggregates", () => {
   const result = normalizeDorkFiHealthRecords([
     {
       network: "algorand-mainnet",
@@ -470,7 +470,7 @@ test("Dork.fi indexed health records normalize supplied USD only (no debt)", () 
     }
   ]);
 
-  assert.equal(result.positions.length, 1);
+  assert.equal(result.positions.length, 2);
   assert.deepEqual(
     result.positions.map((position) => ({
       type: position.positionType,
@@ -488,14 +488,22 @@ test("Dork.fi indexed health records normalize supplied USD only (no debt)", () 
         usdValue: 12.5,
         healthFactor: 4.1667,
         sourceTimestamp: "2026-07-13T12:00:00.000Z"
+      },
+      {
+        type: "debt",
+        positionId: "dorkfi:debt-usd:3333688282",
+        opportunityId: null,
+        usdValue: 3,
+        healthFactor: 4.1667,
+        sourceTimestamp: "2026-07-13T12:00:00.000Z"
       }
     ]
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(result.coverage?.borrowedUsdComplete, true);
   assert.ok(
-    (result.positions[0]?.caveats ?? []).some((caveat) =>
-      caveat.includes("Not executable")
+    result.positions.every((position) =>
+      (position.caveats ?? []).some((caveat) => caveat.includes("Not executable"))
     )
   );
 });
