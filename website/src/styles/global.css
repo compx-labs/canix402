@@ -438,13 +438,6 @@ main {
   background: rgba(255, 42, 53, 0.1);
 }
 
-.badge-tag-strategies,
-.badge-tag-marketplace {
-  color: #e9a8ff;
-  border-color: rgba(233, 168, 255, 0.35);
-  background: rgba(233, 168, 255, 0.08);
-}
-
 .badge-tag-swaps,
 .badge-tag-haystack {
   color: #fda4af;

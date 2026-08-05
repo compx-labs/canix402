@@ -1,0 +1,25 @@
+{
+  "data": {
+    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "fromAssetId": "0",
+    "toAssetId": "31566704",
+    "amount": "1000000",
+    "type": "fixed-input",
+    "quotedAmount": "185000",
+    "createdAt": "2026-07-30T12:00:00.000Z",
+    "expiresAt": "2026-07-30T12:02:00.000Z",
+    "priceBaseline": 0.185,
+    "usdIn": 0.2,
+    "usdOut": 0.185,
+    "requiredAppOptIns": [1234567890],
+    "route": [{ "protocol": "tinyman", "poolId": "1002541853" }],
+    "quotes": [],
+    "protocolFees": [],
+    "txnPayload": "<opaque-haystack-quote-blob>",
+    "note": "Pass this quote object unchanged to /swaps/optin and /swaps/transactions. Refresh after any opt-in submit."
+  },
+  "meta": {
+    "paymentRequired": false,
+    "executionSubmitted": false
+  }
+}

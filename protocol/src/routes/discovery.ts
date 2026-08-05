@@ -290,26 +290,6 @@ function buildDiscoveryDocument(): DiscoveryDocument {
         code: "INTERNAL_ERROR",
         httpStatus: 500,
         description: "Internal server error."
-      },
-      {
-        code: "STRATEGY_VALIDATION_ERROR",
-        httpStatus: 400,
-        description: "Strategy publish/revise/compile payload failed validation."
-      },
-      {
-        code: "STRATEGY_NOT_FOUND",
-        httpStatus: 404,
-        description: "Strategy document was not found."
-      },
-      {
-        code: "STRATEGY_FORBIDDEN",
-        httpStatus: 403,
-        description: "Caller is not allowed to revise or compile this strategy."
-      },
-      {
-        code: "STRATEGY_CONFLICT",
-        httpStatus: 409,
-        description: "Strategy revise cooldown or conflicting state prevented the request."
       }
     ]
   };

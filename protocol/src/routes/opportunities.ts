@@ -3,7 +3,8 @@ import { FastifyInstance } from "fastify";
 
 import { fetchAccountHoldings } from "../services/account-assets.js";
 import {
-  fetchOpportunitiesForProtocols,
+  cacheMetaForResponse,
+  fetchOpportunitiesResult,
   SUPPORTED_AGGREGATE_PROTOCOLS
 } from "../services/aggregate-opportunities.js";
 import { filterOpportunitiesByActivity } from "../services/opportunity-activity.js";
@@ -47,16 +48,15 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
         limit = AGGREGATE_OPPORTUNITIES_DEFAULT_LIMIT,
         offset = 0,
         includeInactive = false,
-        protocol
+        protocol,
+        refresh = false
       } = request.query;
 
-      const data = filterOpportunitiesByActivity(
-        await fetchOpportunitiesForProtocols(
-          protocol ? [protocol] : SUPPORTED_AGGREGATE_PROTOCOLS
-        ),
-        includeInactive
+      const { data: fetched, cache } = await fetchOpportunitiesResult(
+        protocol ? [protocol] : SUPPORTED_AGGREGATE_PROTOCOLS,
+        { refresh }
       );
-
+      const data = filterOpportunitiesByActivity(fetched, includeInactive);
       const pagedData = rankOpportunitiesByApy(data).slice(offset, offset + limit);
 
       return {
@@ -65,7 +65,8 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
           limit,
           offset,
           includeInactive,
-          paymentRequired: true
+          paymentRequired: true,
+          ...cacheMetaForResponse(cache)
         }
       };
     }
@@ -73,7 +74,7 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
 
   app.get<{
     Querystring: FilteredOpportunitiesQuery;
-    Reply: ApiSuccess<OpportunityRecordV1[]>;
+    Reply: ApiSuccess<OpportunityRecordV1[]> | ApiError;
   }>(
     "/opportunities/search",
     {
@@ -84,22 +85,35 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
         }
       }
     },
-    async (request) => {
+    async (request, reply) => {
       const {
         platform,
         type,
         minApy,
         maxApy,
         minTvlUsd,
+        assetIds: assetIdsRaw,
         limit = FilteredOpportunitiesDefaultLimit,
         offset = 0,
-        includeInactive = false
+        includeInactive = false,
+        refresh = false
       } = request.query;
 
       const platforms = parseProtocolFilters(platform);
       const types = parseOpportunityTypeFilters(type);
+      const assetIds = parseAssetIdFilters(assetIdsRaw);
+      if (assetIdsRaw !== undefined && assetIds.length === 0) {
+        return reply.status(400).send({
+          error: {
+            code: "VALIDATION_ERROR",
+            message:
+              "Query parameter 'assetIds' must be a comma-separated list of non-negative integer ASA ids (0 = ALGO)."
+          }
+        });
+      }
+      const assetIdSet = assetIds.length > 0 ? new Set(assetIds) : null;
 
-      const data = await fetchOpportunitiesForProtocols(platforms);
+      const { data, cache } = await fetchOpportunitiesResult(platforms, { refresh });
       const filtered = filterOpportunitiesByActivity(data, includeInactive).filter(
         (row) => {
         if (types.length > 0 && !types.includes(row.opportunityType)) {
@@ -114,19 +128,26 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
         if (minTvlUsd !== undefined && row.tvlUsd < minTvlUsd) {
           return false;
         }
+        if (assetIdSet) {
+          const rowAssetIds = row.assetIds ?? [];
+          if (!rowAssetIds.some((id) => assetIdSet.has(id))) {
+            return false;
+          }
+        }
         return true;
       });
 
       const pagedData = rankOpportunitiesByApy(filtered).slice(offset, offset + limit);
-      return {
+      return reply.send({
         data: formatOpportunitiesForAgent(pagedData),
         meta: {
           limit,
           offset,
           includeInactive,
-          paymentRequired: true
+          paymentRequired: true,
+          ...cacheMetaForResponse(cache)
         }
-      };
+      });
     }
   );
 
@@ -148,7 +169,8 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
         address,
         limit = PERSONALIZED_OPPORTUNITIES_DEFAULT_LIMIT,
         offset = 0,
-        includeInactive = false
+        includeInactive = false,
+        refresh = false
       } = request.query;
 
       if (!algosdk.isValidAddress(address)) {
@@ -161,10 +183,11 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
       }
 
       const holdings = await fetchAccountHoldings(address);
-      const data = filterOpportunitiesByActivity(
-        await fetchOpportunitiesForProtocols(SUPPORTED_AGGREGATE_PROTOCOLS),
-        includeInactive
+      const { data: fetched, cache } = await fetchOpportunitiesResult(
+        SUPPORTED_AGGREGATE_PROTOCOLS,
+        { refresh }
       );
+      const data = filterOpportunitiesByActivity(fetched, includeInactive);
 
       const personalized = selectPersonalizedOpportunities(
         data,
@@ -181,7 +204,8 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
           includeInactive,
           paymentRequired: true,
           address,
-          heldAssetCount: holdings.heldAssetIds.size
+          heldAssetCount: holdings.heldAssetIds.size,
+          ...cacheMetaForResponse(cache)
         }
       });
     }
@@ -212,4 +236,33 @@ function parseOpportunityTypeFilters(value: string | undefined): OpportunityReco
     .split(",")
     .map((entry) => entry.trim() as OpportunityRecordV1["opportunityType"])
     .filter((entry) => allowed.has(entry));
+}
+
+/** Parse comma-separated ASA ids; keeps safe non-negative integers and dedupes. */
+function parseAssetIdFilters(value: string | undefined): number[] {
+  if (value === undefined) {
+    return [];
+  }
+
+  const seen = new Set<number>();
+  const ids: number[] = [];
+  for (const entry of value.split(",")) {
+    const trimmed = entry.trim();
+    if (!trimmed) {
+      continue;
+    }
+    if (!/^\d+$/.test(trimmed)) {
+      continue;
+    }
+    const parsed = Number(trimmed);
+    if (!Number.isSafeInteger(parsed) || parsed < 0) {
+      continue;
+    }
+    if (seen.has(parsed)) {
+      continue;
+    }
+    seen.add(parsed);
+    ids.push(parsed);
+  }
+  return ids;
 }

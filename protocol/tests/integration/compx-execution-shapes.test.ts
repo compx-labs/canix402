@@ -15,21 +15,27 @@ import {
 import type { ShapeBuildContext } from "../../src/execution/index.js";
 import {
   STAKER_BOX_MBR_MICROALGOS,
+  buildMockBorrowGroup,
   buildMockClaimGroup,
   buildMockDepositGroup,
+  buildMockRepayGroup,
   buildMockStakeGroup,
   buildMockUnstakeGroup,
   buildMockWithdrawGroup,
+  compxBorrowAsaShape,
   compxClaimRewardsShape,
   compxDepositAsaShape,
+  compxRepayAsaShape,
   compxStakeAsaShape,
   compxUnstakeAsaShape,
   compxWithdrawAsaShape,
   createStakerBoxName,
+  setCompXBorrowAsaDependenciesForTests,
   setCompXClaimRewardsDependenciesForTests,
   setCompXDepositAsaDependenciesForTests,
   setCompXStakingPoolStateDependenciesForTests,
   setCompXLendingMarketStateDependenciesForTests,
+  setCompXRepayAsaDependenciesForTests,
   setCompXStakeAsaDependenciesForTests,
   setCompXUnstakeAsaDependenciesForTests,
   setCompXWithdrawAsaDependenciesForTests,
@@ -189,6 +195,8 @@ test.afterEach(() => {
   setCompXStakingPoolStateDependenciesForTests(undefined);
   setCompXDepositAsaDependenciesForTests(undefined);
   setCompXWithdrawAsaDependenciesForTests(undefined);
+  setCompXBorrowAsaDependenciesForTests(undefined);
+  setCompXRepayAsaDependenciesForTests(undefined);
   setCompXStakeAsaDependenciesForTests(undefined);
   setCompXUnstakeAsaDependenciesForTests(undefined);
   setCompXClaimRewardsDependenciesForTests(undefined);
@@ -478,10 +486,97 @@ test("ungrouped transactions fail validation", () => {
   assert.equal(validation.valid, false);
 });
 
+test("borrow shape builds and validates 3-txn group without base opt-in", async () => {
+  const state = lendingMarketState();
+  const borrowAmount = 50_000n;
+  const collateralAmount = 100_000n;
+  const group = buildMockBorrowGroup({
+    user: USER,
+    marketAppId: MARKET_APP_ID,
+    marketAppAddress: MARKET_APP_ADDRESS,
+    baseTokenId: USDC_ID,
+    lstTokenId: LST_ID,
+    borrowAmount,
+    collateralAmount,
+    includeBaseOptIn: false,
+    suggestedParams: suggestedParams(1000)
+  });
+
+  setCompXBorrowAsaDependenciesForTests({
+    resolveMarketState: async () => state,
+    buildBorrowTransactions: async () => ({
+      transactions: group,
+      signers: [{ address: USER_ADDRESS, transactionIndexes: [0, 1, 2] }],
+      metadata: { action: "borrow", optInsIncluded: [] }
+    })
+  });
+
+  const registry = new TransactionShapeRegistry();
+  registry.register(compxBorrowAsaShape);
+  const quote = await compileExecutableQuote(
+    registry,
+    compxBorrowAsaShape.key,
+    {
+      userAddress: USER_ADDRESS,
+      marketAppId: MARKET_APP_ID,
+      borrowAmount: borrowAmount.toString(),
+      collateralAmount: collateralAmount.toString()
+    },
+    buildContext()
+  );
+
+  assert.equal(quote.transactions.length, 3);
+  assertEncodedGroupIsValid(quote.encodedTransactions);
+  assert.equal(quote.metadata.borrowAmount, borrowAmount.toString());
+  assert.equal(quote.metadata.collateralTokenId, LST_ID);
+});
+
+test("repay shape builds and validates 2-txn group", async () => {
+  const state = lendingMarketState();
+  const amount = 50_000n;
+  const group = buildMockRepayGroup({
+    user: USER,
+    marketAppId: MARKET_APP_ID,
+    marketAppAddress: MARKET_APP_ADDRESS,
+    baseTokenId: USDC_ID,
+    lstTokenId: LST_ID,
+    amount,
+    suggestedParams: suggestedParams(1000)
+  });
+
+  setCompXRepayAsaDependenciesForTests({
+    resolveMarketState: async () => state,
+    buildRepayTransactions: async () => ({
+      transactions: group,
+      signers: [{ address: USER_ADDRESS, transactionIndexes: [0, 1] }],
+      metadata: { action: "repay", optInsIncluded: [] }
+    })
+  });
+
+  const registry = new TransactionShapeRegistry();
+  registry.register(compxRepayAsaShape);
+  const quote = await compileExecutableQuote(
+    registry,
+    compxRepayAsaShape.key,
+    {
+      userAddress: USER_ADDRESS,
+      marketAppId: MARKET_APP_ID,
+      amount: amount.toString()
+    },
+    buildContext()
+  );
+
+  assert.equal(quote.transactions.length, 2);
+  assertEncodedGroupIsValid(quote.encodedTransactions);
+  assert.equal(quote.metadata.amountDenomination, "base");
+});
+
 test("createExecutionRegistry includes all CompX shapes", () => {
   const registry = createExecutionRegistry();
   assert.equal(registry.has("mainnet:compx:v1:deposit:asa"), true);
   assert.equal(registry.has("mainnet:compx:v1:withdraw:asa"), true);
+  assert.equal(registry.has("mainnet:compx:v1:borrow:asa"), true);
+  assert.equal(registry.has("mainnet:compx:v1:repay:asa"), true);
   assert.equal(registry.has("mainnet:compx:v1:stake:asa"), true);
   assert.equal(registry.has("mainnet:compx:v1:unstake:asa"), true);
   assert.equal(registry.has("mainnet:compx:v1:claim:rewards"), true);

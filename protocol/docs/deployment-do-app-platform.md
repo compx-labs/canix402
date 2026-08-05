@@ -59,8 +59,12 @@ discovery/OpenAPI metadata matches the Caddy gate (see
 ### Redis (opportunity cache)
 
 Optional. When `REDIS_URL` is set on the **protocol** component, aggregated
-opportunity adapters are cached with a short TTL (`OPPORTUNITIES_CACHE_TTL_SEC`,
-default 45s). Isolation from CompX/Orbital on a shared Redis instance:
+opportunity adapters are cached (`OPPORTUNITIES_CACHE_TTL_SEC`, default **180s /
+3 minutes** — DeFi APR/TVL does not need sub-minute churn). List responses include
+informational cache meta (`cacheEnabled`, `cacheHit`, `cachedAt`, `cacheAgeMs`,
+`cacheTtlSec`) with no harsh `stale` flag. Pass `refresh=true` on opportunity
+routes to bypass Redis and refetch (still writes a fresh cache entry). Isolation
+from CompX/Orbital on a shared Redis instance:
 
 - Dedicated DB index in the URL (e.g. `redis://:password@host:6379/6`)
 - All keys use the `canix402:` prefix (e.g. `canix402:opportunities:protocol:mainnet:tinyman`)

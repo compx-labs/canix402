@@ -580,6 +580,15 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "description": "Bypass Redis and refetch adapters; still writes a fresh cache entry. Default false.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
           }
         ],
         "responses": {
@@ -637,7 +646,7 @@
     "/opportunities/search": {
       "get": {
         "summary": "Caller-filtered opportunities across supported platforms",
-        "description": "Returns Algorand DeFi opportunities filtered by platform, opportunity type, APY range, and TVL threshold across supported sources. Use when an agent needs targeted discovery such as high-yield liquidity pools, lending markets, protocol-specific yield, or minimum-liquidity opportunities on Algorand. This endpoint provides normalized market data only; it does not build or submit transactions.",
+        "description": "Returns Algorand DeFi opportunities filtered by platform, opportunity type, APY range, TVL threshold, and optional ASA assetIds across supported sources. Use when an agent needs targeted discovery such as high-yield liquidity pools, lending markets, protocol-specific yield, minimum-liquidity opportunities, or yields for specific Algorand assets (assetIds=0 for ALGO). This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": [
           "defi",
           "opportunities",
@@ -683,6 +692,15 @@
             }
           },
           {
+            "name": "assetIds",
+            "in": "query",
+            "description": "Comma-separated Algorand ASA ids (0 = ALGO). Keeps opportunities whose assetIds intersect any requested id. Rows without assetIds do not match when this filter is set.",
+            "schema": {
+              "type": "string",
+              "example": "0,31566704"
+            }
+          },
+          {
             "name": "limit",
             "in": "query",
             "schema": {
@@ -705,6 +723,15 @@
             "in": "query",
             "schema": {
               "type": "boolean"
+            }
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "description": "Bypass Redis and refetch adapters; still writes a fresh cache entry. Default false.",
+            "schema": {
+              "type": "boolean",
+              "default": false
             }
           }
         ],
@@ -803,6 +830,15 @@
             "in": "query",
             "schema": {
               "type": "boolean"
+            }
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "description": "Bypass Redis and refetch adapters; still writes a fresh cache entry. Default false.",
+            "schema": {
+              "type": "boolean",
+              "default": false
             }
           }
         ],
@@ -1018,6 +1054,15 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "description": "Bypass Redis and refetch adapters; still writes a fresh cache entry. Default false.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
           }
         ],
         "responses": {
@@ -1075,7 +1120,7 @@
     "/execution/shapes": {
       "get": {
         "summary": "List verified execution shape catalog metadata",
-        "description": "Returns the live catalog of verified transaction shapes (shapeKey, requiredInputs, opportunityRole, docsPath). Catalog metadata only \u2014 does not compile quotes or return unsigned transactions. Use POST /execution/quotes to compile executable groups.",
+        "description": "Returns the live catalog of verified transaction shapes (shapeKey, requiredInputs, opportunityRole, docsPath). Catalog metadata only — does not compile quotes or return unsigned transactions. Use POST /execution/quotes to compile executable groups.",
         "tags": [
           "execution",
           "discovery",
@@ -1099,7 +1144,7 @@
     "/execution/quotes": {
       "post": {
         "summary": "Compile a verified transaction shape into unsigned Algorand transactions",
-        "description": "Compile one or more verified execution shapes into unsigned Algorand transaction groups. Request body is `{ quotes: [{ shapeKey, input }, ...] }` (min 1). Response `data` is an array of ExecutableQuote in request order \u2014 groups are never merged. On failure the whole request fails and `error.details` includes `quoteIndex` and `shapeKey`. x402 price is flat ~0.10 USDC per request (not per quote item). Canix never signs or submits transactions.",
+        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), and R\u00e9ti v1 ALGO staking shapes (stake/unstake). Canix does not sign or submit transactions in this endpoint.",
         "tags": [
           "execution",
           "transactions",
@@ -1455,362 +1500,6 @@
           }
         }
       }
-    },
-    "/strategies": {
-      "get": {
-        "summary": "List published strategies",
-        "description": "Returns published strategy marketplace documents. strategyId equals the strategy NFT ASA id. Fees: 50% of compile access fees go weekly to the NFT holder.",
-        "tags": [
-          "strategies",
-          "marketplace",
-          "agents"
-        ],
-        "security": [],
-        "parameters": [
-          {
-            "name": "status",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "published",
-                "suspended",
-                "degraded",
-                "archived"
-              ]
-            }
-          },
-          {
-            "name": "tag",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "minLength": 1
-            }
-          },
-          {
-            "name": "creatorAddress",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "minLength": 58,
-              "maxLength": 58
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 50
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 0,
-              "default": 0
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Strategy list",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StrategyListResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "summary": "Publish a new strategy (mints NFT, writes Spaces JSON)",
-        "description": "Creates a tradable ARC-3 strategy NFT and stores the weight-based composition. Price 100 USDC (Canix-only; no holder share). Rejects raw transaction groups.",
-        "tags": [
-          "strategies",
-          "marketplace",
-          "x402",
-          "agents"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/StrategyPublishRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Published strategy",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StrategyDetailResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/ValidationError"
-          },
-          "402": {
-            "$ref": "#/components/responses/PaymentRequired"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalError"
-          }
-        },
-        "x-payment-info": {
-          "protocols": [
-            {
-              "x402": {}
-            }
-          ],
-          "price": {
-            "mode": "fixed",
-            "currency": "USD",
-            "amount": "100"
-          }
-        },
-        "x-x402": {
-          "protocolVersion": 2,
-          "requiredHeaders": [
-            "PAYMENT-REQUIRED",
-            "PAYMENT-SIGNATURE",
-            "PAYMENT-RESPONSE"
-          ],
-          "requirementTemplate": {
-            "scheme": "exact",
-            "network": "algorand-mainnet",
-            "asset": "31566704",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
-            "maxAmountRequired": "100"
-          }
-        }
-      }
-    },
-    "/strategies/{strategyId}": {
-      "get": {
-        "summary": "Get a strategy by strategyId (ASA id)",
-        "description": "Returns the Spaces-backed strategy document for strategyId (Algorand ASA id). Includes creatorAddress provenance, createdAt/lastRevisedAt, name/description/tags, and weighted legs.",
-        "tags": [
-          "strategies",
-          "marketplace",
-          "agents"
-        ],
-        "security": [],
-        "parameters": [
-          {
-            "name": "strategyId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Strategy detail",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StrategyDetailResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          }
-        }
-      },
-      "post": {
-        "summary": "Revise a strategy composition (NFT holder only, 14-day cooldown)",
-        "description": "In-place update of legs/display fields for strategyId. Price 1 USDC (Canix-only). Caller must be the current NFT holder. At most one successful revise per 14 days per strategyId.",
-        "tags": [
-          "strategies",
-          "marketplace",
-          "x402",
-          "agents"
-        ],
-        "parameters": [
-          {
-            "name": "strategyId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/StrategyReviseRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Revised strategy",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StrategyDetailResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/ValidationError"
-          },
-          "402": {
-            "$ref": "#/components/responses/PaymentRequired"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "409": {
-            "$ref": "#/components/responses/Conflict"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalError"
-          }
-        },
-        "x-payment-info": {
-          "protocols": [
-            {
-              "x402": {}
-            }
-          ],
-          "price": {
-            "mode": "fixed",
-            "currency": "USD",
-            "amount": "1"
-          }
-        },
-        "x-x402": {
-          "protocolVersion": 2,
-          "requiredHeaders": [
-            "PAYMENT-REQUIRED",
-            "PAYMENT-SIGNATURE",
-            "PAYMENT-RESPONSE"
-          ],
-          "requirementTemplate": {
-            "scheme": "exact",
-            "network": "algorand-mainnet",
-            "asset": "31566704",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
-            "maxAmountRequired": "1"
-          }
-        }
-      }
-    },
-    "/strategies/{strategyId}/compile": {
-      "post": {
-        "summary": "Compile a strategy into unsigned execution quotes",
-        "description": "Loads the strategy document, scales capital across legs by weightBps, and returns ExecutableQuote[]. Price 0.1 USDC. 50% of this access fee is paid weekly to the strategy NFT holder. Payment note must be x402:v2:strategy:{strategyId}.",
-        "tags": [
-          "strategies",
-          "execution",
-          "x402",
-          "agents"
-        ],
-        "parameters": [
-          {
-            "name": "strategyId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/StrategyCompileRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Compiled strategy quotes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StrategyCompileResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/ValidationError"
-          },
-          "402": {
-            "$ref": "#/components/responses/PaymentRequired"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalError"
-          }
-        },
-        "x-payment-info": {
-          "protocols": [
-            {
-              "x402": {}
-            }
-          ],
-          "price": {
-            "mode": "fixed",
-            "currency": "USD",
-            "amount": "0.1"
-          }
-        },
-        "x-x402": {
-          "protocolVersion": 2,
-          "requiredHeaders": [
-            "PAYMENT-REQUIRED",
-            "PAYMENT-SIGNATURE",
-            "PAYMENT-RESPONSE"
-          ],
-          "requirementTemplate": {
-            "scheme": "exact",
-            "network": "algorand-mainnet",
-            "asset": "31566704",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
-            "maxAmountRequired": "0.1"
-          }
-        }
-      }
     }
   },
   "components": {
@@ -1920,7 +1609,11 @@
           },
           "apr": {
             "type": "number",
-            "description": "Yield as APR when the upstream source provides it."
+            "description": "Yield as APR when the upstream source provides it. For CompX lending this is the supply APR (same basis as apy)."
+          },
+          "borrowApr": {
+            "type": "number",
+            "description": "Borrow-side APR cost when the venue supports borrowing against this market. Prefer this field for borrow cost; do not treat apr as borrow cost."
           },
           "tvlUsd": {
             "type": "number",
@@ -1975,7 +1668,12 @@
           "limit",
           "offset",
           "includeInactive",
-          "paymentRequired"
+          "paymentRequired",
+          "cacheEnabled",
+          "cacheHit",
+          "cachedAt",
+          "cacheAgeMs",
+          "cacheTtlSec"
         ],
         "properties": {
           "limit": {
@@ -1989,6 +1687,35 @@
           },
           "paymentRequired": {
             "type": "boolean"
+          },
+          "cacheEnabled": {
+            "type": "boolean",
+            "description": "True when Redis opportunity cache is configured and not disabled."
+          },
+          "cacheHit": {
+            "type": "boolean",
+            "description": "True when every protocol fetch used in this response was served from Redis."
+          },
+          "cachedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Oldest cache write timestamp among protocols used; null when cache is disabled."
+          },
+          "cacheAgeMs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "Age of cachedAt relative to response time; informational only (no harsh stale flag)."
+          },
+          "cacheTtlSec": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Configured Redis TTL in seconds (default 180)."
           }
         }
       },
@@ -2367,7 +2094,24 @@
           },
           "escrowAddress": {
             "type": "string",
-            "description": "Folks Finance deposit escrow address. Resolved via indexer when omitted on deposit/withdraw shapes."
+            "description": "Folks Finance deposit or loan escrow address. Resolved via indexer when omitted on deposit/withdraw shapes."
+          },
+          "loanAppId": {
+            "description": "Folks Finance loan application id (distinct from pool app id). Defaults to MainnetLoans.GENERAL when omitted on loan credit shapes."
+          },
+          "marketAppId": {
+            "description": "CompX or Dork.fi lending market application id."
+          },
+          "borrowAmount": {
+            "type": "string",
+            "description": "Amount to borrow in base units (integer string recommended)."
+          },
+          "collateralAmount": {
+            "type": "string",
+            "description": "Collateral amount in base units for CompX borrow shapes (LST-denominated)."
+          },
+          "collateralTokenId": {
+            "description": "Collateral asset id for CompX borrow shapes (defaults to market LST when omitted)."
           },
           "poolId": {
             "type": "string",
@@ -3683,7 +3427,12 @@
           "validatorId": {
             "type": "integer",
             "minimum": 1,
-            "description": "R\u00e9ti validator id (stake target). Amounts never appear in hints."
+            "description": "Réti validator id (stake target). Amounts never appear in hints."
+          },
+          "loanAppId": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Folks Finance loan application id (distinct from pool app id)."
           }
         }
       },
@@ -3777,328 +3526,6 @@
           },
           "input": {
             "$ref": "#/components/schemas/ExecutionQuoteInput"
-          }
-        }
-      },
-      "StrategyLeg": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "shapeKey",
-          "weightBps"
-        ],
-        "properties": {
-          "shapeKey": {
-            "type": "string",
-            "minLength": 1
-          },
-          "opportunityId": {
-            "type": "string",
-            "minLength": 1
-          },
-          "venueIds": {
-            "type": "array",
-            "minItems": 1,
-            "items": {
-              "type": "string",
-              "minLength": 1
-            }
-          },
-          "weightBps": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 10000
-          }
-        }
-      },
-      "StrategyDocument": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "schemaVersion",
-          "strategyId",
-          "creatorAddress",
-          "createdAt",
-          "lastRevisedAt",
-          "name",
-          "description",
-          "tags",
-          "status",
-          "legs",
-          "holderFeeShareBps"
-        ],
-        "properties": {
-          "schemaVersion": {
-            "type": "integer",
-            "const": 1
-          },
-          "strategyId": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "creatorAddress": {
-            "type": "string",
-            "minLength": 58,
-            "maxLength": 58
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "lastRevisedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 120
-          },
-          "description": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 4000
-          },
-          "tags": {
-            "type": "array",
-            "maxItems": 32,
-            "items": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 64
-            }
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "published",
-              "suspended",
-              "degraded",
-              "archived"
-            ]
-          },
-          "legs": {
-            "type": "array",
-            "minItems": 1,
-            "maxItems": 32,
-            "items": {
-              "$ref": "#/components/schemas/StrategyLeg"
-            }
-          },
-          "holderFeeShareBps": {
-            "type": "integer",
-            "const": 5000
-          }
-        }
-      },
-      "StrategyPublishRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "creatorAddress",
-          "name",
-          "description",
-          "legs"
-        ],
-        "properties": {
-          "creatorAddress": {
-            "type": "string",
-            "minLength": 58,
-            "maxLength": 58
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 120
-          },
-          "description": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 4000
-          },
-          "tags": {
-            "type": "array",
-            "maxItems": 32,
-            "items": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 64
-            }
-          },
-          "legs": {
-            "type": "array",
-            "minItems": 1,
-            "maxItems": 32,
-            "items": {
-              "$ref": "#/components/schemas/StrategyLeg"
-            }
-          }
-        }
-      },
-      "StrategyReviseRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "holderAddress",
-          "legs"
-        ],
-        "properties": {
-          "holderAddress": {
-            "type": "string",
-            "minLength": 58,
-            "maxLength": 58
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 120
-          },
-          "description": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 4000
-          },
-          "tags": {
-            "type": "array",
-            "maxItems": 32,
-            "items": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 64
-            }
-          },
-          "legs": {
-            "type": "array",
-            "minItems": 1,
-            "maxItems": 32,
-            "items": {
-              "$ref": "#/components/schemas/StrategyLeg"
-            }
-          }
-        }
-      },
-      "StrategyCompileRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "userAddress",
-          "amount"
-        ],
-        "properties": {
-          "userAddress": {
-            "type": "string",
-            "minLength": 58,
-            "maxLength": 58
-          },
-          "amount": {
-            "type": "string",
-            "pattern": "^[0-9]+$"
-          },
-          "legInputs": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": [
-                "legIndex",
-                "input"
-              ],
-              "properties": {
-                "legIndex": {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                "input": {
-                  "type": "object",
-                  "additionalProperties": true
-                }
-              }
-            }
-          }
-        }
-      },
-      "StrategyListResponse": {
-        "type": "object",
-        "required": [
-          "data",
-          "meta"
-        ],
-        "properties": {
-          "data": {
-            "type": "object",
-            "required": [
-              "items",
-              "total"
-            ],
-            "properties": {
-              "items": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/StrategyDocument"
-                }
-              },
-              "total": {
-                "type": "integer",
-                "minimum": 0
-              }
-            }
-          },
-          "meta": {
-            "type": "object",
-            "additionalProperties": true
-          }
-        }
-      },
-      "StrategyDetailResponse": {
-        "type": "object",
-        "required": [
-          "data",
-          "meta"
-        ],
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/StrategyDocument"
-          },
-          "meta": {
-            "type": "object",
-            "additionalProperties": true
-          }
-        }
-      },
-      "StrategyCompileResponse": {
-        "type": "object",
-        "required": [
-          "data",
-          "meta"
-        ],
-        "properties": {
-          "data": {
-            "type": "object",
-            "required": [
-              "strategyId",
-              "quotes",
-              "feeDisclosure"
-            ],
-            "properties": {
-              "strategyId": {
-                "type": "integer",
-                "minimum": 1
-              },
-              "quotes": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "additionalProperties": true
-                }
-              },
-              "feeDisclosure": {
-                "type": "object",
-                "additionalProperties": true
-              }
-            }
-          },
-          "meta": {
-            "type": "object",
-            "additionalProperties": true
           }
         }
       },
@@ -4237,7 +3664,7 @@
               "any",
               "all"
             ],
-            "description": "How multiple ASA gates combine. R\u00e9ti uses any."
+            "description": "How multiple ASA gates combine. Réti uses any."
           },
           "eligibilityFullyCheckable": {
             "type": "boolean",
@@ -4746,7 +4173,7 @@
                 "algoRoomMicroAlgos": "50000000000",
                 "acceptingStake": true
               },
-              "notes": "R\u00e9ti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+              "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
               "executionReady": true,
               "executionShapes": [
                 {
@@ -4755,8 +4182,8 @@
                   "protocolVersion": "v1",
                   "action": "stake",
                   "variant": "algo",
-                  "title": "R\u00e9ti ALGO stake to validator",
-                  "summary": "Stakes ALGO to a R\u00e9ti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas \u00d72, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+                  "title": "Réti ALGO stake to validator",
+                  "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -4780,8 +4207,8 @@
                   "protocolVersion": "v1",
                   "action": "unstake",
                   "variant": "algo",
-                  "title": "R\u00e9ti ALGO unstake from pool",
-                  "summary": "Removes ALGO stake from a R\u00e9ti staking pool via StakingPool.removeStake. Builds gas \u00d72, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+                  "title": "Réti ALGO unstake from pool",
+                  "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -4891,7 +4318,12 @@
             "limit": 10,
             "offset": 0,
             "includeInactive": false,
-            "paymentRequired": true
+            "paymentRequired": true,
+            "cacheEnabled": false,
+            "cacheHit": false,
+            "cachedAt": null,
+            "cacheAgeMs": null,
+            "cacheTtlSec": 180
           }
         }
       },
@@ -5005,7 +4437,12 @@
             "limit": 25,
             "offset": 0,
             "includeInactive": false,
-            "paymentRequired": true
+            "paymentRequired": true,
+            "cacheEnabled": false,
+            "cacheHit": false,
+            "cachedAt": null,
+            "cacheAgeMs": null,
+            "cacheTtlSec": 180
           }
         }
       },
@@ -5226,7 +4663,7 @@
                 "algoRoomMicroAlgos": "50000000000",
                 "acceptingStake": true
               },
-              "notes": "R\u00e9ti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+              "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
               "executionReady": true,
               "executionShapes": [
                 {
@@ -5235,8 +4672,8 @@
                   "protocolVersion": "v1",
                   "action": "stake",
                   "variant": "algo",
-                  "title": "R\u00e9ti ALGO stake to validator",
-                  "summary": "Stakes ALGO to a R\u00e9ti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas \u00d72, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+                  "title": "Réti ALGO stake to validator",
+                  "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -5260,8 +4697,8 @@
                   "protocolVersion": "v1",
                   "action": "unstake",
                   "variant": "algo",
-                  "title": "R\u00e9ti ALGO unstake from pool",
-                  "summary": "Removes ALGO stake from a R\u00e9ti staking pool via StakingPool.removeStake. Builds gas \u00d72, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+                  "title": "Réti ALGO unstake from pool",
+                  "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -5287,7 +4724,12 @@
             "includeInactive": false,
             "paymentRequired": true,
             "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "heldAssetCount": 2
+            "heldAssetCount": 2,
+            "cacheEnabled": false,
+            "cacheHit": false,
+            "cachedAt": null,
+            "cacheAgeMs": null,
+            "cacheTtlSec": 180
           }
         }
       },
@@ -5321,7 +4763,7 @@
                 "algoRoomMicroAlgos": "50000000000",
                 "acceptingStake": true
               },
-              "notes": "R\u00e9ti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+              "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
               "executionReady": true,
               "executionShapes": [
                 {
@@ -5330,8 +4772,8 @@
                   "protocolVersion": "v1",
                   "action": "stake",
                   "variant": "algo",
-                  "title": "R\u00e9ti ALGO stake to validator",
-                  "summary": "Stakes ALGO to a R\u00e9ti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas \u00d72, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+                  "title": "Réti ALGO stake to validator",
+                  "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -5355,8 +4797,8 @@
                   "protocolVersion": "v1",
                   "action": "unstake",
                   "variant": "algo",
-                  "title": "R\u00e9ti ALGO unstake from pool",
-                  "summary": "Removes ALGO stake from a R\u00e9ti staking pool via StakingPool.removeStake. Builds gas \u00d72, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+                  "title": "Réti ALGO unstake from pool",
+                  "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -5380,7 +4822,12 @@
             "limit": 25,
             "offset": 0,
             "includeInactive": false,
-            "paymentRequired": true
+            "paymentRequired": true,
+            "cacheEnabled": false,
+            "cacheHit": false,
+            "cachedAt": null,
+            "cacheAgeMs": null,
+            "cacheTtlSec": 180
           }
         }
       },

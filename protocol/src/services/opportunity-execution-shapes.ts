@@ -237,7 +237,9 @@ function orderEnterShapes(
     record.protocol === "folks-finance" &&
     record.opportunityType === "lending"
   ) {
-    return orderBySteps(shapes, FOLKS_LENDING_ENTER_STEPS);
+    return orderBySteps(shapes, FOLKS_LENDING_ENTER_STEPS, {
+      exclusive: true
+    });
   }
 
   if (record.protocol === "pact" && record.opportunityType === "farm") {

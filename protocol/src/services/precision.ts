@@ -44,6 +44,9 @@ export function formatOpportunityForAgent(
     tvlUsd: formatDecimalForAgent(withShapes.tvlUsd),
     ...(withShapes.apr !== undefined
       ? { apr: formatDecimalForAgent(withShapes.apr) }
+      : {}),
+    ...(withShapes.borrowApr !== undefined
+      ? { borrowApr: formatDecimalForAgent(withShapes.borrowApr) }
       : {})
   };
 }

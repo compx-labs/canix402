@@ -7,10 +7,7 @@ import {
   defaultPaidPriceUsdc,
   personalizedPriceUsdc,
   positionsPriceUsdc,
-  executionQuotePriceUsdc,
-  strategyPublishPriceUsdc,
-  strategyRevisePriceUsdc,
-  strategyCompilePriceUsdc
+  executionQuotePriceUsdc
 } from "../lib/config";
 ---
 
@@ -55,10 +52,7 @@ import {
       <code>{personalizedPriceUsdc} USDC</code>, while <code>/positions?address=</code> costs
       exactly <code>{positionsPriceUsdc} USDC</code> (<code>5000</code> micro-USDC).
       Batch execution quotes at <code>POST /execution/quotes</code> cost
-      <code>{executionQuotePriceUsdc} USDC</code> flat per request (not per quote item). Strategy
-      marketplace: publish <code>{strategyPublishPriceUsdc} USDC</code>, revise
-      <code>{strategyRevisePriceUsdc} USDC</code>, compile <code>{strategyCompilePriceUsdc} USDC</code>
-      (50% of compile fees go weekly to the strategy NFT holder). Haystack quote and prerequisite
+      <code>{executionQuotePriceUsdc} USDC</code> flat per request (not per quote item). Haystack quote and prerequisite
       opt-in generation are free; only <code>POST /swaps/transactions</code> costs
       <code>0.005 USDC</code>. Discovery x402 metadata exposes both <code>amountUsdc</code> and
       <code>amountMicro</code>; Caddy <code>PAYMENT-REQUIRED</code> uses micro-USDC.
@@ -84,10 +78,23 @@ import {
         atomic-group order, then submit the complete group through your own Algod client.
       </li>
     </ol>
+    <h3>1) Free quote</h3>
+    <CodeBlock
+      code={`curl -i ${config.gatewayBaseUrl}/swaps/quote \\\n  -H 'content-type: application/json' \\\n  -d '{\n    "address": "YOUR_ALGORAND_ADDRESS",\n    "fromAssetId": 0,\n    "toAssetId": 31566704,\n    "amount": "1000000",\n    "type": "fixed-input"\n  }'`}
+    />
+    <h3>2) Free opt-in</h3>
+    <CodeBlock
+      code={`curl -i ${config.gatewayBaseUrl}/swaps/optin \\\n  -H 'content-type: application/json' \\\n  -d '{\n    "address": "YOUR_ALGORAND_ADDRESS",\n    "quote": { /* full data object from /swaps/quote */ }\n  }'`}
+    />
+    <h3>3) Paid transactions — preflight then retry</h3>
+    <CodeBlock
+      code={`curl -i ${config.gatewayBaseUrl}/swaps/transactions \\\n  -H 'content-type: application/json' \\\n  -d '{\n    "address": "YOUR_ALGORAND_ADDRESS",\n    "quote": { /* fresh quote data object */ },\n    "slippage": 0.005\n  }'\n\ncurl -i ${config.gatewayBaseUrl}/swaps/transactions \\\n  -H 'content-type: application/json' \\\n  -H 'PAYMENT-SIGNATURE: <base64-json-payload>' \\\n  -d '{\n    "address": "YOUR_ALGORAND_ADDRESS",\n    "quote": { /* fresh quote data object */ },\n    "slippage": 0.005\n  }'`}
+    />
     <p>
       Quotes are short-lived. Canix402 never receives wallet keys and never submits opt-ins or
       swaps. The x402 access charge is separate from Haystack's SDK-default <code>10 bps</code> output
       fee (including its referral split), DEX fees, route price impact, and Algorand network fees.
+      Sample payloads: <a href="/examples">examples</a>.
     </p>
   </section>
 
@@ -105,7 +112,7 @@ import {
       <li>
         Tools include <code>canix_list_opportunities</code>,
         <code>canix_list_execution_shapes</code>, <code>canix_get_positions</code>,
-        <code>canix_get_execution_quote</code>, strategy marketplace tools, and free discovery helpers
+        <code>canix_get_execution_quote</code>, and free discovery helpers
       </li>
     </ul>
     <p>

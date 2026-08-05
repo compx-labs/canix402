@@ -16,6 +16,7 @@ import (
 
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	x402http "github.com/GoPlausible/x402-avm/go/http"
 )
@@ -85,6 +86,13 @@ func (x *X402) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.
 		return next.ServeHTTP(w, r)
 
 	case x402http.ResultPaymentError:
+		event := eventX402PaymentRequired
+		level := zap.InfoLevel
+		if r.Header.Get("PAYMENT-SIGNATURE") != "" {
+			event = eventX402VerifyFailed
+			level = zap.WarnLevel
+		}
+		x.logX402Event(level, event, r)
 		writeSDKResponse(w, enrichPaymentRequiredExtra(result.Response, x.Accepts))
 		return nil
 
@@ -96,9 +104,8 @@ func (x *X402) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.
 			}
 			settle := x.httpServer.ProcessSettlement(ctx, *result.PaymentPayload, *result.PaymentRequirements)
 			if !settle.Success {
-				x.logger.Error("settlement failed",
+				x.logX402Event(zap.ErrorLevel, eventX402SettlementFailed, r,
 					zap.String("reason", settle.ErrorReason),
-					zap.String("path", r.URL.Path),
 				)
 				http.Error(w, fmt.Sprintf("payment settlement failed: %s", settle.ErrorReason),
 					http.StatusInternalServerError)
@@ -107,7 +114,10 @@ func (x *X402) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.
 
 			quote, err := x.parseQuoteFromPaymentSignature(r.Header.Get("PAYMENT-SIGNATURE"))
 			if err != nil {
-				x.logger.Error("missing quote-bound payload on verified paid route", zap.Error(err))
+				x.logX402Event(zap.ErrorLevel, eventX402VerifyFailed, r,
+					zap.Error(err),
+					zap.String("reason", "missing_quote_bound_payload"),
+				)
 				http.Error(w, "missing quote-bound payment payload", http.StatusBadRequest)
 				return nil
 			}
@@ -130,6 +140,12 @@ func (x *X402) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.
 			if err != nil {
 				return fmt.Errorf("marshal settlement proof: %w", err)
 			}
+
+			x.logX402Event(zap.InfoLevel, eventX402PaymentSettled, r,
+				zap.String("tx", settle.Transaction),
+				zap.String("network", string(settle.Network)),
+				zap.String("payer", settle.Payer),
+			)
 
 			for k, v := range settle.Headers {
 				w.Header().Set(k, v)
@@ -163,20 +179,18 @@ func (x *X402) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.
 
 		settle := x.httpServer.ProcessSettlement(ctx, *result.PaymentPayload, *result.PaymentRequirements)
 		if !settle.Success {
-			x.logger.Error("settlement failed",
+			x.logX402Event(zap.ErrorLevel, eventX402SettlementFailed, r,
 				zap.String("reason", settle.ErrorReason),
-				zap.String("path", r.URL.Path),
 			)
 			http.Error(w, fmt.Sprintf("payment settlement failed: %s", settle.ErrorReason),
 				http.StatusInternalServerError)
 			return nil
 		}
 
-		x.logger.Info("payment settled",
+		x.logX402Event(zap.InfoLevel, eventX402PaymentSettled, r,
 			zap.String("tx", settle.Transaction),
 			zap.String("network", string(settle.Network)),
 			zap.String("payer", settle.Payer),
-			zap.String("path", r.URL.Path),
 		)
 
 		rc.flush(w, settle.Headers)
@@ -190,16 +204,26 @@ func (x *X402) handleSettlementGatedRequest(w http.ResponseWriter, r *http.Reque
 	signature := r.Header.Get("PAYMENT-SIGNATURE")
 	quote, err := x.parseQuoteFromPaymentSignature(signature)
 	if err != nil {
+		x.logX402Event(zap.WarnLevel, eventX402VerifyFailed, r,
+			zap.Error(err),
+			zap.String("reason", "invalid_payment_signature_quote"),
+		)
 		http.Error(w, fmt.Sprintf("invalid payment signature quote payload: %v", err), http.StatusBadRequest)
 		return nil
 	}
 	decoded, err := base64.StdEncoding.DecodeString(signature)
 	if err != nil {
+		x.logX402Event(zap.WarnLevel, eventX402VerifyFailed, r,
+			zap.String("reason", "invalid_payment_signature_encoding"),
+		)
 		http.Error(w, "invalid PAYMENT-SIGNATURE encoding", http.StatusBadRequest)
 		return nil
 	}
 	var paymentPayload map[string]any
 	if err := json.Unmarshal(decoded, &paymentPayload); err != nil {
+		x.logX402Event(zap.WarnLevel, eventX402VerifyFailed, r,
+			zap.String("reason", "invalid_payment_signature_payload"),
+		)
 		http.Error(w, "invalid PAYMENT-SIGNATURE payload", http.StatusBadRequest)
 		return nil
 	}
@@ -212,21 +236,36 @@ func (x *X402) handleSettlementGatedRequest(w http.ResponseWriter, r *http.Reque
 	verifyBody, _ := json.Marshal(verifyReq)
 	verifyResp, err := http.Post(x.FacilitatorURL+"/verify", "application/json", bytes.NewReader(verifyBody))
 	if err != nil {
+		x.logX402Event(zap.ErrorLevel, eventX402VerifyFailed, r,
+			zap.Error(err),
+			zap.String("reason", "facilitator_verify_request_failed"),
+		)
 		http.Error(w, fmt.Sprintf("facilitator verify failed: %v", err), http.StatusBadGateway)
 		return nil
 	}
 	defer verifyResp.Body.Close()
 	rawVerify, _ := io.ReadAll(verifyResp.Body)
 	if verifyResp.StatusCode < 200 || verifyResp.StatusCode >= 300 {
+		x.logX402Event(zap.ErrorLevel, eventX402VerifyFailed, r,
+			zap.Int("status", verifyResp.StatusCode),
+			zap.String("reason", "facilitator_verify_non_2xx"),
+		)
 		http.Error(w, fmt.Sprintf("facilitator verify status=%d body=%s", verifyResp.StatusCode, string(rawVerify)), http.StatusBadGateway)
 		return nil
 	}
 	var verify facilitatorVerifyResponse
 	if err := json.Unmarshal(rawVerify, &verify); err != nil {
+		x.logX402Event(zap.ErrorLevel, eventX402VerifyFailed, r,
+			zap.String("reason", "facilitator_verify_parse_failed"),
+		)
 		http.Error(w, "facilitator verify response parse failed", http.StatusBadGateway)
 		return nil
 	}
 	if !verify.IsValid {
+		x.logX402Event(zap.WarnLevel, eventX402VerifyFailed, r,
+			zap.String("reason", verify.InvalidReason),
+			zap.String("payer", verify.Payer),
+		)
 		required := map[string]any{
 			"x402Version": 1,
 			"accepts":     []map[string]any{quote},
@@ -248,21 +287,36 @@ func (x *X402) handleSettlementGatedRequest(w http.ResponseWriter, r *http.Reque
 	settleBody, _ := json.Marshal(settleReq)
 	settleResp, err := http.Post(x.FacilitatorURL+"/settle", "application/json", bytes.NewReader(settleBody))
 	if err != nil {
+		x.logX402Event(zap.ErrorLevel, eventX402SettlementFailed, r,
+			zap.Error(err),
+			zap.String("reason", "facilitator_settle_request_failed"),
+		)
 		http.Error(w, fmt.Sprintf("facilitator settle failed: %v", err), http.StatusBadGateway)
 		return nil
 	}
 	defer settleResp.Body.Close()
 	rawSettle, _ := io.ReadAll(settleResp.Body)
 	if settleResp.StatusCode < 200 || settleResp.StatusCode >= 300 {
+		x.logX402Event(zap.ErrorLevel, eventX402SettlementFailed, r,
+			zap.Int("status", settleResp.StatusCode),
+			zap.String("reason", "facilitator_settle_non_2xx"),
+		)
 		http.Error(w, fmt.Sprintf("facilitator settle status=%d body=%s", settleResp.StatusCode, string(rawSettle)), http.StatusBadGateway)
 		return nil
 	}
 	var settle facilitatorSettleResponse
 	if err := json.Unmarshal(rawSettle, &settle); err != nil {
+		x.logX402Event(zap.ErrorLevel, eventX402SettlementFailed, r,
+			zap.String("reason", "facilitator_settle_parse_failed"),
+		)
 		http.Error(w, "facilitator settle response parse failed", http.StatusBadGateway)
 		return nil
 	}
 	if !settle.Success {
+		x.logX402Event(zap.ErrorLevel, eventX402SettlementFailed, r,
+			zap.String("reason", settle.ErrorReason),
+			zap.String("payer", settle.Payer),
+		)
 		required := map[string]any{
 			"x402Version": 1,
 			"accepts":     []map[string]any{quote},
@@ -299,6 +353,13 @@ func (x *X402) handleSettlementGatedRequest(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		return fmt.Errorf("marshal settlement proof: %w", err)
 	}
+
+	x.logX402Event(zap.InfoLevel, eventX402PaymentSettled, r,
+		zap.String("tx", settle.Transaction),
+		zap.String("network", settle.Network),
+		zap.String("payer", proof.Payer),
+	)
+
 	r.Header.Set("X-AQ-Settlement-Proof", base64.StdEncoding.EncodeToString(rawProof))
 	return next.ServeHTTP(w, r)
 }
@@ -624,6 +685,50 @@ func enrichPaymentRequiredExtra(
 	}
 	resp.Headers[headerKey] = base64.StdEncoding.EncodeToString(updated)
 	return resp
+}
+
+const (
+	eventX402PaymentRequired  = "x402_payment_required"
+	eventX402VerifyFailed     = "x402_verify_failed"
+	eventX402SettlementFailed = "x402_settlement_failed"
+	eventX402PaymentSettled   = "x402_payment_settled"
+	x402HeaderMaxLen          = 256
+)
+
+// truncateHeader caps request-header telemetry fields for log volume.
+func truncateHeader(value string) string {
+	if len(value) <= x402HeaderMaxLen {
+		return value
+	}
+	return value[:x402HeaderMaxLen]
+}
+
+// requestTelemetryFields returns path/method/UA/referer fields for x402 events.
+// Does not include PAYMENT-SIGNATURE or other secrets.
+func requestTelemetryFields(r *http.Request) []zap.Field {
+	referer := r.Header.Get("Referer")
+	if referer == "" {
+		referer = r.Header.Get("Referrer")
+	}
+	return []zap.Field{
+		zap.String("path", r.URL.Path),
+		zap.String("method", r.Method),
+		zap.String("user_agent", truncateHeader(r.Header.Get("User-Agent"))),
+		zap.String("referer", truncateHeader(referer)),
+	}
+}
+
+// logX402Event emits a structured Caddy log line for x402 outcomes.
+// Filter DO App Platform Caddy logs by the `event` field to watch agent traffic.
+func (x *X402) logX402Event(level zapcore.Level, event string, r *http.Request, extra ...zap.Field) {
+	if x == nil || x.logger == nil || r == nil {
+		return
+	}
+	fields := append([]zap.Field{zap.String("event", event)}, requestTelemetryFields(r)...)
+	fields = append(fields, extra...)
+	if ce := x.logger.Check(level, event); ce != nil {
+		ce.Write(fields...)
+	}
 }
 
 // writeSDKResponse translates an SDK HTTPResponseInstructions into a real HTTP response.

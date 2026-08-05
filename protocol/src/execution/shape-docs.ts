@@ -42,6 +42,18 @@ export const EXECUTION_SHAPE_DOCS_PATHS: Readonly<Record<string, string>> = {
     "protocol/docs/execution-shapes/folks-finance-deposit-escrow.md",
   "mainnet:folks-finance:v2:withdraw:escrow":
     "protocol/docs/execution-shapes/folks-finance-withdraw-escrow.md",
+  "mainnet:folks-finance:v2:setup:loanEscrow":
+    "protocol/docs/execution-shapes/folks-finance-setup-loan-escrow.md",
+  "mainnet:folks-finance:v2:setup:addCollateral":
+    "protocol/docs/execution-shapes/folks-finance-setup-add-collateral.md",
+  "mainnet:folks-finance:v2:collateral:sync":
+    "protocol/docs/execution-shapes/folks-finance-collateral-sync.md",
+  "mainnet:folks-finance:v2:borrow:variable":
+    "protocol/docs/execution-shapes/folks-finance-borrow-variable.md",
+  "mainnet:folks-finance:v2:repay:withTxn":
+    "protocol/docs/execution-shapes/folks-finance-repay-with-txn.md",
+  "mainnet:folks-finance:v2:collateral:reduce":
+    "protocol/docs/execution-shapes/folks-finance-collateral-reduce.md",
   "mainnet:folks-finance:xalgo-v1:stake:immediate":
     "protocol/docs/execution-shapes/folks-finance-stake-immediate.md",
   "mainnet:folks-finance:xalgo-v1:unstake:immediate":
@@ -68,6 +80,10 @@ export const EXECUTION_SHAPE_DOCS_PATHS: Readonly<Record<string, string>> = {
     "protocol/docs/execution-shapes/compx-deposit-asa.md",
   "mainnet:compx:v1:withdraw:asa":
     "protocol/docs/execution-shapes/compx-withdraw-asa.md",
+  "mainnet:compx:v1:borrow:asa":
+    "protocol/docs/execution-shapes/compx-borrow-asa.md",
+  "mainnet:compx:v1:repay:asa":
+    "protocol/docs/execution-shapes/compx-repay-asa.md",
   "mainnet:compx:v1:stake:asa":
     "protocol/docs/execution-shapes/compx-stake-asa.md",
   "mainnet:compx:v1:unstake:asa":
@@ -78,6 +94,10 @@ export const EXECUTION_SHAPE_DOCS_PATHS: Readonly<Record<string, string>> = {
     "protocol/docs/execution-shapes/dorkfi-deposit-asa.md",
   "mainnet:dorkfi:v1:withdraw:asa":
     "protocol/docs/execution-shapes/dorkfi-withdraw-asa.md",
+  "mainnet:dorkfi:v1:borrow:asa":
+    "protocol/docs/execution-shapes/dorkfi-borrow-asa.md",
+  "mainnet:dorkfi:v1:repay:asa":
+    "protocol/docs/execution-shapes/dorkfi-repay-asa.md",
   "mainnet:haystack:v1:stake:hay":
     "protocol/docs/execution-shapes/haystack-stake-hay.md",
   "mainnet:haystack:v1:unstake:hay":

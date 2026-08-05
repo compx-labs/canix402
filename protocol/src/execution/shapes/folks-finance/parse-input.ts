@@ -1,4 +1,9 @@
+import { MainnetLoans } from "@folks-finance/algorand-sdk";
+
 import { InvalidShapeInputError } from "../../errors.js";
+
+/** Folks Finance GENERAL loan app id (mainnet). */
+export const FOLKS_GENERAL_LOAN_APP_ID = MainnetLoans.GENERAL ?? 971388781;
 
 export function parseAddress(value: unknown, field = "userAddress"): string {
   if (typeof value !== "string" || value.length === 0) {
@@ -142,6 +147,39 @@ export function parseRequiredEscrowAddress(value: unknown): string {
     throw new InvalidShapeInputError("escrowAddress is required.");
   }
   return parseAddress(value, "escrowAddress");
+}
+
+/** Required loan escrow address (alias for parseRequiredEscrowAddress). */
+export function parseEscrowAddress(value: unknown): string {
+  return parseRequiredEscrowAddress(value);
+}
+
+/**
+ * Optional loan app id; defaults to MainnetLoans.GENERAL when omitted.
+ */
+export function parseLoanAppId(value: unknown): number {
+  if (value === undefined) {
+    return FOLKS_GENERAL_LOAN_APP_ID;
+  }
+  const numeric = typeof value === "string" ? Number(value) : value;
+  if (typeof numeric !== "number" || !Number.isInteger(numeric) || numeric <= 0) {
+    throw new InvalidShapeInputError("loanAppId must be a positive integer.", {
+      loanAppId: value
+    });
+  }
+  return numeric;
+}
+
+export function parseOptionalIsStable(value: unknown): boolean {
+  if (value === undefined) {
+    return false;
+  }
+  if (typeof value !== "boolean") {
+    throw new InvalidShapeInputError("isStable must be a boolean when provided.", {
+      isStable: value
+    });
+  }
+  return value;
 }
 
 export interface PoolSelectorInput {

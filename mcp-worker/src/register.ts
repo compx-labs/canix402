@@ -176,58 +176,6 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
   );
 
   server.registerTool(
-    "canix_list_strategies",
-    {
-      description:
-        "List published strategy marketplace documents via GET /strategies. Free. strategyId equals the strategy NFT ASA id.",
-      inputSchema: {
-        status: z
-          .enum(["published", "suspended", "degraded", "archived"])
-          .optional(),
-        tag: z.string().min(1).optional(),
-        creatorAddress: z.string().min(58).max(58).optional(),
-        limit: z.number().int().min(1).max(100).optional(),
-        offset: z.number().int().min(0).optional()
-      }
-    },
-    async (args) => {
-      try {
-        const body = await client.fetchFree("/strategies", {
-          query: {
-            status: args.status,
-            tag: args.tag,
-            creatorAddress: args.creatorAddress,
-            limit: args.limit,
-            offset: args.offset
-          }
-        });
-        return jsonResult(body);
-      } catch (error) {
-        return errorResult(error);
-      }
-    }
-  );
-
-  server.registerTool(
-    "canix_get_strategy",
-    {
-      description:
-        "Fetch one strategy document via GET /strategies/{strategyId}. Free. strategyId is the Algorand ASA id.",
-      inputSchema: {
-        strategyId: z.number().int().min(1)
-      }
-    },
-    async (args) => {
-      try {
-        const body = await client.fetchFree(`/strategies/${args.strategyId}`);
-        return jsonResult(body);
-      } catch (error) {
-        return errorResult(error);
-      }
-    }
-  );
-
-  server.registerTool(
     "canix_list_opportunities",
     {
       description:
@@ -267,13 +215,18 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
   server.registerTool(
     "canix_search_opportunities",
     {
-      description: "Search/filter opportunities via GET /opportunities/search. Paid ~0.01 USDC.",
+      description:
+        "Search/filter opportunities via GET /opportunities/search. Optional assetIds is a comma-separated list of ASA ids (0 = ALGO). Paid ~0.01 USDC.",
       inputSchema: {
         platform: z.string().optional(),
         type: z.string().optional(),
         minApy: z.number().optional(),
         maxApy: z.number().optional(),
         minTvlUsd: z.number().min(0).optional(),
+        assetIds: z
+          .string()
+          .optional()
+          .describe("Comma-separated ASA ids (0 = ALGO), e.g. \"0,31566704\""),
         limit: z.number().int().min(1).max(200).optional(),
         offset: z.number().int().min(0).optional(),
         includeInactive: z.boolean().optional(),
@@ -288,6 +241,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
           minApy: args.minApy,
           maxApy: args.maxApy,
           minTvlUsd: args.minTvlUsd,
+          assetIds: args.assetIds,
           limit: args.limit,
           offset: args.offset,
           includeInactive: args.includeInactive
@@ -462,149 +416,6 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     }
   );
 
-  server.registerTool(
-    "canix_publish_strategy",
-    {
-      description:
-        "Publish a weight-based strategy (POST /strategies). Paid 100 USDC. Mints tradable ARC-3 NFT; legs must sum to 10000 bps.",
-      inputSchema: {
-        creatorAddress: z.string().min(58).max(58),
-        name: z.string().min(1).max(120),
-        description: z.string().min(1).max(4000),
-        tags: z.array(z.string().min(1).max(64)).max(32).optional(),
-        legs: z
-          .array(
-            z.object({
-              shapeKey: z.string().min(1),
-              opportunityId: z.string().min(1).optional(),
-              venueIds: z.array(z.string().min(1)).min(1).optional(),
-              weightBps: z.number().int().min(1).max(10_000)
-            })
-          )
-          .min(1)
-          .max(32),
-        paymentSignature: paymentSignatureArgSchema()
-      }
-    },
-    async (args) => {
-      try {
-        const body = {
-          creatorAddress: args.creatorAddress,
-          name: args.name,
-          description: args.description,
-          tags: args.tags,
-          legs: args.legs
-        };
-        const result = await client.fetchPaid("/strategies", {
-          method: "POST",
-          body,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
-        });
-        return paidToolResult(result, "100", {
-          path: "/strategies",
-          method: "POST",
-          body
-        });
-      } catch (error) {
-        return errorResult(error);
-      }
-    }
-  );
-
-  server.registerTool(
-    "canix_revise_strategy",
-    {
-      description:
-        "Revise a strategy (POST /strategies/{strategyId}). Paid 1 USDC. NFT holder only; 14-day cooldown per strategyId.",
-      inputSchema: {
-        strategyId: z.number().int().min(1),
-        holderAddress: z.string().min(58).max(58),
-        name: z.string().min(1).max(120).optional(),
-        description: z.string().min(1).max(4000).optional(),
-        tags: z.array(z.string().min(1).max(64)).max(32).optional(),
-        legs: z
-          .array(
-            z.object({
-              shapeKey: z.string().min(1),
-              opportunityId: z.string().min(1).optional(),
-              venueIds: z.array(z.string().min(1)).min(1).optional(),
-              weightBps: z.number().int().min(1).max(10_000)
-            })
-          )
-          .min(1)
-          .max(32),
-        paymentSignature: paymentSignatureArgSchema()
-      }
-    },
-    async (args) => {
-      try {
-        const body = {
-          holderAddress: args.holderAddress,
-          name: args.name,
-          description: args.description,
-          tags: args.tags,
-          legs: args.legs
-        };
-        const path = `/strategies/${args.strategyId}`;
-        const result = await client.fetchPaid(path, {
-          method: "POST",
-          body,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
-        });
-        return paidToolResult(result, "1", {
-          path,
-          method: "POST",
-          body
-        });
-      } catch (error) {
-        return errorResult(error);
-      }
-    }
-  );
-
-  server.registerTool(
-    "canix_compile_strategy",
-    {
-      description:
-        "Compile a strategy into unsigned ExecutableQuote[] (POST /strategies/{strategyId}/compile). Paid 0.1 USDC. 50% of access fee paid weekly to NFT holder.",
-      inputSchema: {
-        strategyId: z.number().int().min(1),
-        userAddress: z.string().min(58).max(58),
-        amount: z.string().min(1).regex(/^[0-9]+$/),
-        legInputs: z
-          .array(
-            z.object({
-              legIndex: z.number().int().min(0),
-              input: z.record(z.string(), z.unknown())
-            })
-          )
-          .optional(),
-        paymentSignature: paymentSignatureArgSchema()
-      }
-    },
-    async (args) => {
-      try {
-        const body = {
-          userAddress: args.userAddress,
-          amount: args.amount,
-          legInputs: args.legInputs
-        };
-        const path = `/strategies/${args.strategyId}/compile`;
-        const result = await client.fetchPaid(path, {
-          method: "POST",
-          body,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
-        });
-        return paidToolResult(result, "0.1", {
-          path,
-          method: "POST",
-          body
-        });
-      } catch (error) {
-        return errorResult(error);
-      }
-    }
-  );
 
   server.registerTool(
     "canix_get_quote",

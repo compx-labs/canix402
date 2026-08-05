@@ -69,13 +69,19 @@ npx tsx ../protocol/scripts/export-discovery-snapshot.ts
 
 ## Sample response payloads
 
-`/examples` renders illustrative sample response payloads for the paid opportunity
-routes from checked-in JSON under `src/data`:
+`/examples` renders illustrative sample response payloads for opportunity,
+positions, execution, and swap routes from checked-in JSON under `src/data`:
 
 - `opportunities.sample.json` (`GET /opportunities`)
 - `opportunities-search.sample.json` (`GET /opportunities/search`)
 - `opportunities-personalized.sample.json` (`GET /opportunities/personalized`)
 - `protocol-opportunities.sample.json` (`GET /protocols/{protocol}/opportunities`)
+- `positions.sample.json` (`GET /positions`)
+- `execution-shapes.sample.json` (`GET /execution/shapes`)
+- `execution-quotes.sample.json` (`POST /execution/quotes`)
+- `swaps-quote.sample.json` (`POST /swaps/quote`)
+- `swaps-optin.sample.json` (`POST /swaps/optin`)
+- `swaps-transactions.sample.json` (`POST /swaps/transactions`)
 
 These are illustrative snapshots of the normalized response contract, not live paid
 data. They are generated through the protocol's precision formatter so numeric values

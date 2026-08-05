@@ -130,8 +130,6 @@ export function tagBadgeClass(tag: string): string {
     "positions",
     "wallet",
     "execution",
-    "strategies",
-    "marketplace",
     "swaps",
     "haystack",
     "protocol",

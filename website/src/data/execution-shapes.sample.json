@@ -1,59 +1,58 @@
 {
   "data": [
     {
-      "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+      "shapeKey": "mainnet:compx:v1:borrow:asa",
       "network": "mainnet",
-      "protocol": "tinyman",
-      "protocolVersion": "v2",
-      "action": "addLiquidity",
-      "variant": "flexible",
+      "protocol": "compx",
+      "protocolVersion": "v1",
+      "action": "borrow",
+      "variant": "asa",
       "shapeVersion": "1.0.0",
-      "title": "Tinyman v2 flexible add liquidity",
-      "description": "Two-sided flexible add-liquidity to a Tinyman AMM v2 pool",
-      "summary": "Two-sided flexible add-liquidity to a Tinyman AMM v2 pool",
+      "title": "CompX v1 ASA lending borrow",
+      "description": "Borrows a base ASA from a CompX lending market against LST collateral.",
+      "summary": "Borrows a base ASA from a CompX lending market against LST collateral.",
       "opportunityRole": "enter",
-      "supportedOpportunityTypes": ["lp"],
+      "supportedOpportunityTypes": ["lending"],
       "requiredInputs": [
         "userAddress",
-        "assetAId",
-        "assetAAmount",
-        "assetBId",
-        "assetBAmount"
+        "marketAppId",
+        "borrowAmount",
+        "collateralAmount"
       ],
       "sources": [
         {
           "kind": "sdk",
-          "description": "Tinyman JS SDK v2 liquidity helpers"
+          "description": "@compx/sdk buildBorrowTransactions"
         }
       ],
-      "docsPath": "protocol/docs/execution-shapes/tinyman-add-liquidity-flexible.md"
+      "docsPath": "protocol/docs/execution-shapes/compx-borrow-asa.md"
     },
     {
-      "shapeKey": "mainnet:reti:v1:stake:algo",
+      "shapeKey": "mainnet:compx:v1:repay:asa",
       "network": "mainnet",
-      "protocol": "reti",
+      "protocol": "compx",
       "protocolVersion": "v1",
-      "action": "stake",
-      "variant": "algo",
+      "action": "repay",
+      "variant": "asa",
       "shapeVersion": "1.0.0",
-      "title": "Réti stake ALGO",
-      "description": "Stake ALGO to a Réti validator via ValidatorRegistry.addStake",
-      "summary": "Stake ALGO to a Réti validator via ValidatorRegistry.addStake",
-      "opportunityRole": "enter",
-      "supportedOpportunityTypes": ["staking"],
-      "requiredInputs": ["userAddress", "validatorId", "amount"],
+      "title": "CompX v1 ASA lending repay",
+      "description": "Repays outstanding base-ASA debt on a CompX lending market.",
+      "summary": "Repays outstanding base-ASA debt on a CompX lending market.",
+      "opportunityRole": "exit",
+      "supportedOpportunityTypes": ["lending"],
+      "requiredInputs": ["userAddress", "marketAppId", "amount"],
       "sources": [
         {
-          "kind": "docs",
-          "description": "Réti ValidatorRegistry ABI"
+          "kind": "sdk",
+          "description": "@compx/sdk buildRepayTransactions"
         }
       ],
-      "docsPath": "protocol/docs/execution-shapes/reti-stake-algo.md"
+      "docsPath": "protocol/docs/execution-shapes/compx-repay-asa.md"
     }
   ],
   "meta": {
     "paymentRequired": false,
     "shapeCount": 2,
-    "note": "Catalog metadata only. Compile unsigned groups via paid POST /execution/quotes. Full catalog is larger; this sample is trimmed."
+    "note": "Catalog metadata only. Compile unsigned groups via paid POST /execution/quotes. Full catalog is larger; this sample is trimmed to CompX borrow/repay."
   }
 }

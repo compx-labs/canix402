@@ -18,7 +18,7 @@
 
 	@free {
 		method GET
-		path / /health /ready /metadata /discovery /openapi.json /llms.txt /llms-full.txt /robots.txt /favicon.ico /favicon.png /logo.png /banner.png /.well-known/x402 /.well-known/x402.json /.well-known/agent-card.json /.well-known/agent.json /.well-known/ai-plugin.json /swaps/quote /swaps/optin /pricing /execution/shapes /strategies /strategies/* /public/agents/brownie/positions
+		path / /health /ready /metadata /discovery /openapi.json /llms.txt /llms-full.txt /robots.txt /favicon.ico /favicon.png /logo.png /banner.png /.well-known/x402 /.well-known/x402.json /.well-known/agent-card.json /.well-known/agent.json /.well-known/ai-plugin.json /swaps/quote /swaps/optin /pricing /execution/shapes /public/agents/brownie/positions
 	}
 	handle @free {
 		reverse_proxy {$UPSTREAM_API}
@@ -153,81 +153,6 @@
 			accept {
 				pay_to {$X402_PAY_TO}
 				price {$X402_PRICE_EXECUTION_QUOTE_USDC}
-				network {$X402_NETWORK}
-				scheme {$X402_SCHEME}
-				extra {
-					tag x402-global-challenge
-				}
-			}
-		}
-
-		reverse_proxy {$UPSTREAM_API}
-	}
-
-	@paid_strategy_compile {
-		method POST
-		path_regexp strategy_compile ^/strategies/[0-9]+/compile$
-	}
-	handle @paid_strategy_compile {
-		x402 {
-			description "canix402 paid strategy compile endpoint"
-			mime_type application/json
-			facilitator_url {$FACILITATOR_URL}
-			bazaar_profile strategy_compile
-
-			accept {
-				pay_to {$X402_PAY_TO}
-				price {$X402_PRICE_STRATEGY_COMPILE_USDC}
-				network {$X402_NETWORK}
-				scheme {$X402_SCHEME}
-				extra {
-					tag x402-global-challenge
-				}
-			}
-		}
-
-		reverse_proxy {$UPSTREAM_API}
-	}
-
-	@paid_strategy_publish {
-		method POST
-		path /strategies
-	}
-	handle @paid_strategy_publish {
-		x402 {
-			description "canix402 paid strategy publish endpoint"
-			mime_type application/json
-			facilitator_url {$FACILITATOR_URL}
-			bazaar_profile strategy_publish
-
-			accept {
-				pay_to {$X402_PAY_TO}
-				price {$X402_PRICE_STRATEGY_PUBLISH_USDC}
-				network {$X402_NETWORK}
-				scheme {$X402_SCHEME}
-				extra {
-					tag x402-global-challenge
-				}
-			}
-		}
-
-		reverse_proxy {$UPSTREAM_API}
-	}
-
-	@paid_strategy_revise {
-		method POST
-		path_regexp strategy_revise ^/strategies/[0-9]+$
-	}
-	handle @paid_strategy_revise {
-		x402 {
-			description "canix402 paid strategy revise endpoint"
-			mime_type application/json
-			facilitator_url {$FACILITATOR_URL}
-			bazaar_profile strategy_revise
-
-			accept {
-				pay_to {$X402_PAY_TO}
-				price {$X402_PRICE_STRATEGY_REVISE_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
 				extra {

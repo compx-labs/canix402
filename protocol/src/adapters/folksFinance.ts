@@ -183,6 +183,9 @@ export function normalizeFolksLendingOpportunity(
   // Pact, and Dork.fi source values.
   const apy = toPercentagePoints(fromScaledValue(poolManagerState.depositInterestYield, 16));
   const apr = toPercentagePoints(fromScaledValue(poolManagerState.depositInterestRate, 16));
+  const borrowApr = toPercentagePoints(
+    fromScaledValue(poolManagerState.variableBorrowInterestYield, 16)
+  );
   // Folks oracle prices are already scaled as USD * 10^(14 - assetDecimals), so
   // USD = baseUnits * price / 1e14. Do not also divide deposits by asset decimals.
   const tvlUsd = calcTvlUsd(poolInfo.interest.totalDeposits, oraclePrice);
@@ -201,10 +204,13 @@ export function normalizeFolksLendingOpportunity(
     yieldBasis: "apy",
     tvlUsd,
     ...(apr !== null ? { apr } : {}),
+    ...(borrowApr !== null ? { borrowApr } : {}),
     ...buildSourceMetadata({
       fetchedAtIso,
       upstreamUnixSeconds: poolInfo.interest.latestUpdate,
-      contextNotes: [`Folks mainnet lending pool ${pool.appId}.`]
+      contextNotes: [
+        `Folks mainnet lending pool ${pool.appId}; borrowApr is variable borrow yield.`
+      ]
     })
   };
 }

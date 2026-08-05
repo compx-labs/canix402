@@ -38,7 +38,8 @@ Other emitted fields:
 - `assetPair`
 - `assetIds`
 - `yieldBasis` (always `apr`; CompX yields are APR-derived)
-- `apr` (optional)
+- `apr` (optional; supply APR, same basis as `apy` for CompX)
+- `borrowApr` (optional; borrow-side APR cost)
 - `sourceTimestamp`
 - `fetchedAt`
 - `notes`
@@ -52,13 +53,23 @@ Other emitted fields:
 | `market.appId` | `opportunityId` | `compx-lending-<appId>` |
 | `market.baseTokenId` + asset metadata | `assetPair` | Base asset unit name |
 | `market.baseTokenId`, `market.lstTokenId` | `assetIds` | Used for wallet personalization |
-| `market.supplyApy` | `apy` | Depositor yield (APR-derived) |
+| `market.supplyApy` | `apy`, `apr` | Depositor yield (APR-derived) |
 | (adapter policy) | `yieldBasis` | Always `apr` |
-| `market.borrowApy` | `apr` | Borrow-side APR |
+| `market.borrowApy` | `borrowApr` | Borrow-side APR cost |
+| `market.ltv` / `liquidationThreshold` / `availableToBorrowUSD` | `notes` | Surfaced for agent credit sizing |
 | `market.totalDepositsUSD` | `tvlUsd` | USD TVL from on-chain totals + oracle |
 | `market.lastUpdateTimestamp` | `sourceTimestamp` | On-chain accrual timestamp |
 | (adapter policy) | `opportunityType` | Always `lending` |
 
+### Wallet positions (`GET /positions`)
+
+| Position | Source | Notes |
+|---|---|---|
+| `supplied` | Wallet LST balance × exchange rate | Excludes locked borrow collateral |
+| `debt` | `sdk.lending.getUserPosition` | Includes `healthFactor`; repay via `mainnet:compx:v1:repay:asa` |
+| (manage on supplied) | — | `mainnet:compx:v1:borrow:asa` for leverage-up |
+
+Execution shapes: deposit / withdraw / borrow / repay ASA (`@compx/sdk` builders).
 ### Staking (`sdk.staking.getAllPools()` + `getPoolApr()`)
 
 | CompX SDK field | Normalized field | Notes |
@@ -94,8 +105,9 @@ Other emitted fields:
 
 - Current mode is on-demand fetch per request.
 - `getAllMarkets()` performs multiple on-chain reads (and may simulate APR) per market.
-- Wallet positions read wallet LST holdings plus market state for supplied
-  balances only. Borrow/debt is not surfaced in portfolio responses.
+- Wallet positions read wallet LST holdings for supplied balances and
+  `getUserPosition` for executable `debt` rows (repay via `mainnet:compx:v1:repay:asa`).
+  Supplied positions may expose borrow as a manage shape for leverage-up.
 - CompX staking pending rewards are derived MasterChef-style as
   `stake * rewardPerToken / 1e15 - rewardDebt` from pool + staker box state, then
   priced with `sdk.pricing.getTokenPrices`.

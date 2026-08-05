@@ -1,5 +1,7 @@
 import type { TransactionShapeSpec } from "../../types.js";
+import { dorkfiBorrowAsaShape } from "./borrow-asa.js";
 import { dorkfiDepositAsaShape } from "./deposit-asa.js";
+import { dorkfiRepayAsaShape } from "./repay-asa.js";
 import { dorkfiWithdrawAsaShape } from "./withdraw-asa.js";
 
 export {
@@ -15,6 +17,20 @@ export {
   buildMockDorkFiWithdrawGroup
 } from "./withdraw-asa.js";
 export type { DorkFiWithdrawAsaInput, DorkFiWithdrawAsaDependencies } from "./withdraw-asa.js";
+
+export {
+  dorkfiBorrowAsaShape,
+  setDorkFiBorrowAsaDependenciesForTests,
+  buildMockDorkFiBorrowGroup
+} from "./borrow-asa.js";
+export type { DorkFiBorrowAsaInput, DorkFiBorrowAsaDependencies } from "./borrow-asa.js";
+
+export {
+  dorkfiRepayAsaShape,
+  setDorkFiRepayAsaDependenciesForTests,
+  buildMockDorkFiRepayGroup
+} from "./repay-asa.js";
+export type { DorkFiRepayAsaInput, DorkFiRepayAsaDependencies } from "./repay-asa.js";
 
 export {
   resolveDorkFiLendingMarketState,
@@ -37,5 +53,7 @@ export {
 /** All verified Dork.fi transaction shapes. */
 export const dorkfiShapes: readonly TransactionShapeSpec[] = [
   dorkfiDepositAsaShape,
-  dorkfiWithdrawAsaShape
+  dorkfiWithdrawAsaShape,
+  dorkfiBorrowAsaShape,
+  dorkfiRepayAsaShape
 ];

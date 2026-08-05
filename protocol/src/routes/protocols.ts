@@ -1,6 +1,10 @@
 import { FastifyInstance } from "fastify";
 
-import { fetchOpportunitiesForProtocol } from "../services/aggregate-opportunities.js";
+import {
+  cacheMetaForResponse,
+  fetchOpportunitiesForProtocolResult,
+  summarizeCacheMeta
+} from "../services/aggregate-opportunities.js";
 import { filterOpportunitiesByActivity } from "../services/opportunity-activity.js";
 import { rankOpportunitiesByApy } from "../services/opportunity-ranking.js";
 import { formatOpportunitiesForAgent } from "../services/precision.js";
@@ -36,14 +40,14 @@ export function registerProtocolRoutes(app: FastifyInstance) {
       const {
         limit = PROTOCOL_OPPORTUNITIES_DEFAULT_LIMIT,
         offset = 0,
-        includeInactive = false
+        includeInactive = false,
+        refresh = false
       } = request.query;
 
-      const data = filterOpportunitiesByActivity(
-        await fetchOpportunitiesForProtocol(protocol),
-        includeInactive
-      );
+      const result = await fetchOpportunitiesForProtocolResult(protocol, { refresh });
+      const data = filterOpportunitiesByActivity(result.data, includeInactive);
       const pagedData = rankOpportunitiesByApy(data).slice(offset, offset + limit);
+      const cache = summarizeCacheMeta([result]);
 
       return {
         data: formatOpportunitiesForAgent(pagedData),
@@ -51,7 +55,8 @@ export function registerProtocolRoutes(app: FastifyInstance) {
           limit,
           offset,
           includeInactive,
-          paymentRequired: true
+          paymentRequired: true,
+          ...cacheMetaForResponse(cache)
         }
       };
     }

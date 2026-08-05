@@ -22,8 +22,18 @@ const TINYMAN_FARM_UNCOMMIT = "mainnet:tinyman:staking-v1:farm:uncommit";
 const TINYMAN_FARM_CLAIM = "mainnet:tinyman:staking-v1:farm:claimRewards";
 const FOLKS_UNSTAKE_IMMEDIATE =
   "mainnet:folks-finance:xalgo-v1:unstake:immediate";
+const FOLKS_BORROW_VARIABLE = "mainnet:folks-finance:v2:borrow:variable";
+const FOLKS_COLLATERAL_SYNC = "mainnet:folks-finance:v2:collateral:sync";
+const FOLKS_COLLATERAL_REDUCE = "mainnet:folks-finance:v2:collateral:reduce";
+const FOLKS_REPAY_WITH_TXN = "mainnet:folks-finance:v2:repay:withTxn";
 const MYTH_REDEEM_LST = "mainnet:myth-finance:dualstake-v1:redeem:lst";
 const RETI_UNSTAKE_ALGO = "mainnet:reti:v1:unstake:algo";
+const COMPX_BORROW_ASA = "mainnet:compx:v1:borrow:asa";
+const COMPX_WITHDRAW_ASA = "mainnet:compx:v1:withdraw:asa";
+const COMPX_REPAY_ASA = "mainnet:compx:v1:repay:asa";
+const DORKFI_WITHDRAW_ASA = "mainnet:dorkfi:v1:withdraw:asa";
+const DORKFI_BORROW_ASA = "mainnet:dorkfi:v1:borrow:asa";
+const DORKFI_REPAY_ASA = "mainnet:dorkfi:v1:repay:asa";
 
 export function attachExecutionShapesToPosition(
   record: PositionMarketRecord,
@@ -72,6 +82,45 @@ export function attachExecutionShapesToPosition(
       compatibleManageShapeKeys: registry.get(TINYMAN_FARM_CLAIM)
         ? [TINYMAN_FARM_CLAIM]
         : []
+    };
+  }
+
+  const exclusiveDorkFi = exclusiveDorkFiLendingShapes(record);
+  if (exclusiveDorkFi !== null) {
+    return {
+      ...record,
+      compatibleExitShapeKeys: exclusiveDorkFi.exitKeys.filter((key) =>
+        registry.get(key)
+      ),
+      compatibleManageShapeKeys: exclusiveDorkFi.manageKeys.filter((key) =>
+        registry.get(key)
+      )
+    };
+  }
+
+  const exclusiveCompX = exclusiveCompXLendingShapes(record);
+  if (exclusiveCompX !== null) {
+    return {
+      ...record,
+      compatibleExitShapeKeys: exclusiveCompX.exitKeys.filter((key) =>
+        registry.get(key)
+      ),
+      compatibleManageShapeKeys: exclusiveCompX.manageKeys.filter((key) =>
+        registry.get(key)
+      )
+    };
+  }
+
+  const exclusiveFolks = exclusiveFolksLendingShapes(record);
+  if (exclusiveFolks !== null) {
+    return {
+      ...record,
+      compatibleExitShapeKeys: exclusiveFolks.exitKeys.filter((key) =>
+        registry.get(key)
+      ),
+      compatibleManageShapeKeys: exclusiveFolks.manageKeys.filter((key) =>
+        registry.get(key)
+      )
     };
   }
 
@@ -178,4 +227,89 @@ function isDorkFiUsdAggregate(record: PositionMarketRecord): boolean {
     (record.positionId.startsWith("dorkfi:supplied-usd:") ||
       record.positionId.startsWith("dorkfi:debt-usd:"))
   );
+}
+
+/**
+ * Dork.fi lending positions need exclusive shape wiring:
+ * - ASA supplied (opportunityId dorkfi:*, not supplied-usd) → withdraw exit + borrow manage
+ * - asset-level debt (dorkfi:debt:*, not debt-usd) → repay exit only
+ */
+function exclusiveDorkFiLendingShapes(
+  record: PositionMarketRecord
+): { exitKeys: string[]; manageKeys: string[] } | null {
+  if (record.protocol !== "dorkfi") {
+    return null;
+  }
+  if (
+    record.positionType === "supplied" &&
+    typeof record.opportunityId === "string" &&
+    record.opportunityId.startsWith("dorkfi:") &&
+    !record.positionId.startsWith("dorkfi:supplied-usd:")
+  ) {
+    return {
+      exitKeys: [DORKFI_WITHDRAW_ASA],
+      manageKeys: [DORKFI_BORROW_ASA]
+    };
+  }
+  if (
+    record.positionType === "debt" &&
+    record.positionId.startsWith("dorkfi:debt:")
+  ) {
+    return { exitKeys: [DORKFI_REPAY_ASA], manageKeys: [] };
+  }
+  return null;
+}
+
+/**
+ * CompX lending positions need exclusive shape wiring:
+ * - supplied → withdraw exit + borrow manage (leverage-up)
+ * - debt → repay exit only (do not attach withdraw)
+ */
+function exclusiveCompXLendingShapes(
+  record: PositionMarketRecord
+): { exitKeys: string[]; manageKeys: string[] } | null {
+  if (record.protocol !== "compx") {
+    return null;
+  }
+  if (
+    record.positionType === "supplied" &&
+    typeof record.opportunityId === "string" &&
+    record.opportunityId.startsWith("compx-lending-")
+  ) {
+    return {
+      exitKeys: [COMPX_WITHDRAW_ASA],
+      manageKeys: [COMPX_BORROW_ASA]
+    };
+  }
+  if (
+    record.positionType === "debt" &&
+    typeof record.opportunityId === "string" &&
+    record.opportunityId.startsWith("compx-lending-")
+  ) {
+    return { exitKeys: [COMPX_REPAY_ASA], manageKeys: [] };
+  }
+  return null;
+}
+
+/**
+ * Folks loan positions need exclusive shape wiring:
+ * - collateral → borrow + sync manage; reduce exit
+ * - debt → repay exit only
+ */
+function exclusiveFolksLendingShapes(
+  record: PositionMarketRecord
+): { exitKeys: string[]; manageKeys: string[] } | null {
+  if (record.protocol !== "folks-finance") {
+    return null;
+  }
+  if (record.positionId.startsWith("folks-finance:collateral:")) {
+    return {
+      exitKeys: [FOLKS_COLLATERAL_REDUCE],
+      manageKeys: [FOLKS_BORROW_VARIABLE, FOLKS_COLLATERAL_SYNC]
+    };
+  }
+  if (record.positionType === "debt") {
+    return { exitKeys: [FOLKS_REPAY_WITH_TXN], manageKeys: [] };
+  }
+  return null;
 }

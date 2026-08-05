@@ -9,6 +9,9 @@ import {
 } from "../../src/execution/shapes/compx/index.js";
 import { setAssetDecimalsDependenciesForTests } from "../../src/services/asset-decimals.js";
 import {
+  attachExecutionShapesToPosition
+} from "../../src/services/position-execution-shapes.js";
+import {
   collectCompXPositions,
   setCompXPositionCollectorDependenciesForTests
 } from "../../src/services/protocol-positions.js";
@@ -34,7 +37,7 @@ test.afterEach(() => {
   setAssetDecimalsDependenciesForTests(undefined);
 });
 
-test("CompX collector never emits lending debt positions", async () => {
+test("CompX collector emits lending debt positions with repay shape", async () => {
   setAssetDecimalsDependenciesForTests({
     createAlgodClient: () => ({}) as never,
     getAssetById: async () => ({ params: { decimals: 6 } })
@@ -58,23 +61,95 @@ test("CompX collector never emits lending debt positions", async () => {
   setCompXLendingMarketStateDependenciesForTests({
     getMarket: async () => marketData()
   });
+  setCompXPositionCollectorDependenciesForTests({
+    getUserPosition: async () => ({
+      borrowed: 250_000,
+      collateral: 500_000,
+      collateralAssetId: LST_ID,
+      healthFactor: 1.8,
+      isLiquidatable: false,
+      maxBorrow: 400_000
+    })
+  });
 
   const result = await collectCompXPositions(
     ADDRESS,
     walletSnapshot([{ assetId: LST_ID, amount: 1_000_000n }])
   );
 
-  assert.equal(
-    result.positions.some((position) => position.positionType === "debt"),
-    false
+  const debt = result.positions.find(
+    (position) => position.positionType === "debt"
   );
-  assert.equal(
-    result.warnings.some((warning) => warning.includes(":debt:")),
-    false
-  );
+  assert.ok(debt);
+  assert.equal(debt.positionId, `compx:debt:${MARKET_APP_ID}`);
+  assert.equal(debt.opportunityId, `compx-lending-${MARKET_APP_ID}`);
+  assert.equal(debt.amountRaw, "250000");
+  assert.equal(debt.healthFactor, 1.8);
+  assert.equal(debt.usdValue, 0.25);
+  assert.match(debt.notes ?? "", /Locked collateral 500000/);
   assert.equal(result.coverage?.borrowedUsdComplete, true);
+
+  const enriched = attachExecutionShapesToPosition(debt);
+  assert.deepEqual(enriched.compatibleExitShapeKeys, [
+    "mainnet:compx:v1:repay:asa"
+  ]);
+  assert.deepEqual(enriched.compatibleManageShapeKeys, []);
+
+  const supplied = result.positions.find(
+    (position) => position.positionType === "supplied"
+  );
+  assert.ok(supplied);
+  const suppliedEnriched = attachExecutionShapesToPosition(supplied);
+  assert.deepEqual(suppliedEnriched.compatibleExitShapeKeys, [
+    "mainnet:compx:v1:withdraw:asa"
+  ]);
+  assert.deepEqual(suppliedEnriched.compatibleManageShapeKeys, [
+    "mainnet:compx:v1:borrow:asa"
+  ]);
+});
+
+test("CompX collector emits debt without wallet LST when loan exists", async () => {
+  setAssetDecimalsDependenciesForTests({
+    createAlgodClient: () => ({}) as never,
+    getAssetById: async () => ({ params: { decimals: 6 } })
+  });
+  setCompXSdkDependenciesForTests({
+    getAllMarketsFn: async () => [marketData()],
+    getAllPoolsFn: async () => [],
+    getAssetsInfoFn: async () => [
+      {
+        id: USDC_ID,
+        name: "USDC",
+        unitName: "USDC",
+        decimals: 6,
+        total: 0n,
+        frozen: false
+      }
+    ],
+    getPoolAprFn: async () => null,
+    getTokenPricesFn: async () => ({})
+  });
+  setCompXLendingMarketStateDependenciesForTests({
+    getMarket: async () => marketData()
+  });
+  setCompXPositionCollectorDependenciesForTests({
+    getUserPosition: async () => ({
+      borrowed: 100_000,
+      collateral: 200_000,
+      collateralAssetId: LST_ID,
+      healthFactor: 1.2,
+      isLiquidatable: false,
+      maxBorrow: 150_000
+    })
+  });
+
+  const result = await collectCompXPositions(ADDRESS, walletSnapshot([]));
   assert.ok(
-    result.positions.some((position) => position.positionType === "supplied")
+    result.positions.some((position) => position.positionType === "debt")
+  );
+  assert.equal(
+    result.positions.some((position) => position.positionType === "supplied"),
+    false
   );
 });
 

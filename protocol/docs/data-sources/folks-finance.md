@@ -48,8 +48,19 @@ Other emitted fields:
 | `poolManagerInfo.pools[appId].depositInterestYield` | `apy` | 16-decimal fixed-point decimal fraction -> percentage points |
 | (adapter policy) | `yieldBasis` | Always `apy` |
 | `poolManagerInfo.pools[appId].depositInterestRate` | `apr` | 16-decimal fixed-point decimal fraction -> percentage points |
+| `poolManagerInfo.pools[appId].variableBorrowInterestYield` | `borrowApr` | Variable borrow cost as percentage points |
 | `poolInfo.interest.totalDeposits` + oracle price | `tvlUsd` | Computed via on-chain asset decimals and 14-decimal oracle price |
 | (adapter policy) | `opportunityType` | `lending` |
+
+### Wallet positions (`GET /positions`)
+
+| Position | Source | Notes |
+|---|---|---|
+| `supplied` (deposit escrow) | Deposit holdings | Exit via withdraw escrow |
+| `supplied` (loan collateral) | `retrieveUserLoansInfo` collaterals | Manage: borrow/sync; exit: reduce collateral |
+| `debt` | `retrieveUserLoansInfo` borrows | Exit via `repay:withTxn` |
+
+Credit execution shapes: `setup:loanEscrow`, `setup:addCollateral`, `collateral:sync`, `borrow:variable`, `repay:withTxn`, `collateral:reduce`.
 
 ### xALGO liquid staking (`opportunityType: staking`)
 

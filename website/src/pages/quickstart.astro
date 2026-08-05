@@ -7,13 +7,14 @@ import { config } from "../lib/config";
 
 <BaseLayout
   title="Quickstart | CANIX402"
-  description="Get an agent connected to Canix402 in four steps: read discovery and OpenAPI, probe free routes (including execution shapes), then call paid opportunities, positions, or execution quotes with x402 USDC payment."
+  description="Get an agent connected to Canix402 in four steps: read discovery and OpenAPI, probe free routes (including execution shapes and Haystack quotes), then call paid opportunities, positions, execution quotes, or swap transactions with x402 USDC payment."
   keywords="Canix402 quickstart, agent onboarding, x402 integration, discovery, OpenAPI, Algorand DeFi API"
 >
   <h1 class="page-title">Quickstart</h1>
   <p class="muted">
-    Use the Caddy gateway URL as your base URL. Discovery, OpenAPI, and
-    <code>GET /execution/shapes</code> are free; paid data and quote routes require x402 USDC payment.
+    Use the Caddy gateway URL as your base URL. Discovery, OpenAPI,
+    <code>GET /execution/shapes</code>, and <code>POST /swaps/quote</code> are free; paid data,
+    quote, and swap-transaction routes require x402 USDC payment.
   </p>
 
   <section class="panel">
@@ -57,11 +58,11 @@ import { config } from "../lib/config";
   <section class="panel">
     <h2>3. Probe free routes</h2>
     <p>
-      Health, metadata, <code>GET /execution/shapes</code>, and <code>GET /strategies</code> should
-      return <code>200</code> without payment headers.
+      Health, metadata, <code>GET /execution/shapes</code>, and
+      <code>POST /swaps/quote</code> should return <code>200</code> without payment headers.
     </p>
     <CodeBlock
-      code={`curl -i ${config.gatewayBaseUrl}/health\ncurl -i ${config.gatewayBaseUrl}/metadata\ncurl -i ${config.gatewayBaseUrl}/execution/shapes\ncurl -i ${config.gatewayBaseUrl}/strategies`}
+      code={`curl -i ${config.gatewayBaseUrl}/health\ncurl -i ${config.gatewayBaseUrl}/metadata\ncurl -i ${config.gatewayBaseUrl}/execution/shapes\ncurl -i ${config.gatewayBaseUrl}/swaps/quote \\\n  -H 'content-type: application/json' \\\n  -d '{"address":"YOUR_ALGORAND_ADDRESS","fromAssetId":0,"toAssetId":31566704,"amount":"1000000","type":"fixed-input"}'`}
     />
   </section>
 
@@ -69,11 +70,16 @@ import { config } from "../lib/config";
     <h2>4. Call a paid route</h2>
     <p>
       First call returns <code>402</code> with <code>PAYMENT-REQUIRED</code>. Retry with a signed
-      payload. Same pattern for opportunities, positions, and execution quotes.
+      payload. Same pattern for opportunities, positions, execution quotes, and Haystack
+      <code>POST /swaps/transactions</code>.
     </p>
     <PaymentFlow />
     <CodeBlock
-      code={`curl -i ${config.gatewayBaseUrl}/opportunities\n\ncurl -i ${config.gatewayBaseUrl}/opportunities \\\n  -H 'PAYMENT-SIGNATURE: <base64-json-payload>'`}
+      code={`# Opportunities\ncurl -i ${config.gatewayBaseUrl}/opportunities\ncurl -i ${config.gatewayBaseUrl}/opportunities \\\n  -H 'PAYMENT-SIGNATURE: <base64-json-payload>'\n\n# Positions\ncurl -i '${config.gatewayBaseUrl}/positions?address=YOUR_ALGORAND_ADDRESS'\ncurl -i '${config.gatewayBaseUrl}/positions?address=YOUR_ALGORAND_ADDRESS' \\\n  -H 'PAYMENT-SIGNATURE: <base64-json-payload>'\n\n# Execution quotes (see /examples for full bodies)\ncurl -i ${config.gatewayBaseUrl}/execution/quotes \\\n  -H 'content-type: application/json' \\\n  -d '{"quotes":[{"shapeKey":"mainnet:tinyman:v2:addLiquidity:flexible","input":{"userAddress":"YOUR_ALGORAND_ADDRESS","assetAId":0,"assetAAmount":"1000000","assetBId":31566704,"assetBAmount":"1000000","maxSlippageBps":50}}]}'\n\n# Haystack swap transactions (after free quote + opt-in)\ncurl -i ${config.gatewayBaseUrl}/swaps/transactions \\\n  -H 'content-type: application/json' \\\n  -d '{"address":"YOUR_ALGORAND_ADDRESS","quote":{/* fresh quote */},"slippage":0.005}'`}
     />
+    <p class="muted">
+      Full copy-paste flows for quotes, positions, and swaps:
+      <a href="/examples">examples</a>.
+    </p>
   </section>
 </BaseLayout>

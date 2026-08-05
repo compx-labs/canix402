@@ -9,7 +9,6 @@ import { registerPositionRoutes } from "./positions.js";
 import { registerPricingRoutes } from "./pricing.js";
 import { registerProtocolRoutes } from "./protocols.js";
 import { registerPublicAgentRoutes } from "./public-agents.js";
-import { registerStrategyRoutes } from "./strategies.js";
 import { registerSwapRoutes } from "./swaps.js";
 
 export function registerRoutes(app: FastifyInstance) {
@@ -22,6 +21,5 @@ export function registerRoutes(app: FastifyInstance) {
   registerPublicAgentRoutes(app);
   registerPricingRoutes(app);
   registerProtocolRoutes(app);
-  registerStrategyRoutes(app);
   registerSwapRoutes(app);
 }

@@ -25,7 +25,7 @@ const POSITION_TYPE_TO_OPPORTUNITY_TYPES: Record<string, readonly string[]> = {
   staked: ["staking", "farm"],
   supplied: ["lending"],
   reward: ["staking", "farm", "lending"],
-  debt: []
+  debt: ["lending"]
 };
 
 /**

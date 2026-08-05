@@ -170,76 +170,6 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 			},
 		)
 
-	case "strategy_publish":
-		return bazaar.DeclareDiscoveryExtension(
-			bazaar.MethodPOST,
-			map[string]interface{}{
-				"name":        "example",
-				"description": "example strategy",
-				"legs":        []interface{}{},
-			},
-			bazaar.JSONSchema{
-				"type": "object",
-				"properties": map[string]interface{}{
-					"name":        map[string]interface{}{"type": "string"},
-					"description": map[string]interface{}{"type": "string"},
-					"legs":        map[string]interface{}{"type": "array"},
-				},
-			},
-			bazaar.BodyTypeJSON,
-			&bazaar.OutputConfig{
-				Example: map[string]interface{}{
-					"data": map[string]interface{}{
-						"strategyId": "0",
-					},
-				},
-			},
-		)
-
-	case "strategy_revise":
-		return bazaar.DeclareDiscoveryExtension(
-			bazaar.MethodPOST,
-			map[string]interface{}{
-				"legs": []interface{}{},
-			},
-			bazaar.JSONSchema{
-				"type": "object",
-				"properties": map[string]interface{}{
-					"name":        map[string]interface{}{"type": "string"},
-					"description": map[string]interface{}{"type": "string"},
-					"legs":        map[string]interface{}{"type": "array"},
-				},
-			},
-			bazaar.BodyTypeJSON,
-			&bazaar.OutputConfig{
-				Example: map[string]interface{}{
-					"data": map[string]interface{}{
-						"strategyId": "0",
-					},
-				},
-			},
-		)
-
-	case "strategy_compile":
-		return bazaar.DeclareDiscoveryExtension(
-			bazaar.MethodPOST,
-			map[string]interface{}{
-				"capitalMicroUsdc": "1000000",
-			},
-			bazaar.JSONSchema{
-				"type": "object",
-				"properties": map[string]interface{}{
-					"capitalMicroUsdc": map[string]interface{}{"type": "string"},
-				},
-			},
-			bazaar.BodyTypeJSON,
-			&bazaar.OutputConfig{
-				Example: map[string]interface{}{
-					"data": []interface{}{},
-				},
-			},
-		)
-
 	default:
 		return bazaar.DiscoveryExtension{}, fmt.Errorf("unknown bazaar_profile %q", profile)
 	}
@@ -254,8 +184,5 @@ func knownBazaarProfiles() []string {
 		"protocol_opportunities",
 		"execution_quotes",
 		"haystack_swap",
-		"strategy_publish",
-		"strategy_revise",
-		"strategy_compile",
 	}
 }

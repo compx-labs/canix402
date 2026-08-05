@@ -114,6 +114,9 @@ test("Dork.fi merges ASA supply with indexed USD aggregate and keeps withdraw ac
   assert.ok(
     asa.compatibleExitShapeKeys.includes("mainnet:dorkfi:v1:withdraw:asa")
   );
+  assert.ok(
+    asa.compatibleManageShapeKeys.includes("mainnet:dorkfi:v1:borrow:asa")
+  );
 
   const usd = enriched.find(
     (position) =>
@@ -127,7 +130,40 @@ test("Dork.fi merges ASA supply with indexed USD aggregate and keeps withdraw ac
     (usd.caveats ?? []).some((caveat) => caveat.includes("Not executable"))
   );
 
+  assert.equal(
+    enriched.some((position) => position.positionType === "debt"),
+    false
+  );
+
   assert.equal(result.coverage?.suppliedUsdComplete, true);
+  assert.equal(result.coverage?.borrowedUsdComplete, true);
+});
+
+test("Dork.fi emits debt-usd aggregate when totalBorrowValue > 0", () => {
+  const result = normalizeDorkFiHealthRecords([
+    {
+      network: "algorand-mainnet",
+      appId: String(DORKFI_MAINNET_USDC_POOL_APP_ID),
+      totalCollateralValue: "1000000000000",
+      totalBorrowValue: "500000000000",
+      healthFactor: "2",
+      lastUpdated: 1_783_944_000_000
+    }
+  ]);
+  const debt = result.positions.find(
+    (position) =>
+      position.positionId === `dorkfi:debt-usd:${DORKFI_MAINNET_USDC_POOL_APP_ID}`
+  );
+  assert.ok(debt);
+  assert.equal(debt.positionType, "debt");
+  assert.equal(debt.opportunityId, null);
+  assert.equal(debt.assetId, null);
+  assert.equal(debt.assetSymbol, "USD");
+  assert.equal(debt.amountRaw, "500000000000");
+  assert.equal(debt.healthFactor, 2);
+  const enriched = attachExecutionShapesToPosition(debt);
+  assert.deepEqual(enriched.compatibleExitShapeKeys, []);
+  assert.deepEqual(enriched.compatibleManageShapeKeys, []);
   assert.equal(result.coverage?.borrowedUsdComplete, true);
 });
 

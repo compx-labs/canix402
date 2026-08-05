@@ -46,6 +46,23 @@ Short runbook for Canix protocol (`canix402-api` / internal protocol component).
 
 5. **Upstream**: check Tinyman / Pact / Folks / CompX / Dork.fi / Myth / Haystack / Réti status and rate limits if one adapter dominates errors.
 
+## x402 traffic (Caddy structured logs)
+
+Payment 402s, verify failures, and settlements are enforced at the **Caddy gateway** (unpaid traffic never reaches the protocol app). Filter DigitalOcean App Platform → **Caddy** component logs by the `event` field:
+
+| `event` | Meaning |
+| --- | --- |
+| `x402_payment_required` | Preflight 402 (no / invalid unpaid request) |
+| `x402_verify_failed` | Facilitator or signature verification failed |
+| `x402_settlement_failed` | Settlement failed after verify |
+| `x402_payment_settled` | Successful on-chain settlement |
+
+Each event includes `path`, `method`, `user_agent`, and `referer` (headers truncated). Settled / failed settle lines may also include `payer`, `tx`, `network`, and `reason`. Use `user_agent` / `referer` to see which directories or agents send traffic.
+
+This is **request telemetry**, not the public website `/transactions` page (indexer USDC + NFD names only).
+
+Do **not** log or search for `PAYMENT-SIGNATURE` bodies.
+
 ## Actions
 
 | Finding | Action |

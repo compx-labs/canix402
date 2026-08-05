@@ -11,12 +11,29 @@ import { recordCacheOp } from "../observability/metrics.js";
  * - Every key is prefixed with `canix402:`
  *
  * Cache is disabled when REDIS_URL is unset or OPPORTUNITIES_CACHE_DISABLED=1.
- * Get/set errors fail open (treat as miss / skip write).
+ * Get/set/delete errors fail open (treat as miss / skip write).
+ *
+ * Opportunity values are stored as `{ cachedAt, data }` so list responses can
+ * report cache age without a harsh "stale" flag (DeFi APR/TVL moves in minutes).
  */
 
 export const CANIX_CACHE_KEY_PREFIX = "canix402:";
 
-const DEFAULT_OPPORTUNITIES_TTL_SEC = 45;
+/** Default 3 minutes — DeFi opportunity data does not need sub-minute churn. */
+const DEFAULT_OPPORTUNITIES_TTL_SEC = 180;
+
+const OPPORTUNITY_CACHE_NETWORK = "mainnet";
+
+export interface CacheEnvelope<T> {
+  cachedAt: string;
+  data: T;
+}
+
+export interface CacheReadResult<T> {
+  value: T;
+  cacheHit: boolean;
+  cachedAt: string;
+}
 
 let redisClient: Redis | null = null;
 
@@ -49,6 +66,14 @@ export function opportunityCacheKey(
   protocol: string
 ): string {
   return `${CANIX_CACHE_KEY_PREFIX}opportunities:protocol:${network}:${protocol}`;
+}
+
+export function isCacheEnvelope(value: unknown): value is CacheEnvelope<unknown> {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const record = value as Record<string, unknown>;
+  return typeof record.cachedAt === "string" && "data" in record;
 }
 
 function getRedisClient(
@@ -197,20 +222,82 @@ export async function setCacheJson<T>(
   }
 }
 
+export async function deleteCacheKey(key: string): Promise<boolean> {
+  const client = getRedisClient();
+  if (!client) {
+    recordCacheOp("del", "skip");
+    return false;
+  }
+
+  try {
+    await client.del(key);
+    recordCacheOp("del", "hit");
+    return true;
+  } catch (error) {
+    recordCacheOp("del", "error");
+    getAppLogger().error(
+      {
+        event: "redis_error",
+        op: "del",
+        key,
+        err: error instanceof Error ? error.message : String(error)
+      },
+      "Redis delete failed"
+    );
+    return false;
+  }
+}
+
+/**
+ * Invalidate opportunity cache for one protocol, or all aggregate protocols when
+ * `protocol` is omitted. Fail-open.
+ */
+export async function invalidateOpportunityCache(
+  protocol?: string,
+  protocols: readonly string[] = []
+): Promise<void> {
+  if (!isOpportunityCacheEnabled()) {
+    return;
+  }
+
+  if (protocol) {
+    await deleteCacheKey(opportunityCacheKey(OPPORTUNITY_CACHE_NETWORK, protocol));
+    return;
+  }
+
+  await Promise.all(
+    protocols.map((entry) =>
+      deleteCacheKey(opportunityCacheKey(OPPORTUNITY_CACHE_NETWORK, entry))
+    )
+  );
+}
+
 export async function getOrSetCacheJson<T>(
   key: string,
   fetchFn: () => Promise<T>,
-  ttlSeconds: number
-): Promise<{ value: T; cacheHit: boolean }> {
-  const cached = await getCacheJson<T>(key);
-  if (cached !== null) {
-    return { value: cached, cacheHit: true };
+  ttlSeconds: number,
+  options?: { refresh?: boolean }
+): Promise<CacheReadResult<T>> {
+  if (!options?.refresh) {
+    const cached = await getCacheJson<unknown>(key);
+    if (cached !== null && isCacheEnvelope(cached)) {
+      return {
+        value: cached.data as T,
+        cacheHit: true,
+        cachedAt: cached.cachedAt
+      };
+    }
+    // Legacy raw values (pre-envelope) are treated as a miss and rewritten.
+  } else {
+    await deleteCacheKey(key);
   }
 
   const value = await fetchFn();
+  const cachedAt = new Date().toISOString();
+  const envelope: CacheEnvelope<T> = { cachedAt, data: value };
   // Fire-and-forget write; caller already has the value.
-  void setCacheJson(key, value, ttlSeconds);
-  return { value, cacheHit: false };
+  void setCacheJson(key, envelope, ttlSeconds);
+  return { value, cacheHit: false, cachedAt };
 }
 
 export async function closeRedisCache(): Promise<void> {

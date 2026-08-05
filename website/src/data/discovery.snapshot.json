@@ -50,6 +50,40 @@
         ]
       },
       {
+        "id": "ready",
+        "method": "GET",
+        "path": "/ready",
+        "access": "free",
+        "summary": "Service readiness check (Algod required; Redis soft)",
+        "tags": [
+          "system"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          500
+        ]
+      },
+      {
+        "id": "metrics",
+        "method": "GET",
+        "path": "/metrics",
+        "access": "free",
+        "summary": "Prometheus metrics scrape endpoint (internal)",
+        "description": "Prometheus text exposition format. Intended for internal scrapes on the protocol component (:3000). Not exposed on the public Caddy gateway.",
+        "tags": [
+          "system",
+          "observability"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          500
+        ]
+      },
+      {
         "id": "metadata",
         "method": "GET",
         "path": "/metadata",
@@ -286,7 +320,8 @@
           "protocol",
           "limit",
           "offset",
-          "includeInactive"
+          "includeInactive",
+          "refresh"
         ],
         "responseCodes": [
           200,
@@ -331,7 +366,8 @@
         "queryParams": [
           "limit",
           "offset",
-          "includeInactive"
+          "includeInactive",
+          "refresh"
         ],
         "responseCodes": [
           200,
@@ -363,7 +399,7 @@
         "path": "/opportunities/search",
         "access": "paid",
         "summary": "Caller-filtered opportunities across supported platforms",
-        "description": "Returns Algorand DeFi opportunities filtered by platform, opportunity type, APY range, and TVL threshold across supported sources. Use when an agent needs targeted discovery such as high-yield liquidity pools, lending markets, protocol-specific yield, or minimum-liquidity opportunities on Algorand. This endpoint provides normalized market data only; it does not build or submit transactions.",
+        "description": "Returns Algorand DeFi opportunities filtered by platform, opportunity type, APY range, TVL threshold, and optional ASA assetIds across supported sources. Use when an agent needs targeted discovery such as high-yield liquidity pools, lending markets, protocol-specific yield, minimum-liquidity opportunities, or yields for specific Algorand assets (assetIds=0 for ALGO). This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": [
           "defi",
           "opportunities",
@@ -377,9 +413,11 @@
           "minApy",
           "maxApy",
           "minTvlUsd",
+          "assetIds",
           "limit",
           "offset",
-          "includeInactive"
+          "includeInactive",
+          "refresh"
         ],
         "responseCodes": [
           200,
@@ -424,7 +462,8 @@
           "address",
           "limit",
           "offset",
-          "includeInactive"
+          "includeInactive",
+          "refresh"
         ],
         "responseCodes": [
           200,
@@ -492,6 +531,26 @@
           "amountUsdc": "0.005",
           "amountMicro": "5000"
         }
+      },
+      {
+        "id": "publicBrowniePositions",
+        "method": "GET",
+        "path": "/public/agents/brownie/positions",
+        "access": "free",
+        "summary": "Public DeFi positions for the Brownie Bot showcase wallet",
+        "description": "Free showcase route that returns normalized DeFi positions for the Brownie Bot treasury wallet only. The wallet address is hardcoded server-side — this is not a general free /positions browser. Use GET /positions?address= for arbitrary wallets (paid).",
+        "tags": [
+          "defi",
+          "positions",
+          "agents",
+          "showcase"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          500
+        ]
       },
       {
         "id": "haystackSwapTransactions",
@@ -562,7 +621,7 @@
         "path": "/execution/quotes",
         "access": "paid",
         "summary": "Compile one or more verified transaction shapes into unsigned Algorand transaction groups",
-        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, CompX v1 lending/staking shapes, Dork.fi v1 ASA lending deposit/withdraw shapes, Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), and Réti v1 ALGO staking shapes (stake/unstake). Canix does not sign or submit transactions in this endpoint.",
+        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), and Réti v1 ALGO staking shapes (stake/unstake). Canix does not sign or submit transactions in this endpoint.",
         "tags": [
           "execution",
           "transactions",
@@ -571,176 +630,6 @@
           "x402-global-challenge"
         ],
         "pathParams": [],
-        "queryParams": [],
-        "responseCodes": [
-          200,
-          402,
-          500
-        ],
-        "x402": {
-          "protocolVersion": 2,
-          "requiredHeaders": [
-            "PAYMENT-REQUIRED",
-            "PAYMENT-SIGNATURE",
-            "PAYMENT-RESPONSE"
-          ],
-          "facilitator": "https://facilitator.goplausible.xyz",
-          "requirementTemplate": {
-            "scheme": "exact",
-            "network": "algorand",
-            "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
-            "maxAmountRequired": "0.1"
-          },
-          "amountUsdc": "0.1",
-          "amountMicro": "100000"
-        }
-      },
-      {
-        "id": "strategiesList",
-        "method": "GET",
-        "path": "/strategies",
-        "access": "free",
-        "summary": "List published strategies",
-        "description": "Returns published strategy marketplace documents (bound compositions of verified execution shapes). strategyId equals the strategy NFT ASA id. Fees: 50% of compile access fees go weekly to the NFT holder.",
-        "tags": [
-          "strategies",
-          "marketplace",
-          "agents"
-        ],
-        "pathParams": [],
-        "queryParams": [
-          "status",
-          "tag",
-          "creatorAddress",
-          "limit",
-          "offset"
-        ],
-        "responseCodes": [
-          200,
-          500
-        ]
-      },
-      {
-        "id": "strategyDetail",
-        "method": "GET",
-        "path": "/strategies/{strategyId}",
-        "access": "free",
-        "summary": "Get a strategy by strategyId (ASA id)",
-        "description": "Returns the Spaces-backed strategy document for strategyId (Algorand ASA id). Includes creatorAddress provenance, createdAt/lastRevisedAt, name/description/tags, and weighted legs.",
-        "tags": [
-          "strategies",
-          "marketplace",
-          "agents"
-        ],
-        "pathParams": [
-          "strategyId"
-        ],
-        "queryParams": [],
-        "responseCodes": [
-          200,
-          500
-        ]
-      },
-      {
-        "id": "strategyPublish",
-        "method": "POST",
-        "path": "/strategies",
-        "access": "paid",
-        "summary": "Publish a new strategy (mints NFT, writes Spaces JSON)",
-        "description": "Creates a tradable ARC-3 strategy NFT and stores the weight-based composition. Price 100 USDC (Canix-only; no holder share). Rejects raw transaction groups.",
-        "tags": [
-          "strategies",
-          "marketplace",
-          "x402",
-          "agents",
-          "x402-global-challenge"
-        ],
-        "pathParams": [],
-        "queryParams": [],
-        "responseCodes": [
-          200,
-          402,
-          500
-        ],
-        "x402": {
-          "protocolVersion": 2,
-          "requiredHeaders": [
-            "PAYMENT-REQUIRED",
-            "PAYMENT-SIGNATURE",
-            "PAYMENT-RESPONSE"
-          ],
-          "facilitator": "https://facilitator.goplausible.xyz",
-          "requirementTemplate": {
-            "scheme": "exact",
-            "network": "algorand",
-            "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
-            "maxAmountRequired": "100"
-          },
-          "amountUsdc": "100",
-          "amountMicro": "100000000"
-        }
-      },
-      {
-        "id": "strategyRevise",
-        "method": "POST",
-        "path": "/strategies/{strategyId}",
-        "access": "paid",
-        "summary": "Revise a strategy composition (NFT holder only, 14-day cooldown)",
-        "description": "In-place update of legs/display fields for strategyId. Price 1 USDC (Canix-only). Caller must be the current NFT holder. At most one successful revise per 14 days per strategyId.",
-        "tags": [
-          "strategies",
-          "marketplace",
-          "x402",
-          "agents",
-          "x402-global-challenge"
-        ],
-        "pathParams": [
-          "strategyId"
-        ],
-        "queryParams": [],
-        "responseCodes": [
-          200,
-          402,
-          500
-        ],
-        "x402": {
-          "protocolVersion": 2,
-          "requiredHeaders": [
-            "PAYMENT-REQUIRED",
-            "PAYMENT-SIGNATURE",
-            "PAYMENT-RESPONSE"
-          ],
-          "facilitator": "https://facilitator.goplausible.xyz",
-          "requirementTemplate": {
-            "scheme": "exact",
-            "network": "algorand",
-            "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
-            "maxAmountRequired": "1"
-          },
-          "amountUsdc": "1",
-          "amountMicro": "1000000"
-        }
-      },
-      {
-        "id": "strategyCompile",
-        "method": "POST",
-        "path": "/strategies/{strategyId}/compile",
-        "access": "paid",
-        "summary": "Compile a strategy into unsigned execution quotes",
-        "description": "Loads the strategy document, scales capital across legs by weightBps, and returns ExecutableQuote[]. Price 0.1 USDC. 50% of this access fee is paid weekly to the strategy NFT holder. Payment note must be x402:v2:strategy:{strategyId}.",
-        "tags": [
-          "strategies",
-          "execution",
-          "x402",
-          "agents",
-          "x402-global-challenge"
-        ],
-        "pathParams": [
-          "strategyId"
-        ],
         "queryParams": [],
         "responseCodes": [
           200,
@@ -797,26 +686,6 @@
         "code": "INTERNAL_ERROR",
         "httpStatus": 500,
         "description": "Internal server error."
-      },
-      {
-        "code": "STRATEGY_VALIDATION_ERROR",
-        "httpStatus": 400,
-        "description": "Strategy publish/revise/compile payload failed validation."
-      },
-      {
-        "code": "STRATEGY_NOT_FOUND",
-        "httpStatus": 404,
-        "description": "Strategy document was not found."
-      },
-      {
-        "code": "STRATEGY_FORBIDDEN",
-        "httpStatus": 403,
-        "description": "Caller is not allowed to revise or compile this strategy."
-      },
-      {
-        "code": "STRATEGY_CONFLICT",
-        "httpStatus": 409,
-        "description": "Strategy revise cooldown or conflicting state prevented the request."
       }
     ],
     "mcpServer": {
@@ -836,11 +705,6 @@
         "canix_get_protocol_opportunities",
         "canix_get_positions",
         "canix_get_execution_quote",
-        "canix_list_strategies",
-        "canix_get_strategy",
-        "canix_publish_strategy",
-        "canix_revise_strategy",
-        "canix_compile_strategy",
         "canix_get_quote",
         "canix_optin",
         "canix_swap"

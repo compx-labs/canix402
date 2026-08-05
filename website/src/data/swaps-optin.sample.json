@@ -1,0 +1,25 @@
+{
+  "data": {
+    "required": true,
+    "transactions": [
+      {
+        "type": "axfer",
+        "note": "asset opt-in for toAssetId",
+        "encoded": "<base64-unsigned-txn-0>"
+      },
+      {
+        "type": "appl",
+        "note": "application opt-in for requiredAppOptIns[0]",
+        "encoded": "<base64-unsigned-txn-1>"
+      }
+    ],
+    "userSignIndexes": [0, 1],
+    "createdAt": "2026-07-30T12:00:05.000Z",
+    "expiresAt": "2026-07-30T12:02:00.000Z"
+  },
+  "meta": {
+    "paymentRequired": false,
+    "executionSubmitted": false,
+    "note": "Empty transactions[] means no opt-ins are missing. Sign and submit locally, then fetch a fresh quote before /swaps/transactions."
+  }
+}

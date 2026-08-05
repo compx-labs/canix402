@@ -180,7 +180,7 @@ test("paid discovery endpoints include complete x402 descriptors", async () => {
   await app.close();
 });
 
-test("discovery error catalog includes strategy codes", async () => {
+test("discovery error catalog includes core codes", async () => {
   const app = buildApp();
   await app.ready();
 
@@ -191,11 +191,13 @@ test("discovery error catalog includes strategy codes", async () => {
   assert.equal(response.statusCode, 200);
   const payload = response.json() as { data: DiscoveryDocument };
   const codes = new Set(payload.data.errorCatalog.map((entry) => entry.code));
-  assert.ok(codes.has("STRATEGY_VALIDATION_ERROR"));
-  assert.ok(codes.has("STRATEGY_NOT_FOUND"));
-  assert.ok(codes.has("STRATEGY_FORBIDDEN"));
-  assert.ok(codes.has("STRATEGY_CONFLICT"));
+  assert.ok(codes.has("VALIDATION_ERROR"));
   assert.ok(codes.has("NOT_FOUND"));
+  assert.ok(codes.has("INTERNAL_ERROR"));
+  assert.equal(codes.has("STRATEGY_VALIDATION_ERROR"), false);
+  assert.equal(codes.has("STRATEGY_NOT_FOUND"), false);
+  assert.equal(codes.has("STRATEGY_FORBIDDEN"), false);
+  assert.equal(codes.has("STRATEGY_CONFLICT"), false);
 
   await app.close();
 });
@@ -221,13 +223,9 @@ test("well-known x402 fan-out lists paid resource URLs", async () => {
   assert.ok(
     payload.resources.includes("https://canix402-api.compx.io/swaps/transactions")
   );
-  assert.ok(
-    payload.resources.includes("https://canix402-api.compx.io/strategies")
-  );
-  assert.ok(
-    payload.resources.includes(
-      "https://canix402-api.compx.io/strategies/{strategyId}/compile"
-    )
+  assert.equal(
+    payload.resources.some((url) => url.includes("/strategies")),
+    false
   );
   assert.equal(payload.resources.every((url) => url.startsWith("https://canix402-api.compx.io/")), true);
 

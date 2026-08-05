@@ -29,13 +29,15 @@ surface:
   opportunity discovery — pool app id, not market app id)
 - `inputHints`: `{ poolAppId, marketAppId, assetId }` for withdraw quotes
 
-When the indexed health API is available, pool-level USD supplied rows are
-**merged** (not substituted) for totals and health factor:
+When the indexed health API is available, pool-level USD supplied and debt rows
+are **merged** (not substituted) for totals and health factor:
 
-- `positionId`: `dorkfi:supplied-usd:<poolAppId>`
-- `opportunityId`: `null`
-- no exit/manage shapes (informational only)
-- borrow/debt rows are never emitted
+- `positionId`: `dorkfi:supplied-usd:<poolAppId>` (when `totalCollateralValue > 0`)
+- `positionId`: `dorkfi:debt-usd:<poolAppId>` (when `totalBorrowValue > 0`)
+- `opportunityId`: `null`, `assetId`: `null`, `assetSymbol`: `USD`
+- amounts scaled from index units (`/1e12`) like collateral
+- no exit/manage shapes (informational only — not executable)
+- `borrowedUsdComplete` is true only when health records parse without warnings
 
 ASA `amountRaw` is the wallet **nToken** balance (withdraw-shape units). Estimated
 underlying ASA is derived as `(nToken * depositIndex) / 1e18` for notes only —
@@ -46,7 +48,7 @@ Paused catalog markets are skipped quietly. If at least one ASA supply row is
 built, per-market probe failures are not surfaced as protocol warnings.
 
 If the indexed source is unavailable, only ASA rows are returned with no
-debt/health warning — `borrowedUsd` stays complete (debt is out of scope).
+debt/health warning — `borrowedUsd` stays complete (indexed debt optional).
 
 ## Normalized Output Fields
 

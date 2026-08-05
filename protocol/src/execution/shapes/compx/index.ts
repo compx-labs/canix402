@@ -1,6 +1,8 @@
 import type { TransactionShapeSpec } from "../../types.js";
+import { compxBorrowAsaShape } from "./borrow-asa.js";
 import { compxClaimRewardsShape } from "./claim-rewards.js";
 import { compxDepositAsaShape } from "./deposit-asa.js";
+import { compxRepayAsaShape } from "./repay-asa.js";
 import { compxStakeAsaShape } from "./stake-asa.js";
 import { compxUnstakeAsaShape } from "./unstake-asa.js";
 import { compxWithdrawAsaShape } from "./withdraw-asa.js";
@@ -19,6 +21,20 @@ export {
   buildMockWithdrawGroup
 } from "./withdraw-asa.js";
 export type { CompXWithdrawAsaInput, CompXWithdrawAsaDependencies } from "./withdraw-asa.js";
+
+export {
+  compxBorrowAsaShape,
+  setCompXBorrowAsaDependenciesForTests,
+  buildMockBorrowGroup
+} from "./borrow-asa.js";
+export type { CompXBorrowAsaInput, CompXBorrowAsaDependencies } from "./borrow-asa.js";
+
+export {
+  compxRepayAsaShape,
+  setCompXRepayAsaDependenciesForTests,
+  buildMockRepayGroup
+} from "./repay-asa.js";
+export type { CompXRepayAsaInput, CompXRepayAsaDependencies } from "./repay-asa.js";
 
 export {
   compxStakeAsaShape,
@@ -71,6 +87,8 @@ export { setCompXStakingBuildDependenciesForTests } from "./staking-build.js";
 export const compxShapes: readonly TransactionShapeSpec[] = [
   compxDepositAsaShape,
   compxWithdrawAsaShape,
+  compxBorrowAsaShape,
+  compxRepayAsaShape,
   compxStakeAsaShape,
   compxUnstakeAsaShape,
   compxClaimRewardsShape

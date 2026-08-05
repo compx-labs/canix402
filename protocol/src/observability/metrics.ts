@@ -71,7 +71,7 @@ export function recordAdapterRequest(
 }
 
 export function recordCacheOp(
-  op: "get" | "set",
+  op: "get" | "set" | "del",
   result: "hit" | "miss" | "error" | "skip"
 ): void {
   cacheOpsTotal.inc({ op, result });
