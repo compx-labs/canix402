@@ -31,8 +31,9 @@ export const OpportunityExecutionInputHintsSchema = Type.Object(
     escrowAddress: Type.Optional(Type.String({ minLength: 58, maxLength: 58 })),
     farmAppId: Type.Optional(Type.Integer({ minimum: 1 })),
     escrowAppId: Type.Optional(Type.Integer({ minimum: 1 })),
-    /** Réti (and similar) stake target; amounts never appear here. */
-    validatorId: Type.Optional(Type.Integer({ minimum: 1 }))
+    validatorId: Type.Optional(Type.Integer({ minimum: 1 })),
+    /** Folks Finance loan application id (distinct from pool app id). */
+    loanAppId: Type.Optional(Type.Integer({ minimum: 1 }))
   },
   { additionalProperties: false }
 );
@@ -143,6 +144,8 @@ export const OpportunityMarketRecordSchema = Type.Object({
   yieldBasis: YieldBasisSchema,
   tvlUsd: Type.Number(),
   apr: Type.Optional(Type.Number()),
+  /** Borrow-side APR cost when the venue supports borrowing against this market. */
+  borrowApr: Type.Optional(Type.Number()),
   sourceTimestamp: Type.String({ format: "date-time" }),
   fetchedAt: Type.String({ format: "date-time" }),
   notes: Type.Optional(Type.String()),
@@ -160,6 +163,8 @@ export const OpportunityRecordSchema = Type.Object({
   yieldBasis: YieldBasisSchema,
   tvlUsd: Type.Number(),
   apr: Type.Optional(Type.Number()),
+  /** Borrow-side APR cost when the venue supports borrowing against this market. */
+  borrowApr: Type.Optional(Type.Number()),
   sourceTimestamp: Type.String({ format: "date-time" }),
   fetchedAt: Type.String({ format: "date-time" }),
   notes: Type.Optional(Type.String()),

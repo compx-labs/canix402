@@ -16,12 +16,18 @@ import {
   DORKFI_MAINNET_USDC_ASA_ID,
   DORKFI_MAINNET_USDC_MARKET_APP_ID,
   DORKFI_MAINNET_USDC_POOL_APP_ID,
+  buildMockDorkFiBorrowGroup,
   buildMockDorkFiDepositGroup,
+  buildMockDorkFiRepayGroup,
   buildMockDorkFiWithdrawGroup,
+  dorkfiBorrowAsaShape,
   dorkfiDepositAsaShape,
+  dorkfiRepayAsaShape,
   dorkfiWithdrawAsaShape,
+  setDorkFiBorrowAsaDependenciesForTests,
   setDorkFiDepositAsaDependenciesForTests,
   setDorkFiLendingMarketStateDependenciesForTests,
+  setDorkFiRepayAsaDependenciesForTests,
   setDorkFiWithdrawAsaDependenciesForTests,
   type DorkFiLendingMarketState
 } from "../../src/execution/shapes/dorkfi/index.js";
@@ -155,6 +161,8 @@ test.afterEach(() => {
   setDorkFiLendingMarketStateDependenciesForTests(undefined);
   setDorkFiDepositAsaDependenciesForTests(undefined);
   setDorkFiWithdrawAsaDependenciesForTests(undefined);
+  setDorkFiBorrowAsaDependenciesForTests(undefined);
+  setDorkFiRepayAsaDependenciesForTests(undefined);
 });
 
 test("deposit shape rejects missing poolAppId", () => {
@@ -392,8 +400,98 @@ test("resolveState reads user nToken balance from nToken app id", async () => {
   assert.equal(state.userNTokenBalance, 50_000n);
 });
 
+test("borrow shape builds and validates mocked group", async () => {
+  const state = lendingMarketState();
+  const amount = 100_000n;
+  const group = buildMockDorkFiBorrowGroup({
+    user: USER,
+    poolAppId: POOL_APP_ID,
+    marketAppId: MARKET_APP_ID,
+    assetId: USDC_ID,
+    amount,
+    suggestedParams: suggestedParams(20_000)
+  });
+
+  setDorkFiBorrowAsaDependenciesForTests({
+    resolveMarketState: async () => state,
+    buildBorrowTransactions: async () => group
+  });
+
+  const registry = new TransactionShapeRegistry();
+  registry.register(dorkfiBorrowAsaShape);
+  const quote = await compileExecutableQuote(
+    registry,
+    dorkfiBorrowAsaShape.key,
+    {
+      userAddress: USER_ADDRESS,
+      poolAppId: POOL_APP_ID,
+      marketAppId: MARKET_APP_ID,
+      assetId: USDC_ID,
+      amount: amount.toString()
+    },
+    buildContext()
+  );
+
+  assert.equal(quote.transactions.length, 2);
+  const input = dorkfiBorrowAsaShape.parseInput({
+    userAddress: USER_ADDRESS,
+    poolAppId: POOL_APP_ID,
+    marketAppId: MARKET_APP_ID,
+    assetId: USDC_ID,
+    amount: amount.toString()
+  });
+  const validation = dorkfiBorrowAsaShape.validate(quote.transactions, input, state);
+  assert.equal(validation.valid, true);
+});
+
+test("repay shape builds and validates mocked group", async () => {
+  const state = lendingMarketState();
+  const amount = 100_000n;
+  const group = buildMockDorkFiRepayGroup({
+    user: USER,
+    poolAppId: POOL_APP_ID,
+    marketAppId: MARKET_APP_ID,
+    assetId: USDC_ID,
+    amount,
+    suggestedParams: suggestedParams(20_000)
+  });
+
+  setDorkFiRepayAsaDependenciesForTests({
+    resolveMarketState: async () => state,
+    buildRepayTransactions: async () => group
+  });
+
+  const registry = new TransactionShapeRegistry();
+  registry.register(dorkfiRepayAsaShape);
+  const quote = await compileExecutableQuote(
+    registry,
+    dorkfiRepayAsaShape.key,
+    {
+      userAddress: USER_ADDRESS,
+      poolAppId: POOL_APP_ID,
+      marketAppId: MARKET_APP_ID,
+      assetId: USDC_ID,
+      amount: amount.toString()
+    },
+    buildContext()
+  );
+
+  assert.equal(quote.transactions.length, 2);
+  const input = dorkfiRepayAsaShape.parseInput({
+    userAddress: USER_ADDRESS,
+    poolAppId: POOL_APP_ID,
+    marketAppId: MARKET_APP_ID,
+    assetId: USDC_ID,
+    amount: amount.toString()
+  });
+  const validation = dorkfiRepayAsaShape.validate(quote.transactions, input, state);
+  assert.equal(validation.valid, true);
+});
+
 test("createExecutionRegistry includes all Dork.fi shapes", () => {
   const registry = createExecutionRegistry();
   assert.equal(registry.has("mainnet:dorkfi:v1:deposit:asa"), true);
   assert.equal(registry.has("mainnet:dorkfi:v1:withdraw:asa"), true);
+  assert.equal(registry.has("mainnet:dorkfi:v1:borrow:asa"), true);
+  assert.equal(registry.has("mainnet:dorkfi:v1:repay:asa"), true);
 });

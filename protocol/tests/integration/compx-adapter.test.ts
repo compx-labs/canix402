@@ -81,11 +81,14 @@ test("normalizeCompxLendingOpportunity maps APY and TVL fields from SDK values",
   assert.deepEqual(record?.assetIds, [31566704, 987654]);
   assert.equal(record?.apy, 4.25);
   assert.equal(record?.yieldBasis, "apr");
-  assert.equal(record?.apr, 8.5);
+  assert.equal(record?.apr, 4.25);
+  assert.equal(record?.borrowApr, 8.5);
   assert.equal(record?.tvlUsd, 1_250_000);
   assert.equal(record?.sourceTimestamp, "2023-11-14T22:13:20.000Z");
   assert.equal(record?.fetchedAt, "2026-07-01T12:00:00.000Z");
   assert.match(record?.notes ?? "", /CompX lending market 123456/);
+  assert.match(record?.notes ?? "", /ltv=75\.0%/);
+  assert.match(record?.notes ?? "", /borrowApr is the borrow cost/);
   assert.doesNotMatch(record?.notes ?? "", /sourceTimestamp equals fetchedAt/);
 });
 

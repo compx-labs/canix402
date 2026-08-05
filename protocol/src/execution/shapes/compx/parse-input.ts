@@ -82,3 +82,17 @@ export function parsePoolSelector(value: Record<string, unknown>): { poolAppId: 
   }
   return { poolAppId: parsePoolAppId(value.poolAppId) };
 }
+
+export function parseOptionalCollateralTokenId(value: unknown): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const numeric = typeof value === "string" ? Number(value) : value;
+  if (typeof numeric !== "number" || !Number.isInteger(numeric) || numeric <= 0) {
+    throw new InvalidShapeInputError(
+      "collateralTokenId must be a positive integer asset id when provided.",
+      { collateralTokenId: value }
+    );
+  }
+  return numeric;
+}

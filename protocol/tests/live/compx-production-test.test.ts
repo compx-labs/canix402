@@ -25,14 +25,23 @@ loadLiveEnvFiles();
 
 const DEPOSIT_SHAPE = "mainnet:compx:v1:deposit:asa";
 const WITHDRAW_SHAPE = "mainnet:compx:v1:withdraw:asa";
+const BORROW_SHAPE = "mainnet:compx:v1:borrow:asa";
+const REPAY_SHAPE = "mainnet:compx:v1:repay:asa";
 const STAKE_SHAPE = "mainnet:compx:v1:stake:asa";
 const UNSTAKE_SHAPE = "mainnet:compx:v1:unstake:asa";
 const CLAIM_SHAPE = "mainnet:compx:v1:claim:rewards";
 
 const DEPOSIT_USDC_MICRO_AMOUNT = 100_000n;
+const BORROW_USDC_MICRO_AMOUNT = 10_000n;
 const USDC_MARKET_APP_ID = 3491050310;
 
-type LendingScenario = "deposit" | "withdraw" | "roundtrip";
+type LendingScenario =
+  | "deposit"
+  | "withdraw"
+  | "roundtrip"
+  | "borrow"
+  | "repay"
+  | "credit-roundtrip";
 type StakingScenario = "stake" | "unstake" | "claim" | "roundtrip";
 
 function isExecutionLiveEnabled(): boolean {
@@ -41,11 +50,20 @@ function isExecutionLiveEnabled(): boolean {
 
 function selectedLendingScenario(): LendingScenario {
   const raw = process.env.X402_COMPX_LENDING_SCENARIO ?? "roundtrip";
-  if (["deposit", "withdraw", "roundtrip"].includes(raw)) {
+  if (
+    [
+      "deposit",
+      "withdraw",
+      "roundtrip",
+      "borrow",
+      "repay",
+      "credit-roundtrip"
+    ].includes(raw)
+  ) {
     return raw as LendingScenario;
   }
   throw new Error(
-    `Invalid X402_COMPX_LENDING_SCENARIO "${raw}". Expected deposit, withdraw, or roundtrip.`
+    `Invalid X402_COMPX_LENDING_SCENARIO "${raw}". Expected deposit, withdraw, roundtrip, borrow, repay, or credit-roundtrip.`
   );
 }
 
@@ -294,6 +312,76 @@ test("CompX production lending roundtrip", async (t) => {
   });
 
   await submitCompXQuote(algod, quoteResponse.data[0].encodedTransactions, account.sk);
+});
+
+test("CompX production credit roundtrip (deposit → borrow → repay → withdraw)", async (t) => {
+  if (skipUnlessLive(t)) return;
+  if (selectedLendingScenario() !== "credit-roundtrip") {
+    t.skip(`Skipping because X402_COMPX_LENDING_SCENARIO=${selectedLendingScenario()}.`);
+    return;
+  }
+
+  const { marketAppId, lstMinted } = await runLendingDeposit();
+  const env = getLiveEnv();
+  const baseUrl = getProductionBaseUrl();
+  const clientMnemonic = requireClientMnemonic("npm run test:compx-production");
+  const account = accountFromMnemonic(clientMnemonic);
+  const algod = createAlgodClientFromEnv();
+  const userAddress = account.addr.toString();
+  const collateralAmount = lstMinted / 2n;
+  if (collateralAmount <= 0n) {
+    throw new Error("Expected positive LST minted from deposit for credit roundtrip.");
+  }
+
+  const borrowQuote = await fetchPaidExecutionQuote({
+    baseUrl,
+    shapeKey: BORROW_SHAPE,
+    input: {
+      userAddress,
+      marketAppId,
+      borrowAmount: serializeAmount(BORROW_USDC_MICRO_AMOUNT),
+      collateralAmount: serializeAmount(collateralAmount)
+    },
+    clientMnemonic,
+    algodUrl: env.algodUrl
+  });
+  await submitCompXQuote(algod, borrowQuote.data[0].encodedTransactions, account.sk);
+
+  const repayQuote = await fetchPaidExecutionQuote({
+    baseUrl,
+    shapeKey: REPAY_SHAPE,
+    input: {
+      userAddress,
+      marketAppId,
+      amount: serializeAmount(BORROW_USDC_MICRO_AMOUNT)
+    },
+    clientMnemonic,
+    algodUrl: env.algodUrl
+  });
+  await submitCompXQuote(algod, repayQuote.data[0].encodedTransactions, account.sk);
+
+  const remainingLst = await getAssetBalance(
+    algod,
+    userAddress,
+    (await resolveUsdcMarketAppId(algod)).lstTokenId
+  );
+  if (remainingLst <= 0n) {
+    t.skip("No remaining LST to withdraw after credit roundtrip.");
+    return;
+  }
+
+  const withdrawQuote = await fetchPaidExecutionQuote({
+    baseUrl,
+    shapeKey: WITHDRAW_SHAPE,
+    input: {
+      userAddress,
+      marketAppId,
+      amount: serializeAmount(remainingLst)
+    },
+    clientMnemonic,
+    algodUrl: env.algodUrl
+  });
+  await submitCompXQuote(algod, withdrawQuote.data[0].encodedTransactions, account.sk);
 });
 
 test("CompX production staking stake/unstake roundtrip", async (t) => {

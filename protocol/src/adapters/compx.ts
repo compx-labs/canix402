@@ -239,6 +239,13 @@ export function normalizeCompxLendingOpportunity(
   }
 
   const baseSymbol = resolveAssetSymbol(market.baseTokenId, assetById);
+  const ltvPct = Number.isFinite(market.ltv) ? market.ltv / 100 : null;
+  const liqPct = Number.isFinite(market.liquidationThreshold)
+    ? market.liquidationThreshold / 100
+    : null;
+  const availableBorrowUsd = Number.isFinite(market.availableToBorrowUSD)
+    ? market.availableToBorrowUSD
+    : null;
 
   return {
     protocol: "compx",
@@ -249,12 +256,24 @@ export function normalizeCompxLendingOpportunity(
     apy,
     yieldBasis: "apr",
     tvlUsd,
-    ...(Number.isFinite(market.borrowApy) ? { apr: market.borrowApy } : {}),
+    apr: apy,
+    ...(Number.isFinite(market.borrowApy) ? { borrowApr: market.borrowApy } : {}),
     ...buildSourceMetadata({
       fetchedAtIso,
       upstreamUnixSeconds: market.lastUpdateTimestamp,
       contextNotes: [
-        `CompX lending market ${market.appId}; util=${market.utilizationRate.toFixed(1)}%; APR-derived yields.`
+        [
+          `CompX lending market ${market.appId}`,
+          `util=${market.utilizationRate.toFixed(1)}%`,
+          ltvPct === null ? null : `ltv=${ltvPct.toFixed(1)}%`,
+          liqPct === null ? null : `liqThreshold=${liqPct.toFixed(1)}%`,
+          availableBorrowUsd === null
+            ? null
+            : `availableToBorrowUsd=${availableBorrowUsd.toFixed(2)}`,
+          "APR-derived yields; borrowApr is the borrow cost."
+        ]
+          .filter((part): part is string => part !== null)
+          .join("; ")
       ]
     })
   };

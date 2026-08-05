@@ -36,13 +36,18 @@ export const ExecutionQuoteInputSchema = Type.Object(
     ),
     escrowAddress: Type.Optional(Type.String({ minLength: 58, maxLength: 58 })),
     includeOpUp: Type.Optional(Type.Boolean()),
+    loanAppId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
+    borrowAmount: Type.Optional(BaseUnitAmountSchema),
+    collateralAmount: Type.Optional(BaseUnitAmountSchema),
+    collateralTokenId: Type.Optional(
+      Type.Union([Type.Integer({ minimum: 1 }), Type.String()])
+    ),
     // Shared traceability / pool selectors (validated per shape)
     poolAppId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
     poolId: Type.Optional(Type.String({ minLength: 1 })),
     poolAddress: Type.Optional(Type.String({ minLength: 1 })),
     // CompX lending fields (validated per shape)
-    marketAppId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
-    // Tinyman farm fields (validated per shape)
+    marketAppId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),    // Tinyman farm fields (validated per shape)
     programId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
     programAccount: Type.Optional(Type.String({ minLength: 58, maxLength: 58 })),
     liquidityAssetId: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.String()])),

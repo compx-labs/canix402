@@ -1,5 +1,6 @@
 import algosdk, { Algodv2 } from "algosdk";
 import { getStakingPosition } from "@alpha-arcade/sdk";
+import { CompXSDK } from "@compx/sdk";
 import {
   ConsensusState,
   MainnetConsensusConfig,
@@ -991,6 +992,7 @@ export async function collectFolksFinancePositions(
   const settledLoans: Array<
     | PromiseSettledResult<{
         loanType: string;
+        loanAppId: number;
         loans: Awaited<ReturnType<typeof retrieveUserLoansInfo>>;
       }>
     | undefined
@@ -1014,6 +1016,7 @@ export async function collectFolksFinancePositions(
           status: "fulfilled",
           value: {
             loanType,
+            loanAppId,
             loans: await retrieveUserLoansInfo(
               indexer,
               loanAppId,
@@ -1030,6 +1033,7 @@ export async function collectFolksFinancePositions(
   );
   const completedLoanSources: PromiseSettledResult<{
     loanType: string;
+    loanAppId: number;
     loans: Awaited<ReturnType<typeof retrieveUserLoansInfo>>;
   }>[] = [];
   for (const result of settledLoans) {
@@ -1105,11 +1109,46 @@ export async function collectFolksFinancePositions(
           healthFactor,
           caveats: [
             `Collateral is held by loan escrow ${loan.escrowAddress}.`
-          ]
+          ],
+          inputHints: {
+            escrowAddress: loan.escrowAddress,
+            loanAppId: result.value.loanAppId,
+            poolAppId: collateral.poolAppId,
+            assetId: collateral.assetId
+          }
         });
       }
-      // Borrow/debt positions are intentionally omitted — canix402 does not
-      // surface lending debt in portfolio responses.
+      for (const borrow of loan.borrows) {
+        if (borrow.borrowBalance <= 0n) {
+          continue;
+        }
+        const entry = poolsByAppId.get(borrow.poolAppId);
+        positions.push({
+          protocol: "folks-finance",
+          positionType: "debt",
+          positionId: `folks-finance:debt:${loan.escrowAddress}:${borrow.poolAppId}`,
+          opportunityId: `folks-lending-${borrow.poolAppId}`,
+          assetId: borrow.assetId,
+          assetSymbol: entry?.symbol ?? null,
+          amountRaw: borrow.borrowBalance.toString(),
+          amount: formatUnits(
+            borrow.borrowBalance,
+            entry?.pool.assetDecimals ?? 0
+          ),
+          usdValue: scaledUsd(borrow.borrowBalanceValue, 14),
+          healthFactor,
+          caveats: [
+            `Debt is held by loan escrow ${loan.escrowAddress}.`,
+            borrow.isStable ? "Stable-rate borrow." : "Variable-rate borrow."
+          ],
+          inputHints: {
+            escrowAddress: loan.escrowAddress,
+            loanAppId: result.value.loanAppId,
+            poolAppId: borrow.poolAppId,
+            assetId: borrow.assetId
+          }
+        });
+      }
     }
   }
 
@@ -1128,17 +1167,70 @@ export async function collectFolksFinancePositions(
             ["supplied", "lp", "staked"].includes(position.positionType)
           )
           .every((position) => position.usdValue !== null),
-      borrowedUsdComplete: true,
+      borrowedUsdComplete:
+        failedLoanSources === 0 &&
+        positions
+          .filter((position) => position.positionType === "debt")
+          .every((position) => position.usdValue !== null),
       rewardsUsdComplete: true
     }
   };
 }
 
 export function setCompXPositionCollectorDependenciesForTests(
-  _overrides?: unknown
+  overrides?: Partial<CompXPositionCollectorDependencies>
 ): void {
-  // CompX portfolio collection no longer reads per-user lending debt, so there
-  // are no collector overrides to inject. Kept as a no-op for existing tests.
+  compxPositionCollectorDependencyOverrides = overrides;
+}
+
+interface CompXPositionCollectorDependencies {
+  getUserPosition: (
+    algod: Algodv2,
+    marketAppId: number,
+    userAddress: string
+  ) => Promise<{
+    borrowed: number;
+    collateral: number;
+    collateralAssetId: number;
+    healthFactor: number;
+    isLiquidatable: boolean;
+    maxBorrow: number;
+  } | null>;
+}
+
+let compxPositionCollectorDependencyOverrides:
+  | Partial<CompXPositionCollectorDependencies>
+  | undefined;
+
+function resolveCompXPositionCollectorDependencies(): CompXPositionCollectorDependencies {
+  return {
+    getUserPosition: async (algod, marketAppId, userAddress) => {
+      const sdk = new CompXSDK({ algodClient: algod, network: "mainnet" });
+      try {
+        const position = await sdk.lending.getUserPosition(
+          marketAppId,
+          userAddress
+        );
+        if (
+          !Number.isFinite(position.borrowed) ||
+          position.borrowed <= 0
+        ) {
+          return null;
+        }
+        return {
+          borrowed: position.borrowed,
+          collateral: position.collateral,
+          collateralAssetId: position.collateralAssetId,
+          healthFactor: position.healthFactor,
+          isLiquidatable: position.isLiquidatable,
+          maxBorrow: position.maxBorrow
+        };
+      } catch {
+        return null;
+      }
+    },
+    ...compxPositionCollectorDependencyOverrides
+  };
 }
 
 export async function collectCompXPositions(
@@ -1147,6 +1239,7 @@ export async function collectCompXPositions(
   context: PositionCollectionContext = createPositionCollectionContext()
 ): Promise<ProtocolPositionsCollection> {
   const algod = createAlgodClient(context.algodRequestGate);
+  const positionDeps = resolveCompXPositionCollectorDependencies();
   const opportunities = await fetchCompXOpportunities({
     algodRequestGate: context.algodRequestGate
   });
@@ -1158,6 +1251,7 @@ export async function collectCompXPositions(
   const warnings: string[] = [];
   const pendingRewardAssetIds = new Set<number>();
   const rewardDecimalsByAssetId = new Map<number, number>();
+  let debtReadFailures = 0;
 
   await mapPositionCandidates(
     uniqueOpportunities(opportunities),
@@ -1167,6 +1261,72 @@ export async function collectCompXPositions(
           const appId = parseTrailingInteger(opportunity.opportunityId);
           if (appId === null) {
             throw new Error("invalid market application id");
+          }
+
+          try {
+            const userPosition = await positionDeps.getUserPosition(
+              algod,
+              appId,
+              address
+            );
+            if (userPosition !== null) {
+              const marketState = await resolveCompXLendingMarketState({
+                network: "mainnet",
+                algod,
+                marketAppId: appId,
+                userAddress: address,
+                userAssetHoldings: walletHoldings
+              });
+              const borrowedRaw = BigInt(
+                Math.max(0, Math.trunc(userPosition.borrowed))
+              );
+              const debtUsd =
+                Number.isFinite(marketState.market.baseTokenPrice) &&
+                marketState.market.baseTokenPrice >= 0
+                  ? tokenUsdValue(
+                      borrowedRaw,
+                      marketState.market.baseTokenDecimals,
+                      marketState.market.baseTokenPrice
+                    )
+                  : null;
+              const collateralRaw = BigInt(
+                Math.max(0, Math.trunc(userPosition.collateral))
+              );
+              positions.push({
+                protocol: "compx",
+                positionType: "debt",
+                positionId: `compx:debt:${appId}`,
+                opportunityId: opportunity.opportunityId,
+                assetId: marketState.baseTokenId,
+                assetSymbol: opportunity.assetPair,
+                amountRaw: borrowedRaw.toString(),
+                amount: formatUnits(
+                  borrowedRaw,
+                  marketState.market.baseTokenDecimals
+                ),
+                usdValue: debtUsd,
+                healthFactor: Number.isFinite(userPosition.healthFactor)
+                  ? userPosition.healthFactor
+                  : null,
+                sourceTimestamp: opportunity.sourceTimestamp,
+                ...(userPosition.isLiquidatable
+                  ? { caveats: ["Position is liquidatable."] }
+                  : {}),
+                notes:
+                  `Locked collateral ${collateralRaw.toString()} of asset ` +
+                  `${userPosition.collateralAssetId} (LST units). ` +
+                  `maxBorrow=${Math.trunc(userPosition.maxBorrow)}.`,
+                inputHints: {
+                  marketAppId: appId,
+                  assetId: marketState.baseTokenId
+                }
+              });
+            }
+          } catch (error) {
+            debtReadFailures += 1;
+            warnings.push(
+              `${opportunity.opportunityId}:debt: ${errorMessage(error)}`
+            );
           }
 
           const lstTokenId = opportunity.assetIds?.[1];
@@ -1210,7 +1370,12 @@ export async function collectCompXPositions(
             ),
             sourceTimestamp: opportunity.sourceTimestamp,
             notes:
-              "Underlying claim derived from the cAsset share of circulating supply."
+              "Underlying claim derived from the wallet LST share of circulating supply " +
+              "(locked borrow collateral is excluded from this row).",
+            inputHints: {
+              marketAppId: appId,
+              assetId: state.baseTokenId
+            }
           });
           return;
         }
@@ -1358,7 +1523,11 @@ export async function collectCompXPositions(
             ["supplied", "lp", "staked"].includes(position.positionType)
           )
           .every((position) => position.usdValue !== null),
-      borrowedUsdComplete: true,
+      borrowedUsdComplete:
+        debtReadFailures === 0 &&
+        positions
+          .filter((position) => position.positionType === "debt")
+          .every((position) => position.usdValue !== null),
       rewardsUsdComplete: !hasUnpricedRewards
     }
   };
@@ -1402,8 +1571,8 @@ export async function collectDorkFiPositions(
   try {
     indexed = await deps.fetchIndexedPositions(address);
   } catch {
-    // Indexed USD aggregates are optional. Never surface debt/health warnings —
-    // borrow/debt is out of scope for portfolio responses.
+    // Indexed USD aggregates are optional. Never surface debt/health warnings when
+    // the indexed source is unavailable — ASA rows remain the executable surface.
     if (
       onChain.positions.length === 0 &&
       onChain.warnings.some((warning) =>
@@ -1429,13 +1598,13 @@ export async function collectDorkFiPositions(
     };
   }
 
-  // ASA market rows first (executable); indexed USD supply second (informational).
+  // ASA market rows first (executable); indexed USD supply/debt second (informational).
   return {
     positions: [...onChain.positions, ...indexed.positions],
     warnings: [...onChain.warnings, ...indexed.warnings],
     coverage: {
       suppliedUsdComplete: indexed.coverage?.suppliedUsdComplete ?? true,
-      borrowedUsdComplete: true,
+      borrowedUsdComplete: indexed.coverage?.borrowedUsdComplete ?? true,
       rewardsUsdComplete: true
     }
   };
@@ -1497,18 +1666,22 @@ export function normalizeDorkFiHealthRecords(
     }
     const poolAppId = parseSafePositiveInteger(record.appId);
     const suppliedRaw = parseUnsignedBigInt(record.totalCollateralValue);
+    const borrowRaw = parseUnsignedBigInt(record.totalBorrowValue);
     const healthFactor = parseNullableNonNegativeNumber(record.healthFactor);
-    // totalBorrowValue is ignored — debt/borrow positions are not surfaced.
-    if (poolAppId === null || suppliedRaw === null) {
+    if (poolAppId === null || suppliedRaw === null || borrowRaw === null) {
       warnings.push("Dork.fi health API returned an invalid Algorand record.");
       continue;
     }
     const sourceTimestamp = parseSourceTimestamp(
       record.updatedAt ?? record.lastUpdated ?? record.lastUpdateTime
     );
-    const caveats = [
+    const suppliedCaveats = [
       "Pool-level USD value from the Dork.fi index; it is not an asset-level token amount.",
       "Not executable: use asset-level Dork.fi supplied rows for withdraw quotes."
+    ];
+    const debtCaveats = [
+      "Pool-level USD borrow value from the Dork.fi index; it is not an asset-level token amount.",
+      "Not executable: pool-level debt cannot be repaid via this position — use asset-level repay quotes."
     ];
     if (suppliedRaw > 0n) {
       positions.push({
@@ -1523,7 +1696,23 @@ export function normalizeDorkFiHealthRecords(
         usdValue: scaledUsd(suppliedRaw, 12),
         healthFactor,
         ...(sourceTimestamp ? { sourceTimestamp } : {}),
-        caveats
+        caveats: suppliedCaveats
+      });
+    }
+    if (borrowRaw > 0n) {
+      positions.push({
+        protocol: "dorkfi",
+        positionType: "debt",
+        positionId: `dorkfi:debt-usd:${poolAppId}`,
+        opportunityId: null,
+        assetId: null,
+        assetSymbol: "USD",
+        amountRaw: borrowRaw.toString(),
+        amount: formatUnits(borrowRaw, 12),
+        usdValue: scaledUsd(borrowRaw, 12),
+        healthFactor,
+        ...(sourceTimestamp ? { sourceTimestamp } : {}),
+        caveats: debtCaveats
       });
     }
   }
@@ -1533,7 +1722,7 @@ export function normalizeDorkFiHealthRecords(
     warnings,
     coverage: {
       suppliedUsdComplete: warnings.length === 0,
-      borrowedUsdComplete: true,
+      borrowedUsdComplete: warnings.length === 0,
       rewardsUsdComplete: true
     }
   };
