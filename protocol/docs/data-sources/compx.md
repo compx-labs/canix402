@@ -65,8 +65,9 @@ Other emitted fields:
 
 | Position | Source | Notes |
 |---|---|---|
-| `supplied` | Wallet LST balance × exchange rate | Excludes locked borrow collateral |
-| `debt` | `sdk.lending.getUserPosition` | Includes `healthFactor`; repay via `mainnet:compx:v1:repay:asa` |
+| `supplied` | Wallet LST → underlying base amount; USD via `sdk.pricing.getTokenPrices` | Excludes locked borrow collateral. Do not use lending-oracle `totalDepositsUSD` share for USD. |
+| `debt` | `sdk.lending.getUserPosition`; USD via token prices | Includes `healthFactor`; repay via `mainnet:compx:v1:repay:asa` |
+| `staked` / `reward` | Pool + staker boxes; USD via token prices | Same pricing path as `/pricing` |
 | (manage on supplied) | — | `mainnet:compx:v1:borrow:asa` for leverage-up |
 
 Execution shapes: deposit / withdraw / borrow / repay ASA (`@compx/sdk` builders).

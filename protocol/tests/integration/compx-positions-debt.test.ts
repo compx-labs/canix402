@@ -56,7 +56,9 @@ test("CompX collector emits lending debt positions with repay shape", async () =
       }
     ],
     getPoolAprFn: async () => null,
-    getTokenPricesFn: async () => ({})
+    getTokenPricesFn: async () => ({
+      [String(USDC_ID)]: 1
+    })
   });
   setCompXLendingMarketStateDependenciesForTests({
     getMarket: async () => marketData()
@@ -99,6 +101,8 @@ test("CompX collector emits lending debt positions with repay shape", async () =
     (position) => position.positionType === "supplied"
   );
   assert.ok(supplied);
+  // LST 1e6 of circulating 9e5 against deposits 1e6 → ~1.111111 base USDC at $1
+  assert.equal(supplied.usdValue, 1.111111);
   const suppliedEnriched = attachExecutionShapesToPosition(supplied);
   assert.deepEqual(suppliedEnriched.compatibleExitShapeKeys, [
     "mainnet:compx:v1:withdraw:asa"
@@ -127,7 +131,9 @@ test("CompX collector emits debt without wallet LST when loan exists", async () 
       }
     ],
     getPoolAprFn: async () => null,
-    getTokenPricesFn: async () => ({})
+    getTokenPricesFn: async () => ({
+      [String(USDC_ID)]: 1
+    })
   });
   setCompXLendingMarketStateDependenciesForTests({
     getMarket: async () => marketData()
