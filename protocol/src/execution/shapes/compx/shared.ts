@@ -18,6 +18,40 @@ export interface LendingTransactionBundle {
   metadata: Record<string, unknown>;
 }
 
+/**
+ * Floor application-call fees to COMPX_LENDING_APP_CALL_MIN_FEE.
+ *
+ * `@compx/sdk` finalizeGroup uses algokit coverAppCallInnerTransactionFees, so
+ * the actual fee is minFee × (1 + inners) capped by appCallMaxFee. Partial repay
+ * (no collateral release) can land at 1000 µAlgos, which fails Canix's ≥2000
+ * lending-shape validation. Slight overpay is safe.
+ *
+ * Re-assigns the atomic group id when any fee is bumped, since fee is part of
+ * the group commitment. Existing group fields must be cleared first — algosdk
+ * assignGroupID can otherwise hash stale group bytes into the new id.
+ */
+export function ensureCompXLendingAppCallMinFees(
+  transactions: Transaction[]
+): Transaction[] {
+  let bumped = false;
+  for (const txn of transactions) {
+    if (
+      txn.type === algosdk.TransactionType.appl &&
+      BigInt(txn.fee) < COMPX_LENDING_APP_CALL_MIN_FEE
+    ) {
+      txn.fee = COMPX_LENDING_APP_CALL_MIN_FEE;
+      bumped = true;
+    }
+  }
+  if (bumped && transactions.length > 1) {
+    for (const txn of transactions) {
+      txn.group = undefined;
+    }
+    algosdk.assignGroupID(transactions);
+  }
+  return transactions;
+}
+
 export async function getSuggestedParams(algod: Algodv2): Promise<algosdk.SuggestedParams> {
   return algod.getTransactionParams().do();
 }

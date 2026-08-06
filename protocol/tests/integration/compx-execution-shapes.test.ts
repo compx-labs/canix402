@@ -804,6 +804,50 @@ test("repay shape builds and validates 2-txn group", async () => {
   assert.equal(quote.transactions.length, 2);
   assertEncodedGroupIsValid(quote.encodedTransactions);
   assert.equal(quote.metadata.amountDenomination, "base");
+  assert.equal(quote.shapeVersion, "1.0.1");
+});
+
+test("repay shape floors SDK app-call fee from 1000 to 2000 microAlgos", async () => {
+  const state = lendingMarketState();
+  const amount = 50_000n;
+  const group = buildMockRepayGroup({
+    user: USER,
+    marketAppId: MARKET_APP_ID,
+    marketAppAddress: MARKET_APP_ADDRESS,
+    baseTokenId: USDC_ID,
+    lstTokenId: LST_ID,
+    amount,
+    suggestedParams: suggestedParams(1000)
+  });
+  // Simulate @compx/sdk coverAppCallInnerTransactionFees with 0 inners.
+  group[1].fee = 1000n;
+
+  setCompXRepayAsaDependenciesForTests({
+    resolveMarketState: async () => state,
+    buildRepayTransactions: async () => ({
+      transactions: group,
+      signers: [{ address: USER_ADDRESS, transactionIndexes: [0, 1] }],
+      metadata: { action: "repay", optInsIncluded: [] }
+    })
+  });
+
+  const registry = new TransactionShapeRegistry();
+  registry.register(compxRepayAsaShape);
+  const quote = await compileExecutableQuote(
+    registry,
+    compxRepayAsaShape.key,
+    {
+      userAddress: USER_ADDRESS,
+      marketAppId: MARKET_APP_ID,
+      amount: amount.toString()
+    },
+    buildContext()
+  );
+
+  assert.equal(quote.transactions.length, 2);
+  assert.equal(quote.transactions[1]?.type, "appl");
+  assert.equal(quote.transactions[1]?.fee, "2000");
+  assertEncodedGroupIsValid(quote.encodedTransactions);
 });
 
 test("createExecutionRegistry includes all CompX shapes", () => {

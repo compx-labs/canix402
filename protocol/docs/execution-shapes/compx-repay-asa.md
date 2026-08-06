@@ -1,7 +1,7 @@
 # CompX v1 ASA Lending Repay (execution shape)
 
 - Shape key: `mainnet:compx:v1:repay:asa`
-- Shape version: `1.0.0`
+- Shape version: `1.0.1`
 - Source module: `src/execution/shapes/compx/repay-asa.ts`
 - Supported opportunity types: `lending`
 - Opportunity role: `exit` (attached to CompX debt positions)
@@ -40,6 +40,10 @@ Exactly two outer transactions in order:
 ## Caveats
 
 - ASA-base markets only; ALGO-base lending markets are rejected.
+- After SDK simulation, Canix floors application-call fees to at least `2000`
+  microAlgos. `@compx/sdk` may emit `1000` when no collateral is released
+  (`coverAppCallInnerTransactionFees`); that under-fee would fail shape validation
+  without the floor.
 - Quotes expire after 30 seconds; recompile before signing stale groups.
 
 ## Tests
