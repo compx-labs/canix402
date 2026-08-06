@@ -22,6 +22,7 @@ import {
   buildMockStakeGroup,
   buildMockUnstakeGroup,
   buildMockWithdrawGroup,
+  createAcceptedCollateralBoxName,
   compxBorrowAsaShape,
   compxClaimRewardsShape,
   compxDepositAsaShape,
@@ -30,6 +31,8 @@ import {
   compxUnstakeAsaShape,
   compxWithdrawAsaShape,
   createStakerBoxName,
+  resolveCompXLendingMarketState,
+  setCompXAcceptedCollateralDependenciesForTests,
   setCompXBorrowAsaDependenciesForTests,
   setCompXClaimRewardsDependenciesForTests,
   setCompXDepositAsaDependenciesForTests,
@@ -50,9 +53,13 @@ const USER_ADDRESS = USER.addr.toString();
 const MARKET_APP_ADDRESS = MARKET_APP.addr.toString();
 const POOL_APP_ADDRESS = POOL_APP.addr.toString();
 const MARKET_APP_ID = 3491050310;
+const COMPX_MARKET_APP_ID = 3607871733;
 const POOL_APP_ID = 3500000001;
 const USDC_ID = 31566704;
 const LST_ID = 3491050538;
+const COMPX_ASA_ID = 1732165149;
+const COMPX_LST_ID = 3607871927;
+const CUSDC_ID = 3491050538;
 const STAKED_ID = 1058926737;
 const REWARD_ID = 793124631;
 const GENESIS_HASH = new Uint8Array(32).fill(11);
@@ -196,6 +203,7 @@ test.afterEach(() => {
   setCompXDepositAsaDependenciesForTests(undefined);
   setCompXWithdrawAsaDependenciesForTests(undefined);
   setCompXBorrowAsaDependenciesForTests(undefined);
+  setCompXAcceptedCollateralDependenciesForTests(undefined);
   setCompXRepayAsaDependenciesForTests(undefined);
   setCompXStakeAsaDependenciesForTests(undefined);
   setCompXUnstakeAsaDependenciesForTests(undefined);
@@ -504,6 +512,7 @@ test("borrow shape builds and validates 3-txn group without base opt-in", async 
 
   setCompXBorrowAsaDependenciesForTests({
     resolveMarketState: async () => state,
+    assertAcceptedCollateral: async () => undefined,
     buildBorrowTransactions: async () => ({
       transactions: group,
       signers: [{ address: USER_ADDRESS, transactionIndexes: [0, 1, 2] }],
@@ -529,6 +538,232 @@ test("borrow shape builds and validates 3-txn group without base opt-in", async 
   assertEncodedGroupIsValid(quote.encodedTransactions);
   assert.equal(quote.metadata.borrowAmount, borrowAmount.toString());
   assert.equal(quote.metadata.collateralTokenId, LST_ID);
+  assert.equal(quote.shapeVersion, "1.0.1");
+});
+
+test("lending market state allows base/buyout mismatch markets", async () => {
+  const market = marketData();
+  market.appId = COMPX_MARKET_APP_ID;
+  market.baseTokenId = COMPX_ASA_ID;
+  market.lstTokenId = COMPX_LST_ID;
+  market.buyoutTokenId = USDC_ID;
+
+  setCompXLendingMarketStateDependenciesForTests({
+    createLendingClient: () => ({}) as never,
+    getMarket: async () => market,
+    getAccountAssetBalance: async (_algod, _address, assetId) =>
+      assetId === COMPX_ASA_ID ? 1_000_000n : 500_000n,
+    isAssetOptedIn: async () => true,
+    getApplicationAddress: () => MARKET_APP_ADDRESS
+  });
+
+  const state = await resolveCompXLendingMarketState({
+    network: "mainnet",
+    algod: new algosdk.Algodv2("", "http://localhost", ""),
+    marketAppId: COMPX_MARKET_APP_ID,
+    userAddress: USER_ADDRESS
+  });
+
+  assert.equal(state.marketAppId, COMPX_MARKET_APP_ID);
+  assert.equal(state.baseTokenId, COMPX_ASA_ID);
+  assert.equal(state.lstTokenId, COMPX_LST_ID);
+  assert.equal(state.market.buyoutTokenId, USDC_ID);
+});
+
+test("borrow shape accepts cross-market LST collateral when registered", async () => {
+  const state = lendingMarketState({
+    marketAppId: COMPX_MARKET_APP_ID,
+    marketAppAddress: MARKET_APP_ADDRESS,
+    baseTokenId: COMPX_ASA_ID,
+    lstTokenId: COMPX_LST_ID,
+    market: {
+      ...marketData(),
+      appId: COMPX_MARKET_APP_ID,
+      baseTokenId: COMPX_ASA_ID,
+      lstTokenId: COMPX_LST_ID,
+      buyoutTokenId: USDC_ID
+    },
+    userLstBalance: 0n
+  });
+  const borrowAmount = 50_000n;
+  const collateralAmount = 100_000n;
+  const group = buildMockBorrowGroup({
+    user: USER,
+    marketAppId: COMPX_MARKET_APP_ID,
+    marketAppAddress: MARKET_APP_ADDRESS,
+    baseTokenId: COMPX_ASA_ID,
+    lstTokenId: COMPX_LST_ID,
+    collateralTokenId: CUSDC_ID,
+    borrowAmount,
+    collateralAmount,
+    includeBaseOptIn: false,
+    suggestedParams: suggestedParams(1000)
+  });
+
+  let assertedCollateralId: number | undefined;
+  setCompXBorrowAsaDependenciesForTests({
+    resolveMarketState: async () => state,
+    assertAcceptedCollateral: async (params) => {
+      assertedCollateralId = params.collateralTokenId;
+    },
+    getAccountAssetBalance: async () => 250_000n,
+    buildBorrowTransactions: async (_algod, params) => {
+      assert.equal(params.collateralTokenId, CUSDC_ID);
+      return {
+        transactions: group,
+        signers: [{ address: USER_ADDRESS, transactionIndexes: [0, 1, 2] }],
+        metadata: { action: "borrow", optInsIncluded: [] }
+      };
+    }
+  });
+
+  const registry = new TransactionShapeRegistry();
+  registry.register(compxBorrowAsaShape);
+  const quote = await compileExecutableQuote(
+    registry,
+    compxBorrowAsaShape.key,
+    {
+      userAddress: USER_ADDRESS,
+      marketAppId: COMPX_MARKET_APP_ID,
+      borrowAmount: borrowAmount.toString(),
+      collateralAmount: collateralAmount.toString(),
+      collateralTokenId: CUSDC_ID
+    },
+    buildContext()
+  );
+
+  assert.equal(assertedCollateralId, CUSDC_ID);
+  assert.equal(quote.metadata.collateralTokenId, CUSDC_ID);
+  assert.equal(quote.metadata.baseTokenId, COMPX_ASA_ID);
+  assert.equal(quote.transactions.length, 3);
+});
+
+test("borrow shape rejects collateral not in accepted_collaterals", async () => {
+  const state = lendingMarketState({
+    marketAppId: COMPX_MARKET_APP_ID,
+    baseTokenId: COMPX_ASA_ID,
+    lstTokenId: COMPX_LST_ID,
+    market: {
+      ...marketData(),
+      appId: COMPX_MARKET_APP_ID,
+      baseTokenId: COMPX_ASA_ID,
+      lstTokenId: COMPX_LST_ID,
+      buyoutTokenId: USDC_ID
+    }
+  });
+
+  setCompXBorrowAsaDependenciesForTests({
+    resolveMarketState: async () => state,
+    assertAcceptedCollateral: async () => {
+      throw new ShapeStateError(
+        "CompX borrow collateralTokenId is not an accepted collateral for this market.",
+        {
+          details: {
+            marketAppId: COMPX_MARKET_APP_ID,
+            collateralTokenId: CUSDC_ID
+          }
+        }
+      );
+    }
+  });
+
+  const registry = new TransactionShapeRegistry();
+  registry.register(compxBorrowAsaShape);
+  await assert.rejects(
+    () =>
+      compileExecutableQuote(
+        registry,
+        compxBorrowAsaShape.key,
+        {
+          userAddress: USER_ADDRESS,
+          marketAppId: COMPX_MARKET_APP_ID,
+          borrowAmount: "50000",
+          collateralAmount: "100000",
+          collateralTokenId: CUSDC_ID
+        },
+        buildContext()
+      ),
+    (error: unknown) =>
+      error instanceof ShapeStateError &&
+      /not an accepted collateral/i.test(error.message)
+  );
+});
+
+test("borrow shape warns when foreign collateral balance is below requested amount", async () => {
+  const state = lendingMarketState({
+    marketAppId: COMPX_MARKET_APP_ID,
+    baseTokenId: COMPX_ASA_ID,
+    lstTokenId: COMPX_LST_ID,
+    market: {
+      ...marketData(),
+      appId: COMPX_MARKET_APP_ID,
+      baseTokenId: COMPX_ASA_ID,
+      lstTokenId: COMPX_LST_ID,
+      buyoutTokenId: USDC_ID
+    },
+    userLstBalance: 9_999_999n
+  });
+  const borrowAmount = 50_000n;
+  const collateralAmount = 100_000n;
+  const group = buildMockBorrowGroup({
+    user: USER,
+    marketAppId: COMPX_MARKET_APP_ID,
+    marketAppAddress: MARKET_APP_ADDRESS,
+    baseTokenId: COMPX_ASA_ID,
+    lstTokenId: COMPX_LST_ID,
+    collateralTokenId: CUSDC_ID,
+    borrowAmount,
+    collateralAmount,
+    includeBaseOptIn: false,
+    suggestedParams: suggestedParams(1000)
+  });
+
+  setCompXBorrowAsaDependenciesForTests({
+    resolveMarketState: async () => state,
+    assertAcceptedCollateral: async () => undefined,
+    getAccountAssetBalance: async () => 10_000n,
+    buildBorrowTransactions: async () => ({
+      transactions: group,
+      signers: [{ address: USER_ADDRESS, transactionIndexes: [0, 1, 2] }],
+      metadata: { action: "borrow", optInsIncluded: [] }
+    })
+  });
+
+  const registry = new TransactionShapeRegistry();
+  registry.register(compxBorrowAsaShape);
+  const quote = await compileExecutableQuote(
+    registry,
+    compxBorrowAsaShape.key,
+    {
+      userAddress: USER_ADDRESS,
+      marketAppId: COMPX_MARKET_APP_ID,
+      borrowAmount: borrowAmount.toString(),
+      collateralAmount: collateralAmount.toString(),
+      collateralTokenId: CUSDC_ID
+    },
+    buildContext()
+  );
+
+  assert.ok(
+    quote.warnings.some((warning) =>
+      /User collateral balance \(10000\) is below the requested collateral amount/i.test(
+        warning
+      )
+    )
+  );
+});
+
+test("createAcceptedCollateralBoxName encodes prefix and uint64 asset id", () => {
+  const boxName = createAcceptedCollateralBoxName(CUSDC_ID);
+  const expected = Buffer.concat([
+    Buffer.from("accepted_collaterals"),
+    (() => {
+      const key = Buffer.alloc(8);
+      key.writeBigUInt64BE(BigInt(CUSDC_ID));
+      return key;
+    })()
+  ]);
+  assert.deepEqual(Buffer.from(boxName), expected);
 });
 
 test("repay shape builds and validates 2-txn group", async () => {

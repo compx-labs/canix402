@@ -2111,7 +2111,7 @@
             "description": "Collateral amount in base units for CompX borrow shapes (LST-denominated)."
           },
           "collateralTokenId": {
-            "description": "Collateral asset id for CompX borrow shapes (defaults to market LST when omitted)."
+            "description": "Collateral LST asset id for CompX borrow shapes. Must be in the market's on-chain accepted_collaterals set (often a cross-market LST such as cUSDC). Defaults to the market LST when omitted."
           },
           "poolId": {
             "type": "string",

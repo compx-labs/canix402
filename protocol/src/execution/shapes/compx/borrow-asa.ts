@@ -1,4 +1,4 @@
-import algosdk, { Transaction } from "algosdk";
+import algosdk, { Algodv2, Transaction } from "algosdk";
 import { buildBorrowTransactions } from "@compx/sdk";
 
 import { InvalidShapeInputError, ShapeBuildError } from "../../errors.js";
@@ -12,6 +12,10 @@ import {
   buildShapeKey,
   type SerializedTransaction
 } from "../../types.js";
+import {
+  assertCompXAcceptedCollateral,
+  setCompXAcceptedCollateralDependenciesForTests
+} from "./accepted-collateral.js";
 import {
   type CompXLendingMarketState,
   resolveCompXLendingMarketState
@@ -28,6 +32,7 @@ import {
   DEFAULT_COMPX_APP_CALL_MAX_FEE,
   assertGroupedTransactions,
   createCompXBuilderAlgodClient,
+  getAccountAssetBalance,
   readAppCallSelectorHex,
   rejectUnexpectedSignerMetadata,
   type LendingTransactionBundle
@@ -56,6 +61,8 @@ export interface CompXBorrowAsaInput {
 export interface CompXBorrowAsaDependencies {
   resolveMarketState: typeof resolveCompXLendingMarketState;
   buildBorrowTransactions: typeof buildBorrowTransactions;
+  assertAcceptedCollateral: typeof assertCompXAcceptedCollateral;
+  getAccountAssetBalance: typeof getAccountAssetBalance;
 }
 
 let dependencyOverrides: Partial<CompXBorrowAsaDependencies> | undefined;
@@ -64,12 +71,17 @@ export function setCompXBorrowAsaDependenciesForTests(
   overrides?: Partial<CompXBorrowAsaDependencies>
 ): void {
   dependencyOverrides = overrides;
+  if (overrides === undefined) {
+    setCompXAcceptedCollateralDependenciesForTests(undefined);
+  }
 }
 
 function resolveDependencies(): CompXBorrowAsaDependencies {
   return {
     resolveMarketState: resolveCompXLendingMarketState,
     buildBorrowTransactions,
+    assertAcceptedCollateral: assertCompXAcceptedCollateral,
+    getAccountAssetBalance,
     ...dependencyOverrides
   };
 }
@@ -80,13 +92,14 @@ export const compxBorrowAsaShape: TransactionShapeSpec<
 > = {
   identity: IDENTITY,
   key: buildShapeKey(IDENTITY),
-  shapeVersion: "1.0.0",
+  shapeVersion: "1.0.1",
   title: "CompX v1 ASA lending borrow",
   description:
-    "Borrows a base ASA from a CompX lending market against LST collateral. Wraps " +
+    "Borrows a base ASA from a CompX lending market against accepted LST collateral. Wraps " +
     "@compx/sdk buildBorrowTransactions: optional base opt-in, gas()void, LST collateral " +
-    "transfer, then borrow(axfer,uint64,uint64,uint64)void. collateralTokenId defaults to " +
-    "the market LST.",
+    "transfer, then borrow(axfer,uint64,uint64,uint64)void. collateralTokenId must be in the " +
+    "market's on-chain accepted_collaterals set (often a cross-market LST such as cUSDC); " +
+    "defaults to the market LST when omitted.",
   supportedOpportunityTypes: ["lending"],
   opportunityRole: "enter",
   requiredInputs: [
@@ -151,22 +164,23 @@ export const compxBorrowAsaShape: TransactionShapeSpec<
     const warnings: string[] = [];
     const collateralTokenId = input.collateralTokenId ?? state.lstTokenId;
 
-    if (collateralTokenId !== state.lstTokenId) {
-      throw new ShapeBuildError(
-        "CompX borrow collateralTokenId must match the market LST token id.",
-        {
-          details: {
-            collateralTokenId,
-            lstTokenId: state.lstTokenId,
-            marketAppId: state.marketAppId
-          }
-        }
-      );
-    }
+    await dependencies.assertAcceptedCollateral({
+      algod: context.algod,
+      marketAppId: state.marketAppId,
+      collateralTokenId
+    });
 
-    if (input.collateralAmount > state.userLstBalance) {
+    const userCollateralBalance = await resolveUserCollateralBalance({
+      dependencies,
+      algod: context.algod,
+      userAddress: input.userAddress,
+      collateralTokenId,
+      state
+    });
+
+    if (input.collateralAmount > userCollateralBalance) {
       warnings.push(
-        `User LST balance (${state.userLstBalance.toString()}) is below the requested collateral amount.`
+        `User collateral balance (${userCollateralBalance.toString()}) is below the requested collateral amount.`
       );
     }
 
@@ -271,15 +285,33 @@ export const compxBorrowAsaShape: TransactionShapeSpec<
 
     assertGroupedTransactions(group, errors);
 
-    if (input.collateralAmount > state.userLstBalance) {
+    // Validate is sync; balance warnings for foreign collateral are emitted at build time.
+    if (
+      collateralTokenId === state.lstTokenId &&
+      input.collateralAmount > state.userLstBalance
+    ) {
       warnings.push(
-        "Requested collateral amount exceeds the resolved user LST balance."
+        "Requested collateral amount exceeds the resolved user collateral balance."
       );
     }
 
     return { valid: errors.length === 0, errors, warnings };
   }
 };
+
+async function resolveUserCollateralBalance(params: {
+  dependencies: CompXBorrowAsaDependencies;
+  algod: Algodv2;
+  userAddress: string;
+  collateralTokenId: number;
+  state: CompXLendingMarketState;
+}): Promise<bigint> {
+  const { dependencies, algod, userAddress, collateralTokenId, state } = params;
+  if (collateralTokenId === state.lstTokenId) {
+    return state.userLstBalance;
+  }
+  return dependencies.getAccountAssetBalance(algod, userAddress, collateralTokenId);
+}
 
 function validateAssetOptInTxn(params: {
   txn: SerializedTransaction | undefined;
@@ -406,9 +438,11 @@ export function buildMockBorrowGroup(params: {
   lstTokenId: number;
   borrowAmount: bigint;
   collateralAmount: bigint;
+  collateralTokenId?: number;
   includeBaseOptIn: boolean;
   suggestedParams: algosdk.SuggestedParams;
 }): Transaction[] {
+  const collateralTokenId = params.collateralTokenId ?? params.lstTokenId;
   const txns: Transaction[] = [];
   if (params.includeBaseOptIn) {
     txns.push(
@@ -437,7 +471,7 @@ export function buildMockBorrowGroup(params: {
     algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
       sender: params.user.addr,
       receiver: params.marketAppAddress,
-      assetIndex: params.lstTokenId,
+      assetIndex: collateralTokenId,
       amount: params.collateralAmount,
       suggestedParams: params.suggestedParams
     })
@@ -447,7 +481,7 @@ export function buildMockBorrowGroup(params: {
       sender: params.user.addr,
       appIndex: BigInt(params.marketAppId),
       appArgs: [Buffer.from(BORROW_METHOD_SELECTOR_HEX, "hex")],
-      foreignAssets: [BigInt(params.baseTokenId), BigInt(params.lstTokenId)],
+      foreignAssets: [BigInt(params.baseTokenId), BigInt(collateralTokenId)],
       suggestedParams: {
         ...params.suggestedParams,
         fee: DEFAULT_COMPX_APP_CALL_MAX_FEE,

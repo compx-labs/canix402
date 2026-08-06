@@ -7,10 +7,10 @@
       "protocolVersion": "v1",
       "action": "borrow",
       "variant": "asa",
-      "shapeVersion": "1.0.0",
+      "shapeVersion": "1.0.1",
       "title": "CompX v1 ASA lending borrow",
-      "description": "Borrows a base ASA from a CompX lending market against LST collateral.",
-      "summary": "Borrows a base ASA from a CompX lending market against LST collateral.",
+      "description": "Borrows a base ASA from a CompX lending market against accepted LST collateral. Collateral must be in the market's on-chain accepted_collaterals set (often a cross-market LST).",
+      "summary": "Borrows a base ASA from a CompX lending market against accepted LST collateral.",
       "opportunityRole": "enter",
       "supportedOpportunityTypes": ["lending"],
       "requiredInputs": [

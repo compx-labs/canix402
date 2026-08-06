@@ -30,6 +30,14 @@ export {
 export type { CompXBorrowAsaInput, CompXBorrowAsaDependencies } from "./borrow-asa.js";
 
 export {
+  createAcceptedCollateralBoxName,
+  isCompXAcceptedCollateral,
+  assertCompXAcceptedCollateral,
+  setCompXAcceptedCollateralDependenciesForTests
+} from "./accepted-collateral.js";
+export type { CompXAcceptedCollateralDependencies } from "./accepted-collateral.js";
+
+export {
   compxRepayAsaShape,
   setCompXRepayAsaDependenciesForTests,
   buildMockRepayGroup

@@ -81,16 +81,6 @@ export async function resolveCompXLendingMarketState(params: {
     });
   }
 
-  if (market.baseTokenId !== market.buyoutTokenId) {
-    throw new ShapeStateError("CompX lending market base/buyout asset mismatch.", {
-      details: {
-        marketAppId,
-        baseTokenId: market.baseTokenId,
-        buyoutTokenId: market.buyoutTokenId
-      }
-    });
-  }
-
   if (market.contractState !== 1) {
     throw new ShapeStateError("CompX lending market is not active.", {
       details: { marketAppId, contractState: market.contractState }
