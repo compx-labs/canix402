@@ -27,6 +27,7 @@ import {
   DEFAULT_COMPX_APP_CALL_MAX_FEE,
   assertGroupedTransactions,
   createCompXBuilderAlgodClient,
+  ensureCompXLendingAppCallMinFees,
   readAppCallSelectorHex,
   rejectUnexpectedSignerMetadata,
   type LendingTransactionBundle
@@ -76,12 +77,13 @@ export const compxRepayAsaShape: TransactionShapeSpec<
 > = {
   identity: IDENTITY,
   key: buildShapeKey(IDENTITY),
-  shapeVersion: "1.0.0",
+  shapeVersion: "1.0.1",
   title: "CompX v1 ASA lending repay",
   description:
     "Repays outstanding base-ASA debt on a CompX lending market. Wraps " +
     "@compx/sdk buildRepayTransactions: base transfer then repayLoanASA(axfer,uint64)void. " +
-    "amount is base-asset denominated.",
+    "amount is base-asset denominated. App-call fees are floored to at least 2000 microAlgos " +
+    "after SDK simulation.",
   supportedOpportunityTypes: ["lending"],
   opportunityRole: "exit",
   requiredInputs: ["userAddress", "marketAppId", "amount"],
@@ -155,7 +157,9 @@ export const compxRepayAsaShape: TransactionShapeSpec<
 
     rejectUnexpectedSignerMetadata(bundle.signers, input.userAddress);
 
-    const transactions = normalizeTransactions(bundle.transactions);
+    const transactions = ensureCompXLendingAppCallMinFees(
+      normalizeTransactions(bundle.transactions)
+    );
 
     return {
       transactions,

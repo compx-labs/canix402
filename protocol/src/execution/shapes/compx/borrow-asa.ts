@@ -32,6 +32,7 @@ import {
   DEFAULT_COMPX_APP_CALL_MAX_FEE,
   assertGroupedTransactions,
   createCompXBuilderAlgodClient,
+  ensureCompXLendingAppCallMinFees,
   getAccountAssetBalance,
   readAppCallSelectorHex,
   rejectUnexpectedSignerMetadata,
@@ -206,7 +207,9 @@ export const compxBorrowAsaShape: TransactionShapeSpec<
 
     rejectUnexpectedSignerMetadata(bundle.signers, input.userAddress);
 
-    const transactions = normalizeTransactions(bundle.transactions);
+    const transactions = ensureCompXLendingAppCallMinFees(
+      normalizeTransactions(bundle.transactions)
+    );
 
     return {
       transactions,
