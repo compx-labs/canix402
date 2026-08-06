@@ -20,14 +20,19 @@ This document defines the current Dork.fi adapter contract used by canix402.
 
 ## Wallet Positions
 
-`GET /positions` always reads verified Algorand ASA catalog markets on-chain
-(nToken balances + simulated withdraw amounts). Those rows are the executable
-surface:
+`GET /positions` always reads verified Algorand ASA catalog markets on-chain.
+Those rows are the executable surface:
 
-- `positionId`: `dorkfi:supplied:<marketAppId>` (market-scoped)
+- `positionId`: `dorkfi:supplied:<marketAppId>` (market-scoped supply)
+- `positionId`: `dorkfi:debt:<marketAppId>` (per-market outstanding borrow from
+  on-chain `get_user` / `get_user_borrow_amount`, not wallet ASA balances)
 - `opportunityId`: `dorkfi:algorand:<poolAppId>:<assetId>:lending` (same scheme as
   opportunity discovery — pool app id, not market app id)
-- `inputHints`: `{ poolAppId, marketAppId, assetId }` for withdraw quotes
+- `inputHints`: `{ poolAppId, marketAppId, assetId }` for withdraw / repay quotes
+- Debt `amountRaw` is outstanding underlying ASA principal (repay-shape units)
+- Debt exit shape: `mainnet:dorkfi:v1:repay:asa`
+- When market oracle price is unusable, debt rows keep `usdValue: null` with a
+  clear caveat (liabilities are never omitted solely for pricing)
 
 When the indexed health API is available, pool-level USD supplied and debt rows
 are **merged** (not substituted) for totals and health factor:
@@ -37,18 +42,19 @@ are **merged** (not substituted) for totals and health factor:
 - `opportunityId`: `null`, `assetId`: `null`, `assetSymbol`: `USD`
 - amounts scaled from index units (`/1e12`) like collateral
 - no exit/manage shapes (informational only — not executable)
-- `borrowedUsdComplete` is true only when health records parse without warnings
 
-ASA `amountRaw` is the wallet **nToken** balance (withdraw-shape units). Estimated
-underlying ASA is derived as `(nToken * depositIndex) / 1e18` for notes only —
-positions no longer depend on a naked `withdraw` simulate (which often fails
-without the full custom group).
+ASA supply `amountRaw` is the wallet **nToken** balance (withdraw-shape units).
+Estimated underlying ASA is derived as `(nToken * depositIndex) / 1e18` for notes
+only — positions no longer depend on a naked `withdraw` simulate (which often
+fails without the full custom group).
 
-Paused catalog markets are skipped quietly. If at least one ASA supply row is
-built, per-market probe failures are not surfaced as protocol warnings.
+Paused catalog markets are skipped quietly for supply. Debt probes still run when
+possible. `borrowedUsdComplete` is false when any on-chain debt row is unpriced or
+a debt probe fails.
 
-If the indexed source is unavailable, only ASA rows are returned with no
-debt/health warning — `borrowedUsd` stays complete (indexed debt optional).
+If the indexed source is unavailable, on-chain ASA supply and debt rows are still
+returned. Indexed USD aggregates are optional; on-chain debt coverage drives
+`borrowedUsdComplete`.
 
 ## Normalized Output Fields
 

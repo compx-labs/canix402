@@ -66,7 +66,7 @@ Other emitted fields:
 | Position | Source | Notes |
 |---|---|---|
 | `supplied` | Wallet LST → underlying base amount; USD via `sdk.pricing.getTokenPrices` | Excludes locked borrow collateral. Do not use lending-oracle `totalDepositsUSD` share for USD. |
-| `debt` | `sdk.lending.getUserPosition`; USD via token prices | Includes `healthFactor`; repay via `mainnet:compx:v1:repay:asa` |
+| `debt` | `sdk.lending.getUserPosition`; `amountRaw` via `standardToMicro(borrowed)` (SDK returns human units); USD via token prices | Includes `healthFactor`; repay via `mainnet:compx:v1:repay:asa`. Unpriced debt keeps `usdValue: null` + caveat. |
 | `staked` / `reward` | Pool + staker boxes; USD via token prices | Same pricing path as `/pricing` |
 | (manage on supplied) | — | `mainnet:compx:v1:borrow:asa` for leverage-up |
 

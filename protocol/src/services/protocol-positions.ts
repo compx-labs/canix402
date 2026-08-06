@@ -1,6 +1,6 @@
 import algosdk, { Algodv2 } from "algosdk";
 import { getStakingPosition } from "@alpha-arcade/sdk";
-import { CompXSDK } from "@compx/sdk";
+import { CompXSDK, standardToMicro } from "@compx/sdk";
 import {
   ConsensusState,
   MainnetConsensusConfig,
@@ -10,8 +10,10 @@ import {
   MainnetPoolManagerAppId,
   MainnetPools,
   getConsensusState,
+  retrieveLoansLocalState,
   retrieveUserDepositsFullInfo,
-  retrieveUserLoansInfo
+  retrieveUserLoanInfo,
+  type UserLoanInfo
 } from "@folks-finance/algorand-sdk";
 import { makeFarmFromRawState } from "@pactfi/pactsdk";
 import { AlgorandClient } from "@algorandfoundation/algokit-utils";
@@ -62,11 +64,17 @@ import {
   resolveCompXStakingPoolState
 } from "../execution/shapes/compx/pool-state.js";
 import {
+  dorkFiUsdFromMarketPrice,
+  simulateGetMarket,
+  simulateGetUser,
+  trySimulateGetUserBorrowAmount,
+  underlyingFromScaledBorrows,
   underlyingFromScaledDeposits
 } from "../execution/shapes/dorkfi/abi.js";
 import {
   buildDorkFiLendingOpportunityId,
-  DORKFI_ALGORAND_ASA_MARKETS
+  DORKFI_ALGORAND_ASA_MARKETS,
+  type DorkFiCatalogMarket
 } from "../execution/shapes/dorkfi/market-catalog.js";
 import {
   resolveDorkFiLendingMarketState
@@ -977,10 +985,13 @@ function pactPoolPair(pool: PactPositionPool): string {
 
 export async function collectFolksFinancePositions(
   address: string,
-  snapshot: WalletSnapshot
+  snapshot: WalletSnapshot,
+  context: PositionCollectionContext = createPositionCollectionContext()
 ): Promise<ProtocolPositionsCollection> {
-  const indexer = createIndexerClient();
-  const deposits = await retrieveUserDepositsFullInfo(
+  const deps = resolveFolksFinancePositionCollectorDependencies();
+  const indexer = deps.createIndexerClient();
+  const algod = deps.createAlgodClient(context.algodRequestGate);
+  const deposits = await deps.retrieveUserDepositsFullInfo(
     indexer,
     MainnetPoolManagerAppId,
     MainnetDepositsAppId,
@@ -993,7 +1004,8 @@ export async function collectFolksFinancePositions(
     | PromiseSettledResult<{
         loanType: string;
         loanAppId: number;
-        loans: Awaited<ReturnType<typeof retrieveUserLoansInfo>>;
+        loans: UserLoanInfo[];
+        escrowReadFailures: string[];
       }>
     | undefined
   > = new Array(loanSources.length);
@@ -1012,18 +1024,48 @@ export async function collectFolksFinancePositions(
     },
     async ({ loanType, loanAppId, index }) => {
       try {
+        // Escrow discovery requires indexer note search; loan state is read via
+        // algod so debt appears promptly after borrow:variable confirmation.
+        const localStates = await deps.retrieveLoansLocalState(
+          indexer,
+          loanAppId,
+          address
+        );
+        const loans: UserLoanInfo[] = [];
+        const escrowReadFailures: string[] = [];
+        for (const localState of localStates) {
+          try {
+            loans.push(
+              await deps.retrieveUserLoanInfo(
+                algod,
+                loanAppId,
+                MainnetPoolManagerAppId,
+                MainnetOracle,
+                localState.escrowAddress
+              )
+            );
+          } catch (reason) {
+            escrowReadFailures.push(
+              `${localState.escrowAddress}: ${errorMessage(reason)}`
+            );
+          }
+        }
+        if (escrowReadFailures.length > 0 && loans.length === 0) {
+          settledLoans[index] = {
+            status: "rejected",
+            reason: new Error(
+              `Folks loan escrow reads failed: ${escrowReadFailures.join("; ")}`
+            )
+          };
+          return;
+        }
         settledLoans[index] = {
           status: "fulfilled",
           value: {
             loanType,
             loanAppId,
-            loans: await retrieveUserLoansInfo(
-              indexer,
-              loanAppId,
-              MainnetPoolManagerAppId,
-              MainnetOracle,
-              address
-            )
+            loans,
+            escrowReadFailures
           }
         };
       } catch (reason) {
@@ -1034,7 +1076,8 @@ export async function collectFolksFinancePositions(
   const completedLoanSources: PromiseSettledResult<{
     loanType: string;
     loanAppId: number;
-    loans: Awaited<ReturnType<typeof retrieveUserLoansInfo>>;
+    loans: UserLoanInfo[];
+    escrowReadFailures: string[];
   }>[] = [];
   for (const result of settledLoans) {
     if (result === undefined) {
@@ -1077,11 +1120,18 @@ export async function collectFolksFinancePositions(
   }
 
   let failedLoanSources = 0;
+  let escrowDebtReadFailures = 0;
   for (const result of completedLoanSources) {
     if (result.status === "rejected") {
       failedLoanSources += 1;
       warnings.push(`Folks loan source unavailable: ${errorMessage(result.reason)}`);
       continue;
+    }
+    if (result.value.escrowReadFailures.length > 0) {
+      escrowDebtReadFailures += result.value.escrowReadFailures.length;
+      warnings.push(
+        `Folks loan escrow reads partial (${result.value.loanType}): ${result.value.escrowReadFailures.join("; ")}`
+      );
     }
     for (const loan of result.value.loans) {
       const healthFactor = ratioOrNull(
@@ -1123,6 +1173,16 @@ export async function collectFolksFinancePositions(
           continue;
         }
         const entry = poolsByAppId.get(borrow.poolAppId);
+        const usdValue = scaledUsd(borrow.borrowBalanceValue, 14);
+        const caveats = [
+          `Debt is held by loan escrow ${loan.escrowAddress}.`,
+          borrow.isStable ? "Stable-rate borrow." : "Variable-rate borrow."
+        ];
+        if (usdValue === null) {
+          caveats.push(
+            "Debt USD unavailable; amountRaw is outstanding borrow."
+          );
+        }
         positions.push({
           protocol: "folks-finance",
           positionType: "debt",
@@ -1135,12 +1195,9 @@ export async function collectFolksFinancePositions(
             borrow.borrowBalance,
             entry?.pool.assetDecimals ?? 0
           ),
-          usdValue: scaledUsd(borrow.borrowBalanceValue, 14),
+          usdValue,
           healthFactor,
-          caveats: [
-            `Debt is held by loan escrow ${loan.escrowAddress}.`,
-            borrow.isStable ? "Stable-rate borrow." : "Variable-rate borrow."
-          ],
+          caveats,
           inputHints: {
             escrowAddress: loan.escrowAddress,
             loanAppId: result.value.loanAppId,
@@ -1169,11 +1226,41 @@ export async function collectFolksFinancePositions(
           .every((position) => position.usdValue !== null),
       borrowedUsdComplete:
         failedLoanSources === 0 &&
+        escrowDebtReadFailures === 0 &&
         positions
           .filter((position) => position.positionType === "debt")
           .every((position) => position.usdValue !== null),
       rewardsUsdComplete: true
     }
+  };
+}
+
+interface FolksFinancePositionCollectorDependencies {
+  createIndexerClient: typeof createIndexerClient;
+  createAlgodClient: typeof createAlgodClient;
+  retrieveUserDepositsFullInfo: typeof retrieveUserDepositsFullInfo;
+  retrieveLoansLocalState: typeof retrieveLoansLocalState;
+  retrieveUserLoanInfo: typeof retrieveUserLoanInfo;
+}
+
+let folksFinancePositionCollectorOverrides:
+  | Partial<FolksFinancePositionCollectorDependencies>
+  | undefined;
+
+export function setFolksFinancePositionCollectorDependenciesForTests(
+  overrides?: Partial<FolksFinancePositionCollectorDependencies>
+): void {
+  folksFinancePositionCollectorOverrides = overrides;
+}
+
+function resolveFolksFinancePositionCollectorDependencies(): FolksFinancePositionCollectorDependencies {
+  return {
+    createIndexerClient,
+    createAlgodClient,
+    retrieveUserDepositsFullInfo,
+    retrieveLoansLocalState,
+    retrieveUserLoanInfo,
+    ...folksFinancePositionCollectorOverrides
   };
 }
 
@@ -1189,7 +1276,10 @@ interface CompXPositionCollectorDependencies {
     marketAppId: number,
     userAddress: string
   ) => Promise<{
+    /** Accrued borrow in human/standard units (SDK microToStandard). */
     borrowed: number;
+    /** Principal in base/micro units when available from the loan box. */
+    principal: bigint;
     collateral: number;
     collateralAssetId: number;
     healthFactor: number;
@@ -1219,14 +1309,20 @@ function resolveCompXPositionCollectorDependencies(): CompXPositionCollectorDepe
         }
         return {
           borrowed: position.borrowed,
+          principal: position.principal,
           collateral: position.collateral,
           collateralAssetId: position.collateralAssetId,
           healthFactor: position.healthFactor,
           isLiquidatable: position.isLiquidatable,
           maxBorrow: position.maxBorrow
         };
-      } catch {
-        return null;
+      } catch (error) {
+        // Missing loan box / no position is not an error; unexpected failures must surface.
+        const message = error instanceof Error ? error.message : String(error);
+        if (/box|not found|missing/i.test(message)) {
+          return null;
+        }
+        throw error;
       }
     },
     ...compxPositionCollectorDependencyOverrides
@@ -1276,45 +1372,49 @@ export async function collectCompXPositions(
                 userAddress: address,
                 userAssetHoldings: walletHoldings
               });
-              const borrowedRaw = BigInt(
-                Math.max(0, Math.trunc(userPosition.borrowed))
-              );
-              priceDecimalsByAssetId.set(
-                marketState.baseTokenId,
+              // SDK `borrowed` is human/standard units (microToStandard); convert to base units.
+              const borrowedRaw = standardToMicro(
+                userPosition.borrowed,
                 marketState.market.baseTokenDecimals
               );
-              const collateralRaw = BigInt(
-                Math.max(0, Math.trunc(userPosition.collateral))
-              );
-              positions.push({
-                protocol: "compx",
-                positionType: "debt",
-                positionId: `compx:debt:${appId}`,
-                opportunityId: opportunity.opportunityId,
-                assetId: marketState.baseTokenId,
-                assetSymbol: opportunity.assetPair,
-                amountRaw: borrowedRaw.toString(),
-                amount: formatUnits(
-                  borrowedRaw,
+              if (borrowedRaw > 0n) {
+                priceDecimalsByAssetId.set(
+                  marketState.baseTokenId,
                   marketState.market.baseTokenDecimals
-                ),
-                usdValue: null,
-                healthFactor: Number.isFinite(userPosition.healthFactor)
-                  ? userPosition.healthFactor
-                  : null,
-                sourceTimestamp: opportunity.sourceTimestamp,
-                ...(userPosition.isLiquidatable
-                  ? { caveats: ["Position is liquidatable."] }
-                  : {}),
-                notes:
-                  `Locked collateral ${collateralRaw.toString()} of asset ` +
-                  `${userPosition.collateralAssetId} (LST units). ` +
-                  `maxBorrow=${Math.trunc(userPosition.maxBorrow)}.`,
-                inputHints: {
-                  marketAppId: appId,
-                  assetId: marketState.baseTokenId
+                );
+                const debtCaveats: string[] = [];
+                if (userPosition.isLiquidatable) {
+                  debtCaveats.push("Position is liquidatable.");
                 }
-              });
+                positions.push({
+                  protocol: "compx",
+                  positionType: "debt",
+                  positionId: `compx:debt:${appId}`,
+                  opportunityId: opportunity.opportunityId,
+                  assetId: marketState.baseTokenId,
+                  assetSymbol: opportunity.assetPair,
+                  amountRaw: borrowedRaw.toString(),
+                  amount: formatUnits(
+                    borrowedRaw,
+                    marketState.market.baseTokenDecimals
+                  ),
+                  usdValue: null,
+                  healthFactor: Number.isFinite(userPosition.healthFactor)
+                    ? userPosition.healthFactor
+                    : null,
+                  sourceTimestamp: opportunity.sourceTimestamp,
+                  ...(debtCaveats.length > 0 ? { caveats: debtCaveats } : {}),
+                  notes:
+                    `Locked collateral ${userPosition.collateral} of asset ` +
+                    `${userPosition.collateralAssetId} (LST units). ` +
+                    `principal=${userPosition.principal.toString()}. ` +
+                    `maxBorrow=${userPosition.maxBorrow}.`,
+                  inputHints: {
+                    marketAppId: appId,
+                    assetId: marketState.baseTokenId
+                  }
+                });
+              }
             }
           } catch (error) {
             debtReadFailures += 1;
@@ -1502,6 +1602,16 @@ export async function collectCompXPositions(
     }
   }
 
+  for (const position of positions) {
+    if (position.positionType !== "debt" || position.usdValue !== null) {
+      continue;
+    }
+    const caveat = "Debt USD unavailable; amountRaw is outstanding borrow.";
+    if (!(position.caveats ?? []).includes(caveat)) {
+      position.caveats = [...(position.caveats ?? []), caveat];
+    }
+  }
+
   const sourceWarnings = [...warnings];
   const hasUnpricedRewards = positions.some(
     (position) =>
@@ -1575,8 +1685,9 @@ export async function collectDorkFiPositions(
   try {
     indexed = await deps.fetchIndexedPositions(address);
   } catch {
-    // Indexed USD aggregates are optional. Never surface debt/health warnings when
-    // the indexed source is unavailable — ASA rows remain the executable surface.
+    // Indexed USD aggregates are optional. On-chain ASA supply + debt remain the
+    // executable surface; do not claim borrowed coverage is complete without it
+    // when on-chain debt pricing/probes are incomplete.
     if (
       onChain.positions.length === 0 &&
       onChain.warnings.some((warning) =>
@@ -1596,7 +1707,7 @@ export async function collectDorkFiPositions(
         suppliedUsdComplete:
           onChain.coverage?.suppliedUsdComplete ??
           onChain.positions.every((position) => position.usdValue !== null),
-        borrowedUsdComplete: true,
+        borrowedUsdComplete: onChain.coverage?.borrowedUsdComplete ?? true,
         rewardsUsdComplete: true
       }
     };
@@ -1608,10 +1719,17 @@ export async function collectDorkFiPositions(
     warnings: [...onChain.warnings, ...indexed.warnings],
     coverage: {
       suppliedUsdComplete: indexed.coverage?.suppliedUsdComplete ?? true,
-      borrowedUsdComplete: indexed.coverage?.borrowedUsdComplete ?? true,
+      borrowedUsdComplete:
+        (onChain.coverage?.borrowedUsdComplete ?? true) &&
+        (indexed.coverage?.borrowedUsdComplete ?? true),
       rewardsUsdComplete: true
     }
   };
+}
+
+interface DorkFiUserDebtSnapshot {
+  outstandingRaw: bigint;
+  marketPriceWad: bigint;
 }
 
 interface DorkFiPositionCollectorDependencies {
@@ -1619,6 +1737,12 @@ interface DorkFiPositionCollectorDependencies {
     address: string
   ) => Promise<ProtocolPositionsCollection>;
   resolveMarketState: typeof resolveDorkFiLendingMarketState;
+  resolveUserDebt: (params: {
+    algod: Algodv2;
+    poolAppId: number;
+    marketAppId: number;
+    userAddress: string;
+  }) => Promise<DorkFiUserDebtSnapshot>;
 }
 
 let dorkFiPositionCollectorOverrides:
@@ -1631,10 +1755,48 @@ export function setDorkFiPositionCollectorDependenciesForTests(
   dorkFiPositionCollectorOverrides = overrides;
 }
 
+async function defaultResolveDorkFiUserDebt(params: {
+  algod: Algodv2;
+  poolAppId: number;
+  marketAppId: number;
+  userAddress: string;
+}): Promise<DorkFiUserDebtSnapshot> {
+  const [user, market] = await Promise.all([
+    simulateGetUser({
+      algod: params.algod,
+      poolAppId: params.poolAppId,
+      marketAppId: params.marketAppId,
+      userAddress: params.userAddress
+    }),
+    simulateGetMarket({
+      algod: params.algod,
+      poolAppId: params.poolAppId,
+      marketAppId: params.marketAppId
+    })
+  ]);
+
+  const fromContract = await trySimulateGetUserBorrowAmount({
+    algod: params.algod,
+    poolAppId: params.poolAppId,
+    marketAppId: params.marketAppId,
+    userAddress: params.userAddress
+  });
+  const outstandingRaw =
+    fromContract !== null
+      ? fromContract
+      : underlyingFromScaledBorrows(user.scaledBorrows, market.borrowIndex);
+
+  return {
+    outstandingRaw,
+    marketPriceWad: market.price
+  };
+}
+
 function resolveDorkFiPositionCollectorDependencies(): DorkFiPositionCollectorDependencies {
   return {
     fetchIndexedPositions: fetchDorkFiIndexedPositions,
     resolveMarketState: resolveDorkFiLendingMarketState,
+    resolveUserDebt: defaultResolveDorkFiUserDebt,
     ...dorkFiPositionCollectorOverrides
   };
 }
@@ -1775,10 +1937,12 @@ async function collectDorkFiOnChainSupply(
   const positions: PositionMarketRecord[] = [];
   const warnings: string[] = [];
   let pausedMarkets = 0;
+  let debtReadFailures = 0;
 
   await mapPositionCandidates(
     DORKFI_ALGORAND_ASA_MARKETS,
-    async (market) => {
+    async (market: DorkFiCatalogMarket) => {
+      let supplyProbed = false;
       try {
         const state = await deps.resolveMarketState({
           network: "mainnet",
@@ -1789,34 +1953,84 @@ async function collectDorkFiOnChainSupply(
           userAddress: address,
           userAssetHoldings: walletHoldings
         });
-        if (state.userNTokenBalance === 0n) {
+        supplyProbed = true;
+        if (state.userNTokenBalance > 0n) {
+          // amountRaw is nToken-denominated so clients can feed withdraw quotes directly.
+          const nTokenAmount = state.userNTokenBalance;
+          const estimatedUnderlying = underlyingFromScaledDeposits(
+            nTokenAmount,
+            state.depositIndex
+          );
+          positions.push({
+            protocol: "dorkfi",
+            positionType: "supplied",
+            // positionId stays market-scoped (one supply per market app).
+            positionId: `dorkfi:supplied:${market.marketAppId}`,
+            // opportunityId must match adapters/dorkfi.ts: poolAppId + assetId.
+            opportunityId: buildDorkFiLendingOpportunityId({
+              poolAppId: market.poolAppId,
+              assetId: market.assetId
+            }),
+            assetId: market.assetId,
+            assetSymbol: market.symbol,
+            amountRaw: nTokenAmount.toString(),
+            amount: formatUnits(nTokenAmount, market.decimals),
+            usdValue: null,
+            notes:
+              estimatedUnderlying > 0n
+                ? `Amount is nToken (ARC-200) balance for withdraw quotes. Estimated underlying ASA: ${estimatedUnderlying.toString()}.`
+                : "Amount is nToken (ARC-200) balance for withdraw quotes.",
+            inputHints: {
+              poolAppId: market.poolAppId,
+              marketAppId: market.marketAppId,
+              assetId: market.assetId
+            }
+          });
+        }
+      } catch (error) {
+        if (isDorkFiPausedMarketError(error)) {
+          pausedMarkets += 1;
+        } else {
+          warnings.push(formatDorkFiMarketWarning(market.marketAppId, error));
+        }
+      }
+
+      try {
+        const debt = await deps.resolveUserDebt({
+          algod,
+          poolAppId: market.poolAppId,
+          marketAppId: market.marketAppId,
+          userAddress: address
+        });
+        if (debt.outstandingRaw <= 0n) {
           return;
         }
-        // amountRaw is nToken-denominated so clients can feed withdraw quotes directly.
-        const nTokenAmount = state.userNTokenBalance;
-        const estimatedUnderlying = underlyingFromScaledDeposits(
-          nTokenAmount,
-          state.depositIndex
+        const usdValue = dorkFiUsdFromMarketPrice(
+          debt.outstandingRaw,
+          market.decimals,
+          debt.marketPriceWad
         );
+        const caveats: string[] = [];
+        if (usdValue === null) {
+          caveats.push(
+            "Debt USD unavailable; amountRaw is outstanding principal."
+          );
+        }
         positions.push({
           protocol: "dorkfi",
-          positionType: "supplied",
-          // positionId stays market-scoped (one supply per market app).
-          positionId: `dorkfi:supplied:${market.marketAppId}`,
-          // opportunityId must match adapters/dorkfi.ts: poolAppId + assetId.
+          positionType: "debt",
+          positionId: `dorkfi:debt:${market.marketAppId}`,
           opportunityId: buildDorkFiLendingOpportunityId({
             poolAppId: market.poolAppId,
             assetId: market.assetId
           }),
           assetId: market.assetId,
           assetSymbol: market.symbol,
-          amountRaw: nTokenAmount.toString(),
-          amount: formatUnits(nTokenAmount, market.decimals),
-          usdValue: null,
-          notes:
-            estimatedUnderlying > 0n
-              ? `Amount is nToken (ARC-200) balance for withdraw quotes. Estimated underlying ASA: ${estimatedUnderlying.toString()}.`
-              : "Amount is nToken (ARC-200) balance for withdraw quotes.",
+          amountRaw: debt.outstandingRaw.toString(),
+          amount: formatUnits(debt.outstandingRaw, market.decimals),
+          usdValue,
+          ...(caveats.length > 0 ? { caveats } : {}),
+          notes: "Outstanding borrow principal in underlying ASA base units.",
           inputHints: {
             poolAppId: market.poolAppId,
             marketAppId: market.marketAppId,
@@ -1824,28 +2038,44 @@ async function collectDorkFiOnChainSupply(
           }
         });
       } catch (error) {
-        if (isDorkFiPausedMarketError(error)) {
+        if (isDorkFiPausedMarketError(error) && !supplyProbed) {
           pausedMarkets += 1;
           return;
         }
-        warnings.push(formatDorkFiMarketWarning(market.marketAppId, error));
+        debtReadFailures += 1;
+        warnings.push(
+          `${market.marketAppId}:debt: ${compactErrorMessage(error)}`.slice(
+            0,
+            180
+          )
+        );
       }
     }
   );
 
+  const debtPositions = positions.filter(
+    (position) => position.positionType === "debt"
+  );
+  const borrowedUsdComplete =
+    debtReadFailures === 0 &&
+    debtPositions.every((position) => position.usdValue !== null);
+
   // Successful ASA holdings are actionable; don't let unrelated market probes
-  // mark the protocol partial.
+  // mark the protocol partial — except debt probe failures must stay visible.
   if (positions.length > 0) {
     return {
       positions,
-      warnings: [],
+      warnings:
+        debtReadFailures > 0
+          ? warnings.filter((warning) => warning.includes(":debt:"))
+          : [],
       coverage: {
         // ASA rows are exit-planning amounts (often unpriced); USD supply comes
         // from the indexed health merge path.
-        suppliedUsdComplete: positions.every(
-          (position) => position.usdValue !== null
-        ),
-        borrowedUsdComplete: true,
+        suppliedUsdComplete: positions
+          .filter((position) => position.positionType === "supplied")
+          .every((position) => position.usdValue !== null),
+        borrowedUsdComplete,
         rewardsUsdComplete: true
       }
     };
@@ -1857,7 +2087,15 @@ async function collectDorkFiOnChainSupply(
     positions,
     warnings
   );
-  return { positions, warnings };
+  return {
+    positions,
+    warnings,
+    coverage: {
+      suppliedUsdComplete: true,
+      borrowedUsdComplete,
+      rewardsUsdComplete: true
+    }
+  };
 }
 
 function isDorkFiPausedMarketError(error: unknown): boolean {

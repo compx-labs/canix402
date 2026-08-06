@@ -159,10 +159,10 @@ A paid wallet data route priced at exactly 0.005 USDC:
 - Collectors run sequentially. Tinyman queries only liquidity-token ids held by
   the wallet; Pact maps held LP tokens and wallet-local farm app ids against a
   short-lived protocol metadata cache before making any on-chain farm calls.
-- The response normalizes supplied, LP, staked, and reward positions found
+- The response normalizes supplied, LP, staked, reward, and debt positions found
   across Tinyman, Pact, Folks Finance, CompX, Dork.fi, and Myth Finance.
-  Borrow/debt positions are not surfaced. Base-unit and decimal
-  token amounts are strings to preserve precision.
+  CompX, Folks, and Dork.fi emit executable borrow/debt rows when present.
+  Base-unit and decimal token amounts are strings to preserve precision.
 - Every protocol reports `ok`, `partial`, or `unavailable`. Partial upstream
   failures do not discard successful protocol data; the route returns `502` only
   when all five sources are unavailable.

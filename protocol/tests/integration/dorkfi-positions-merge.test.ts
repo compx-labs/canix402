@@ -53,20 +53,20 @@ function usdcMarketState(
   };
 }
 
-test("Dork.fi merges ASA supply with indexed USD aggregate and keeps withdraw actionable", async () => {
-  setDorkFiPositionCollectorDependenciesForTests({
-    fetchIndexedPositions: async () =>
-      normalizeDorkFiHealthRecords([
-        {
-          network: "algorand-mainnet",
-          appId: String(DORKFI_MAINNET_USDC_POOL_APP_ID),
-          totalCollateralValue: "1000000000000",
-          totalBorrowValue: "0",
-          healthFactor: "10",
-          lastUpdated: 1_783_944_000_000
-        }
-      ]),
-    resolveMarketState: async (params) => {
+function zeroDebt() {
+  return {
+    outstandingRaw: 0n,
+    marketPriceWad: 0n
+  };
+}
+
+function mockSupplyOnlyCollector() {
+  return {
+    resolveMarketState: async (params: {
+      poolAppId: number;
+      marketAppId: number;
+      assetId: number;
+    }) => {
       if (
         params.marketAppId === DORKFI_MAINNET_USDC_MARKET_APP_ID &&
         params.assetId === DORKFI_MAINNET_USDC_ASA_ID
@@ -89,7 +89,25 @@ test("Dork.fi merges ASA supply with indexed USD aggregate and keeps withdraw ac
           tokenStandard: "asa"
         }
       });
-    }
+    },
+    resolveUserDebt: async () => zeroDebt()
+  };
+}
+
+test("Dork.fi merges ASA supply with indexed USD aggregate and keeps withdraw actionable", async () => {
+  setDorkFiPositionCollectorDependenciesForTests({
+    fetchIndexedPositions: async () =>
+      normalizeDorkFiHealthRecords([
+        {
+          network: "algorand-mainnet",
+          appId: String(DORKFI_MAINNET_USDC_POOL_APP_ID),
+          totalCollateralValue: "1000000000000",
+          totalBorrowValue: "0",
+          healthFactor: "10",
+          lastUpdated: 1_783_944_000_000
+        }
+      ]),
+    ...mockSupplyOnlyCollector()
   });
 
   const result = await collectDorkFiPositions(ADDRESS, emptyWalletSnapshot(ADDRESS));
@@ -139,6 +157,95 @@ test("Dork.fi merges ASA supply with indexed USD aggregate and keeps withdraw ac
   assert.equal(result.coverage?.borrowedUsdComplete, true);
 });
 
+test("Dork.fi emits executable per-market debt with repay shape", async () => {
+  setDorkFiPositionCollectorDependenciesForTests({
+    fetchIndexedPositions: async () => ({ positions: [], warnings: [] }),
+    resolveMarketState: async (params) => {
+      if (params.marketAppId === DORKFI_MAINNET_USDC_MARKET_APP_ID) {
+        return usdcMarketState({ userNTokenBalance: 0n });
+      }
+      return usdcMarketState({
+        poolAppId: params.poolAppId,
+        marketAppId: params.marketAppId,
+        assetId: params.assetId,
+        userNTokenBalance: 0n,
+        symbol: "OTHER",
+        catalogMarket: {
+          symbol: "OTHER",
+          poolAppId: params.poolAppId,
+          marketAppId: params.marketAppId,
+          nTokenAppId: 1,
+          assetId: params.assetId,
+          decimals: 6,
+          tokenStandard: "asa"
+        }
+      });
+    },
+    resolveUserDebt: async (params) => {
+      if (params.marketAppId !== DORKFI_MAINNET_USDC_MARKET_APP_ID) {
+        return zeroDebt();
+      }
+      return {
+        outstandingRaw: 2_500_000n,
+        // $1 WAD price → $2.50 USD for 2.5 USDC
+        marketPriceWad: 10n ** 18n
+      };
+    }
+  });
+
+  const result = await collectDorkFiPositions(ADDRESS, emptyWalletSnapshot(ADDRESS));
+  const debt = result.positions.find(
+    (position) => position.positionType === "debt"
+  );
+  assert.ok(debt);
+  assert.equal(debt.positionId, `dorkfi:debt:${DORKFI_MAINNET_USDC_MARKET_APP_ID}`);
+  assert.equal(debt.assetId, DORKFI_MAINNET_USDC_ASA_ID);
+  assert.equal(debt.amountRaw, "2500000");
+  assert.equal(debt.usdValue, 2.5);
+  assert.deepEqual(debt.inputHints, {
+    poolAppId: DORKFI_MAINNET_USDC_POOL_APP_ID,
+    marketAppId: DORKFI_MAINNET_USDC_MARKET_APP_ID,
+    assetId: DORKFI_MAINNET_USDC_ASA_ID
+  });
+
+  const enriched = attachExecutionShapesToPosition(debt);
+  assert.deepEqual(enriched.compatibleExitShapeKeys, [
+    "mainnet:dorkfi:v1:repay:asa"
+  ]);
+  assert.equal(result.coverage?.borrowedUsdComplete, true);
+});
+
+test("Dork.fi keeps unpriced debt with null USD and caveat", async () => {
+  setDorkFiPositionCollectorDependenciesForTests({
+    fetchIndexedPositions: async () => ({ positions: [], warnings: [] }),
+    resolveMarketState: async () =>
+      usdcMarketState({ userNTokenBalance: 0n }),
+    resolveUserDebt: async (params) => {
+      if (params.marketAppId !== DORKFI_MAINNET_USDC_MARKET_APP_ID) {
+        return zeroDebt();
+      }
+      return {
+        outstandingRaw: 1_000_000n,
+        marketPriceWad: 0n
+      };
+    }
+  });
+
+  const result = await collectDorkFiPositions(ADDRESS, emptyWalletSnapshot(ADDRESS));
+  const debt = result.positions.find(
+    (position) =>
+      position.positionId === `dorkfi:debt:${DORKFI_MAINNET_USDC_MARKET_APP_ID}`
+  );
+  assert.ok(debt);
+  assert.equal(debt.usdValue, null);
+  assert.ok(
+    (debt.caveats ?? []).some((caveat) =>
+      caveat.includes("Debt USD unavailable")
+    )
+  );
+  assert.equal(result.coverage?.borrowedUsdComplete, false);
+});
+
 test("Dork.fi emits debt-usd aggregate when totalBorrowValue > 0", () => {
   const result = normalizeDorkFiHealthRecords([
     {
@@ -172,27 +279,7 @@ test("Dork.fi indexed source failure does not emit debt/health warnings", async 
     fetchIndexedPositions: async () => {
       throw new Error("health API down");
     },
-    resolveMarketState: async (params) => {
-      if (params.marketAppId === DORKFI_MAINNET_USDC_MARKET_APP_ID) {
-        return usdcMarketState();
-      }
-      return usdcMarketState({
-        poolAppId: params.poolAppId,
-        marketAppId: params.marketAppId,
-        assetId: params.assetId,
-        userNTokenBalance: 0n,
-        symbol: "OTHER",
-        catalogMarket: {
-          symbol: "OTHER",
-          poolAppId: params.poolAppId,
-          marketAppId: params.marketAppId,
-          nTokenAppId: 1,
-          assetId: params.assetId,
-          decimals: 6,
-          tokenStandard: "asa"
-        }
-      });
-    }
+    ...mockSupplyOnlyCollector()
   });
 
   const result = await collectDorkFiPositions(ADDRESS, emptyWalletSnapshot(ADDRESS));
@@ -235,6 +322,12 @@ test("Dork.fi paused markets are skipped quietly and do not hide USDC supply", a
         return usdcMarketState();
       }
       throw new Error("Dork.fi market is paused.");
+    },
+    resolveUserDebt: async (params) => {
+      if (params.marketAppId === DORKFI_MAINNET_USDC_MARKET_APP_ID) {
+        return zeroDebt();
+      }
+      throw new Error("Dork.fi market is paused.");
     }
   });
 
@@ -256,7 +349,8 @@ test("Dork.fi market probe warnings stay short without algosdk dumps", async () 
       throw new Error(
         'App call transaction did not log a return value {"txn":{"txn":{"apar":"x".repeat(5000)}}}'
       );
-    }
+    },
+    resolveUserDebt: async () => zeroDebt()
   });
 
   const result = await collectDorkFiPositions(ADDRESS, emptyWalletSnapshot(ADDRESS));

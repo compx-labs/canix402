@@ -65,12 +65,14 @@ test("CompX collector emits lending debt positions with repay shape", async () =
   });
   setCompXPositionCollectorDependenciesForTests({
     getUserPosition: async () => ({
-      borrowed: 250_000,
-      collateral: 500_000,
+      // SDK returns human/standard units (0.25 USDC), not micro base units.
+      borrowed: 0.25,
+      principal: 250_000n,
+      collateral: 0.5,
       collateralAssetId: LST_ID,
       healthFactor: 1.8,
       isLiquidatable: false,
-      maxBorrow: 400_000
+      maxBorrow: 0.4
     })
   });
 
@@ -88,7 +90,7 @@ test("CompX collector emits lending debt positions with repay shape", async () =
   assert.equal(debt.amountRaw, "250000");
   assert.equal(debt.healthFactor, 1.8);
   assert.equal(debt.usdValue, 0.25);
-  assert.match(debt.notes ?? "", /Locked collateral 500000/);
+  assert.match(debt.notes ?? "", /Locked collateral 0\.5/);
   assert.equal(result.coverage?.borrowedUsdComplete, true);
 
   const enriched = attachExecutionShapesToPosition(debt);
@@ -140,12 +142,13 @@ test("CompX collector emits debt without wallet LST when loan exists", async () 
   });
   setCompXPositionCollectorDependenciesForTests({
     getUserPosition: async () => ({
-      borrowed: 100_000,
-      collateral: 200_000,
+      borrowed: 0.1,
+      principal: 100_000n,
+      collateral: 0.2,
       collateralAssetId: LST_ID,
       healthFactor: 1.2,
       isLiquidatable: false,
-      maxBorrow: 150_000
+      maxBorrow: 0.15
     })
   });
 
