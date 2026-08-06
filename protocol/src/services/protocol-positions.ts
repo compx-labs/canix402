@@ -1249,8 +1249,7 @@ export async function collectCompXPositions(
   walletHoldings.set(0, snapshot.amount);
   const positions: PositionMarketRecord[] = [];
   const warnings: string[] = [];
-  const pendingRewardAssetIds = new Set<number>();
-  const rewardDecimalsByAssetId = new Map<number, number>();
+  const priceDecimalsByAssetId = new Map<number, number>();
   let debtReadFailures = 0;
 
   await mapPositionCandidates(
@@ -1280,15 +1279,10 @@ export async function collectCompXPositions(
               const borrowedRaw = BigInt(
                 Math.max(0, Math.trunc(userPosition.borrowed))
               );
-              const debtUsd =
-                Number.isFinite(marketState.market.baseTokenPrice) &&
-                marketState.market.baseTokenPrice >= 0
-                  ? tokenUsdValue(
-                      borrowedRaw,
-                      marketState.market.baseTokenDecimals,
-                      marketState.market.baseTokenPrice
-                    )
-                  : null;
+              priceDecimalsByAssetId.set(
+                marketState.baseTokenId,
+                marketState.market.baseTokenDecimals
+              );
               const collateralRaw = BigInt(
                 Math.max(0, Math.trunc(userPosition.collateral))
               );
@@ -1304,7 +1298,7 @@ export async function collectCompXPositions(
                   borrowedRaw,
                   marketState.market.baseTokenDecimals
                 ),
-                usdValue: debtUsd,
+                usdValue: null,
                 healthFactor: Number.isFinite(userPosition.healthFactor)
                   ? userPosition.healthFactor
                   : null,
@@ -1354,6 +1348,10 @@ export async function collectCompXPositions(
             circulating > 0n
               ? (state.userLstBalance * totalDeposits) / circulating
               : state.userLstBalance;
+          priceDecimalsByAssetId.set(
+            state.baseTokenId,
+            state.market.baseTokenDecimals
+          );
           positions.push({
             protocol: "compx",
             positionType: "supplied",
@@ -1363,11 +1361,8 @@ export async function collectCompXPositions(
             assetSymbol: opportunity.assetPair,
             amountRaw: suppliedRaw.toString(),
             amount: formatUnits(suppliedRaw, state.market.baseTokenDecimals),
-            usdValue: proportionalUsd(
-              state.market.totalDepositsUSD,
-              state.userLstBalance,
-              circulating
-            ),
+            // USD from market token prices below — not lending-oracle TVL share.
+            usdValue: null,
             sourceTimestamp: opportunity.sourceTimestamp,
             notes:
               "Underlying claim derived from the wallet LST share of circulating supply " +
@@ -1408,6 +1403,7 @@ export async function collectCompXPositions(
           if (stakedDecimals === undefined) {
             throw new Error("could not resolve staked asset decimals");
           }
+          priceDecimalsByAssetId.set(state.stakedAssetId, stakedDecimals);
           positions.push({
             protocol: "compx",
             positionType: "staked",
@@ -1417,11 +1413,7 @@ export async function collectCompXPositions(
             assetSymbol: opportunity.assetPair.split("/")[0] ?? null,
             amountRaw: state.staker.stake.toString(),
             amount: formatUnits(state.staker.stake, stakedDecimals),
-            usdValue: proportionalUsd(
-              opportunity.tvlUsd,
-              state.staker.stake,
-              state.pool.totalStaked
-            ),
+            usdValue: null,
             sourceTimestamp: opportunity.sourceTimestamp
           });
 
@@ -1437,8 +1429,7 @@ export async function collectCompXPositions(
             if (rewardDecimals === undefined) {
               throw new Error("could not resolve reward asset decimals");
             }
-            pendingRewardAssetIds.add(state.rewardAssetId);
-            rewardDecimalsByAssetId.set(state.rewardAssetId, rewardDecimals);
+            priceDecimalsByAssetId.set(state.rewardAssetId, rewardDecimals);
             positions.push({
               protocol: "compx",
               positionType: "reward",
@@ -1464,19 +1455,32 @@ export async function collectCompXPositions(
     }
   );
 
-  if (pendingRewardAssetIds.size > 0) {
+  const assetsNeedingPrice = [
+    ...new Set(
+      positions
+        .filter(
+          (position) =>
+            position.usdValue === null &&
+            position.assetId !== null &&
+            priceDecimalsByAssetId.has(position.assetId)
+        )
+        .map((position) => position.assetId as number)
+    )
+  ];
+
+  if (assetsNeedingPrice.length > 0) {
     try {
-      const priced = await fetchCompXTokenPrices([...pendingRewardAssetIds]);
+      const priced = await fetchCompXTokenPrices(assetsNeedingPrice);
       for (const position of positions) {
         if (
-          position.positionType !== "reward" ||
+          position.usdValue !== null ||
           position.assetId === null ||
-          position.usdValue !== null
+          !priceDecimalsByAssetId.has(position.assetId)
         ) {
           continue;
         }
         const priceUsd = priced[String(position.assetId)];
-        const decimals = rewardDecimalsByAssetId.get(position.assetId);
+        const decimals = priceDecimalsByAssetId.get(position.assetId);
         if (
           priceUsd === undefined ||
           decimals === undefined ||
@@ -1493,7 +1497,7 @@ export async function collectCompXPositions(
       }
     } catch (error) {
       warnings.push(
-        `CompX staking reward USD pricing unavailable: ${errorMessage(error)}`
+        `CompX USD pricing unavailable: ${errorMessage(error)}`
       );
     }
   }

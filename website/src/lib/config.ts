@@ -41,6 +41,8 @@ export const config = {
   publicBrowniePositionsUrl:
     import.meta.env.PUBLIC_BROWNIE_POSITIONS_URL ??
     `${gatewayBaseUrl}/public/agents/brownie/positions`,
+  publicBrownieAccountingUrl:
+    import.meta.env.PUBLIC_BROWNIE_ACCOUNTING_URL ?? "",
   pricingUrl: import.meta.env.PUBLIC_PRICING_URL ?? `${gatewayBaseUrl}/pricing`,
   tinymanAnalyticsBaseUrl:
     import.meta.env.PUBLIC_TINYMAN_ANALYTICS_BASE_URL ??

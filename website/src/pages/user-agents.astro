@@ -58,45 +58,74 @@ const protocolLogos = Object.fromEntries(
     aria-labelledby="tab-brownie"
     data-agent-panel="brownie"
   >
-    <section class="panel agent-about">
-      <h2>About Brownie Bot</h2>
-      <p>
-        Brownie Bot is an autonomous community treasury on Algorand mainnet. Once per day it
-        reads liquid balances and Canix402 DeFi positions, researches personalized and global
-        opportunities, asks a ZeroSignal model for a diversified plan, validates that plan
-        against deterministic policy limits, and — when signing is enabled — signs and submits
-        execution groups locally. Canix402 never receives the mnemonic.
-      </p>
-      <dl class="agent-meta-list">
-        <div>
-          <dt>Network</dt>
-          <dd>Algorand mainnet</dd>
+    <div class="agent-hero">
+      <section class="panel agent-about">
+        <div class="agent-about-header">
+          <figure class="agent-about-avatar">
+            <img
+              src="/agents/brownie-bot-avatar.webp"
+              alt="Brownie Bot avatar"
+              width="512"
+              height="512"
+              loading="eager"
+              decoding="async"
+            />
+          </figure>
+          <div class="agent-about-copy">
+            <h2>About Brownie Bot</h2>
+            <p>
+              Brownie Bot is an autonomous community treasury on Algorand mainnet. Once per day it
+              reads liquid balances and Canix402 DeFi positions, researches personalized and global
+              opportunities, asks a ZeroSignal model for a diversified plan, validates that plan
+              against deterministic policy limits, and — when signing is enabled — signs and submits
+              execution groups locally. Canix402 never receives the mnemonic.
+            </p>
+          </div>
         </div>
-        <div>
-          <dt>Treasury</dt>
-          <dd>
-            <a href={alloAccountUrl} target="_blank" rel="noopener noreferrer">
-              <code class="transactions-address" title={wallet}>{truncatedWallet}</code>
-            </a>
-          </dd>
+        <dl class="agent-meta-list">
+          <div>
+            <dt>Network</dt>
+            <dd>Algorand mainnet</dd>
+          </div>
+          <div>
+            <dt>Treasury</dt>
+            <dd>
+              <a href={alloAccountUrl} target="_blank" rel="noopener noreferrer">
+                <code class="transactions-address" title={wallet}>{truncatedWallet}</code>
+              </a>
+            </dd>
+          </div>
+          <div>
+            <dt>Stack</dt>
+            <dd>Canix402 MCP · ZeroSignal · local policy &amp; signing</dd>
+          </div>
+          <div>
+            <dt>Source</dt>
+            <dd>
+              <a
+                href="https://github.com/compx-labs/brownie-bot"
+                target="_blank"
+                rel="noopener noreferrer">compx-labs/brownie-bot</a
+              >
+            </dd>
+          </div>
+        </dl>
+        <p id="agent-status" class="muted agent-status" aria-live="polite">Loading portfolio…</p>
+      </section>
+
+      <div class="agent-hero-stats" aria-label="Portfolio summary">
+        <div class="agent-stat-card">
+          <span class="agent-stat-card-label">Total value</span>
+          <span id="agent-tvl" class="agent-stat-card-value">—</span>
+          <span class="muted agent-stat-card-note">Liquid USD + Net</span>
         </div>
-        <div>
-          <dt>Stack</dt>
-          <dd>Canix402 MCP · ZeroSignal · local policy &amp; signing</dd>
+        <div class="agent-stat-card">
+          <span class="agent-stat-card-label">PnL</span>
+          <span id="agent-pnl" class="agent-stat-card-value">—</span>
+          <span id="agent-pnl-note" class="muted agent-stat-card-note">vs prior snapshot</span>
         </div>
-        <div>
-          <dt>Source</dt>
-          <dd>
-            <a
-              href="https://github.com/compx-labs/brownie-bot"
-              target="_blank"
-              rel="noopener noreferrer">compx-labs/brownie-bot</a
-            >
-          </dd>
-        </div>
-      </dl>
-      <p id="agent-status" class="muted agent-status" aria-live="polite">Loading portfolio…</p>
-    </section>
+      </div>
+    </div>
 
     <div class="agent-portfolio-grid">
       <section class="agent-section agent-section--card">
@@ -224,6 +253,7 @@ const protocolLogos = Object.fromEntries(
       indexerUrl: config.indexerBaseUrl,
       pricingUrl: config.pricingUrl,
       positionsUrl: config.publicBrowniePositionsUrl,
+      accountingUrl: config.publicBrownieAccountingUrl,
       tinymanAnalyticsUrl: config.tinymanAnalyticsBaseUrl,
       tinymanAsaListUrl: config.tinymanAsaListUrl,
       tinymanAsaIconBaseUrl: config.tinymanAsaIconBaseUrl,
@@ -239,6 +269,7 @@ const protocolLogos = Object.fromEntries(
     indexerUrl,
     pricingUrl,
     positionsUrl,
+    accountingUrl,
     tinymanAnalyticsUrl,
     tinymanAsaListUrl,
     tinymanAsaIconBaseUrl,
@@ -257,6 +288,10 @@ const protocolLogos = Object.fromEntries(
   let asaListCache = null;
   /** @type {Promise<Record<string, { unitName?: string; name?: string; logoPng?: string }>> | null} */
   let asaListPromise = null;
+  /** @type {number | null} */
+  let liquidUsdTotal = null;
+  /** @type {number | null} */
+  let defiNetUsdTotal = null;
 
   /**
    * @param {string} value
@@ -385,15 +420,63 @@ const protocolLogos = Object.fromEntries(
   }
 
   /**
+   * @param {number | null | undefined} value
+   */
+  function formatSignedUsd(value) {
+    if (value === null || value === undefined || !Number.isFinite(value)) {
+      return "—";
+    }
+    const absolute = formatUsd(Math.abs(value));
+    if (value > 0) return `+${absolute}`;
+    if (value < 0) return `-${absolute}`;
+    return absolute;
+  }
+
+  function updateHeroTvl() {
+    const tvlEl = document.getElementById("agent-tvl");
+    if (!tvlEl) return;
+    // Only show the sum of the same figures as Liquid USD + Net cards.
+    if (typeof liquidUsdTotal === "number" && typeof defiNetUsdTotal === "number") {
+      tvlEl.textContent = formatUsd(liquidUsdTotal + defiNetUsdTotal);
+      return;
+    }
+    tvlEl.textContent = "—";
+  }
+
+  /**
+   * @param {number | null} value
+   * @param {string} note
+   */
+  function setHeroPnl(value, note) {
+    const pnlEl = document.getElementById("agent-pnl");
+    const noteEl = document.getElementById("agent-pnl-note");
+    if (pnlEl) {
+      pnlEl.textContent = formatSignedUsd(value);
+      pnlEl.classList.toggle("is-positive", typeof value === "number" && value > 0);
+      pnlEl.classList.toggle("is-negative", typeof value === "number" && value < 0);
+    }
+    if (noteEl) noteEl.textContent = note;
+  }
+
+  /**
    * Mainnet USDC is always $1 for display.
+   * Prefer live /pricing (same source as wallet assets) over upstream usdValue —
+   * CompX lending rows can ship oracle-inflated totals.
    * @param {number | null | undefined} assetId
    * @param {string | number | null | undefined} amount
    * @param {number | null | undefined} usdValue
+   * @param {Record<string, number>} [pricesById]
    */
-  function resolveUsdValue(assetId, amount, usdValue) {
+  function resolveUsdValue(assetId, amount, usdValue, pricesById) {
+    const units = typeof amount === "number" ? amount : Number(amount);
     if (Number(assetId) === Number(usdcAssetId)) {
-      const units = typeof amount === "number" ? amount : Number(amount);
       return Number.isFinite(units) ? units : null;
+    }
+    if (pricesById && assetId !== null && assetId !== undefined) {
+      const price = pricesById[String(assetId)];
+      if (typeof price === "number" && Number.isFinite(price) && Number.isFinite(units)) {
+        return units * price;
+      }
     }
     return typeof usdValue === "number" && Number.isFinite(usdValue)
       ? usdValue
@@ -669,6 +752,8 @@ const protocolLogos = Object.fromEntries(
 
     if (holdings.length === 0) {
       if (stats) stats.hidden = true;
+      liquidUsdTotal = 0;
+      updateHeroTvl();
       renderEmpty(
         "holdings-body",
         3,
@@ -683,17 +768,24 @@ const protocolLogos = Object.fromEntries(
     }));
     const pricedRows = valued.filter((h) => typeof h.usdValue === "number");
     const totalUsd = pricedRows.reduce((sum, h) => sum + (h.usdValue ?? 0), 0);
+    liquidUsdTotal =
+      (priced || pricedRows.length > 0) && pricedRows.length > 0 ? totalUsd : null;
+    updateHeroTvl();
 
     if (stats && countEl && totalEl) {
       countEl.textContent = holdings.length.toLocaleString();
       totalEl.textContent =
-        (priced || pricedRows.length > 0) && pricedRows.length > 0
-          ? formatUsd(totalUsd)
-          : "—";
+        typeof liquidUsdTotal === "number" ? formatUsd(liquidUsdTotal) : "—";
       stats.hidden = false;
     }
 
-    tbody.innerHTML = valued
+    const sorted = [...valued].sort((a, b) => {
+      const aUsd = typeof a.usdValue === "number" ? a.usdValue : -Infinity;
+      const bUsd = typeof b.usdValue === "number" ? b.usdValue : -Infinity;
+      return bUsd - aUsd;
+    });
+
+    tbody.innerHTML = sorted
       .map(
         (h) => `<tr>
           <td>${assetCell(h.assetId, h.symbol)}</td>
@@ -715,9 +807,8 @@ const protocolLogos = Object.fromEntries(
   /**
    * @param {any} payload
    */
-  function renderPositions(payload) {
+  async function renderPositions(payload) {
     const rows = Array.isArray(payload.data) ? payload.data : [];
-    const totals = payload.totals ?? {};
     const protocols = Array.isArray(payload.protocols) ? payload.protocols : [];
     const stats = document.getElementById("positions-stats");
     const countEl = document.getElementById("positions-count");
@@ -728,11 +819,59 @@ const protocolLogos = Object.fromEntries(
     const tbody = document.getElementById("positions-body");
     if (!tbody) return;
 
+    const assetIds = rows
+      .map((row) => Number(row.assetId))
+      .filter((id) => Number.isFinite(id));
+    /** @type {Record<string, number>} */
+    let pricesById = {};
+    try {
+      pricesById = await fetchUsdPrices(assetIds);
+    } catch {
+      // Fall back to upstream usdValue when pricing is unreachable.
+    }
+
+    const valued = rows.map((row) => ({
+      ...row,
+      usdValue: resolveUsdValue(
+        row.assetId,
+        row.amount,
+        row.usdValue,
+        pricesById
+      )
+    }));
+
+    let suppliedUsd = 0;
+    let rewardsUsd = 0;
+    let borrowedUsd = 0;
+    let suppliedComplete = true;
+    let rewardsComplete = true;
+    let borrowedComplete = true;
+    for (const row of valued) {
+      const type = String(row.positionType ?? "");
+      const usd = row.usdValue;
+      if (type === "debt") {
+        if (typeof usd === "number") borrowedUsd += usd;
+        else borrowedComplete = false;
+      } else if (type === "reward") {
+        if (typeof usd === "number") rewardsUsd += usd;
+        else rewardsComplete = false;
+      } else if (type === "supplied" || type === "lp" || type === "staked") {
+        if (typeof usd === "number") suppliedUsd += usd;
+        else suppliedComplete = false;
+      }
+    }
+    const netUsd =
+      suppliedComplete && rewardsComplete && borrowedComplete
+        ? suppliedUsd + rewardsUsd - borrowedUsd
+        : null;
+    defiNetUsdTotal = netUsd;
+    updateHeroTvl();
+
     if (stats && countEl && suppliedEl && rewardsEl && netEl) {
       countEl.textContent = rows.length.toLocaleString();
-      suppliedEl.textContent = formatUsd(totals.suppliedUsd);
-      rewardsEl.textContent = formatUsd(totals.rewardsUsd);
-      netEl.textContent = formatUsd(totals.netUsd);
+      suppliedEl.textContent = formatUsd(suppliedComplete ? suppliedUsd : null);
+      rewardsEl.textContent = formatUsd(rewardsComplete ? rewardsUsd : null);
+      netEl.textContent = formatUsd(netUsd);
       stats.hidden = false;
     }
 
@@ -756,16 +895,21 @@ const protocolLogos = Object.fromEntries(
       return;
     }
 
-    tbody.innerHTML = rows
+    const sorted = [...valued].sort((a, b) => {
+      const aUsd = typeof a.usdValue === "number" ? a.usdValue : -Infinity;
+      const bUsd = typeof b.usdValue === "number" ? b.usdValue : -Infinity;
+      return bUsd - aUsd;
+    });
+
+    tbody.innerHTML = sorted
       .map((row) => {
         const symbol = row.assetSymbol ?? null;
-        const usd = resolveUsdValue(row.assetId, row.amount, row.usdValue);
         return `<tr>
           <td>${protocolCell(row.protocol)}</td>
           <td>${escapeHtml(String(row.positionType ?? "—"))}</td>
           <td>${assetCell(row.assetId, symbol)}</td>
           <td>${escapeHtml(String(row.amount ?? "—"))}</td>
-          <td>${formatUsd(usd)}</td>
+          <td>${formatUsd(row.usdValue)}</td>
         </tr>`;
       })
       .join("");
@@ -844,8 +988,35 @@ const protocolLogos = Object.fromEntries(
       .join("");
   }
 
+  async function fetchAccountingPnl() {
+    if (!accountingUrl) {
+      setHeroPnl(null, "Connect accounting feed");
+      return;
+    }
+    const response = await fetch(accountingUrl);
+    if (!response.ok) {
+      throw new Error(`Accounting request failed (${response.status})`);
+    }
+    const payload = await response.json();
+    const summary = payload?.summary ?? payload?.data?.summary ?? null;
+    const pnlRaw = summary?.pnlUsd;
+    const pnlAvailable = summary?.pnlAvailable === true;
+    const pnl =
+      pnlAvailable && pnlRaw !== null && pnlRaw !== undefined && pnlRaw !== ""
+        ? Number(pnlRaw)
+        : null;
+    if (typeof pnl === "number" && Number.isFinite(pnl)) {
+      setHeroPnl(pnl, "vs prior snapshot");
+      return;
+    }
+    setHeroPnl(null, "Awaiting baseline snapshot");
+  }
+
   async function refreshPortfolio() {
     const errors = [];
+    liquidUsdTotal = null;
+    defiNetUsdTotal = null;
+    updateHeroTvl();
 
     try {
       await loadAsaList();
@@ -859,6 +1030,8 @@ const protocolLogos = Object.fromEntries(
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       errors.push(`holdings: ${message}`);
+      liquidUsdTotal = null;
+      updateHeroTvl();
       renderEmpty("holdings-body", 3, "Unable to load holdings.");
       const stats = document.getElementById("holdings-stats");
       if (stats) stats.hidden = true;
@@ -866,13 +1039,23 @@ const protocolLogos = Object.fromEntries(
 
     try {
       const positions = await fetchPositions();
-      renderPositions(positions);
+      await renderPositions(positions);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       errors.push(`positions: ${message}`);
+      defiNetUsdTotal = null;
+      updateHeroTvl();
       renderEmpty("positions-body", 5, "Unable to load positions.");
       const stats = document.getElementById("positions-stats");
       if (stats) stats.hidden = true;
+    }
+
+    try {
+      await fetchAccountingPnl();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      errors.push(`accounting: ${message}`);
+      setHeroPnl(null, "Accounting unavailable");
     }
 
     try {

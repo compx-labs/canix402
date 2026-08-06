@@ -760,10 +760,10 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
       "protocolVersion": "v1",
       "action": "borrow",
       "variant": "asa",
-      "shapeVersion": "1.0.0",
+      "shapeVersion": "1.0.1",
       "title": "CompX v1 ASA lending borrow",
-      "description": "Borrows a base ASA from a CompX lending market against LST collateral.",
-      "summary": "Borrows a base ASA from a CompX lending market against LST collateral.",
+      "description": "Borrows a base ASA from a CompX lending market against accepted LST collateral. Collateral must be in the market's on-chain accepted_collaterals set (often a cross-market LST).",
+      "summary": "Borrows a base ASA from a CompX lending market against accepted LST collateral.",
       "opportunityRole": "enter",
       "supportedOpportunityTypes": [
         "lending"
@@ -789,9 +789,9 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
       "protocolVersion": "v1",
       "action": "repay",
       "variant": "asa",
-      "shapeVersion": "1.0.0",
+      "shapeVersion": "1.0.1",
       "title": "CompX v1 ASA lending repay",
-      "description": "Repays outstanding base-ASA debt on a CompX lending market.",
+      "description": "Repays outstanding base-ASA debt on a CompX lending market. App-call fees are floored to at least 2000 microAlgos after SDK simulation.",
       "summary": "Repays outstanding base-ASA debt on a CompX lending market.",
       "opportunityRole": "exit",
       "supportedOpportunityTypes": [
