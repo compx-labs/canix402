@@ -45,7 +45,7 @@ export function ensureCompXLendingAppCallMinFees(
   }
   if (bumped && transactions.length > 1) {
     for (const txn of transactions) {
-      txn.group = undefined;
+      delete txn.group;
     }
     algosdk.assignGroupID(transactions);
   }
