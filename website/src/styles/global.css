@@ -792,21 +792,101 @@ main {
   display: none;
 }
 
-.agent-about {
-  padding: 1rem 1.15rem;
+.agent-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(11rem, 0.55fr);
+  gap: 1rem;
+  align-items: stretch;
+  margin: 1.5rem 0;
 }
 
-.agent-about p {
-  max-width: 62ch;
+.agent-about {
+  margin: 0;
+  padding: 1rem 1.15rem;
+  min-width: 0;
+}
+
+.agent-about-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.9rem 1.1rem;
+  align-items: start;
+}
+
+.agent-about-copy h2 {
+  margin-bottom: 0;
+}
+
+.agent-about-copy > p {
   margin-top: 0.35rem;
   font-size: 0.95rem;
 }
 
+.agent-about-avatar {
+  margin: 0;
+  width: clamp(6.5rem, 12vw, 8rem);
+}
+
+.agent-about-avatar img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .agent-meta-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 0.65rem 1rem;
-  margin: 1rem 0 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem 1.25rem;
+  margin: 0.9rem 0 0;
+}
+
+.agent-hero-stats {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.agent-stat-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(18, 20, 26, 0.55);
+  min-height: 0;
+}
+
+.agent-stat-card-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted, #9aa0a6);
+}
+
+.agent-stat-card-value {
+  font-family: var(--font-mono);
+  font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.agent-stat-card-value.is-positive {
+  color: #3ecf8e;
+}
+
+.agent-stat-card-value.is-negative {
+  color: var(--accent, #e11d48);
+}
+
+.agent-stat-card-note {
+  font-size: 0.75rem;
+  line-height: 1.35;
 }
 
 .agent-meta-list dt {
@@ -956,6 +1036,29 @@ main {
 
 @media (max-width: 900px) {
   .agent-portfolio-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .agent-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .agent-hero-stats {
+    grid-template-rows: none;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .agent-about-header {
+    gap: 0.85rem 1rem;
+  }
+
+  .agent-about-avatar {
+    width: clamp(5.5rem, 22vw, 7rem);
+  }
+}
+
+@media (max-width: 560px) {
+  .agent-hero-stats {
     grid-template-columns: 1fr;
   }
 }
