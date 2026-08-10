@@ -70,6 +70,10 @@ Other emitted fields:
 | `staked` / `reward` | Pool + staker boxes; USD via token prices | Same pricing path as `/pricing` |
 | (manage on supplied) | — | `mainnet:compx:v1:borrow:asa` for leverage-up |
 
+Position rows intentionally omit `sourceTimestamp`. Opportunity rows still use on-chain
+`lastUpdateTimestamp` / `lastUpdateTime` (accrual / pool update), which can sit idle for
+days on zero-utilization markets and is not wallet-observation freshness.
+
 Execution shapes: deposit / withdraw / borrow / repay ASA (`@compx/sdk` builders).
 ### Staking (`sdk.staking.getAllPools()` + `getPoolApr()`)
 

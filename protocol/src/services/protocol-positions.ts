@@ -1402,7 +1402,6 @@ export async function collectCompXPositions(
                   healthFactor: Number.isFinite(userPosition.healthFactor)
                     ? userPosition.healthFactor
                     : null,
-                  sourceTimestamp: opportunity.sourceTimestamp,
                   ...(debtCaveats.length > 0 ? { caveats: debtCaveats } : {}),
                   notes:
                     `Locked collateral ${userPosition.collateral} of asset ` +
@@ -1463,7 +1462,6 @@ export async function collectCompXPositions(
             amount: formatUnits(suppliedRaw, state.market.baseTokenDecimals),
             // USD from market token prices below — not lending-oracle TVL share.
             usdValue: null,
-            sourceTimestamp: opportunity.sourceTimestamp,
             notes:
               "Underlying claim derived from the wallet LST share of circulating supply " +
               "(locked borrow collateral is excluded from this row).",
@@ -1513,8 +1511,7 @@ export async function collectCompXPositions(
             assetSymbol: opportunity.assetPair.split("/")[0] ?? null,
             amountRaw: state.staker.stake.toString(),
             amount: formatUnits(state.staker.stake, stakedDecimals),
-            usdValue: null,
-            sourceTimestamp: opportunity.sourceTimestamp
+            usdValue: null
           });
 
           const pendingRaw = compxPendingStakingRewardRaw(
@@ -1543,7 +1540,6 @@ export async function collectCompXPositions(
               amountRaw: pendingRaw.toString(),
               amount: formatUnits(pendingRaw, rewardDecimals),
               usdValue: null,
-              sourceTimestamp: opportunity.sourceTimestamp,
               notes:
                 "Pending staking reward from stake * rewardPerToken / 1e15 - rewardDebt."
             });
