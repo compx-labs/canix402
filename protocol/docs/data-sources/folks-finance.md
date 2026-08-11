@@ -56,9 +56,14 @@ Other emitted fields:
 
 | Position | Source | Notes |
 |---|---|---|
-| `supplied` (deposit escrow) | Deposit holdings | Exit via withdraw escrow |
-| `supplied` (loan collateral) | `retrieveUserLoansInfo` collaterals | Manage: borrow/sync; exit: reduce collateral |
-| `debt` | `retrieveUserLoansInfo` borrows | Exit via `repay:withTxn` |
+| `supplied` (deposit escrow) | Deposit holdings (indexer) | Exit via withdraw escrow |
+| `supplied` (loan collateral) | Indexer escrow discovery + algod `retrieveUserLoanInfo` collaterals | Manage: borrow/sync; exit: reduce collateral |
+| `debt` | Indexer escrow discovery + algod `retrieveUserLoanInfo` borrows | Exit via `repay:withTxn`; appears promptly after `borrow:variable` once algod reflects escrow local state |
+
+Loan escrow discovery still uses indexer note search (`retrieveLoansLocalState`).
+Outstanding debt and collateral balances are read via algod so clients do not need
+to wait for indexer catch-up or synthesize debt locally after borrow. Unpriced debt
+keeps `usdValue: null` with a caveat rather than omitting the liability.
 
 Credit execution shapes: `setup:loanEscrow`, `setup:addCollateral`, `collateral:sync`, `borrow:variable`, `repay:withTxn`, `collateral:reduce`.
 

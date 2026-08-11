@@ -105,3 +105,21 @@ export type {
   HaystackErrorKind,
   HaystackService
 } from "./haystack-router.js";
+export {
+  FEE_HARVEST_RECIPIENT_A,
+  FEE_HARVEST_RECIPIENT_B,
+  FEE_HARVEST_RECIPIENT_C,
+  FEE_HARVEST_RECIPIENTS,
+  buildFeeHarvestNote,
+  floorToWholeUsdcMicro,
+  formatUsdcFromMicro,
+  runFeeHarvest,
+  splitFeeHarvestWholeUsdc
+} from "./fee-harvest.js";
+export type {
+  FeeHarvestOptions,
+  FeeHarvestResult,
+  FeeHarvestSplit,
+  FeeHarvestStatus,
+  FeeHarvestTransferResult
+} from "./fee-harvest.js";

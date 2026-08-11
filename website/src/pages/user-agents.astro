@@ -114,9 +114,16 @@ const protocolLogos = Object.fromEntries(
       </section>
 
       <div class="agent-hero-stats" aria-label="Portfolio summary">
-        <div class="agent-stat-card">
+        <div
+          class="agent-stat-card is-loading"
+          id="agent-tvl-card"
+          aria-busy="true"
+        >
           <span class="agent-stat-card-label">Total value</span>
-          <span id="agent-tvl" class="agent-stat-card-value">—</span>
+          <span id="agent-tvl" class="agent-stat-card-value is-skeleton">
+            <span class="agent-skeleton-bar agent-skeleton-bar--value" aria-hidden="true"></span>
+            <span class="visually-hidden">Loading total value</span>
+          </span>
           <span class="muted agent-stat-card-note">Liquid USD + Net</span>
         </div>
         <div class="agent-stat-card">
@@ -152,8 +159,27 @@ const protocolLogos = Object.fromEntries(
                 <th>USD</th>
               </tr>
             </thead>
-            <tbody id="holdings-body">
-              <tr><td colspan="3" class="muted">Loading…</td></tr>
+            <tbody id="holdings-body" aria-busy="true">
+              <tr class="agent-skeleton-row" aria-hidden="true">
+                <td><span class="agent-skeleton-bar" style="width: 68%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 42%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 36%"></span></td>
+              </tr>
+              <tr class="agent-skeleton-row" aria-hidden="true">
+                <td><span class="agent-skeleton-bar" style="width: 54%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 48%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 30%"></span></td>
+              </tr>
+              <tr class="agent-skeleton-row" aria-hidden="true">
+                <td><span class="agent-skeleton-bar" style="width: 62%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 38%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 44%"></span></td>
+              </tr>
+              <tr class="agent-skeleton-row" aria-hidden="true">
+                <td><span class="agent-skeleton-bar" style="width: 46%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 52%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 34%"></span></td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -194,8 +220,42 @@ const protocolLogos = Object.fromEntries(
                 <th>USD</th>
               </tr>
             </thead>
-            <tbody id="positions-body">
-              <tr><td colspan="5" class="muted">Loading…</td></tr>
+            <tbody id="positions-body" aria-busy="true">
+              <tr class="agent-skeleton-row" aria-hidden="true">
+                <td><span class="agent-skeleton-bar" style="width: 58%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 40%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 52%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 36%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 32%"></span></td>
+              </tr>
+              <tr class="agent-skeleton-row" aria-hidden="true">
+                <td><span class="agent-skeleton-bar" style="width: 64%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 34%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 48%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 44%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 28%"></span></td>
+              </tr>
+              <tr class="agent-skeleton-row" aria-hidden="true">
+                <td><span class="agent-skeleton-bar" style="width: 50%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 46%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 56%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 30%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 38%"></span></td>
+              </tr>
+              <tr class="agent-skeleton-row" aria-hidden="true">
+                <td><span class="agent-skeleton-bar" style="width: 70%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 32%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 44%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 50%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 26%"></span></td>
+              </tr>
+              <tr class="agent-skeleton-row" aria-hidden="true">
+                <td><span class="agent-skeleton-bar" style="width: 42%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 38%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 60%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 34%"></span></td>
+                <td><span class="agent-skeleton-bar" style="width: 40%"></span></td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -218,8 +278,42 @@ const protocolLogos = Object.fromEntries(
               <th>Transaction</th>
             </tr>
           </thead>
-          <tbody id="agent-tx-body">
-            <tr><td colspan="5" class="muted">Loading…</td></tr>
+          <tbody id="agent-tx-body" aria-busy="true">
+            <tr class="agent-skeleton-row" aria-hidden="true">
+              <td><span class="agent-skeleton-bar" style="width: 72%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 40%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 58%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 34%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 48%"></span></td>
+            </tr>
+            <tr class="agent-skeleton-row" aria-hidden="true">
+              <td><span class="agent-skeleton-bar" style="width: 64%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 36%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 66%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 42%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 52%"></span></td>
+            </tr>
+            <tr class="agent-skeleton-row" aria-hidden="true">
+              <td><span class="agent-skeleton-bar" style="width: 70%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 44%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 50%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 30%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 56%"></span></td>
+            </tr>
+            <tr class="agent-skeleton-row" aria-hidden="true">
+              <td><span class="agent-skeleton-bar" style="width: 58%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 32%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 62%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 38%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 46%"></span></td>
+            </tr>
+            <tr class="agent-skeleton-row" aria-hidden="true">
+              <td><span class="agent-skeleton-bar" style="width: 68%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 48%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 54%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 28%"></span></td>
+              <td><span class="agent-skeleton-bar" style="width: 40%"></span></td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -292,6 +386,8 @@ const protocolLogos = Object.fromEntries(
   let liquidUsdTotal = null;
   /** @type {number | null} */
   let defiNetUsdTotal = null;
+  let refreshInFlight = false;
+  let refreshGeneration = 0;
 
   /**
    * @param {string} value
@@ -436,11 +532,92 @@ const protocolLogos = Object.fromEntries(
     const tvlEl = document.getElementById("agent-tvl");
     if (!tvlEl) return;
     // Only show the sum of the same figures as Liquid USD + Net cards.
+    // Keep the last good value while a refresh is mid-flight or incomplete —
+    // do not flash back to "—" on tab focus / overlapping polls.
     if (typeof liquidUsdTotal === "number" && typeof defiNetUsdTotal === "number") {
       tvlEl.textContent = formatUsd(liquidUsdTotal + defiNetUsdTotal);
+      tvlEl.classList.remove("is-skeleton");
+    }
+  }
+
+  /**
+   * @param {boolean} loading
+   */
+  function setTvlLoading(loading) {
+    const card = document.getElementById("agent-tvl-card");
+    const tvlEl = document.getElementById("agent-tvl");
+    if (card) {
+      card.classList.toggle("is-loading", loading);
+      card.setAttribute("aria-busy", loading ? "true" : "false");
+    }
+    if (!tvlEl || !loading) return;
+    const hasValue =
+      typeof liquidUsdTotal === "number" && typeof defiNetUsdTotal === "number";
+    if (!hasValue && !tvlEl.classList.contains("is-skeleton")) {
+      tvlEl.classList.add("is-skeleton");
+      tvlEl.innerHTML =
+        `<span class="agent-skeleton-bar agent-skeleton-bar--value" aria-hidden="true"></span>` +
+        `<span class="visually-hidden">Loading total value</span>`;
+    }
+  }
+
+  /**
+   * @param {string} tbodyId
+   * @returns {boolean}
+   */
+  function tableHasDataRows(tbodyId) {
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return false;
+    return Boolean(
+      tbody.querySelector("tr:not(.agent-skeleton-row) td:not([colspan])")
+    );
+  }
+
+  /**
+   * @param {string} tbodyId
+   * @param {number} columnCount
+   * @param {number} [rowCount]
+   */
+  function renderSkeleton(tbodyId, columnCount, rowCount = 4) {
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+    const widths = [68, 42, 56, 36, 48, 54, 30, 62, 40, 44];
+    const rows = Array.from({ length: rowCount }, (_, rowIndex) => {
+      const cells = Array.from({ length: columnCount }, (__, colIndex) => {
+        const width = widths[(rowIndex * columnCount + colIndex) % widths.length];
+        return `<td><span class="agent-skeleton-bar" style="width: ${width}%"></span></td>`;
+      }).join("");
+      return `<tr class="agent-skeleton-row" aria-hidden="true">${cells}</tr>`;
+    }).join("");
+    tbody.innerHTML = rows;
+    tbody.setAttribute("aria-busy", "true");
+    tbody.closest(".agent-table-wrap")?.classList.remove("is-refreshing");
+  }
+
+  /**
+   * @param {string} tbodyId
+   * @param {number} columnCount
+   * @param {number} [rowCount]
+   */
+  function beginTableLoading(tbodyId, columnCount, rowCount = 4) {
+    const wrap = document.getElementById(tbodyId)?.closest(".agent-table-wrap");
+    if (tableHasDataRows(tbodyId)) {
+      wrap?.classList.add("is-refreshing");
+      const tbody = document.getElementById(tbodyId);
+      tbody?.setAttribute("aria-busy", "true");
       return;
     }
-    tvlEl.textContent = "—";
+    renderSkeleton(tbodyId, columnCount, rowCount);
+  }
+
+  /**
+   * @param {string} tbodyId
+   */
+  function endTableLoading(tbodyId) {
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+    tbody.removeAttribute("aria-busy");
+    tbody.closest(".agent-table-wrap")?.classList.remove("is-refreshing");
   }
 
   /**
@@ -529,6 +706,7 @@ const protocolLogos = Object.fromEntries(
     const tbody = document.getElementById(tbodyId);
     if (!tbody) return;
     tbody.innerHTML = `<tr><td colspan="${colspan}" class="muted">${escapeHtml(message)}</td></tr>`;
+    endTableLoading(tbodyId);
   }
 
   function setupTabs() {
@@ -794,6 +972,7 @@ const protocolLogos = Object.fromEntries(
         </tr>`
       )
       .join("");
+    endTableLoading("holdings-body");
   }
 
   async function fetchPositions() {
@@ -913,6 +1092,7 @@ const protocolLogos = Object.fromEntries(
         </tr>`;
       })
       .join("");
+    endTableLoading("positions-body");
   }
 
   /**
@@ -986,6 +1166,7 @@ const protocolLogos = Object.fromEntries(
         </tr>`;
       })
       .join("");
+    endTableLoading("agent-tx-body");
   }
 
   async function fetchAccountingPnl() {
@@ -1013,71 +1194,111 @@ const protocolLogos = Object.fromEntries(
   }
 
   async function refreshPortfolio() {
+    if (refreshInFlight) return;
+    refreshInFlight = true;
+    const generation = ++refreshGeneration;
     const errors = [];
-    liquidUsdTotal = null;
-    defiNetUsdTotal = null;
-    updateHeroTvl();
+
+    setTvlLoading(true);
+    beginTableLoading("holdings-body", 3, 4);
+    beginTableLoading("positions-body", 5, 5);
+    beginTableLoading("agent-tx-body", 5, 5);
 
     try {
-      await loadAsaList();
-    } catch {
-      // Non-fatal: icons fall back to CDN URL pattern.
-    }
+      try {
+        await loadAsaList();
+      } catch {
+        // Non-fatal: icons fall back to CDN URL pattern.
+      }
+      if (generation !== refreshGeneration) return;
 
-    try {
-      const holdings = await fetchHoldings();
-      renderHoldings(holdings);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      errors.push(`holdings: ${message}`);
-      liquidUsdTotal = null;
-      updateHeroTvl();
-      renderEmpty("holdings-body", 3, "Unable to load holdings.");
-      const stats = document.getElementById("holdings-stats");
-      if (stats) stats.hidden = true;
-    }
+      try {
+        const holdings = await fetchHoldings();
+        if (generation !== refreshGeneration) return;
+        renderHoldings(holdings);
+      } catch (error) {
+        if (generation !== refreshGeneration) return;
+        const message = error instanceof Error ? error.message : "Unknown error";
+        errors.push(`holdings: ${message}`);
+        liquidUsdTotal = null;
+        renderEmpty("holdings-body", 3, "Unable to load holdings.");
+        const stats = document.getElementById("holdings-stats");
+        if (stats) stats.hidden = true;
+      }
 
-    try {
-      const positions = await fetchPositions();
-      await renderPositions(positions);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      errors.push(`positions: ${message}`);
-      defiNetUsdTotal = null;
-      updateHeroTvl();
-      renderEmpty("positions-body", 5, "Unable to load positions.");
-      const stats = document.getElementById("positions-stats");
-      if (stats) stats.hidden = true;
-    }
+      try {
+        const positions = await fetchPositions();
+        if (generation !== refreshGeneration) return;
+        await renderPositions(positions);
+        if (generation !== refreshGeneration) return;
+      } catch (error) {
+        if (generation !== refreshGeneration) return;
+        const message = error instanceof Error ? error.message : "Unknown error";
+        errors.push(`positions: ${message}`);
+        defiNetUsdTotal = null;
+        renderEmpty("positions-body", 5, "Unable to load positions.");
+        const stats = document.getElementById("positions-stats");
+        if (stats) stats.hidden = true;
+      }
 
-    try {
-      await fetchAccountingPnl();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      errors.push(`accounting: ${message}`);
-      setHeroPnl(null, "Accounting unavailable");
-    }
+      if (
+        typeof liquidUsdTotal === "number" &&
+        typeof defiNetUsdTotal === "number"
+      ) {
+        setTvlLoading(false);
+      }
 
-    try {
-      const transactions = await fetchTransactions();
-      renderTransactions(transactions);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      errors.push(`transactions: ${message}`);
-      renderEmpty("agent-tx-body", 5, "Unable to load transactions.");
-    }
+      try {
+        await fetchAccountingPnl();
+        if (generation !== refreshGeneration) return;
+      } catch (error) {
+        if (generation !== refreshGeneration) return;
+        const message = error instanceof Error ? error.message : "Unknown error";
+        errors.push(`accounting: ${message}`);
+        setHeroPnl(null, "Accounting unavailable");
+      }
 
-    const refreshedAt = new Date().toLocaleString(undefined, {
-      dateStyle: "medium",
-      timeStyle: "short"
-    });
-    if (errors.length > 0) {
-      setStatus(
-        `Partial refresh at ${refreshedAt}. ${errors.join("; ")}`,
-        true
-      );
-    } else {
-      setStatus(`Portfolio refreshed ${refreshedAt}. Auto-refresh every ${Math.round(pollMs / 1000)}s.`);
+      try {
+        const transactions = await fetchTransactions();
+        if (generation !== refreshGeneration) return;
+        renderTransactions(transactions);
+      } catch (error) {
+        if (generation !== refreshGeneration) return;
+        const message = error instanceof Error ? error.message : "Unknown error";
+        errors.push(`transactions: ${message}`);
+        renderEmpty("agent-tx-body", 5, "Unable to load transactions.");
+      }
+
+      const refreshedAt = new Date().toLocaleString(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short"
+      });
+      if (errors.length > 0) {
+        setStatus(
+          `Partial refresh at ${refreshedAt}. ${errors.join("; ")}`,
+          true
+        );
+      } else {
+        setStatus(`Portfolio refreshed ${refreshedAt}. Auto-refresh every ${Math.round(pollMs / 1000)}s.`);
+      }
+    } finally {
+      if (generation === refreshGeneration) {
+        // If TVL never resolved (partial pricing), drop the loading chrome
+        // without wiping a previously shown value.
+        const tvlEl = document.getElementById("agent-tvl");
+        const stillUnresolved =
+          typeof liquidUsdTotal !== "number" ||
+          typeof defiNetUsdTotal !== "number";
+        if (stillUnresolved && tvlEl?.classList.contains("is-skeleton")) {
+          tvlEl.classList.remove("is-skeleton");
+          tvlEl.textContent = "—";
+        }
+        setTvlLoading(false);
+        endTableLoading("holdings-body");
+        endTableLoading("positions-body");
+        endTableLoading("agent-tx-body");
+        refreshInFlight = false;
+      }
     }
   }
 

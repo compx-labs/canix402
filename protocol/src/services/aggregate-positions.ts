@@ -113,8 +113,14 @@ export async function fetchWalletPositions(
     const protocol = SUPPORTED_POSITION_PROTOCOLS[index]!;
     if (result.status === "rejected") {
       coverage.suppliedUsdComplete = false;
-      // Borrow/debt is out of scope for portfolio totals — do not null borrowedUsd
-      // when a protocol collector fails.
+      if (
+        protocol === "folks-finance" ||
+        protocol === "compx" ||
+        protocol === "dorkfi"
+      ) {
+        // Debt-capable collectors: missing liabilities must null borrowedUsd.
+        coverage.borrowedUsdComplete = false;
+      }
       coverage.rewardsUsdComplete = false;
       protocols.push({
         protocol,

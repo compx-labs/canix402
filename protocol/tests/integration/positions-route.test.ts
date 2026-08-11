@@ -98,11 +98,11 @@ test("aggregate returns every protocol status and preserves safe amounts", async
     (response.data[0]?.compatibleExitShapeKeys.length ?? 0) > 0,
     "LP positions should expose Tinyman remove-liquidity exit shapes"
   );
-  // Folks unavailable nulls supplied/rewards USD totals, but borrowed stays
-  // complete (debt/lending is out of scope for portfolio responses).
+  // Folks unavailable nulls supplied/rewards USD totals, and also borrowedUsd
+  // because Folks is a debt-capable collector.
   assert.deepEqual(response.totals, {
     suppliedUsd: null,
-    borrowedUsd: 0,
+    borrowedUsd: null,
     rewardsUsd: null,
     netUsd: null
   });

@@ -884,9 +884,101 @@ main {
   color: var(--accent, #e11d48);
 }
 
+.agent-stat-card-value.is-skeleton {
+  display: flex;
+  align-items: center;
+  min-height: 1.45em;
+}
+
+.agent-stat-card.is-loading .agent-stat-card-value:not(.is-skeleton) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.agent-stat-card.is-loading .agent-stat-card-value:not(.is-skeleton)::after {
+  content: "";
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: agent-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
 .agent-stat-card-note {
   font-size: 0.75rem;
   line-height: 1.35;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.agent-skeleton-bar {
+  display: inline-block;
+  height: 0.7em;
+  max-width: 100%;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.12) 45%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: agent-skeleton-shimmer 1.35s ease-in-out infinite;
+  vertical-align: middle;
+}
+
+.agent-skeleton-bar--value {
+  width: 6.5rem;
+  height: 1em;
+}
+
+.agent-skeleton-row td {
+  border-color: transparent;
+}
+
+.agent-table-wrap.is-refreshing {
+  opacity: 0.55;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+@keyframes agent-skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@keyframes agent-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-skeleton-bar,
+  .agent-stat-card.is-loading .agent-stat-card-value:not(.is-skeleton)::after {
+    animation: none;
+  }
+
+  .agent-stat-card.is-loading .agent-stat-card-value:not(.is-skeleton)::after {
+    border-top-color: rgba(255, 255, 255, 0.35);
+  }
 }
 
 .agent-meta-list dt {

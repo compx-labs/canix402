@@ -72,6 +72,15 @@ from CompX/Orbital on a shared Redis instance:
 
 Never `FLUSHALL` on a shared Redis instance; `FLUSHDB` only against Canix’s DB.
 
+### Weekly fee harvest
+
+In-process cron on the **protocol** component. When `RECEIVER_MNEMONIC` is set,
+every Wednesday 00:00 UTC the API floors the pay-to USDC balance to whole units
+and sends 30/30/40 to the hardcoded fee recipients as an atomic axfer group.
+Production must also have `REDIS_URL` (already used for opportunity cache) for
+the harvest lock (`canix402:fee-harvest:lock`). If Redis is unavailable, the run
+is skipped so multi-instance deploys do not double-send.
+
 `UPSTREAM_API` must use the protocol component's **internal** hostname on App
 Platform (for example `http://canix402-protocol:3000`), not `localhost`.
 
