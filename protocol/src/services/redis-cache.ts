@@ -76,10 +76,19 @@ export function isCacheEnvelope(value: unknown): value is CacheEnvelope<unknown>
   return typeof record.cachedAt === "string" && "data" in record;
 }
 
-function getRedisClient(
+function isRedisUrlConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
+  return Boolean(env.REDIS_URL?.trim());
+}
+
+/**
+ * Shared Redis client when REDIS_URL is set. Used by opportunity cache and
+ * job locks (fee harvest). Cache read/write still gate on
+ * {@link isOpportunityCacheEnabled}.
+ */
+function getOrCreateRedisClient(
   env: NodeJS.ProcessEnv = process.env
 ): Redis | null {
-  if (!isOpportunityCacheEnabled(env)) {
+  if (!isRedisUrlConfigured(env)) {
     return null;
   }
   if (redisClient) {
@@ -114,6 +123,53 @@ function getRedisClient(
     );
     redisClient = null;
     return null;
+  }
+}
+
+function getRedisClient(
+  env: NodeJS.ProcessEnv = process.env
+): Redis | null {
+  if (!isOpportunityCacheEnabled(env)) {
+    return null;
+  }
+  return getOrCreateRedisClient(env);
+}
+
+export type RedisLockResult = "acquired" | "not_acquired" | "unavailable";
+
+/**
+ * Acquire a short-lived Redis lock (`SET key NX EX`). Returns `unavailable`
+ * when REDIS_URL is unset or the client cannot run SET — callers must not
+ * proceed without a lock when multi-instance safety is required.
+ */
+export async function tryAcquireRedisLock(
+  key: string,
+  ttlSeconds: number,
+  env: NodeJS.ProcessEnv = process.env
+): Promise<RedisLockResult> {
+  if (!isRedisUrlConfigured(env) || ttlSeconds <= 0) {
+    return "unavailable";
+  }
+
+  const client = getOrCreateRedisClient(env);
+  if (!client) {
+    return "unavailable";
+  }
+
+  try {
+    const result = await client.set(key, String(Date.now()), "EX", ttlSeconds, "NX");
+    return result === "OK" ? "acquired" : "not_acquired";
+  } catch (error) {
+    getAppLogger().error(
+      {
+        event: "redis_error",
+        op: "lock",
+        key,
+        err: error instanceof Error ? error.message : String(error)
+      },
+      "Redis lock acquire failed"
+    );
+    return "unavailable";
   }
 }
 
