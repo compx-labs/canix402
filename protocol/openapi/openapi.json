@@ -970,6 +970,86 @@
         }
       }
     },
+    "/positions/claimable": {
+      "get": {
+        "summary": "Claimable DeFi rewards across supported protocols",
+        "description": "Returns claimable reward rows for a wallet with USD value, network-fee / worth-claiming hints, compatible claim shapeKeys, and ready-to-POST quote inputs. Use claimAllQuotes (or selected per-row quotes) with POST /execution/quotes to compile unsigned claim groups — groups are never merged. Covers Tinyman farm, stALGO TINY claim, CompX staking, Pact farm, Haystack, and Alpha Arcade. This endpoint does not build or submit transactions.",
+        "tags": [
+          "defi",
+          "positions",
+          "rewards",
+          "wallet",
+          "execution"
+        ],
+        "parameters": [
+          {
+            "name": "address",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Algorand account address whose claimable rewards should be returned."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Claimable rewards desk",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimableRewardsResponse"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/ClaimableRewardsSample"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidAddress"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "502": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-payment-info": {
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ],
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.005"
+          }
+        },
+        "x-x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet",
+            "asset": "31566704",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.005"
+          }
+        }
+      }
+    },
     "/public/agents/brownie/positions": {
       "get": {
         "summary": "Public DeFi positions for the Brownie Bot showcase wallet",
@@ -2017,6 +2097,290 @@
               "agentId": {
                 "type": "string",
                 "description": "Present on free public showcase routes (for example brownie)."
+              }
+            }
+          }
+        }
+      },
+      "ClaimableQuoteRequest": {
+        "type": "object",
+        "required": [
+          "shapeKey",
+          "input"
+        ],
+        "properties": {
+          "shapeKey": {
+            "type": "string"
+          },
+          "input": {
+            "type": "object",
+            "required": [
+              "userAddress"
+            ],
+            "additionalProperties": true,
+            "properties": {
+              "userAddress": {
+                "type": "string"
+              },
+              "programId": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "poolAddress": {
+                "type": "string"
+              },
+              "poolAppId": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "farmAppId": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        }
+      },
+      "ClaimableRewardRecord": {
+        "type": "object",
+        "required": [
+          "protocol",
+          "positionId",
+          "opportunityId",
+          "positionType",
+          "assetId",
+          "assetSymbol",
+          "amountRaw",
+          "amount",
+          "usdValue",
+          "claimKey",
+          "compatibleClaimShapeKeys",
+          "quote",
+          "estimatedNetworkFeeMicroAlgos",
+          "estimatedNetworkFeeUsd",
+          "worthClaiming"
+        ],
+        "properties": {
+          "protocol": {
+            "type": "string",
+            "enum": [
+              "tinyman",
+              "pact",
+              "folks-finance",
+              "compx",
+              "dorkfi",
+              "myth-finance",
+              "haystack",
+              "reti",
+              "alpha-arcade"
+            ]
+          },
+          "positionId": {
+            "type": "string"
+          },
+          "opportunityId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "positionType": {
+            "type": "string",
+            "enum": [
+              "supplied",
+              "lp",
+              "staked",
+              "debt",
+              "reward"
+            ]
+          },
+          "assetId": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "assetSymbol": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "amountRaw": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^[0-9]+(?:\\.[0-9]+)?$"
+          },
+          "usdValue": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "claimKey": {
+            "type": "string",
+            "description": "Stable compile identity used to dedupe claimAllQuotes (e.g. Haystack USDC+HAY share one key)."
+          },
+          "compatibleClaimShapeKeys": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "quote": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ClaimableQuoteRequest"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "estimatedNetworkFeeMicroAlgos": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "description": "Conservative network-fee hint in microAlgos (not a simulation)."
+          },
+          "estimatedNetworkFeeUsd": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "worthClaiming": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "true when reward USD exceeds estimated network fee USD; null when either side is unknown."
+          },
+          "submitMode": {
+            "type": "string",
+            "enum": [
+              "tinyman-analytics-claim"
+            ]
+          },
+          "caveats": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "type": "string"
+          },
+          "inputHints": {
+            "$ref": "#/components/schemas/OpportunityExecutionInputHints"
+          },
+          "sourceTimestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ClaimableRewardsResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "protocols",
+          "totals",
+          "claimAllQuotes",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClaimableRewardRecord"
+            }
+          },
+          "protocols": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProtocolPositionResult"
+            }
+          },
+          "totals": {
+            "type": "object",
+            "description": "Aggregate claim desk totals. A null value means incomplete coverage or pricing; null must not be interpreted as zero.",
+            "required": [
+              "claimableUsd",
+              "estimatedNetworkFeeUsd",
+              "worthClaimingUsd"
+            ],
+            "properties": {
+              "claimableUsd": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "estimatedNetworkFeeUsd": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "worthClaimingUsd": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          },
+          "claimAllQuotes": {
+            "type": "object",
+            "required": [
+              "quotes"
+            ],
+            "properties": {
+              "quotes": {
+                "type": "array",
+                "description": "Deduped quote requests ready for POST /execution/quotes. Groups are never merged.",
+                "items": {
+                  "$ref": "#/components/schemas/ClaimableQuoteRequest"
+                }
+              }
+            }
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "address",
+              "fetchedAt",
+              "algoUsd",
+              "paymentRequired"
+            ],
+            "properties": {
+              "address": {
+                "type": "string"
+              },
+              "fetchedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "algoUsd": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "paymentRequired": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
               }
             }
           }
@@ -4443,6 +4807,129 @@
             "cachedAt": null,
             "cacheAgeMs": null,
             "cacheTtlSec": 180
+          }
+        }
+      },
+      "ClaimableRewardsSample": {
+        "summary": "Claimable rewards desk with claimAllQuotes",
+        "value": {
+          "data": [
+            {
+              "protocol": "haystack",
+              "positionId": "haystack:reward:3321763884:usdc",
+              "opportunityId": "haystack-staking-hay",
+              "positionType": "reward",
+              "assetId": 31566704,
+              "assetSymbol": "USDC",
+              "amountRaw": "1500000",
+              "amount": "1.500000",
+              "usdValue": 1.5,
+              "claimKey": "haystack:claim:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+              "compatibleClaimShapeKeys": [
+                "mainnet:haystack:v1:claim:rewards"
+              ],
+              "quote": {
+                "shapeKey": "mainnet:haystack:v1:claim:rewards",
+                "input": {
+                  "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+                }
+              },
+              "estimatedNetworkFeeMicroAlgos": "5000",
+              "estimatedNetworkFeeUsd": 0.001,
+              "worthClaiming": true,
+              "caveats": [
+                "Pending USDC from staker box; live accrual may be higher until the next drip/claim."
+              ]
+            },
+            {
+              "protocol": "compx",
+              "positionId": "compx:reward:123456:31566704",
+              "opportunityId": "compx-staking-123456",
+              "positionType": "reward",
+              "assetId": 31566704,
+              "assetSymbol": "USDC",
+              "amountRaw": "500000",
+              "amount": "0.500000",
+              "usdValue": 0.5,
+              "claimKey": "compx:claim:123456",
+              "compatibleClaimShapeKeys": [
+                "mainnet:compx:v1:claim:rewards"
+              ],
+              "quote": {
+                "shapeKey": "mainnet:compx:v1:claim:rewards",
+                "input": {
+                  "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                  "poolAppId": 123456
+                }
+              },
+              "estimatedNetworkFeeMicroAlgos": "250000",
+              "estimatedNetworkFeeUsd": 0.05,
+              "worthClaiming": true,
+              "inputHints": {
+                "poolAppId": 123456,
+                "assetId": 31566704
+              }
+            }
+          ],
+          "protocols": [
+            {
+              "protocol": "tinyman",
+              "status": "ok",
+              "positionCount": 0,
+              "message": null
+            },
+            {
+              "protocol": "compx",
+              "status": "ok",
+              "positionCount": 1,
+              "message": null
+            },
+            {
+              "protocol": "pact",
+              "status": "ok",
+              "positionCount": 0,
+              "message": null
+            },
+            {
+              "protocol": "haystack",
+              "status": "ok",
+              "positionCount": 1,
+              "message": null
+            },
+            {
+              "protocol": "alpha-arcade",
+              "status": "ok",
+              "positionCount": 0,
+              "message": null
+            }
+          ],
+          "totals": {
+            "claimableUsd": 2,
+            "estimatedNetworkFeeUsd": 0.051,
+            "worthClaimingUsd": 2
+          },
+          "claimAllQuotes": {
+            "quotes": [
+              {
+                "shapeKey": "mainnet:haystack:v1:claim:rewards",
+                "input": {
+                  "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+                }
+              },
+              {
+                "shapeKey": "mainnet:compx:v1:claim:rewards",
+                "input": {
+                  "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                  "poolAppId": 123456
+                }
+              }
+            ]
+          },
+          "meta": {
+            "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+            "fetchedAt": "2026-08-13T12:00:00.000Z",
+            "algoUsd": 0.2,
+            "paymentRequired": true
           }
         }
       },

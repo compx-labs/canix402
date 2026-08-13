@@ -222,6 +222,18 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     priceUsdc: process.env.X402_PRICE_POSITIONS_USDC ?? "0.005"
   },
   {
+    id: "positionsClaimable",
+    method: "GET",
+    pathPattern: "/positions/claimable",
+    access: "paid",
+    summary: "Claimable DeFi rewards across supported protocols",
+    description:
+      "Returns claimable reward rows for a wallet with USD value, network-fee / worth-claiming hints, compatible claim shapeKeys, and ready-to-POST quote inputs. Use claimAllQuotes (or selected per-row quotes) with POST /execution/quotes to compile unsigned claim groups — groups are never merged. Covers Tinyman farm, stALGO TINY claim, CompX staking, Pact farm, Haystack, and Alpha Arcade. This endpoint does not build or submit transactions.",
+    tags: ["defi", "positions", "rewards", "wallet", "execution", HACKATHON_TAG],
+    queryParams: ["address"],
+    priceUsdc: process.env.X402_PRICE_POSITIONS_CLAIMABLE_USDC ?? "0.005"
+  },
+  {
     id: "publicBrowniePositions",
     method: "GET",
     pathPattern: "/public/agents/brownie/positions",
@@ -348,6 +360,7 @@ const paidPathMatchers = [
   /^\/opportunities\/search$/,
   /^\/opportunities\/personalized$/,
   /^\/positions$/,
+  /^\/positions\/claimable$/,
   /^\/protocols\/[^/]+\/opportunities$/,
   /^\/swaps\/transactions$/,
   /^\/execution\/quotes$/

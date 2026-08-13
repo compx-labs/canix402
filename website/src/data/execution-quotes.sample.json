@@ -25,5 +25,29 @@
     "executionSubmitted": false,
     "quoteCount": 1,
     "note": "Unsigned groups only. Sign and submit locally; Canix never receives wallet keys."
+  },
+  "claimBatchRequestExample": {
+    "quotes": [
+      {
+        "shapeKey": "mainnet:haystack:v1:claim:rewards",
+        "input": {
+          "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+        }
+      },
+      {
+        "shapeKey": "mainnet:compx:v1:claim:rewards",
+        "input": {
+          "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+          "poolAppId": 123456
+        }
+      },
+      {
+        "shapeKey": "mainnet:alpha-arcade:v1:claimRewards:usdc",
+        "input": {
+          "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+        }
+      }
+    ],
+    "note": "Pass claimAllQuotes from GET /positions/claimable. Each quotes[] item compiles to an independent unsigned group; groups are never merged. Flat ~0.10 USDC per request."
   }
 }

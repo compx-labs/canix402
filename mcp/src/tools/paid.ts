@@ -280,6 +280,37 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
   );
 
   server.registerTool(
+    "canix_list_claimable",
+    {
+      description:
+        "List claimable DeFi rewards for a wallet (GET /positions/claimable). Returns USD value, network-fee / worth-claiming hints, claim shapeKeys, and claimAllQuotes ready for canix_get_execution_quote. Paid: ~0.005 USDC via x402. Then compile with canix_get_execution_quote (~0.10 USDC flat); groups are never merged. Sign and submit locally — Canix does not hold keys.",
+      inputSchema: {
+        address: z.string().min(1),
+        paymentSignature: paymentSignatureArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const query = {
+          address: args.address
+        };
+        const result = await client.fetchPaid("/positions/claimable", {
+          method: "GET",
+          query,
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+        });
+        return formatPaidToolResult(result, "0.005", {
+          path: "/positions/claimable",
+          method: "GET",
+          query
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
     "canix_get_execution_quote",
     {
       description:

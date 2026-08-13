@@ -93,6 +93,21 @@ test("positions route requires payment signature", async () => {
   await app.close();
 });
 
+test("positions/claimable route requires payment signature", async () => {
+  const app = await buildEdgeGatedApp();
+
+  const response = await app.inject({
+    method: "GET",
+    url: "/positions/claimable?address=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+  });
+
+  assert.equal(response.statusCode, 402);
+  assert.equal(response.headers["payment-required"] !== undefined, true);
+  assert.equal(response.json().error.code, "MISSING_PAYMENT_SIGNATURE");
+
+  await app.close();
+});
+
 test("malformed payment signature returns 402", async () => {
   const app = await buildEdgeGatedApp();
 

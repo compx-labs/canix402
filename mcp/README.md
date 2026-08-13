@@ -5,7 +5,7 @@ MCP server that exposes canix402 free and paid gateway endpoints as agent tools.
 ## What it does
 
 - Free tools: health, metadata, discovery, OpenAPI, execution shape catalog, Haystack quotes, and Haystack opt-ins
-- Paid tools: opportunities (list/search/personalized/protocol), wallet positions, execution quotes, and Haystack swap transactions
+- Paid tools: opportunities (list/search/personalized/protocol), wallet positions, claimable rewards, execution quotes, and Haystack swap transactions
 - Walletless x402 passthrough: paid tool preflight returns `PAYMENT-REQUIRED`, retry with `paymentSignature`
 - Resources: `canix://discovery`, `canix://openapi`, `canix://execution-shapes` (live `GET /execution/shapes`)
 - Prompt: `analyze-opportunity`
@@ -20,6 +20,16 @@ For hosted/remote agent usage, use the Cloudflare Worker remote endpoint in `mcp
 The advertised fallback price is 0.005 USDC. Omit `paymentSignature` for the
 x402 preflight, then retry the same address with the signed
 `PAYMENT-SIGNATURE` payload.
+
+## Claim desk tool
+
+`canix_list_claimable` calls paid `GET /positions/claimable` with a required wallet
+`address` (fallback price 0.005 USDC). Response includes USD value, network-fee /
+worth-claiming hints, claim `shapeKey`s, and `claimAllQuotes` ready for
+`canix_get_execution_quote` (~0.10 USDC flat per request; groups never merged).
+Agent loop: optional positions → claimable → filter `worthClaiming` / `claimKey` →
+execution quote → local sign/submit. Tinyman farm claims use
+`submitMode: tinyman-analytics-claim` (Analytics cosign), not raw algod submit.
 
 ## Haystack swap tools
 

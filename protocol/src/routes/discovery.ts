@@ -211,7 +211,7 @@ function buildDiscoveryDocument(): DiscoveryDocument {
       pathParams: endpoint.pathParams ?? [],
       queryParams: endpoint.queryParams ?? [],
       responseCodes:
-        endpoint.id === "positions"
+        endpoint.id === "positions" || endpoint.id === "positionsClaimable"
           ? [200, 400, 402, 500, 502]
           : endpoint.id === "tokenPricing"
             ? [200, 400, 502]

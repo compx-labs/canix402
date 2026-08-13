@@ -25,6 +25,7 @@ single source directory.
   - `GET /opportunities/search`
   - `GET /opportunities/personalized`
   - `GET /positions?address=` (price: `X402_PRICE_POSITIONS_USDC`, exactly `0.005`)
+  - `GET /positions/claimable?address=` (price: `X402_PRICE_POSITIONS_CLAIMABLE_USDC`, exactly `0.005`)
   - `GET /protocols/:protocol/opportunities`
   - `POST /execution/quotes` (price: `X402_PRICE_EXECUTION_QUOTE_USDC`, default `0.1`)
   - `POST /swaps/transactions` (price: `X402_PRICE_HAYSTACK_SWAP_USDC`, default `0.005`)

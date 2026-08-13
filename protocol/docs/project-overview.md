@@ -176,6 +176,25 @@ A paid wallet data route priced at exactly 0.005 USDC:
   the same response shape for the Brownie Bot treasury wallet only (hardcoded
   address; not a general free positions browser).
 
+### Claim desk (`GET /positions/claimable?address=`)
+
+A paid wallet research route priced at exactly 0.005 USDC (same SKU class as
+`/positions`). Compiling claims remains the compiler SKU
+(`POST /execution/quotes`, ~0.10 USDC flat per request).
+
+- Projects existing reward rows (plus Tinyman stALGO manage claim) into a desk
+  with USD value, conservative network-fee hints, `worthClaiming`, allowlisted
+  claim `shapeKey`s, and ready-to-POST `quote` inputs.
+- `claimAllQuotes.quotes` is deduped by `claimKey` (Haystack USDC+HAY and Pact
+  multi-ASA farm rewards share one compile entry each).
+- Supported claim shapes: Tinyman farm, Tinyman stALGO, CompX staking, Pact farm,
+  Haystack, Alpha Arcade. Pass `claimAllQuotes` (or a selected subset) to
+  `POST /execution/quotes`; groups are never merged.
+- Agent loop: optional `/positions` → `/positions/claimable` → filter →
+  `/execution/quotes` → local sign/submit. Canix never holds keys.
+- Fee/worth-claiming hints compare reward USD to estimated network fees only —
+  they are not a simulation (see §13.6).
+
 ## Discovery Contract (Grade A)
 
 The API publishes two free discovery surfaces:

@@ -7,6 +7,7 @@ import searchSample from "../data/opportunities-search.sample.json";
 import personalizedSample from "../data/opportunities-personalized.sample.json";
 import protocolSample from "../data/protocol-opportunities.sample.json";
 import positionsSample from "../data/positions.sample.json";
+import positionsClaimableSample from "../data/positions-claimable.sample.json";
 import executionShapesSample from "../data/execution-shapes.sample.json";
 import executionQuotesSample from "../data/execution-quotes.sample.json";
 import swapsQuoteSample from "../data/swaps-quote.sample.json";
@@ -176,6 +177,30 @@ const format = (value: unknown): string => JSON.stringify(value, null, 2);
     />
     <h3>Sample response (200)</h3>
     <CodeBlock code={format(positionsSample)} />
+  </section>
+
+  <section class="panel">
+    <h2>Claim desk (paid)</h2>
+    <p>
+      <code>GET /positions/claimable?address=</code> — claimable rewards with USD value,
+      network-fee / worth-claiming hints, and <code>claimAllQuotes</code> ready for
+      <code>POST /execution/quotes</code> (~0.005 USDC list; compile stays ~0.10 USDC flat).
+      Groups are never merged. Agent loop: positions (optional) → claimable → quote → local sign.
+    </p>
+    <h3>1) Preflight (expect 402)</h3>
+    <CodeBlock
+      code={`curl -i '${config.gatewayBaseUrl}/positions/claimable?address=YOUR_ALGORAND_ADDRESS'`}
+    />
+    <h3>2) Paid retry</h3>
+    <CodeBlock
+      code={`curl -i '${config.gatewayBaseUrl}/positions/claimable?address=YOUR_ALGORAND_ADDRESS' \\\n  -H 'PAYMENT-SIGNATURE: <base64-json-payload>'`}
+    />
+    <h3>3) Compile claim-all (use claimAllQuotes)</h3>
+    <CodeBlock
+      code={`curl -i ${config.gatewayBaseUrl}/execution/quotes \\\n  -H 'content-type: application/json' \\\n  -H 'PAYMENT-SIGNATURE: <base64-json-payload>' \\\n  -d '{\n    "quotes": [\n      {\n        "shapeKey": "mainnet:haystack:v1:claim:rewards",\n        "input": { "userAddress": "YOUR_ALGORAND_ADDRESS" }\n      },\n      {\n        "shapeKey": "mainnet:compx:v1:claim:rewards",\n        "input": { "userAddress": "YOUR_ALGORAND_ADDRESS", "poolAppId": 123456 }\n      }\n    ]\n  }'`}
+    />
+    <h3>Sample response (200)</h3>
+    <CodeBlock code={format(positionsClaimableSample)} />
   </section>
 
   <section class="panel">

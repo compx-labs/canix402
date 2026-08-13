@@ -75,6 +75,7 @@ export const mcpToolNames = [
   "canix_get_personalized_opportunities",
   "canix_get_protocol_opportunities",
   "canix_get_positions",
+  "canix_list_claimable",
   "canix_get_execution_quote",
   "canix_get_quote",
   "canix_optin",

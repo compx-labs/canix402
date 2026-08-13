@@ -345,7 +345,7 @@ npm run test:production-smoke -w protocol
 Coverage on every production test run:
 
 - **Free (expect 200):** `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/favicon.ico`, `/favicon.png`, `/.well-known/x402`, `/.well-known/x402.json`
-- **Paid preflight (expect 402 + `PAYMENT-REQUIRED`):** `/opportunities`, `/opportunities/search`, `/opportunities/personalized`, `/positions?address=...`, `/protocols/tinyman/opportunities`, `/execution/quotes`
+- **Paid preflight (expect 402 + `PAYMENT-REQUIRED`):** `/opportunities`, `/opportunities/search`, `/opportunities/personalized`, `/positions?address=...`, `/positions/claimable?address=...`, `/protocols/tinyman/opportunities`, `/execution/quotes`
 
 Behavior:
 

@@ -221,6 +221,9 @@ test("well-known x402 fan-out lists paid resource URLs", async () => {
   assert.equal(payload.resources.length, expectedPaidCount);
   assert.ok(payload.resources.includes("https://canix402-api.compx.io/positions"));
   assert.ok(
+    payload.resources.includes("https://canix402-api.compx.io/positions/claimable")
+  );
+  assert.ok(
     payload.resources.includes("https://canix402-api.compx.io/swaps/transactions")
   );
   assert.equal(
