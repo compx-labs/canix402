@@ -5,9 +5,15 @@ import { getAppLogger } from "../observability/logger.js";
 const USDC_DECIMALS = 6n;
 const USDC_WHOLE_UNIT = 10n ** USDC_DECIMALS;
 
+/** Fee harvest always targets Algorand mainnet. */
+export const FEE_HARVEST_NETWORK = "algorand-mainnet";
+export const FEE_HARVEST_MAINNET_GENESIS_ID = "mainnet-v1.0";
+export const FEE_HARVEST_MAINNET_USDC_ASSET_ID = 31566704;
+export const FEE_HARVEST_MAINNET_ALGOD_URL = "https://mainnet-api.algonode.cloud";
+
 /** 30% fee share recipient. */
 export const FEE_HARVEST_RECIPIENT_A =
-  "THJ3BPQX3PM5NCWFVANC7D5HE3JIN2W5GMLLX3P5AON32W55VFCIBGASBI";
+  "P6C5P7ZSZTP7QRIEXTPEWSJKCYYAKA75BN4GMMIIXUSDGDQA2WOJK6UPZU";
 
 /** 30% fee share recipient. */
 export const FEE_HARVEST_RECIPIENT_B =
@@ -48,6 +54,7 @@ export interface FeeHarvestTransferResult {
 
 export interface FeeHarvestResult {
   status: FeeHarvestStatus;
+  network: typeof FEE_HARVEST_NETWORK;
   from: string;
   usdcAssetId: number;
   balanceMicroUsdc: string;
@@ -130,10 +137,8 @@ export async function runFeeHarvest(
     throw new Error("RECEIVER_MNEMONIC is required for fee harvest.");
   }
 
-  const usdcAssetId = Number(env.X402_USDC_ASSET_ID ?? "31566704");
-  if (!Number.isInteger(usdcAssetId) || usdcAssetId <= 0) {
-    throw new Error(`Invalid X402_USDC_ASSET_ID '${env.X402_USDC_ASSET_ID}'.`);
-  }
+  // Always mainnet USDC — never honor testnet/local asset overrides.
+  const usdcAssetId = FEE_HARVEST_MAINNET_USDC_ASSET_ID;
 
   const account = algosdk.mnemonicToSecretKey(mnemonic);
   const from = account.addr.toString();
@@ -155,7 +160,10 @@ export async function runFeeHarvest(
     }
   }
 
-  const algod = options.algod ?? createAlgodClient(env);
+  const algod = options.algod ?? createMainnetAlgodClient(env);
+  const suggested = await algod.getTransactionParams().do();
+  assertMainnetSuggestedParams(suggested);
+
   const balanceMicro = await fetchUsdcBalanceMicro(algod, from, usdcAssetId);
   const sendMicro = floorToWholeUsdcMicro(balanceMicro);
   const remainderMicro = balanceMicro - sendMicro;
@@ -185,6 +193,7 @@ export async function runFeeHarvest(
 
   const base: FeeHarvestResult = {
     status: "skipped",
+    network: FEE_HARVEST_NETWORK,
     from,
     usdcAssetId,
     balanceMicroUsdc: balanceMicro.toString(),
@@ -225,7 +234,6 @@ export async function runFeeHarvest(
     return dry;
   }
 
-  const suggested = await algod.getTransactionParams().do();
   const noteBytes = new TextEncoder().encode(note);
   const txns = nonZeroTransfers.map((transfer) =>
     algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
@@ -259,10 +267,40 @@ export async function runFeeHarvest(
   return sent;
 }
 
-function createAlgodClient(env: NodeJS.ProcessEnv): algosdk.Algodv2 {
-  const server = env.X402_ALGOD_URL ?? "https://mainnet-api.algonode.cloud";
+function createMainnetAlgodClient(env: NodeJS.ProcessEnv): algosdk.Algodv2 {
+  const configured = env.X402_ALGOD_URL?.trim();
+  const server = configured && configured.length > 0
+    ? configured
+    : FEE_HARVEST_MAINNET_ALGOD_URL;
+  assertMainnetAlgodUrl(server);
   const token = env.X402_ALGOD_TOKEN ?? "";
   return new algosdk.Algodv2(token, trimTrailingSlash(server), "");
+}
+
+function assertMainnetAlgodUrl(server: string): void {
+  const lower = server.toLowerCase();
+  if (
+    lower.includes("testnet") ||
+    lower.includes("betanet") ||
+    lower.includes("localnet") ||
+    lower.includes("localhost") ||
+    lower.includes("127.0.0.1")
+  ) {
+    throw new Error(
+      `Fee harvest is mainnet-only; refusing algod URL '${server}'.`
+    );
+  }
+}
+
+function assertMainnetSuggestedParams(suggested: {
+  genesisID?: string;
+}): void {
+  const genesisId = suggested.genesisID ?? "";
+  if (genesisId !== FEE_HARVEST_MAINNET_GENESIS_ID) {
+    throw new Error(
+      `Fee harvest is mainnet-only; algod genesisID is '${genesisId}' (expected ${FEE_HARVEST_MAINNET_GENESIS_ID}).`
+    );
+  }
 }
 
 async function fetchUsdcBalanceMicro(

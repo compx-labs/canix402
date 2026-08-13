@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  FEE_HARVEST_MAINNET_GENESIS_ID,
+  FEE_HARVEST_MAINNET_USDC_ASSET_ID,
+  FEE_HARVEST_NETWORK,
   buildFeeHarvestNote,
   floorToWholeUsdcMicro,
   formatUsdcFromMicro,
@@ -72,4 +75,10 @@ test("fee harvest cron is Wednesday 00:00 UTC and gates on RECEIVER_MNEMONIC", (
     }),
     true
   );
+});
+
+test("fee harvest is pinned to mainnet USDC and genesis", () => {
+  assert.equal(FEE_HARVEST_NETWORK, "algorand-mainnet");
+  assert.equal(FEE_HARVEST_MAINNET_USDC_ASSET_ID, 31566704);
+  assert.equal(FEE_HARVEST_MAINNET_GENESIS_ID, "mainnet-v1.0");
 });
