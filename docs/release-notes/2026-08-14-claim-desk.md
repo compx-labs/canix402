@@ -1,3 +1,9 @@
+---
+title: "Claim desk, debt-aware positions, and Tinyman COMPX/ALGO"
+date: 2026-08-14
+version: "1.1.0"
+---
+
 # Claim desk, debt-aware positions, and Tinyman COMPX/ALGO
 
 **Date:** 14 August 2026

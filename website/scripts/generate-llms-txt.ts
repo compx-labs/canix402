@@ -138,6 +138,7 @@ Use the **Caddy gateway** (\`${GATEWAY}\`) for all API calls. Discovery, executi
 - [Examples](${docs}/examples): copy-paste curl and sample payloads
 - [Endpoint catalog](${docs}/endpoints): human-readable route table sourced from discovery
 - [Live transactions](${docs}/transactions): recent inbound USDC payments to the x402 pay-to wallet
+- [Release notes](${docs}/release-notes): latest protocol package changelog
 
 ## Paid data routes
 
@@ -185,6 +186,7 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
 - **Operator:** ${OPERATOR}
 - **Support:** ${SUPPORT_EMAIL}
 - **Terms:** ${DOCS_SITE}/terms
+- **Release notes:** ${DOCS_SITE}/release-notes
 
 Opportunity responses are normalized records with fields such as \`protocol\`, \`opportunityType\`, \`opportunityId\`, \`assetPair\`, \`apy\`, \`apr\`, optional \`borrowApr\` (borrow-side cost for lending markets), \`tvlUsd\`, \`executionShapes\`, \`compatibleExitShapes\`, optional \`entryRequirements\` / \`capacity\` (Réti), \`sourceTimestamp\`, and \`fetchedAt\`. Positions may include \`debt\` rows with repay exit shapes (CompX/Folks) or informational Dork.fi \`debt-usd\` aggregates. Numeric precision follows the published OpenAPI \`x-precision\` contract (typically 6 decimal places).
 

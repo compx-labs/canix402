@@ -10,6 +10,7 @@
 - **Operator:** Neon Forge Ltd
 - **Support:** kieran@neonforge.ltd
 - **Terms:** https://canix402.compx.io/terms
+- **Release notes:** https://canix402.compx.io/release-notes
 
 Opportunity responses are normalized records with fields such as `protocol`, `opportunityType`, `opportunityId`, `assetPair`, `apy`, `apr`, optional `borrowApr` (borrow-side cost for lending markets), `tvlUsd`, `executionShapes`, `compatibleExitShapes`, optional `entryRequirements` / `capacity` (Réti), `sourceTimestamp`, and `fetchedAt`. Positions may include `debt` rows with repay exit shapes (CompX/Folks) or informational Dork.fi `debt-usd` aggregates. Numeric precision follows the published OpenAPI `x-precision` contract (typically 6 decimal places).
 
