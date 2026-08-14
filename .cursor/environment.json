@@ -1,9 +1,5 @@
 {
   "name": "canix402",
-  "user": "node",
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
   "install": "bash .cursor/install.sh",
   "ports": [
     { "name": "protocol-api", "port": 3000 },
