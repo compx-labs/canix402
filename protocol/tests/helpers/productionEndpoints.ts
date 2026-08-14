@@ -42,6 +42,10 @@ function resolveProductionPath(pathPattern: string): string {
     return `/positions/claimable?address=${encodeURIComponent(address)}`;
   }
 
+  if (pathPattern === "/eligibility") {
+    return "/eligibility";
+  }
+
   if (pathPattern === "/execution/quotes") {
     return "/execution/quotes";
   }
@@ -54,6 +58,17 @@ function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): Pro
     id: entry.id,
     path: resolveProductionPath(entry.pathPattern)
   };
+
+  if (entry.pathPattern === "/eligibility") {
+    return {
+      ...base,
+      method: "POST",
+      body: {
+        address: getProductionPersonalizedAddress(),
+        opportunityIds: ["reti-staking-1"]
+      }
+    };
+  }
 
   if (entry.pathPattern === "/execution/quotes") {
     return {

@@ -48,7 +48,7 @@ Published from immutable validator config:
   - `nfd-linked-creators` / `nfd-root-segment` — NFD app id as string
 - `eligibilityFullyCheckable`: `false` when NFD/creator gates are present
 
-Discovery filters are soft; quote-time on-chain checks are authoritative.
+Discovery filters and `POST /eligibility` are soft; quote-time on-chain checks are authoritative. `canEnter` is never true while NFD/creator gates remain unresolved (`eligibilityFullyCheckable: false`).
 
 ### Capacity
 
@@ -79,6 +79,6 @@ Pending reward-token balances surface as `reward` positions when present.
 
 ## Out of Scope
 
-- Full NFD resolution for personalized eligibility (gates are published; soft-match skips NFD/creator-only validators)
+- Full NFD resolution for personalized eligibility (gates are published as unresolved; `POST /eligibility` and personalized matching skip NFD/creator-only validators)
 - Epoch payout / commission claim shapes for validators
 - Testnet / localnet registry targets

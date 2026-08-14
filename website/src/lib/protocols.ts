@@ -70,7 +70,7 @@ export const protocols: readonly SupportedProtocol[] = [
     summary:
       "Open-pooling consensus staking — stake ALGO to a validator; pools allocate under each validator.",
     notes:
-      "Per-validator opportunities (reti-staking-{validatorId}) with entryRequirements and capacity; stake/unstake via execution shapes. Quote-time eligibility is authoritative.",
+      "Per-validator opportunities (reti-staking-{validatorId}) with entryRequirements and capacity; stake/unstake via execution shapes. POST /eligibility resolves min amount, ASA gates, and capacity before quote; quote-time checks remain authoritative.",
     logo: "/protocols/reti.png"
   },
   {

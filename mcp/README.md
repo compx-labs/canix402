@@ -5,7 +5,7 @@ MCP server that exposes canix402 free and paid gateway endpoints as agent tools.
 ## What it does
 
 - Free tools: health, metadata, discovery, OpenAPI, execution shape catalog, Haystack quotes, and Haystack opt-ins
-- Paid tools: opportunities (list/search/personalized/protocol), wallet positions, claimable rewards, execution quotes, and Haystack swap transactions
+- Paid tools: opportunities (list/search/personalized/protocol), wallet positions, claimable rewards, eligibility, execution quotes, and Haystack swap transactions
 - Walletless x402 passthrough: paid tool preflight returns `PAYMENT-REQUIRED`, retry with `paymentSignature`
 - Resources: `canix://discovery`, `canix://openapi`, `canix://execution-shapes` (live `GET /execution/shapes`)
 - Prompt: `analyze-opportunity`
@@ -30,6 +30,16 @@ worth-claiming hints, claim `shapeKey`s, and `claimAllQuotes` ready for
 Agent loop: optional positions → claimable → filter `worthClaiming` / `claimKey` →
 execution quote → local sign/submit. Tinyman farm claims use
 `submitMode: tinyman-analytics-claim` (Analytics cosign), not raw algod submit.
+
+## Eligibility tool
+
+`canix_check_eligibility` calls paid `POST /eligibility` with `address` and
+`opportunityIds` (fallback price 0.01 USDC). Response includes `canEnter`,
+`missingAssets`, `gates`, `capacity`, `suggestedSwap`, and
+`eligibilityFullyCheckable`. NFD/creator gates stay unresolved — `canEnter` is
+never true until fully checkable. Personalized ranking uses the same rules so
+full/gated venues are not recommended as enterable. Quote-time on-chain checks
+remain authoritative.
 
 ## Haystack swap tools
 

@@ -112,7 +112,9 @@ const files: SampleFile[] = [
       includeInactive: false,
       paymentRequired: true,
       address: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-      heldAssetCount: 2
+      heldAssetCount: 2,
+      eligibilityApplied: true,
+      eligibilityEndpoint: "/eligibility"
     }
   },
   {
@@ -132,7 +134,14 @@ function stripUndefined(record: unknown): unknown {
 
 function main(): void {
   for (const file of files) {
-    const data = formatOpportunitiesForAgent(file.rows).map(stripUndefined);
+    const data = formatOpportunitiesForAgent(file.rows).map((row) => {
+      const payload = stripUndefined(row) as Record<string, unknown>;
+      if (file.filename === "opportunities-personalized.sample.json") {
+        payload.canEnter = true;
+        payload.eligibilityFullyCheckable = true;
+      }
+      return payload;
+    });
     const payload = { data, meta: file.meta };
     const outputPath = resolve(process.cwd(), "../website/src/data", file.filename);
     writeFileSync(outputPath, `${JSON.stringify(payload, null, 2)}\n`, "utf-8");

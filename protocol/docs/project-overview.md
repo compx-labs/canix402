@@ -144,10 +144,31 @@ A premium paid route (0.05 USDC) that tunes results to a specific wallet:
 - Opportunities are matched by exact on-chain asset id. To support this,
   `OpportunityRecordV1` carries an optional `assetIds` array populated by each adapter
   (Tinyman/Pact pool asset ids, Folks Finance pool asset id).
-- An opportunity is included when the wallet holds any of its underlying assets;
-  results are ranked by APY and capped (default top 10).
+- An opportunity is included when the wallet holds any of its underlying assets
+  **and** it passes `POST /eligibility` rules (min amount, ASA gates, capacity,
+  no unresolved NFD/creator gates). Full or gated venues are not recommended as
+  enterable. Each row includes `canEnter` and `eligibilityFullyCheckable`;
+  `meta.eligibilityEndpoint` is `/eligibility`. Quote-time checks remain
+  authoritative.
 - Pricing is configured independently via `X402_PRICE_PERSONALIZED_USDC` in both the
   API discovery metadata and the Caddy accept policy.
+
+### Eligibility (`POST /eligibility`)
+
+A paid wallet research route priced at 0.01 USDC. Compiling enters remains the
+compiler SKU (`POST /execution/quotes`, ~0.10 USDC flat per request).
+
+- Body: `{ address, opportunityIds, refresh? }` (1–25 ids).
+- Response rows: `{ canEnter, missingAssets, gates, capacity, suggestedSwap,
+  eligibilityFullyCheckable, reasons }`.
+- Réti `entryRequirements` / `capacity` are resolved (min amount, ASA gates,
+  staker slots, ALGO room) before quote.
+- NFD / creator gates are published as `unresolved`. `canEnter` is never true
+  until `eligibilityFullyCheckable` is true.
+- `suggestedSwap` is a hint only (not a live Haystack quote). Use `POST /swaps/quote`.
+- Discovery and OpenAPI advertise `maxAmountRequired: "0.01"`. Caddy enforces
+  `X402_PRICE_ELIGIBILITY_USDC=0.01` (10000 micro-USDC).
+- MCP: `canix_check_eligibility`.
 
 ### Wallet Positions (`GET /positions?address=`)
 
@@ -271,3 +292,4 @@ Use this section to record major decisions as the project evolves.
 - 2026-07-06: Planned agent onboarding website on compx.io subdomain; human-facing docs site for agent setup, linked from main compx.io property.
 - 2026-07-06: Restructured repo into monorepo workspaces (`protocol/`, `website/`) and implemented Astro onboarding site with CANIX402 branding.
 - 2026-07-07: Finalized `OpportunityRecordV1` contract for API `1.0.0` with required `yieldBasis`, optional `assetIds`, and a canonical schema spec in `docs/normalized-opportunity-schema.md`.
+- 2026-08-14: Added paid `POST /eligibility` (0.01 USDC) and taught `/opportunities/personalized` to use the same eligibility rules so full/gated Réti venues are not recommended as enterable. NFD/creator gates stay unresolved (`eligibilityFullyCheckable: false`).

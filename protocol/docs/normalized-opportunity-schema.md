@@ -49,8 +49,9 @@ may omit these fields.
 | `gateMatch` | How multiple ASA gates combine (`any` \| `all`). Réti uses `any`. |
 | `eligibilityFullyCheckable` | `false` when gates include NFD/creator kinds personalized matching cannot resolve |
 
-Amounts never appear in `inputHints`. Agents should filter on discovery, then treat
-quote-time on-chain validation as the hard gate.
+Amounts never appear in `inputHints`. Agents should filter on discovery, call
+`POST /eligibility` before quote, then treat quote-time on-chain validation as
+the hard gate.
 
 ### `capacity`
 
@@ -178,7 +179,8 @@ The following fields are intentionally out of scope for `OpportunityRecordV1`:
 - `tvlOrLiquidity` union fields
 - manage shapes on opportunities (use positions / shape catalog)
 - exit shapes on non–liquid-staking opportunities (use positions / shape catalog)
-- full NFD resolution for personalized eligibility (publish gates; resolve later)
+- full NFD resolution for personalized eligibility (publish unresolved gates on
+  `POST /eligibility`; `canEnter` stays false until `eligibilityFullyCheckable`)
 
 Any addition of these fields is a future contract revision and should be reflected
 in both TypeBox and OpenAPI schema surfaces.

@@ -5,6 +5,7 @@ import { config } from "../lib/config";
 import aggregateSample from "../data/opportunities.sample.json";
 import searchSample from "../data/opportunities-search.sample.json";
 import personalizedSample from "../data/opportunities-personalized.sample.json";
+import eligibilitySample from "../data/eligibility.sample.json";
 import protocolSample from "../data/protocol-opportunities.sample.json";
 import positionsSample from "../data/positions.sample.json";
 import positionsClaimableSample from "../data/positions-claimable.sample.json";
@@ -98,14 +99,31 @@ const format = (value: unknown): string => JSON.stringify(value, null, 2);
     <h2>Wallet-personalized opportunities</h2>
     <p>
       <code>GET /opportunities/personalized</code> — opportunities tuned to a wallet's held assets.
-      Rows include <code>assetIds</code>; <code>meta</code> reports the queried <code>address</code>
-      and <code>heldAssetCount</code>.
+      Matching applies <code>POST /eligibility</code> rules so full or gated venues are not
+      recommended as enterable. Rows include <code>canEnter</code> and
+      <code>eligibilityFullyCheckable</code>; <code>meta.eligibilityEndpoint</code> is
+      <code>/eligibility</code>.
     </p>
     <CodeBlock
       code={`curl -i '${config.gatewayBaseUrl}/opportunities/personalized?address=YOUR_ALGORAND_ADDRESS'`}
     />
     <h3>Sample response (200)</h3>
     <CodeBlock code={format(personalizedSample)} />
+  </section>
+
+  <section class="panel">
+    <h2>Eligibility and capacity</h2>
+    <p>
+      <code>POST /eligibility</code> — check whether a wallet can enter selected opportunities
+      before quoting. Returns <code>canEnter</code>, <code>missingAssets</code>,
+      <code>gates</code>, <code>capacity</code>, and optional <code>suggestedSwap</code>.
+      NFD/creator gates stay unresolved (<code>eligibilityFullyCheckable: false</code>).
+    </p>
+    <CodeBlock
+      code={`curl -i ${config.gatewayBaseUrl}/eligibility -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","opportunityIds":["reti-staking-12"]}'`}  // pragma: allowlist secret
+    />
+    <h3>Sample response (200)</h3>
+    <CodeBlock code={format(eligibilitySample)} />
   </section>
 
   <section class="panel">

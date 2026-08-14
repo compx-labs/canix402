@@ -84,7 +84,9 @@
           }
         }
       ],
-      "compatibleExitShapes": []
+      "compatibleExitShapes": [],
+      "canEnter": true,
+      "eligibilityFullyCheckable": true
     },
     {
       "protocol": "tinyman",
@@ -185,7 +187,9 @@
           }
         }
       ],
-      "compatibleExitShapes": []
+      "compatibleExitShapes": [],
+      "canEnter": true,
+      "eligibilityFullyCheckable": true
     },
     {
       "protocol": "reti",
@@ -213,7 +217,7 @@
         "algoRoomMicroAlgos": "50000000000",
         "acceptingStake": true
       },
-      "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+      "notes": "R\u00e9ti validator-level consensus staking; quote-time eligibility checks are authoritative.",
       "executionReady": true,
       "executionShapes": [
         {
@@ -222,8 +226,8 @@
           "protocolVersion": "v1",
           "action": "stake",
           "variant": "algo",
-          "title": "Réti ALGO stake to validator",
-          "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+          "title": "R\u00e9ti ALGO stake to validator",
+          "summary": "Stakes ALGO to a R\u00e9ti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas \u00d72, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
           "order": 0,
           "requiredInputs": [
             "userAddress",
@@ -247,8 +251,8 @@
           "protocolVersion": "v1",
           "action": "unstake",
           "variant": "algo",
-          "title": "Réti ALGO unstake from pool",
-          "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+          "title": "R\u00e9ti ALGO unstake from pool",
+          "summary": "Removes ALGO stake from a R\u00e9ti staking pool via StakingPool.removeStake. Builds gas \u00d72, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
           "order": 0,
           "requiredInputs": [
             "userAddress",
@@ -265,7 +269,9 @@
             "depositAssetId": 0
           }
         }
-      ]
+      ],
+      "canEnter": true,
+      "eligibilityFullyCheckable": true
     }
   ],
   "meta": {
@@ -274,6 +280,8 @@
     "includeInactive": false,
     "paymentRequired": true,
     "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    "heldAssetCount": 2
+    "heldAssetCount": 2,
+    "eligibilityApplied": true,
+    "eligibilityEndpoint": "/eligibility"
   }
 }

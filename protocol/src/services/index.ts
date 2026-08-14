@@ -53,6 +53,13 @@ export {
 } from "./personalized-opportunities.js";
 export type { PersonalizedHoldings } from "./personalized-opportunities.js";
 export {
+  eligibilityBlockedOnlyByCapacity,
+  evaluateOpportunityEligibility,
+  fetchEligibility,
+  matchesPersonalizedFromEligibility
+} from "./eligibility.js";
+export type { EligibilityHoldings } from "./eligibility.js";
+export {
   PRECISION_DEFAULT_DECIMALS,
   PRECISION_MAX_DECIMALS,
   formatDecimalForAgent,
