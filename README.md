@@ -28,6 +28,7 @@ Protocol docs:
 - [Development Checklist](protocol/docs/development-checklist.md)
 - [Testing Guide](protocol/docs/testing.md)
 - [Caddy Gateway Setup](protocol/caddy/README.md)
+- [Release notes](docs/release-notes/)
 
 Query a wallet's DeFi positions directly from the protocol services:
 

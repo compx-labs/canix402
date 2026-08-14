@@ -1,6 +1,6 @@
 # CANIX402 — full agent integration guide
 
-> x402-gated Algorand DeFi data and walletless transaction API (version 1.0.0). Normalized yield data and Haystack swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.
+> x402-gated Algorand DeFi data and walletless transaction API (version 0.1.0). Normalized yield data and Haystack swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.
 
 ## Overview
 
@@ -10,6 +10,7 @@
 - **Operator:** Neon Forge Ltd
 - **Support:** kieran@neonforge.ltd
 - **Terms:** https://canix402.compx.io/terms
+- **Release notes:** https://canix402.compx.io/release-notes
 
 Opportunity responses are normalized records with fields such as `protocol`, `opportunityType`, `opportunityId`, `assetPair`, `apy`, `apr`, optional `borrowApr` (borrow-side cost for lending markets), `tvlUsd`, `executionShapes`, `compatibleExitShapes`, optional `entryRequirements` / `capacity` (Réti), `sourceTimestamp`, and `fetchedAt`. Positions may include `debt` rows with repay exit shapes (CompX/Folks) or informational Dork.fi `debt-usd` aggregates. Numeric precision follows the published OpenAPI `x-precision` contract (typically 6 decimal places).
 
@@ -27,7 +28,7 @@ Always call the **gateway**, not an internal upstream API. x402 enforcement, `PA
 
 ### MCP server
 
-Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_list_execution_shapes`, `canix_get_positions`, `canix_get_execution_quote`, and free discovery helpers. See https://canix402.compx.io/mcp.
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_list_execution_shapes`, `canix_get_positions`, `canix_list_claimable`, `canix_get_execution_quote`, and free discovery helpers. See https://canix402.compx.io/mcp.
 
 ## x402 payment flow
 
@@ -39,7 +40,7 @@ Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `htt
 Default payment context (confirm against live discovery before integrating):
 
 - **Protocol version:** 2
-- **Network:** algorand
+- **Network:** algorand-mainnet
 - **USDC asset id:** 31566704
 - **Facilitator:** https://facilitator.goplausible.xyz
 - **Headers:** PAYMENT-REQUIRED, PAYMENT-SIGNATURE, PAYMENT-RESPONSE
@@ -73,6 +74,7 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `GET /opportunities/search` (0.01 USDC) — Caller-filtered opportunities across supported platforms. Params: platform=, type=, minApy=, maxApy=, minTvlUsd=, assetIds=, limit=, offset=, includeInactive=, refresh=.
 - `GET /opportunities/personalized` (0.05 USDC) — Top opportunities tuned to a wallet's held assets. Params: address=, limit=, offset=, includeInactive=, refresh=.
 - `GET /positions` (0.005 USDC) — Algorand DeFi positions held by a wallet. Params: address=.
+- `GET /positions/claimable` (0.001 USDC) — Claimable DeFi rewards across supported protocols. Params: address=.
 - `GET /public/agents/brownie/positions` (Free) — Public DeFi positions for the Brownie Bot showcase wallet.
 - `POST /swaps/transactions` (0.005 USDC) — Build a walletless Haystack swap transaction group.
 - `GET /execution/shapes` (Free) — List verified execution shape catalog metadata.
@@ -85,6 +87,7 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `GET /opportunities/search` — filter by `platform`, `type`, `minApy`, `maxApy`, `minTvlUsd`, `assetIds` (comma-separated ASA ids; 0 = ALGO; ANY intersection with opportunity.assetIds).
 - `GET /opportunities/personalized` — requires `address` (Algorand account); premium price; matches opportunities to wallet-held assets.
 - `GET /positions` — requires `address` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
+- `GET /positions/claimable` — requires `address`; claim desk with USD, fee/worth-claiming hints, and `claimAllQuotes` for exactly 0.001 USDC. Compile via `POST /execution/quotes` (~0.1 USDC flat; groups never merged).
 - `GET /execution/shapes` — free catalog of verified shape keys and requiredInputs (metadata only).
 - `POST /execution/quotes` — batch unsigned transaction groups for verified shapes; flat ~0.1 USDC per request.
 - Haystack swaps — call free `POST /swaps/quote`, sign and submit any group from free `POST /swaps/optin`, refresh the short-lived quote, then call paid `POST /swaps/transactions` for 0.005 USDC. Amounts are asset base units.
@@ -907,6 +910,72 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
   "meta": {
     "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
     "fetchedAt": "2026-08-05T12:00:00.000Z",
+    "paymentRequired": true
+  }
+}
+```
+
+### GET /positions/claimable
+
+```json
+{
+  "data": [
+    {
+      "protocol": "haystack",
+      "positionId": "haystack:reward:3321763884:usdc",
+      "opportunityId": "haystack-staking-hay",
+      "positionType": "reward",
+      "assetId": 31566704,
+      "assetSymbol": "USDC",
+      "amountRaw": "1500000",
+      "amount": "1.500000",
+      "usdValue": 1.5,
+      "claimKey": "haystack:claim:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+      "compatibleClaimShapeKeys": [
+        "mainnet:haystack:v1:claim:rewards"
+      ],
+      "quote": {
+        "shapeKey": "mainnet:haystack:v1:claim:rewards",
+        "input": {
+          "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+        }
+      },
+      "estimatedNetworkFeeMicroAlgos": "5000",
+      "estimatedNetworkFeeUsd": 0.001,
+      "worthClaiming": true,
+      "caveats": [
+        "Pending USDC from staker box; live accrual may be higher until the next drip/claim."
+      ]
+    },
+    {
+      "protocol": "haystack",
+      "positionId": "haystack:reward:3321763884:hay",
+      "opportunityId": "haystack-staking-hay",
+      "positionType": "reward",
+      "assetId": 3160000000,
+      "assetSymbol": "HAY",
+      "amountRaw": "25000000",
+      "amount": "25.000000",
+      "usdValue": 0.5,
+      "claimKey": "haystack:claim:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+      "compatibleClaimShapeKeys": [
+        "mainnet:haystack:v1:claim:rewards"
+      ],
+      "quote": {
+        "shapeKey": "mainnet:haystack:v1:claim:rewards",
+        "input": {
+          "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+        }
+      },
+      "estimatedNetworkFeeMicroAlgos": "5000",
+      "estimatedNetworkFeeUsd": 0.001,
+      "worthClaiming": true
+    }
+  ],
+  "meta": {
+    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+    "fetchedAt": "2026-08-13T12:00:00.000Z",
+    "algoUsd": 0.2,
     "paymentRequired": true
   }
 }

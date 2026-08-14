@@ -2,8 +2,15 @@ import algosdk from "algosdk";
 import type { FastifyInstance } from "fastify";
 
 import { fetchWalletPositions } from "../services/aggregate-positions.js";
+import { fetchClaimableRewards } from "../services/claimable-rewards.js";
+import type { ClaimableRewardsResponse } from "../types/claimable.js";
 import type { ApiError } from "../types/errors.js";
 import type { WalletPositionsResponse } from "../types/position.js";
+import {
+  ClaimablePositionsQuerySchema,
+  ClaimableRewardsResponseSchema,
+  type ClaimablePositionsQuery
+} from "../types/claimable-schema.js";
 import {
   WalletPositionsQuerySchema,
   WalletPositionsResponseSchema,
@@ -36,6 +43,34 @@ export function registerPositionRoutes(app: FastifyInstance): void {
       }
 
       return reply.send(await fetchWalletPositions(address));
+    }
+  );
+
+  app.get<{
+    Querystring: ClaimablePositionsQuery;
+    Reply: ClaimableRewardsResponse | ApiError;
+  }>(
+    "/positions/claimable",
+    {
+      schema: {
+        querystring: ClaimablePositionsQuerySchema,
+        response: {
+          200: ClaimableRewardsResponseSchema
+        }
+      }
+    },
+    async (request, reply) => {
+      const { address } = request.query;
+      if (!algosdk.isValidAddress(address)) {
+        return reply.status(400).send({
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Query parameter 'address' is not a valid Algorand address."
+          }
+        });
+      }
+
+      return reply.send(await fetchClaimableRewards(address));
     }
   );
 }

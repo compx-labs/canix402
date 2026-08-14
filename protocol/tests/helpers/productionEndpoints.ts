@@ -37,6 +37,11 @@ function resolveProductionPath(pathPattern: string): string {
     return `/positions?address=${encodeURIComponent(address)}`;
   }
 
+  if (pathPattern === "/positions/claimable") {
+    const address = getProductionPersonalizedAddress();
+    return `/positions/claimable?address=${encodeURIComponent(address)}`;
+  }
+
   if (pathPattern === "/execution/quotes") {
     return "/execution/quotes";
   }

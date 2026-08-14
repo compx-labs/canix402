@@ -1,7 +1,7 @@
 {
   "data": {
     "service": "canix402",
-    "apiVersion": "1.0.0",
+    "apiVersion": "0.1.0",
     "discoveryVersion": "1.0.0",
     "capabilities": [
       "algorand-defi-opportunities",
@@ -338,9 +338,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.01"
           },
           "amountUsdc": "0.01",
@@ -384,9 +384,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.01"
           },
           "amountUsdc": "0.01",
@@ -434,9 +434,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.01"
           },
           "amountUsdc": "0.01",
@@ -480,9 +480,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.05"
           },
           "amountUsdc": "0.05",
@@ -523,13 +523,58 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.005"
           },
           "amountUsdc": "0.005",
           "amountMicro": "5000"
+        }
+      },
+      {
+        "id": "positionsClaimable",
+        "method": "GET",
+        "path": "/positions/claimable",
+        "access": "paid",
+        "summary": "Claimable DeFi rewards across supported protocols",
+        "description": "Returns claimable reward rows for a wallet with USD value, network-fee / worth-claiming hints, compatible claim shapeKeys, and ready-to-POST quote inputs. Use claimAllQuotes (or selected per-row quotes) with POST /execution/quotes to compile unsigned claim groups — groups are never merged. Covers Tinyman farm, stALGO TINY claim, CompX staking, Pact farm, Haystack, and Alpha Arcade. This endpoint does not build or submit transactions.",
+        "tags": [
+          "defi",
+          "positions",
+          "rewards",
+          "wallet",
+          "execution",
+          "x402-global-challenge"
+        ],
+        "pathParams": [],
+        "queryParams": [
+          "address"
+        ],
+        "responseCodes": [
+          200,
+          400,
+          402,
+          500,
+          502
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet",
+            "asset": "31566704",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.001"
+          },
+          "amountUsdc": "0.001",
+          "amountMicro": "1000"
         }
       },
       {
@@ -587,9 +632,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.005"
           },
           "amountUsdc": "0.005",
@@ -646,9 +691,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.1"
           },
           "amountUsdc": "0.1",
@@ -704,6 +749,7 @@
         "canix_get_personalized_opportunities",
         "canix_get_protocol_opportunities",
         "canix_get_positions",
+        "canix_list_claimable",
         "canix_get_execution_quote",
         "canix_get_quote",
         "canix_optin",

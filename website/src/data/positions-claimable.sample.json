@@ -1,0 +1,146 @@
+{
+  "data": [
+    {
+      "protocol": "haystack",
+      "positionId": "haystack:reward:3321763884:usdc",
+      "opportunityId": "haystack-staking-hay",
+      "positionType": "reward",
+      "assetId": 31566704,
+      "assetSymbol": "USDC",
+      "amountRaw": "1500000",
+      "amount": "1.500000",
+      "usdValue": 1.5,
+      "claimKey": "haystack:claim:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+      "compatibleClaimShapeKeys": ["mainnet:haystack:v1:claim:rewards"],
+      "quote": {
+        "shapeKey": "mainnet:haystack:v1:claim:rewards",
+        "input": {
+          "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+        }
+      },
+      "estimatedNetworkFeeMicroAlgos": "5000",
+      "estimatedNetworkFeeUsd": 0.001,
+      "worthClaiming": true,
+      "caveats": [
+        "Pending USDC from staker box; live accrual may be higher until the next drip/claim."
+      ]
+    },
+    {
+      "protocol": "haystack",
+      "positionId": "haystack:reward:3321763884:hay",
+      "opportunityId": "haystack-staking-hay",
+      "positionType": "reward",
+      "assetId": 3160000000,
+      "assetSymbol": "HAY",
+      "amountRaw": "25000000",
+      "amount": "25.000000",
+      "usdValue": 0.5,
+      "claimKey": "haystack:claim:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+      "compatibleClaimShapeKeys": ["mainnet:haystack:v1:claim:rewards"],
+      "quote": {
+        "shapeKey": "mainnet:haystack:v1:claim:rewards",
+        "input": {
+          "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+        }
+      },
+      "estimatedNetworkFeeMicroAlgos": "5000",
+      "estimatedNetworkFeeUsd": 0.001,
+      "worthClaiming": true
+    },
+    {
+      "protocol": "compx",
+      "positionId": "compx:reward:123456:31566704",
+      "opportunityId": "compx-staking-123456",
+      "positionType": "reward",
+      "assetId": 31566704,
+      "assetSymbol": "USDC",
+      "amountRaw": "500000",
+      "amount": "0.500000",
+      "usdValue": 0.5,
+      "claimKey": "compx:claim:123456",
+      "compatibleClaimShapeKeys": ["mainnet:compx:v1:claim:rewards"],
+      "quote": {
+        "shapeKey": "mainnet:compx:v1:claim:rewards",
+        "input": {
+          "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+          "poolAppId": 123456
+        }
+      },
+      "estimatedNetworkFeeMicroAlgos": "250000",
+      "estimatedNetworkFeeUsd": 0.05,
+      "worthClaiming": true,
+      "inputHints": {
+        "poolAppId": 123456,
+        "assetId": 31566704
+      }
+    },
+    {
+      "protocol": "tinyman",
+      "positionId": "tinyman:staked:stalgo:dummy",
+      "opportunityId": "tinyman-staking-stalgo",
+      "positionType": "staked",
+      "assetId": 0,
+      "assetSymbol": "stALGO",
+      "amountRaw": "1000000",
+      "amount": "1.000000",
+      "usdValue": null,
+      "claimKey": "tinyman:stalgo-claim:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+      "compatibleClaimShapeKeys": [
+        "mainnet:tinyman:restake-v1:claimRewards:stAlgo"
+      ],
+      "quote": {
+        "shapeKey": "mainnet:tinyman:restake-v1:claimRewards:stAlgo",
+        "input": {
+          "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+        }
+      },
+      "estimatedNetworkFeeMicroAlgos": "2000",
+      "estimatedNetworkFeeUsd": 0.0004,
+      "worthClaiming": null,
+      "caveats": [
+        "Pending TINY restake rewards are not collected on positions; claim via manage shape."
+      ]
+    }
+  ],
+  "protocols": [
+    { "protocol": "tinyman", "status": "ok", "positionCount": 1, "message": null },
+    { "protocol": "compx", "status": "ok", "positionCount": 1, "message": null },
+    { "protocol": "pact", "status": "ok", "positionCount": 0, "message": null },
+    { "protocol": "haystack", "status": "ok", "positionCount": 2, "message": null },
+    { "protocol": "alpha-arcade", "status": "ok", "positionCount": 0, "message": null }
+  ],
+  "totals": {
+    "claimableUsd": null,
+    "estimatedNetworkFeeUsd": 0.0514,
+    "worthClaimingUsd": null
+  },
+  "claimAllQuotes": {
+    "quotes": [
+      {
+        "shapeKey": "mainnet:haystack:v1:claim:rewards",
+        "input": {
+          "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+        }
+      },
+      {
+        "shapeKey": "mainnet:compx:v1:claim:rewards",
+        "input": {
+          "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+          "poolAppId": 123456
+        }
+      },
+      {
+        "shapeKey": "mainnet:tinyman:restake-v1:claimRewards:stAlgo",
+        "input": {
+          "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+        }
+      }
+    ]
+  },
+  "meta": {
+    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+    "fetchedAt": "2026-08-13T12:00:00.000Z",
+    "algoUsd": 0.2,
+    "paymentRequired": true
+  }
+}

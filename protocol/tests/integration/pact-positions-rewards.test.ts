@@ -66,6 +66,10 @@ test("Pact farm rewards are USD-priced when CompX/Tinyman price map has the ASA"
       false
     );
     assert.deepEqual(reward.caveats, ["Unclaimed Pact farm reward."]);
+    assert.deepEqual(reward.inputHints, {
+      farmAppId: FARM_APP_ID,
+      assetId: REWARD_ASSET_ID
+    });
   } finally {
     globalThis.fetch = originalFetch;
   }

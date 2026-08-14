@@ -9,6 +9,12 @@ export type {
   WalletPositionTotals,
   WalletPositionsResponse
 } from "./position.js";
+export type {
+  ClaimableQuoteRequest,
+  ClaimableRewardRecord,
+  ClaimableRewardsResponse,
+  ClaimableWorthClaiming
+} from "./claimable.js";
 export {
   PositionRecordSchema,
   PositionTypeSchema,
@@ -17,6 +23,12 @@ export {
   WalletPositionsQuerySchema,
   WalletPositionsResponseSchema
 } from "./position-schema.js";
+export {
+  ClaimablePositionsQuerySchema,
+  ClaimableQuoteRequestSchema,
+  ClaimableRewardRecordSchema,
+  ClaimableRewardsResponseSchema
+} from "./claimable-schema.js";
 export type {
   DiscoveryDocument,
   DiscoveryEndpointDescriptor,

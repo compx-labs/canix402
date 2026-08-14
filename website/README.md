@@ -77,6 +77,7 @@ positions, execution, and swap routes from checked-in JSON under `src/data`:
 - `opportunities-personalized.sample.json` (`GET /opportunities/personalized`)
 - `protocol-opportunities.sample.json` (`GET /protocols/{protocol}/opportunities`)
 - `positions.sample.json` (`GET /positions`)
+- `positions-claimable.sample.json` (`GET /positions/claimable`)
 - `execution-shapes.sample.json` (`GET /execution/shapes`)
 - `execution-quotes.sample.json` (`POST /execution/quotes`)
 - `swaps-quote.sample.json` (`POST /swaps/quote`)

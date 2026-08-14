@@ -5,8 +5,10 @@ import EndpointTable from "../components/EndpointTable.astro";
 import { config } from "../lib/config";
 import { protocols } from "../lib/protocols";
 import { loadDiscovery } from "../lib/discovery";
+import { getLatestReleaseNote } from "../lib/release-notes";
 
 const loaded = await loadDiscovery(config.discoveryUrl);
+const latestRelease = await getLatestReleaseNote();
 const previewEndpoints = [...loaded.document.endpoints]
   .sort((a, b) => {
     if (a.access === b.access) {
@@ -134,6 +136,9 @@ const caseStudyResults = [
           <a class="button" href="/mcp">Connect MCP</a>
           <a class="button button-ghost" href="/endpoints">Explore endpoints</a>
         </div>
+        <p class="hero-release">
+          Latest: <a href="/release-notes">protocol v{latestRelease.data.version} release notes</a>
+        </p>
         <ul class="signal-strip" aria-label="Product highlights">
           {
             productSignals.map((signal) => (

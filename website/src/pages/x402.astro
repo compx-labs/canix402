@@ -6,6 +6,7 @@ import {
   config,
   defaultPaidPriceUsdc,
   personalizedPriceUsdc,
+  positionsClaimablePriceUsdc,
   positionsPriceUsdc,
   executionQuotePriceUsdc
 } from "../lib/config";
@@ -51,6 +52,8 @@ import {
       opportunities at <code>/opportunities/personalized</code> cost
       <code>{personalizedPriceUsdc} USDC</code>, while <code>/positions?address=</code> costs
       exactly <code>{positionsPriceUsdc} USDC</code> (<code>5000</code> micro-USDC).
+      Claim desk <code>/positions/claimable?address=</code> costs
+      exactly <code>{positionsClaimablePriceUsdc} USDC</code> (<code>1000</code> micro-USDC).
       Batch execution quotes at <code>POST /execution/quotes</code> cost
       <code>{executionQuotePriceUsdc} USDC</code> flat per request (not per quote item). Haystack quote and prerequisite
       opt-in generation are free; only <code>POST /swaps/transactions</code> costs

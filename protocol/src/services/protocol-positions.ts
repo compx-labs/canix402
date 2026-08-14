@@ -676,7 +676,11 @@ export async function collectPactPositions(
           amount: formatUnits(rewardRaw, rewardDecimals),
           usdValue: null,
           sourceTimestamp: farm.state.updatedAt.toISOString(),
-          caveats: ["Unclaimed Pact farm reward."]
+          caveats: ["Unclaimed Pact farm reward."],
+          inputHints: {
+            farmAppId,
+            assetId: rewardAsset.index
+          }
         });
       }
     } catch (error) {
@@ -1541,7 +1545,11 @@ export async function collectCompXPositions(
               amount: formatUnits(pendingRaw, rewardDecimals),
               usdValue: null,
               notes:
-                "Pending staking reward from stake * rewardPerToken / 1e15 - rewardDebt."
+                "Pending staking reward from stake * rewardPerToken / 1e15 - rewardDebt.",
+              inputHints: {
+                poolAppId: appId,
+                assetId: state.rewardAssetId
+              }
             });
           }
         }

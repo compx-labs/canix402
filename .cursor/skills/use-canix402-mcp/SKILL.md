@@ -122,6 +122,27 @@ Wrap either variant in this JSON shape, then base64-encode the UTF-8 JSON:
 Preserve the complete live `paymentRequired` and selected accept object. Do not
 invent, omit, or rewrite facilitator fields.
 
+## Claim desk agent loop
+
+For harvesting claimable rewards across supported protocols:
+
+1. Optionally call `canix_get_positions` for the full book.
+2. Call `canix_list_claimable` with the wallet `address` (paid ~0.001 USDC).
+   Response `data[]` includes USD value, `estimatedNetworkFee*`, `worthClaiming`,
+   `compatibleClaimShapeKeys`, per-row `quote`, and `claimKey` for dedupe.
+   Top-level `claimAllQuotes.quotes` is ready for the compiler.
+3. Filter by `worthClaiming` / `claimKey` as the user intends. Prefer
+   `claimAllQuotes` or selected per-row `quote` objects — do not invent
+   `shapeKey`s.
+4. Call `canix_get_execution_quote` with those `quotes[]` (paid flat ~0.10 USDC
+   per request). Groups are never merged across quote items.
+5. Sign and submit locally (see below). Tinyman farm claims use
+   `metadata.submitMode === "tinyman-analytics-claim"`.
+
+Supported claim desk protocols: Tinyman farm, Tinyman stALGO TINY claim, CompX
+staking, Pact farm, Haystack, Alpha Arcade. Fee/worth-claiming hints compare
+reward USD to estimated network fees only — they are not a simulation.
+
 ## Signing an execution quote
 
 For `canix_get_execution_quote`:
@@ -129,8 +150,9 @@ For `canix_get_execution_quote`:
 1. Prefer `executionShapes` from opportunity responses (enter-only). When present,
    use `compatibleExitShapes` for known liquid-staking exits; otherwise use
    `canix_list_execution_shapes` or position `compatibleExitShapeKeys` /
-   `compatibleManageShapeKeys` for exit/manage. Never invent `shapeKey`s when
-   `executionReady` is false.
+   `compatibleManageShapeKeys` for exit/manage. For reward harvests, prefer
+   `canix_list_claimable` / `claimAllQuotes` instead of scraping positions.
+   Never invent `shapeKey`s when `executionReady` is false.
 2. Call with `quotes: [{ shapeKey, input }, ...]` (min 1). Response `data` is an
    `ExecutableQuote[]` in the same order — each item is an independent unsigned
    group; groups are never merged. Price is flat ~0.10 USDC **per request**, not

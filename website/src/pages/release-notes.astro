@@ -1,0 +1,30 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getLatestReleaseNote } from "../lib/release-notes";
+import { render } from "astro:content";
+
+const latest = await getLatestReleaseNote();
+const { Content } = await render(latest);
+
+const formattedDate = latest.data.date.toLocaleDateString("en-GB", {
+  day: "numeric",
+  month: "long",
+  year: "numeric"
+});
+---
+
+<BaseLayout
+  title={`${latest.data.title} | CANIX402`}
+  description={`Protocol v${latest.data.version} release notes (${formattedDate}): ${latest.data.title}.`}
+  keywords="Canix402 release notes, protocol changelog, claim desk, positions, Tinyman, x402"
+  ogType="article"
+>
+  <p class="eyebrow">Release notes</p>
+  <div class="release-meta">
+    <span class="badge badge-price">Protocol v{latest.data.version}</span>
+  </div>
+
+  <article class="release-notes">
+    <Content />
+  </article>
+</BaseLayout>

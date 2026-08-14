@@ -19,6 +19,17 @@ test("Caddy keeps free POST routes outside x402 enforcement", () => {
   assert.doesNotMatch(caddyfile, /\/strategies/);
 });
 
+test("Caddy gives claimable positions a dedicated paid policy", () => {
+  assert.match(
+    caddyfile,
+    /@paid_positions_claimable path \/positions\/claimable/
+  );
+  assert.match(
+    caddyfile,
+    /handle @paid_positions_claimable \{[\s\S]*?price \{\$X402_PRICE_POSITIONS_CLAIMABLE_USDC\}[\s\S]*?reverse_proxy \{\$UPSTREAM_API\}[\s\S]*?\}/
+  );
+});
+
 test("Caddy gives Haystack transaction generation a dedicated paid policy", () => {
   assert.match(
     caddyfile,

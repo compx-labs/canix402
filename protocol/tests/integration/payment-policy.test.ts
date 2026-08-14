@@ -54,9 +54,20 @@ test("Brownie showcase positions are free while arbitrary /positions stays paid"
     "free"
   );
   assert.equal(classifyEndpointAccess("/positions", "GET"), "paid");
+  assert.equal(classifyEndpointAccess("/positions/claimable", "GET"), "paid");
   const showcase = endpointPolicyMatrix.find(
     (endpoint) => endpoint.id === "publicBrowniePositions"
   );
   assert.equal(showcase?.access, "free");
   assert.equal(showcase?.pathPattern, "/public/agents/brownie/positions");
+
+  const claimable = endpointPolicyMatrix.find(
+    (endpoint) => endpoint.id === "positionsClaimable"
+  );
+  assert.equal(claimable?.access, "paid");
+  assert.equal(claimable?.pathPattern, "/positions/claimable");
+  assert.equal(
+    claimable?.priceUsdc,
+    process.env.X402_PRICE_POSITIONS_CLAIMABLE_USDC ?? "0.001"
+  );
 });

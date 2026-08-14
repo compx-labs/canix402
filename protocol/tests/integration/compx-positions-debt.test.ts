@@ -211,6 +211,10 @@ test("CompX collector emits pending staking rewards from rewardPerToken and rewa
   assert.equal(staked.caveats, undefined);
   assert.ok(reward);
   assert.equal(reward.positionId, `compx:reward:${POOL_APP_ID}:${REWARD_ID}`);
+  assert.deepEqual(reward.inputHints, {
+    poolAppId: POOL_APP_ID,
+    assetId: REWARD_ID
+  });
   assert.equal(reward.amountRaw, "3000000");
   assert.equal(reward.amount, "3");
   assert.equal(reward.usdValue, 3);

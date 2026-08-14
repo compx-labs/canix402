@@ -2,6 +2,14 @@
 
 Completed work moved out of `docs/development-checklist.md` so the checklist can stay focused on active and upcoming work.
 
+## Archived 2026-08-13
+
+Checklist hygiene while opening section 13 (agent execution OS). No newly completed implementation — these items were already done or were relocated.
+
+- [x] Formal launch checklist sign-off (duplicate leftover under Testing and Quality Gates; originally completed under Go-Live Readiness on 2026-07-30).
+- Relocated, not completed: dry-run/simulation endpoint moved from Execution Layer “Validation and Safety (optional follow-up)” to checklist section 13.6 (simulate / expected delta as a product).
+- Relocated leftover tightening stays in checklist sections 3 and 8: unit-test expansion, golden fixtures, protocol-specific execution caveats, richer quote-time state refresh.
+
 ## Archived 2026-07-30
 
 ### 8) Protocol Transaction Shape Mapping
