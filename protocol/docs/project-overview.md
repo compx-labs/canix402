@@ -178,9 +178,12 @@ A paid wallet data route priced at exactly 0.005 USDC:
 
 ### Claim desk (`GET /positions/claimable?address=`)
 
-A paid wallet research route priced at exactly 0.005 USDC (same SKU class as
-`/positions`). Compiling claims remains the compiler SKU
-(`POST /execution/quotes`, ~0.10 USDC flat per request).
+A paid wallet research route priced at exactly 0.001 USDC. Compiling claims
+remains the compiler SKU (`POST /execution/quotes`, ~0.10 USDC flat per request).
+
+- Discovery and OpenAPI advertise the route as paid with `maxAmountRequired: "0.001"`.
+- Caddy enforces `X402_PRICE_POSITIONS_CLAIMABLE_USDC=0.001`, encoded as `1000`
+  micro-USDC in `PAYMENT-REQUIRED`.
 
 - Projects existing reward rows (plus Tinyman stALGO manage claim) into a desk
   with USD value, conservative network-fee hints, `worthClaiming`, allowlisted

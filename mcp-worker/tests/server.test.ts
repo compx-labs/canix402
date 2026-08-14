@@ -147,7 +147,7 @@ test("canix_get_positions forwards address and reports 0.005 preflight price", a
   assert.equal(payload.request.query.address, "WALLET");
 });
 
-test("canix_list_claimable forwards address and reports 0.005 preflight price", async () => {
+test("canix_list_claimable forwards address and reports 0.001 preflight price", async () => {
   let requestUrl = "";
   let paymentSignature = "";
   const server = createCanixWorkerMcpServer({
@@ -180,7 +180,7 @@ test("canix_list_claimable forwards address and reports 0.005 preflight price", 
     request: { query: { address: string } };
   };
   assert.equal(payload.error, "PAYMENT_REQUIRED");
-  assert.equal(payload.mcpPayment.priceUsdc, "0.005");
+  assert.equal(payload.mcpPayment.priceUsdc, "0.001");
   assert.equal(payload.request.query.address, "WALLET");
 });
 

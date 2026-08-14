@@ -10,7 +10,7 @@ Stateless remote MCP server for canix402, designed for Cloudflare Workers deploy
 - For paid tools: first call returns payment requirements, retry call forwards `PAYMENT-SIGNATURE`
 - Exposes `canix_get_positions` for paid `GET /positions` calls with a required
   wallet `address` and a 0.005 USDC fallback price
-- Exposes `canix_list_claimable` for paid `GET /positions/claimable` (0.005 USDC);
+- Exposes `canix_list_claimable` for paid `GET /positions/claimable` (0.001 USDC);
   pass `claimAllQuotes` into `canix_get_execution_quote` to compile unsigned claims
 - Exposes stateless Haystack tools:
   - `canix_get_quote` → free `POST /swaps/quote`

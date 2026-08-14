@@ -78,7 +78,7 @@ test("positions endpoint advertises exactly 5000 micro-USDC", async () => {
   }
 });
 
-test("positions/claimable endpoint advertises exactly 5000 micro-USDC", async () => {
+test("positions/claimable endpoint advertises exactly 1000 micro-USDC", async () => {
   const context = await setup();
   try {
     const response = await fetch(
@@ -91,7 +91,7 @@ test("positions/claimable endpoint advertises exactly 5000 micro-USDC", async ()
     const decoded = decodePaymentRequired(paymentRequired);
     assert.equal(
       decoded.accepts[0]?.maxAmountRequired ?? decoded.accepts[0]?.amount,
-      "5000"
+      "1000"
     );
     assert.equal(context.facilitator.calls.length, 0);
   } finally {

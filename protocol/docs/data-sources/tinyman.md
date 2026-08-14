@@ -10,6 +10,7 @@ This document defines the current Tinyman adapter contract used by canix402.
 - Base URL: `TINYMAN_API_BASE_URL`
 - Endpoints used:
   - Opportunities: `GET /pools/`
+  - Extra / low-liquidity pools (by address): `GET /pools/{pool_address}/`
   - ALGO USD for tALGO/stALGO TVL: `GET /assets/0/` (`price_in_usd`)
   - TINY USD for stALGO APR: `GET /assets/{tiny_asset_id}/` (`price_in_usd`)
   - Wallet LP positions: `GET /pools/?liquidity_asset_ids=…`
@@ -24,6 +25,12 @@ This document defines the current Tinyman adapter contract used by canix402.
   - `version__in=2.0` (override with `TINYMAN_POOL_VERSIONS`)
   - `limit=100` (override with `TINYMAN_POOL_LIMIT`)
   - verified-only filtering in adapter (`TINYMAN_ONLY_VERIFIED=true` by default)
+- Extra pools (default includes COMPX/ALGO
+  `ZKAP7DLHJ25VTHPD3W73FGDM7VGU3DJAXL7GNUFW5CG4MIMY72EZ5GFIAI`) are fetched by
+  address in parallel with the list, merged/deduped by pool address, then run
+  through the same verified + APY/TVL normalize path. Extra fetch failures are
+  non-fatal (list still returns). Tinyman LP execution does not need a per-pool
+  app id; quotes resolve the validator app and pool from the asset pair.
 
 ## Environment Variables
 
@@ -32,6 +39,9 @@ This document defines the current Tinyman adapter contract used by canix402.
 - `TINYMAN_POOL_VERSIONS` (optional CSV, default `2.0`)
 - `TINYMAN_ONLY_VERIFIED` (optional boolean, default `true`)
 - `TINYMAN_POOL_LIMIT` (optional integer-like string, default `100`)
+- `TINYMAN_EXTRA_POOL_ADDRESSES` (optional CSV of Algorand pool addresses always
+  fetched via `GET /pools/{address}/` in addition to the list; COMPX/ALGO is
+  included by default in code)
 - `X402_ALGOD_URL` / `X402_ALGOD_TOKEN` (shared; used for tALGO/stALGO staking APR/TVL)
 
 ## Normalized Output Fields
@@ -99,6 +109,8 @@ recent block headers (`bonus`, `feesCollected`). See `src/services/consensus-sta
 - Invalid JSON/transport timeout on pools -> adapter throws `TinymanAdapterError`.
 - Rows missing either APY or TVL (USD) are filtered out, not partially emitted.
 - Rows are filtered to verified pools by default (`TINYMAN_ONLY_VERIFIED=true`).
+- Extra pool detail fetches (`GET /pools/{address}/`) that fail or return invalid
+  payloads are omitted; the top-N list still returns.
 - tALGO staking failures (algod / price / stake-app) omit the staking row only;
   pool opportunities still return.
 
@@ -122,6 +134,10 @@ recent block headers (`bonus`, `feesCollected`). See `src/services/consensus-sta
 - Endpoint/field names are controlled by Tinyman and may evolve.
 - Pool endpoint data maps to `lp`; farming incentives are emitted as separate
   `farm` opportunities when staking fields are present.
+- Low-liquidity pools can fall outside `TINYMAN_POOL_LIMIT`; use
+  `TINYMAN_EXTRA_POOL_ADDRESSES` (or the in-code defaults) to force-include them
+  by address. Opportunity ids use the pool address (`{address}:lp` / `:farm`);
+  the Tinyman validator app id is resolved at quote/execution time, not discovery.
 - Accruing-but-not-yet-claimable `pooler.rewards.potential` is not emitted;
   only unpaid `pending` rewards are included in wallet reward totals.
 - Consensus APR uses ledger online stake (not the stricter ≥30k eligible-stake

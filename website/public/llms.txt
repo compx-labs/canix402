@@ -27,6 +27,7 @@ Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. D
 - [GET /opportunities/search](https://canix402-api.compx.io/opportunities/search): 0.01 USDC — Caller-filtered opportunities across supported platforms
 - [GET /opportunities/personalized](https://canix402-api.compx.io/opportunities/personalized): 0.05 USDC — Top opportunities tuned to a wallet's held assets
 - [GET /positions](https://canix402-api.compx.io/positions): 0.005 USDC — Algorand DeFi positions held by a wallet
+- [GET /positions/claimable](https://canix402-api.compx.io/positions/claimable): 0.001 USDC — Claimable DeFi rewards across supported protocols
 - [POST /swaps/transactions](https://canix402-api.compx.io/swaps/transactions): 0.005 USDC — Build a walletless Haystack swap transaction group
 - [POST /execution/quotes](https://canix402-api.compx.io/execution/quotes): 0.1 USDC — Compile one or more verified transaction shapes into unsigned Algorand transaction groups
 

@@ -60,6 +60,7 @@ export { supportedProtocols } from "./protocols";
 export const defaultPaidPriceUsdc = "0.01";
 export const personalizedPriceUsdc = "0.05";
 export const positionsPriceUsdc = "0.005";
+export const positionsClaimablePriceUsdc = "0.001";
 export const executionQuotePriceUsdc = "0.1";
 
 /** Canonical MCP tool names — aligned with API discovery metadata. */

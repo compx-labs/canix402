@@ -54,7 +54,38 @@ import { config, mcpToolNames } from "../lib/config";
   <section class="panel">
     <h2>Positions and execution quotes (paid tools)</h2>
     <CodeBlock
-      code={`// Positions\ncanix_get_positions({ address: "YOUR_ALGORAND_ADDRESS" })\ncanix_get_positions({\n  address: "YOUR_ALGORAND_ADDRESS",\n  paymentSignature: "<base64-json-payload>"\n})\n\n// Execution quotes (batch)\ncanix_get_execution_quote({\n  quotes: [{\n    shapeKey: "mainnet:tinyman:v2:addLiquidity:flexible",\n    input: {\n      userAddress: "YOUR_ALGORAND_ADDRESS",\n      assetAId: 0,\n      assetAAmount: "1000000",\n      assetBId: 31566704,\n      assetBAmount: "1000000",\n      maxSlippageBps: 50\n    }\n  }]\n})\ncanix_get_execution_quote({\n  quotes: [/* same body */],\n  paymentSignature: "<base64-json-payload>"\n})`}
+      code={`// Positions
+canix_get_positions({ address: "YOUR_ALGORAND_ADDRESS" })
+canix_get_positions({
+  address: "YOUR_ALGORAND_ADDRESS",
+  paymentSignature: "<base64-json-payload>"
+})
+
+// Claim desk
+canix_list_claimable({ address: "YOUR_ALGORAND_ADDRESS" })
+canix_list_claimable({
+  address: "YOUR_ALGORAND_ADDRESS",
+  paymentSignature: "<base64-json-payload>"
+})
+
+// Execution quotes (batch)
+canix_get_execution_quote({
+  quotes: [{
+    shapeKey: "mainnet:tinyman:v2:addLiquidity:flexible",
+    input: {
+      userAddress: "YOUR_ALGORAND_ADDRESS",
+      assetAId: 0,
+      assetAAmount: "1000000",
+      assetBId: 31566704,
+      assetBAmount: "1000000",
+      maxSlippageBps: 50
+    }
+  }]
+})
+canix_get_execution_quote({
+  quotes: [/* same body */],
+  paymentSignature: "<base64-json-payload>"
+})`}
     />
   </section>
 
@@ -127,8 +158,8 @@ import { config, mcpToolNames } from "../lib/config";
     </ul>
     <p class="muted">
       Free tools include health, metadata, discovery, OpenAPI, execution shapes,
-      Haystack quotes, and opt-ins. Paid tools include opportunities, positions, execution quotes,
-      and Haystack swap transactions.
+      Haystack quotes, and opt-ins. Paid tools include opportunities, positions, claimable
+      rewards, execution quotes, and Haystack swap transactions.
     </p>
   </section>
 

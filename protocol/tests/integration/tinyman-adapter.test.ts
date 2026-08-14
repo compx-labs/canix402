@@ -7,12 +7,27 @@ import {
   normalizeTinymanPool,
   normalizeTinymanTAlgoStakingOpportunity,
   normalizeTinymanStAlgoStakingOpportunity,
+  parseTinymanPoolDetail,
+  resolveExtraPoolAddresses,
   setTinymanAdapterDependenciesForTests,
+  TINYMAN_DEFAULT_EXTRA_POOL_ADDRESSES,
   TINYMAN_LIQUID_STAKE_PROTOCOL_FEE,
   TINYMAN_STALGO_STAKING_OPPORTUNITY_ID,
   TINYMAN_TALGO_STAKING_OPPORTUNITY_ID
 } from "../../src/adapters/index.js";
 import { buildApp } from "../../src/app.js";
+
+const COMPX_ALGO_POOL_ADDRESS = TINYMAN_DEFAULT_EXTRA_POOL_ADDRESSES[0];
+
+const COMPX_ALGO_POOL_DETAIL = {
+  address: COMPX_ALGO_POOL_ADDRESS,
+  is_verified: true,
+  annual_percentage_yield: "0.236666",
+  annual_percentage_rate: "0.212481",
+  liquidity_in_usd: "518.317639900972",
+  asset_1: { id: "1732165149", unit_name: "COMPX" },
+  asset_2: { id: "0", unit_name: "ALGO" }
+};
 
 function disableTinymanStakingForTests(): void {
   setTinymanAdapterDependenciesForTests({
@@ -251,6 +266,130 @@ test("fetchTinymanOpportunities appends tALGO staking when dependencies succeed"
     assert.ok(staking);
     assert.equal(staking?.opportunityId, TINYMAN_TALGO_STAKING_OPPORTUNITY_ID);
     assert.equal(staking?.apy, 5 * (1 - TINYMAN_LIQUID_STAKE_PROTOCOL_FEE));
+  } finally {
+    setTinymanAdapterDependenciesForTests(undefined);
+  }
+});
+
+test("parseTinymanPoolDetail accepts detail objects and rejects list payloads", () => {
+  assert.equal(parseTinymanPoolDetail(COMPX_ALGO_POOL_DETAIL)?.address, COMPX_ALGO_POOL_ADDRESS);
+  assert.equal(parseTinymanPoolDetail({ results: [COMPX_ALGO_POOL_DETAIL] }), null);
+  assert.equal(parseTinymanPoolDetail({ is_verified: true }), null);
+});
+
+test("resolveExtraPoolAddresses unions defaults with env CSV", () => {
+  const addresses = resolveExtraPoolAddresses(
+    ` ${COMPX_ALGO_POOL_ADDRESS}, not-an-address `
+  );
+  assert.deepEqual(addresses, [COMPX_ALGO_POOL_ADDRESS]);
+  assert.ok(resolveExtraPoolAddresses(undefined).includes(COMPX_ALGO_POOL_ADDRESS));
+});
+
+test("fetchTinymanOpportunities merges extra pool not present in the list", async () => {
+  disableTinymanStakingForTests();
+  try {
+    const opportunities = await fetchTinymanOpportunities(async (input) => {
+      const url = String(input);
+      if (url.includes(`/pools/${COMPX_ALGO_POOL_ADDRESS}/`)) {
+        return {
+          ok: true,
+          json: async () => COMPX_ALGO_POOL_DETAIL
+        } as Response;
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          results: [
+            {
+              address: "pool-1",
+              is_verified: true,
+              annual_percentage_yield: 0.01,
+              liquidity_in_usd: 100,
+              asset_1: { unit_name: "ALGO" },
+              asset_2: { unit_name: "USDC" }
+            }
+          ]
+        })
+      } as Response;
+    });
+
+    assert.equal(opportunities.length, 2);
+    const compx = opportunities.find(
+      (opportunity) => opportunity.opportunityId === `${COMPX_ALGO_POOL_ADDRESS}:lp`
+    );
+    assert.ok(compx);
+    assert.equal(compx?.assetPair, "COMPX/ALGO");
+    assert.deepEqual(compx?.assetIds, [1732165149, 0]);
+    assert.ok(Math.abs((compx?.apy ?? 0) - 23.6666) < 0.0001);
+  } finally {
+    setTinymanAdapterDependenciesForTests(undefined);
+  }
+});
+
+test("fetchTinymanOpportunities dedupes extra pool already in the list", async () => {
+  disableTinymanStakingForTests();
+  try {
+    const opportunities = await fetchTinymanOpportunities(async (input) => {
+      const url = String(input);
+      if (url.includes(`/pools/${COMPX_ALGO_POOL_ADDRESS}/`)) {
+        return {
+          ok: true,
+          json: async () => ({
+            ...COMPX_ALGO_POOL_DETAIL,
+            // Different TVL so a duplicate would be detectable if merge failed.
+            liquidity_in_usd: "999999"
+          })
+        } as Response;
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          results: [COMPX_ALGO_POOL_DETAIL]
+        })
+      } as Response;
+    });
+
+    const matches = opportunities.filter(
+      (opportunity) => opportunity.opportunityId === `${COMPX_ALGO_POOL_ADDRESS}:lp`
+    );
+    assert.equal(matches.length, 1);
+    assert.equal(matches[0]?.tvlUsd, 518.317639900972);
+  } finally {
+    setTinymanAdapterDependenciesForTests(undefined);
+  }
+});
+
+test("fetchTinymanOpportunities ignores failed extra pool fetches", async () => {
+  disableTinymanStakingForTests();
+  try {
+    const opportunities = await fetchTinymanOpportunities(async (input) => {
+      const url = String(input);
+      if (url.includes(`/pools/${COMPX_ALGO_POOL_ADDRESS}/`)) {
+        return {
+          ok: false,
+          status: 404,
+          json: async () => ({ detail: "Not found" })
+        } as Response;
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          results: [
+            {
+              address: "pool-1",
+              is_verified: true,
+              annual_percentage_yield: 0.01,
+              liquidity_in_usd: 100,
+              asset_1: { unit_name: "ALGO" },
+              asset_2: { unit_name: "USDC" }
+            }
+          ]
+        })
+      } as Response;
+    });
+
+    assert.equal(opportunities.length, 1);
+    assert.equal(opportunities[0]?.opportunityId, "pool-1:lp");
   } finally {
     setTinymanAdapterDependenciesForTests(undefined);
   }

@@ -6,6 +6,7 @@ import { setCompXSdkDependenciesForTests } from "../../src/adapters/index.js";
 import { setPositionCollectorsForTests } from "../../src/services/aggregate-positions.js";
 import {
   buildClaimAllQuotes,
+  calculateClaimableTotals,
   COMPX_CLAIM,
   HAYSTACK_CLAIM,
   PACT_FARM_CLAIM,
@@ -219,6 +220,77 @@ test("worthClaiming is false when reward USD is below CompX fee hint", () => {
   assert.equal(record.worthClaiming, false);
   // 250000 µAlgo * $0.2 / 1e6 = $0.05
   assert.equal(record.estimatedNetworkFeeUsd, 0.05);
+});
+
+test("worthClaiming uses combined USD for a shared claimKey", () => {
+  const positions: PositionRecordV1[] = [
+    basePosition({
+      protocol: "haystack",
+      positionType: "reward",
+      positionId: "haystack:reward:app:usdc",
+      opportunityId: "haystack-staking-hay",
+      assetId: 31566704,
+      assetSymbol: "USDC",
+      amountRaw: "700",
+      amount: "0.0007",
+      usdValue: 0.0007
+    }),
+    basePosition({
+      protocol: "haystack",
+      positionType: "reward",
+      positionId: "haystack:reward:app:hay",
+      opportunityId: "haystack-staking-hay",
+      assetId: 3160000000,
+      assetSymbol: "HAY",
+      amountRaw: "500",
+      amount: "0.0005",
+      usdValue: 0.0005
+    })
+  ];
+
+  const records = projectClaimableRecords(positions, VALID_ADDRESS, ALGO_USD);
+  assert.equal(records.length, 2);
+  // Fee is 5000 µALGO * $0.2 / 1e6 = $0.001; combined USD is $0.0012.
+  assert.equal(records[0]?.estimatedNetworkFeeUsd, 0.001);
+  assert.equal(records[0]?.worthClaiming, true);
+  assert.equal(records[1]?.worthClaiming, true);
+});
+
+test("stALGO does not null priced reward totals", () => {
+  const positions: PositionRecordV1[] = [
+    basePosition({
+      protocol: "haystack",
+      positionType: "reward",
+      positionId: "haystack:reward:app:usdc",
+      opportunityId: "haystack-staking-hay",
+      assetId: 31566704,
+      assetSymbol: "USDC",
+      amountRaw: "1500000",
+      amount: "1.5",
+      usdValue: 1.5
+    }),
+    basePosition({
+      protocol: "tinyman",
+      positionType: "staked",
+      positionId: "tinyman:staked:stalgo:1",
+      opportunityId: "tinyman-staking-stalgo",
+      assetId: 1,
+      assetSymbol: "stALGO",
+      amountRaw: "1000000",
+      amount: "1",
+      usdValue: 0.2
+    })
+  ];
+
+  const records = projectClaimableRecords(positions, VALID_ADDRESS, ALGO_USD);
+  const totals = calculateClaimableTotals(records);
+  assert.equal(totals.claimableUsd, 1.5);
+  assert.equal(totals.worthClaimingUsd, 1.5);
+  const stAlgo = records.find((record) =>
+    record.compatibleClaimShapeKeys.includes(TINYMAN_STALGO_CLAIM)
+  );
+  assert.equal(stAlgo?.worthClaiming, null);
+  assert.equal(stAlgo?.usdValue, null);
 });
 
 test("GET /positions/claimable returns 200 for empty mocked wallet", async () => {

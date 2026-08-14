@@ -2,6 +2,7 @@ import snapshot from "../data/discovery.snapshot.json";
 import {
   defaultPaidPriceUsdc,
   personalizedPriceUsdc,
+  positionsClaimablePriceUsdc,
   positionsPriceUsdc
 } from "./config";
 
@@ -75,6 +76,12 @@ function isPositionsEndpoint(endpoint: DiscoveryEndpoint): boolean {
   return endpoint.id === "positions" || endpoint.path === "/positions";
 }
 
+function isClaimableEndpoint(endpoint: DiscoveryEndpoint): boolean {
+  return (
+    endpoint.id === "positionsClaimable" || endpoint.path === "/positions/claimable"
+  );
+}
+
 function resolvePaidAmount(endpoint: DiscoveryEndpoint): string {
   const raw = endpoint.x402?.requirementTemplate.maxAmountRequired?.trim();
   if (raw) {
@@ -92,6 +99,10 @@ function resolvePaidAmount(endpoint: DiscoveryEndpoint): string {
 
   if (isPositionsEndpoint(endpoint)) {
     return positionsPriceUsdc;
+  }
+
+  if (isClaimableEndpoint(endpoint)) {
+    return positionsClaimablePriceUsdc;
   }
 
   return defaultPaidPriceUsdc;

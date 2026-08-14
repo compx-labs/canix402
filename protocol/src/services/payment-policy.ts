@@ -231,7 +231,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
       "Returns claimable reward rows for a wallet with USD value, network-fee / worth-claiming hints, compatible claim shapeKeys, and ready-to-POST quote inputs. Use claimAllQuotes (or selected per-row quotes) with POST /execution/quotes to compile unsigned claim groups — groups are never merged. Covers Tinyman farm, stALGO TINY claim, CompX staking, Pact farm, Haystack, and Alpha Arcade. This endpoint does not build or submit transactions.",
     tags: ["defi", "positions", "rewards", "wallet", "execution", HACKATHON_TAG],
     queryParams: ["address"],
-    priceUsdc: process.env.X402_PRICE_POSITIONS_CLAIMABLE_USDC ?? "0.005"
+    priceUsdc: process.env.X402_PRICE_POSITIONS_CLAIMABLE_USDC ?? "0.001"
   },
   {
     id: "publicBrowniePositions",

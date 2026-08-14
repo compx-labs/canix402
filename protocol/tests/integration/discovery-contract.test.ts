@@ -126,6 +126,10 @@ test("well-known x402 manifest lists paid resources and indexing links", async (
     "0.005"
   );
   assert.equal(
+    manifest.resources.find((resource) => resource.id === "positionsClaimable")?.price.amount,
+    "0.001"
+  );
+  assert.equal(
     manifest.resources.find((resource) => resource.id === "haystackSwapTransactions")?.price
       .amount,
     "0.005"

@@ -1030,7 +1030,7 @@
           "price": {
             "mode": "fixed",
             "currency": "USD",
-            "amount": "0.005"
+            "amount": "0.001"
           }
         },
         "x-x402": {
@@ -1045,7 +1045,7 @@
             "network": "algorand-mainnet",
             "asset": "31566704",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
-            "maxAmountRequired": "0.005"
+            "maxAmountRequired": "0.001"
           }
         }
       }

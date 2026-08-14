@@ -338,9 +338,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.01"
           },
           "amountUsdc": "0.01",
@@ -384,9 +384,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.01"
           },
           "amountUsdc": "0.01",
@@ -434,9 +434,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.01"
           },
           "amountUsdc": "0.01",
@@ -480,9 +480,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.05"
           },
           "amountUsdc": "0.05",
@@ -523,9 +523,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.005"
           },
           "amountUsdc": "0.005",
@@ -568,13 +568,13 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
-            "maxAmountRequired": "0.005"
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.001"
           },
-          "amountUsdc": "0.005",
-          "amountMicro": "5000"
+          "amountUsdc": "0.001",
+          "amountMicro": "1000"
         }
       },
       {
@@ -632,9 +632,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.005"
           },
           "amountUsdc": "0.005",
@@ -691,9 +691,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.1"
           },
           "amountUsdc": "0.1",

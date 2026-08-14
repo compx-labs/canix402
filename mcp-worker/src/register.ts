@@ -371,7 +371,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_list_claimable",
     {
       description:
-        "List claimable DeFi rewards for a wallet via GET /positions/claimable. Returns USD value, network-fee / worth-claiming hints, claim shapeKeys, and claimAllQuotes ready for canix_get_execution_quote. Paid ~0.005 USDC. Then compile with canix_get_execution_quote (~0.10 USDC flat); groups are never merged. Sign and submit locally.",
+        "List claimable DeFi rewards for a wallet via GET /positions/claimable. Returns USD value, network-fee / worth-claiming hints, claim shapeKeys, and claimAllQuotes ready for canix_get_execution_quote. Paid ~0.001 USDC. Then compile with canix_get_execution_quote (~0.10 USDC flat); groups are never merged. Sign and submit locally.",
       inputSchema: {
         address: z.string().min(1),
         paymentSignature: paymentSignatureArgSchema()
@@ -387,7 +387,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
           query,
           ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
         });
-        return paidToolResult(result, "0.005", {
+        return paidToolResult(result, "0.001", {
           path: "/positions/claimable",
           method: "GET",
           query

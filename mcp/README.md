@@ -24,7 +24,7 @@ x402 preflight, then retry the same address with the signed
 ## Claim desk tool
 
 `canix_list_claimable` calls paid `GET /positions/claimable` with a required wallet
-`address` (fallback price 0.005 USDC). Response includes USD value, network-fee /
+`address` (fallback price 0.001 USDC). Response includes USD value, network-fee /
 worth-claiming hints, claim `shapeKey`s, and `claimAllQuotes` ready for
 `canix_get_execution_quote` (~0.10 USDC flat per request; groups never merged).
 Agent loop: optional positions → claimable → filter `worthClaiming` / `claimKey` →

@@ -184,7 +184,7 @@ const format = (value: unknown): string => JSON.stringify(value, null, 2);
     <p>
       <code>GET /positions/claimable?address=</code> — claimable rewards with USD value,
       network-fee / worth-claiming hints, and <code>claimAllQuotes</code> ready for
-      <code>POST /execution/quotes</code> (~0.005 USDC list; compile stays ~0.10 USDC flat).
+      <code>POST /execution/quotes</code> (~0.001 USDC list; compile stays ~0.10 USDC flat).
       Groups are never merged. Agent loop: positions (optional) → claimable → quote → local sign.
     </p>
     <h3>1) Preflight (expect 402)</h3>

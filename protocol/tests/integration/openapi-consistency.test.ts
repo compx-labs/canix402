@@ -115,9 +115,9 @@ test("paid operations expose x-x402 metadata", async () => {
   const claimableOperation = openapi.paths["/positions/claimable"]?.get;
   assert.equal(
     claimableOperation?.["x-x402"]?.requirementTemplate?.maxAmountRequired,
-    "0.005"
+    "0.001"
   );
-  assert.equal(claimableOperation?.["x-payment-info"]?.price?.amount, "0.005");
+  assert.equal(claimableOperation?.["x-payment-info"]?.price?.amount, "0.001");
   assert.match(claimableOperation?.description ?? "", /claimAllQuotes/i);
 
   const haystackSwapOperation = openapi.paths["/swaps/transactions"]?.post;

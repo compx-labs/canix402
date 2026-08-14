@@ -22,6 +22,14 @@ const TINY_MAINNET_ASSET_ID = TINY_ASSET_ID.mainnet;
 const RESTAKE_APP_ID_MAINNET = TINYMAN_RESTAKE_APP_ID.mainnet;
 const SECONDS_PER_YEAR = 365.25 * 24 * 60 * 60;
 
+/**
+ * Pools always fetched by address in addition to the top-N list.
+ * COMPX/ALGO often falls outside TINYMAN_POOL_LIMIT due to lower liquidity.
+ */
+export const TINYMAN_DEFAULT_EXTRA_POOL_ADDRESSES = [
+  "ZKAP7DLHJ25VTHPD3W73FGDM7VGU3DJAXL7GNUFW5CG4MIMY72EZ5GFIAI"
+] as const;
+
 interface TinymanPoolApiRecord {
   address?: string;
   version?: string;
@@ -109,8 +117,9 @@ function resolveTinymanDependencies(): TinymanAdapterDependencies {
 export async function fetchTinymanOpportunities(
   fetchImpl: typeof fetch = fetch
 ): Promise<OpportunityMarketRecord[]> {
-  const baseUrl =
-    process.env.TINYMAN_API_BASE_URL ?? "https://mainnet.analytics.tinyman.org/api/v1";
+  const baseUrl = trimTrailingSlash(
+    process.env.TINYMAN_API_BASE_URL ?? "https://mainnet.analytics.tinyman.org/api/v1"
+  );
   const apiKey = process.env.TINYMAN_API_KEY;
   const query = new URLSearchParams({
     with_statistics: "true",
@@ -120,9 +129,10 @@ export async function fetchTinymanOpportunities(
   for (const version of versions) {
     query.append("version__in", version);
   }
-  const requestUrl = `${trimTrailingSlash(baseUrl)}/pools/?${query.toString()}`;
+  const requestUrl = `${baseUrl}/pools/?${query.toString()}`;
   const fetchedAt = new Date().toISOString();
   const onlyVerified = parseBoolean(process.env.TINYMAN_ONLY_VERIFIED, true);
+  const extraPoolAddresses = resolveExtraPoolAddresses();
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
@@ -135,13 +145,21 @@ export async function fetchTinymanOpportunities(
       requestInit.headers = { authorization: `Bearer ${apiKey}` };
     }
 
-    const [poolResponse, tAlgoStaking, stAlgoStaking] = await Promise.all([
-      fetchImpl(requestUrl, {
-        ...requestInit
-      }),
-      fetchTinymanTAlgoStakingOpportunity(fetchImpl, fetchedAt).catch(() => null),
-      fetchTinymanStAlgoStakingOpportunity(fetchImpl, fetchedAt).catch(() => null)
-    ]);
+    const [poolResponse, extraPoolRecords, tAlgoStaking, stAlgoStaking] =
+      await Promise.all([
+        fetchImpl(requestUrl, {
+          ...requestInit
+        }),
+        Promise.all(
+          extraPoolAddresses.map((address) =>
+            fetchTinymanPoolByAddress(baseUrl, address, fetchImpl, requestInit).catch(
+              () => null
+            )
+          )
+        ),
+        fetchTinymanTAlgoStakingOpportunity(fetchImpl, fetchedAt).catch(() => null),
+        fetchTinymanStAlgoStakingOpportunity(fetchImpl, fetchedAt).catch(() => null)
+      ]);
 
     if (!poolResponse.ok) {
       throw new TinymanAdapterError(
@@ -150,7 +168,11 @@ export async function fetchTinymanOpportunities(
     }
 
     const payload = (await poolResponse.json()) as TinymanApiResponse;
-    const records = payload.results ?? [];
+    const listRecords = payload.results ?? [];
+    const extraRecords = extraPoolRecords.filter(
+      (record): record is TinymanPoolApiRecord => record !== null
+    );
+    const records = mergePoolRecordsByAddress(listRecords, extraRecords);
 
     const poolOpportunities = records
       .filter((record) => (onlyVerified ? record.is_verified === true : true))
@@ -169,6 +191,91 @@ export async function fetchTinymanOpportunities(
   } finally {
     clearTimeout(timeout);
   }
+}
+
+/**
+ * Fetch a single pool by address. Non-2xx / invalid payloads return null so the
+ * adapter can still return the top-N list when an extra pool is unavailable.
+ */
+async function fetchTinymanPoolByAddress(
+  baseUrl: string,
+  address: string,
+  fetchImpl: typeof fetch,
+  requestInit: RequestInit
+): Promise<TinymanPoolApiRecord | null> {
+  const requestUrl = `${baseUrl}/pools/${encodeURIComponent(address)}/`;
+  const response = await fetchImpl(requestUrl, requestInit);
+  if (!response.ok) {
+    return null;
+  }
+
+  const payload = (await response.json()) as unknown;
+  return parseTinymanPoolDetail(payload);
+}
+
+/**
+ * Accept a pool detail object (has top-level `address`). Skip list-shaped
+ * `{ results: [...] }` payloads so URL-agnostic test mocks keep working.
+ */
+export function parseTinymanPoolDetail(
+  payload: unknown
+): TinymanPoolApiRecord | null {
+  if (payload === null || typeof payload !== "object" || Array.isArray(payload)) {
+    return null;
+  }
+  const record = payload as TinymanPoolApiRecord & { results?: unknown };
+  if (Array.isArray(record.results)) {
+    return null;
+  }
+  if (typeof record.address !== "string" || record.address.length === 0) {
+    return null;
+  }
+  return record;
+}
+
+function mergePoolRecordsByAddress(
+  listRecords: TinymanPoolApiRecord[],
+  extraRecords: TinymanPoolApiRecord[]
+): TinymanPoolApiRecord[] {
+  const byAddress = new Map<string, TinymanPoolApiRecord>();
+  for (const record of listRecords) {
+    const address = record.address?.trim();
+    if (address) {
+      byAddress.set(address, record);
+    } else {
+      // Preserve address-less rows from the list (normalize will fall back).
+      byAddress.set(`__anon_${byAddress.size}`, record);
+    }
+  }
+  for (const record of extraRecords) {
+    const address = record.address?.trim();
+    if (!address) {
+      continue;
+    }
+    if (!byAddress.has(address)) {
+      byAddress.set(address, record);
+    }
+  }
+  return [...byAddress.values()];
+}
+
+export function resolveExtraPoolAddresses(
+  envValue: string | undefined = process.env.TINYMAN_EXTRA_POOL_ADDRESSES
+): string[] {
+  const fromEnv = (envValue ?? "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0 && algosdk.isValidAddress(entry));
+  const seen = new Set<string>();
+  const addresses: string[] = [];
+  for (const address of [...TINYMAN_DEFAULT_EXTRA_POOL_ADDRESSES, ...fromEnv]) {
+    if (seen.has(address)) {
+      continue;
+    }
+    seen.add(address);
+    addresses.push(address);
+  }
+  return addresses;
 }
 
 export async function fetchTinymanTAlgoStakingOpportunity(

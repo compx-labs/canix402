@@ -62,6 +62,7 @@ test("includeInactive=false drops opportunities with acceptingStake false", () =
 test("usdcAmountToMicro converts discovery amounts to Caddy micro-USDC", () => {
   assert.equal(usdcAmountToMicro("0.01"), "10000");
   assert.equal(usdcAmountToMicro("0.005"), "5000");
+  assert.equal(usdcAmountToMicro("0.001"), "1000");
   assert.equal(usdcAmountToMicro("0.1"), "100000");
   assert.equal(usdcAmountToMicro("100"), "100000000");
   assert.equal(usdcAmountToMicro("1.5"), "1500000");

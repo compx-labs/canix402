@@ -355,6 +355,8 @@ Behavior:
 - Personalized preflight/settlement uses `X402_PRODUCTION_PERSONALIZED_ADDRESS`, falling back to the configured pay-to address.
 - Positions uses the same production address and must advertise exactly `5000`
   micro-USDC (`0.005 USDC`) in `PAYMENT-REQUIRED`.
+- Claimable (`GET /positions/claimable`) must advertise exactly `1000`
+  micro-USDC (`0.001 USDC`) in `PAYMENT-REQUIRED`.
 
 Wallet requirements for paid settlement:
 

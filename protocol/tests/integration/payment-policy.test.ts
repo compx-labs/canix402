@@ -68,6 +68,6 @@ test("Brownie showcase positions are free while arbitrary /positions stays paid"
   assert.equal(claimable?.pathPattern, "/positions/claimable");
   assert.equal(
     claimable?.priceUsdc,
-    process.env.X402_PRICE_POSITIONS_CLAIMABLE_USDC ?? "0.005"
+    process.env.X402_PRICE_POSITIONS_CLAIMABLE_USDC ?? "0.001"
   );
 });

@@ -127,7 +127,7 @@ invent, omit, or rewrite facilitator fields.
 For harvesting claimable rewards across supported protocols:
 
 1. Optionally call `canix_get_positions` for the full book.
-2. Call `canix_list_claimable` with the wallet `address` (paid ~0.005 USDC).
+2. Call `canix_list_claimable` with the wallet `address` (paid ~0.001 USDC).
    Response `data[]` includes USD value, `estimatedNetworkFee*`, `worthClaiming`,
    `compatibleClaimShapeKeys`, per-row `quote`, and `claimKey` for dedupe.
    Top-level `claimAllQuotes.quotes` is ready for the compiler.

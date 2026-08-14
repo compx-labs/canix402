@@ -127,7 +127,7 @@ export function projectClaimableRecords(
     );
   }
 
-  return records;
+  return applyClaimGroupEconomics(records);
 }
 
 export function buildClaimAllQuotes(
@@ -334,6 +334,45 @@ function isTinymanStAlgoStaked(position: PositionRecordV1): boolean {
   );
 }
 
+/**
+ * One on-chain claim can cover multiple reward rows (Haystack USDC+HAY, Pact
+ * multi-ASA). worthClaiming must compare the group's combined USD to one fee.
+ */
+function applyClaimGroupEconomics(
+  records: ClaimableRewardRecord[]
+): ClaimableRewardRecord[] {
+  const groups = new Map<string, ClaimableRewardRecord[]>();
+  for (const record of records) {
+    const group = groups.get(record.claimKey) ?? [];
+    group.push(record);
+    groups.set(record.claimKey, group);
+  }
+
+  for (const group of groups.values()) {
+    const combinedUsd = sumGroupUsd(group);
+    const feeUsd = group[0]?.estimatedNetworkFeeUsd ?? null;
+    const worthClaiming = resolveWorthClaiming(combinedUsd, feeUsd);
+    for (const record of group) {
+      record.worthClaiming = worthClaiming;
+    }
+  }
+
+  return records;
+}
+
+function sumGroupUsd(
+  records: readonly ClaimableRewardRecord[]
+): number | null {
+  let total = 0;
+  for (const record of records) {
+    if (record.usdValue === null) {
+      return null;
+    }
+    total += record.usdValue;
+  }
+  return total;
+}
+
 function resolveWorthClaiming(
   usdValue: number | null,
   feeUsd: number | null
@@ -354,67 +393,62 @@ function microAlgosToUsd(
   return (Number(microAlgos) / 1_000_000) * algoUsd;
 }
 
-function calculateClaimableTotals(records: readonly ClaimableRewardRecord[]): {
+export function calculateClaimableTotals(records: readonly ClaimableRewardRecord[]): {
   claimableUsd: number | null;
   estimatedNetworkFeeUsd: number | null;
   worthClaimingUsd: number | null;
 } {
-  let claimableComplete = true;
-  let feeComplete = true;
-  let worthComplete = true;
+  const groups = new Map<string, ClaimableRewardRecord[]>();
+  for (const record of records) {
+    const group = groups.get(record.claimKey) ?? [];
+    group.push(record);
+    groups.set(record.claimKey, group);
+  }
+
   let claimableUsd = 0;
+  let claimableComplete = true;
   let estimatedNetworkFeeUsd = 0;
+  let feeComplete = true;
   let worthClaimingUsd = 0;
-  const feeByClaimKey = new Map<string, number | null>();
+  let worthComplete = true;
 
-  for (const record of records) {
-    if (record.usdValue === null) {
-      claimableComplete = false;
-    } else {
-      claimableUsd += record.usdValue;
+  for (const group of groups.values()) {
+    const combinedUsd = sumGroupUsd(group);
+    const feeUsd = group[0]?.estimatedNetworkFeeUsd ?? null;
+    const pricedRewardRows = group.filter(
+      (record) => record.positionType === "reward"
+    );
+    const syntheticUnknown = group.every(
+      (record) => record.positionType === "staked"
+    );
+
+    if (pricedRewardRows.length > 0) {
+      if (pricedRewardRows.some((record) => record.usdValue === null)) {
+        claimableComplete = false;
+      } else {
+        for (const record of pricedRewardRows) {
+          claimableUsd += record.usdValue ?? 0;
+        }
+      }
     }
 
-    if (!feeByClaimKey.has(record.claimKey)) {
-      feeByClaimKey.set(record.claimKey, record.estimatedNetworkFeeUsd);
-    }
-
-    if (record.worthClaiming === null) {
-      worthComplete = false;
-    } else if (record.worthClaiming && record.usdValue !== null) {
-      // Sum reward USD once per claimKey for worth-claiming total.
-    }
-  }
-
-  const worthClaimKeys = new Set(
-    records
-      .filter((record) => record.worthClaiming === true)
-      .map((record) => record.claimKey)
-  );
-  const claimUsdByKey = new Map<string, number | null>();
-  for (const record of records) {
-    const existing = claimUsdByKey.get(record.claimKey);
-    if (existing === undefined) {
-      claimUsdByKey.set(record.claimKey, record.usdValue);
-    } else if (existing !== null && record.usdValue !== null) {
-      claimUsdByKey.set(record.claimKey, existing + record.usdValue);
-    } else if (record.usdValue === null || existing === null) {
-      claimUsdByKey.set(record.claimKey, null);
-    }
-  }
-  for (const claimKey of worthClaimKeys) {
-    const usd = claimUsdByKey.get(claimKey);
-    if (usd === null || usd === undefined) {
-      worthComplete = false;
-    } else {
-      worthClaimingUsd += usd;
-    }
-  }
-
-  for (const feeUsd of feeByClaimKey.values()) {
     if (feeUsd === null) {
       feeComplete = false;
     } else {
       estimatedNetworkFeeUsd += feeUsd;
+    }
+
+    // stALGO TINY is intentionally unpriced — do not null the rest of the desk.
+    if (syntheticUnknown) {
+      continue;
+    }
+
+    if (combinedUsd === null || group[0]?.worthClaiming === null) {
+      worthComplete = false;
+      continue;
+    }
+    if (group[0]?.worthClaiming === true) {
+      worthClaimingUsd += combinedUsd;
     }
   }
 
