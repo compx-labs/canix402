@@ -204,10 +204,21 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     access: "paid",
     summary: "Top opportunities tuned to a wallet's held assets",
     description:
-      "Returns Algorand DeFi opportunities whose underlying assets match a supplied wallet's holdings, including opted-in ASAs with positive balance and native ALGO when held. Use when an agent needs wallet-aware yield ideas based on assets the account already owns, with normalized APY/APR, TVL, asset ids, source freshness, and caveats. This endpoint provides normalized market data only; it does not build or submit transactions.",
+      "Returns Algorand DeFi opportunities whose underlying assets match a supplied wallet's holdings, including opted-in ASAs with positive balance and native ALGO when held. Matching applies POST /eligibility rules (min amount, ASA gates, capacity, unresolved NFD/creator gates) so full or gated venues are not recommended as enterable. Each row includes canEnter and eligibilityFullyCheckable; quote-time on-chain checks remain authoritative. Use POST /eligibility for the diagnostic (missingAssets, gates, capacity, suggestedSwap). This endpoint provides normalized market data only; it does not build or submit transactions.",  // pragma: allowlist secret
     tags: ["defi", "opportunities", "personalized", "wallet", HACKATHON_TAG],
     queryParams: ["address", "limit", "offset", "includeInactive", "refresh"],
     priceUsdc: process.env.X402_PRICE_PERSONALIZED_USDC ?? "0.05"
+  },
+  {
+    id: "eligibility",
+    method: "POST",
+    pathPattern: "/eligibility",
+    access: "paid",
+    summary: "Wallet eligibility and capacity for selected opportunities",
+    description:
+      "Checks whether a wallet can enter one or more opportunities before requesting an execution quote. Resolves Réti entryRequirements and capacity (min amount, ASA gates, staker slots, ALGO room). NFD and creator gates are published as unresolved — canEnter is never true until eligibilityFullyCheckable is true. Returns missingAssets, gates, capacity, and an optional suggestedSwap hint (not a live quote). Quote-time on-chain checks remain authoritative. Canix does not sign or submit transactions.",  // pragma: allowlist secret
+    tags: ["defi", "opportunities", "eligibility", "wallet", HACKATHON_TAG],
+    priceUsdc: process.env.X402_PRICE_ELIGIBILITY_USDC ?? "0.01"
   },
   {
     id: "positions",
@@ -359,6 +370,7 @@ const paidPathMatchers = [
   /^\/opportunities$/,
   /^\/opportunities\/search$/,
   /^\/opportunities\/personalized$/,
+  /^\/eligibility$/,
   /^\/positions$/,
   /^\/positions\/claimable$/,
   /^\/protocols\/[^/]+\/opportunities$/,

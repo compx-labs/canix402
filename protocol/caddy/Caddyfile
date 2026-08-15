@@ -98,6 +98,28 @@
 		reverse_proxy {$UPSTREAM_API}
 	}
 
+	@paid_eligibility path /eligibility
+	handle @paid_eligibility {
+		x402 {
+			description "canix402 wallet eligibility and capacity endpoint"
+			mime_type application/json
+			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile eligibility
+
+			accept {
+				pay_to {$X402_PAY_TO}
+				price {$X402_PRICE_ELIGIBILITY_USDC}
+				network {$X402_NETWORK}
+				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+		}
+
+		reverse_proxy {$UPSTREAM_API}
+	}
+
 	@paid_positions path /positions
 	handle @paid_positions {
 		x402 {

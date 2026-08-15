@@ -225,6 +225,57 @@ test("canix_get_positions forwards address and reports 0.005 preflight price", a
   await server.close();
 });
 
+test("canix_check_eligibility posts body and reports 0.01 preflight price", async () => {
+  let requestUrl = "";
+  let method = "";
+  let requestBody = "";
+  let paymentSignature = "";
+  const server = createCanixMcpServer({
+    config: {
+      apiUrl: "https://example.test",
+      network: "[REDACTED]"
+    },
+    fetchImpl: async (input, init) => {
+      requestUrl = String(input);
+      method = init?.method ?? "";
+      requestBody = String(init?.body);
+      paymentSignature = String(
+        init?.headers && (init.headers as Record<string, string>)["PAYMENT-SIGNATURE"]
+      );
+      return new Response("payment required", { status: 402 });
+    }
+  });
+
+  const result = await registeredTools(server).canix_check_eligibility!.handler(
+    {
+      address: "WALLET",
+      opportunityIds: ["reti-staking-1"],
+      paymentSignature: "signed-payload"
+    },
+    {}
+  );
+
+  assert.equal(new URL(requestUrl).pathname, "/eligibility");
+  assert.equal(method, "POST");
+  assert.equal(paymentSignature, "signed-payload");
+  assert.deepEqual(JSON.parse(requestBody), {
+    address: "WALLET",
+    opportunityIds: ["reti-staking-1"]
+  });
+  const text = result.content.find((part) => part.type === "text");
+  assert.ok(text?.text);
+  const payload = JSON.parse(text.text) as {
+    error: string;
+    mcpPayment: { priceUsdc: string };
+    request: { body: { opportunityIds: string[] } };
+  };
+  assert.equal(payload.error, "PAYMENT_REQUIRED");
+  assert.equal(payload.mcpPayment.priceUsdc, "0.01");
+  assert.deepEqual(payload.request.body.opportunityIds, ["reti-staking-1"]);
+
+  await server.close();
+});
+
 test("canix_list_claimable forwards address and reports 0.001 preflight price", async () => {
   let requestUrl = "";
   let paymentSignature = "";

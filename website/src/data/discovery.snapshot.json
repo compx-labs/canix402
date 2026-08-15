@@ -449,7 +449,7 @@
         "path": "/opportunities/personalized",
         "access": "paid",
         "summary": "Top opportunities tuned to a wallet's held assets",
-        "description": "Returns Algorand DeFi opportunities whose underlying assets match a supplied wallet's holdings, including opted-in ASAs with positive balance and native ALGO when held. Use when an agent needs wallet-aware yield ideas based on assets the account already owns, with normalized APY/APR, TVL, asset ids, source freshness, and caveats. This endpoint provides normalized market data only; it does not build or submit transactions.",
+        "description": "Returns Algorand DeFi opportunities whose underlying assets match a supplied wallet's holdings, including opted-in ASAs with positive balance and native ALGO when held. Matching applies POST /eligibility rules (min amount, ASA gates, capacity, unresolved NFD/creator gates) so full or gated venues are not recommended as enterable. Each row includes canEnter and eligibilityFullyCheckable; quote-time on-chain checks remain authoritative. Use POST /eligibility for the diagnostic (missingAssets, gates, capacity, suggestedSwap). This endpoint provides normalized market data only; it does not build or submit transactions.", "x-pragma": "pragma: allowlist secret",
         "tags": [
           "defi",
           "opportunities",
@@ -487,6 +487,48 @@
           },
           "amountUsdc": "0.05",
           "amountMicro": "50000"
+        }
+      },
+      {
+        "id": "eligibility",
+        "method": "POST",
+        "path": "/eligibility",
+        "access": "paid",
+        "summary": "Wallet eligibility and capacity for selected opportunities",
+        "description": "Checks whether a wallet can enter one or more opportunities before requesting an execution quote. Resolves Réti entryRequirements and capacity (min amount, ASA gates, staker slots, ALGO room). NFD and creator gates are published as unresolved — canEnter is never true until eligibilityFullyCheckable is true. Returns missingAssets, gates, capacity, and an optional suggestedSwap hint (not a live quote). Quote-time on-chain checks remain authoritative. Canix does not sign or submit transactions.",
+        "tags": [
+          "defi",
+          "opportunities",
+          "eligibility",
+          "wallet",
+          "x402-global-challenge"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          400,
+          402,
+          500,
+          502
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.01"
+          },
+          "amountUsdc": "0.01",
+          "amountMicro": "10000"
         }
       },
       {
@@ -747,6 +789,7 @@
         "canix_list_opportunities",
         "canix_search_opportunities",
         "canix_get_personalized_opportunities",
+        "canix_check_eligibility",
         "canix_get_protocol_opportunities",
         "canix_get_positions",
         "canix_list_claimable",

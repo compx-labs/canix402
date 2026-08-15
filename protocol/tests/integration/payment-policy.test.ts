@@ -48,6 +48,18 @@ test("ready and metrics are free system routes", () => {
   assert.ok(endpointPolicyMatrix.some((endpoint) => endpoint.id === "metrics"));
 });
 
+test("eligibility is a dedicated paid POST route", () => {
+  assert.equal(classifyEndpointAccess("/eligibility", "POST"), "paid");
+  const eligibility = endpointPolicyMatrix.find((endpoint) => endpoint.id === "eligibility");
+  assert.equal(eligibility?.method, "POST");
+  assert.equal(eligibility?.access, "paid");
+  assert.equal(eligibility?.pathPattern, "/eligibility");
+  assert.equal(
+    eligibility?.priceUsdc,
+    process.env.X402_PRICE_ELIGIBILITY_USDC ?? "0.01"
+  );
+});
+
 test("Brownie showcase positions are free while arbitrary /positions stays paid", () => {
   assert.equal(
     classifyEndpointAccess("/public/agents/brownie/positions", "GET"),
