@@ -16,6 +16,7 @@ import swapsOptinSample from "../data/swaps-optin.sample.json";
 import swapsTransactionsSample from "../data/swaps-transactions.sample.json";
 
 const format = (value: unknown): string => JSON.stringify(value, null, 2);
+const eligibilityCurl = `curl -i ${config.gatewayBaseUrl}/eligibility -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","opportunityIds":["reti-staking-12"]}'`; // pragma: allowlist secret
 ---
 
 <BaseLayout
@@ -119,9 +120,7 @@ const format = (value: unknown): string => JSON.stringify(value, null, 2);
       <code>gates</code>, <code>capacity</code>, and optional <code>suggestedSwap</code>.
       NFD/creator gates stay unresolved (<code>eligibilityFullyCheckable: false</code>).
     </p>
-    <CodeBlock
-      code={`curl -i ${config.gatewayBaseUrl}/eligibility -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","opportunityIds":["reti-staking-12"]}'`}  // pragma: allowlist secret
-    />
+    <CodeBlock code={eligibilityCurl} />
     <h3>Sample response (200)</h3>
     <CodeBlock code={format(eligibilitySample)} />
   </section>
