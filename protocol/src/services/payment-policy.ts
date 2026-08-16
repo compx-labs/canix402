@@ -221,6 +221,17 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     priceUsdc: process.env.X402_PRICE_ELIGIBILITY_USDC ?? "0.01"
   },
   {
+    id: "plans",
+    method: "POST",
+    pathPattern: "/plans",
+    access: "paid",
+    summary: "Compile an allocation intent into an ordered unsigned plan",
+    description:
+      "Agent states an allocation intent (address, budget/asset, constraints). Canix returns ordered steps: eligibility, optional swap hints, protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume this SKU rather than forking a compiler.",  // pragma: allowlist secret
+    tags: ["defi", "plans", "execution", "eligibility", "wallet", "x402", "agents", HACKATHON_TAG],
+    priceUsdc: process.env.X402_PRICE_PLANS_USDC ?? "0.25"
+  },
+  {
     id: "positions",
     method: "GET",
     pathPattern: "/positions",
@@ -371,6 +382,7 @@ const paidPathMatchers = [
   /^\/opportunities\/search$/,
   /^\/opportunities\/personalized$/,
   /^\/eligibility$/,
+  /^\/plans$/,
   /^\/positions$/,
   /^\/positions\/claimable$/,
   /^\/protocols\/[^/]+\/opportunities$/,

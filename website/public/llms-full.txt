@@ -28,7 +28,7 @@ Always call the **gateway**, not an internal upstream API. x402 enforcement, `PA
 
 ### MCP server
 
-Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_list_execution_shapes`, `canix_get_positions`, `canix_list_claimable`, `canix_check_eligibility`, `canix_get_execution_quote`, and free discovery helpers. See https://canix402.compx.io/mcp.  # pragma: allowlist secret
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_list_execution_shapes`, `canix_get_positions`, `canix_list_claimable`, `canix_check_eligibility`, `canix_get_plan`, `canix_get_execution_quote`, and free discovery helpers. See https://canix402.compx.io/mcp.  # pragma: allowlist secret
 
 ## x402 payment flow
 
@@ -40,7 +40,7 @@ Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `htt
 Default payment context (confirm against live discovery before integrating):
 
 - **Protocol version:** 2
-- **Network:** algorand  # pragma: allowlist secret
+- **Network:** algorand-mainnet  # pragma: allowlist secret
 - **USDC asset id:** 31566704
 - **Facilitator:** https://facilitator.goplausible.xyz
 - **Headers:** PAYMENT-REQUIRED, PAYMENT-SIGNATURE, PAYMENT-RESPONSE
@@ -74,6 +74,7 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `GET /opportunities/search` (0.01 USDC) — Caller-filtered opportunities across supported platforms. Params: platform=, type=, minApy=, maxApy=, minTvlUsd=, assetIds=, limit=, offset=, includeInactive=, refresh=.
 - `GET /opportunities/personalized` (0.05 USDC) — Top opportunities tuned to a wallet's held assets. Params: address=, limit=, offset=, includeInactive=, refresh=.
 - `POST /eligibility` (0.01 USDC) — Wallet eligibility and capacity for selected opportunities.  # pragma: allowlist secret
+- `POST /plans` (0.25 USDC) — Compile an allocation intent into an ordered unsigned plan.  # pragma: allowlist secret
 - `GET /positions` (0.005 USDC) — Algorand DeFi positions held by a wallet. Params: address=.
 - `GET /positions/claimable` (0.001 USDC) — Claimable DeFi rewards across supported protocols. Params: address=.
 - `GET /public/agents/brownie/positions` (Free) — Public DeFi positions for the Brownie Bot showcase wallet.
@@ -86,8 +87,9 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `GET /opportunities` — top aggregated opportunities ranked by APY (default limit 10).
 - `GET /protocols/:protocol/opportunities` — protocol slug e.g. `tinyman`, `pact`, `folks-finance`, `compx`, `dorkfi`, `myth-finance`, `haystack`, `reti`, `alpha-arcade`.
 - `GET /opportunities/search` — filter by `platform`, `type`, `minApy`, `maxApy`, `minTvlUsd`, `assetIds` (comma-separated ASA ids; 0 = ALGO; ANY intersection with opportunity.assetIds).
-- `GET /opportunities/personalized` — requires `address` (Algorand account); premium price; matches opportunities to wallet-held assets using eligibility rules (full/gated venues are not recommended as enterable).  # pragma: allowlist secret
-- `POST /eligibility` — requires `address` and `opportunityIds`; 0.01 USDC; returns `canEnter`, `missingAssets`, `gates`, `capacity`, `suggestedSwap`. NFD/creator gates stay unresolved (`eligibilityFullyCheckable: false`). Quote-time checks remain authoritative.  # pragma: allowlist secret
+- `GET /opportunities/personalized` — requires `address` (Algorand account); premium price; matches opportunities to wallet-held assets using eligibility rules (full/gated venues are not recommended as enterable).  // pragma: allowlist secret
+- `POST /eligibility` — requires `address` and `opportunityIds`; 0.01 USDC; returns `canEnter`, `missingAssets`, `gates`, `capacity`, `suggestedSwap`. NFD/creator gates stay unresolved (`eligibilityFullyCheckable: false`). Quote-time checks remain authoritative.  // pragma: allowlist secret
+- `POST /plans` — requires `address` and `budget { assetId, amount }`; 0.25 USDC compiler SKU; returns ordered eligibility/setup/enter steps with unsigned groups, `quotes[]`, expected position delta, and fee totals. Brownie should consume this rather than forking a compiler.  // pragma: allowlist secret
 - `GET /positions` — requires `address` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
 - `GET /positions/claimable` — requires `address`; claim desk with USD, fee/worth-claiming hints, and `claimAllQuotes` for exactly 0.001 USDC. Compile via `POST /execution/quotes` (~0.1 USDC flat; groups never merged).
 - `GET /execution/shapes` — free catalog of verified shape keys and requiredInputs (metadata only).
@@ -664,7 +666,7 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
 }
 ```
 
-### POST /eligibility  # pragma: allowlist secret
+### POST /eligibility
 
 ```json
 {
@@ -691,6 +693,163 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
     "fetchedAt": "2026-08-14T21:00:00.000Z",
     "paymentRequired": true,
     "quoteTimeAuthoritative": true
+  }
+}
+```
+
+### POST /plans
+
+```json
+{
+  "data": {
+    "allocations": [
+      {
+        "opportunityId": "reti-staking-12",
+        "protocol": "reti",
+        "opportunityType": "staking",
+        "assetPair": "ALGO",
+        "apy": 8.5,
+        "allocatedAmount": "1000000",
+        "allocatedAssetId": 0,
+        "weightBps": 10000,
+        "eligibility": {
+          "opportunityId": "reti-staking-12",
+          "protocol": "reti",
+          "found": true,
+          "canEnter": true,
+          "eligibilityFullyCheckable": true,
+          "missingAssets": [],
+          "gates": [],
+          "capacity": {
+            "stakerSlotsRemaining": 20,
+            "algoRoomMicroAlgos": "50000000000",
+            "acceptingStake": true
+          },
+          "suggestedSwap": null,
+          "reasons": []
+        },
+        "executionShapes": [
+          {
+            "shapeKey": "mainnet:reti:v1:stake:algo",
+            "protocol": "reti",
+            "protocolVersion": "v1",
+            "action": "stake",
+            "variant": "algo",
+            "title": "Réti ALGO stake to validator",
+            "summary": "Stakes ALGO to a Réti validator.",
+            "order": 0,
+            "requiredInputs": [
+              "userAddress",
+              "validatorId",
+              "amount"
+            ],
+            "requiredAssetIds": [
+              0
+            ],
+            "inputHints": {
+              "validatorId": 12,
+              "assetId": 0,
+              "depositAssetId": 0
+            }
+          }
+        ],
+        "steps": [
+          {
+            "kind": "eligibility",
+            "order": 0,
+            "compileStatus": "compiled",
+            "warnings": []
+          },
+          {
+            "kind": "enter",
+            "order": 1,
+            "compileStatus": "compiled",
+            "shapeKey": "mainnet:reti:v1:stake:algo",
+            "quoteRequest": {
+              "shapeKey": "mainnet:reti:v1:stake:algo",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                "validatorId": 12,
+                "assetId": 0,
+                "depositAssetId": 0,
+                "amount": "1000000"
+              }
+            },
+            "quote": {
+              "shapeKey": "mainnet:reti:v1:stake:algo",
+              "shapeVersion": "1.0.0",
+              "identity": {
+                "network": "mainnet",
+                "protocol": "reti",
+                "protocolVersion": "v1",
+                "action": "stake",
+                "variant": "algo"
+              },
+              "createdAt": "2026-08-16T10:00:00.000Z",
+              "expiresAt": "2026-08-16T10:00:30.000Z",
+              "transactions": [
+                {
+                  "type": "pay",
+                  "sender": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                  "fee": "1000",
+                  "groupPresent": true
+                }
+              ],
+              "encodedTransactions": [
+                "<base64-unsigned-txn>"
+              ],
+              "warnings": [],
+              "metadata": {}
+            },
+            "warnings": []
+          }
+        ],
+        "quotes": [
+          {
+            "shapeKey": "mainnet:reti:v1:stake:algo",
+            "input": {
+              "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "validatorId": 12,
+              "assetId": 0,
+              "depositAssetId": 0,
+              "amount": "1000000"
+            }
+          }
+        ]
+      }
+    ],
+    "blocked": [],
+    "expectedPositionDelta": {
+      "summary": "Enter 1000000 of asset 0 into reti-staking-12 (reti).",
+      "entries": [
+        {
+          "opportunityId": "reti-staking-12",
+          "protocol": "reti",
+          "assetId": 0,
+          "amount": "1000000",
+          "action": "enter"
+        }
+      ]
+    },
+    "fees": {
+      "x402Usdc": "0.25",
+      "estimatedNetworkFeeMicroAlgos": "1000",
+      "estimatedNetworkFeeUsd": null
+    },
+    "expiresAt": "2026-08-16T10:00:30.000Z",
+    "warnings": []
+  },
+  "meta": {
+    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "budget": {
+      "assetId": 0,
+      "amount": "1000000"
+    },
+    "fetchedAt": "2026-08-16T10:00:00.000Z",
+    "paymentRequired": true,
+    "executionSubmitted": false,
+    "quoteTimeAuthoritative": true,
+    "eligibilityEndpoint": "/eligibility"
   }
 }
 ```

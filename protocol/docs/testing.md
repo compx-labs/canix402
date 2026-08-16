@@ -63,6 +63,7 @@ Coverage:
   - Pact
   - Folks Finance
 - Execution quote route coverage (`POST /execution/quotes`)
+- Intent compiler coverage (`POST /plans`)
 - Transaction-shape registry and Tinyman / Pact / Folks / CompX / Dork.fi execution shape fixtures
 
 Files:
@@ -72,6 +73,7 @@ Files:
 - `tests/integration/x402-gating.test.ts`
 - `tests/integration/positions-claimable-route.test.ts`
 - `tests/integration/eligibility.test.ts`
+- `tests/integration/plans.test.ts`
 - `tests/integration/execution-quotes-route.test.ts`
 - `tests/integration/execution-registry.test.ts`
 - `tests/integration/folks-finance-escrow-shapes.test.ts`

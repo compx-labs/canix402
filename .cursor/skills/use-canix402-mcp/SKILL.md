@@ -160,6 +160,30 @@ Before quoting an enter (especially Réti validators with gates or capacity):
 5. Quote-time on-chain checks remain authoritative. Compile with
    `canix_get_execution_quote` only after reviewing eligibility.
 
+## Intent compiler agent loop
+
+For an allocation intent (budget + constraints), prefer `canix_get_plan` over
+assembling quotes yourself. Brownie and other user agents should consume this
+SKU rather than forking a compiler.
+
+1. Call `canix_get_plan` with `address` and `budget: { assetId, amount }`
+   (base units; `assetId` 0 = ALGO). Optional `constraints` include
+   `maxProtocolWeightBps`, `noNewBorrows`, `executionReadyOnly`, `minTvlUsd`,
+   `maxSourceAgeSeconds`, and `maxAllocations`. Optional `opportunityIds` pins
+   the compiler. Paid ~0.25 USDC.
+2. Review `data.blocked[]` eligibility gates. Do not sign when `canEnter` is
+   false or `eligibilityFullyCheckable` is false.
+3. Response `allocations[].steps` are ordered: eligibility, optional swap hints,
+   protocol setup, enter. Groups are unsigned and never merged. Reuse
+   `quotes[]` / `order` / `prerequisiteShapeKeys`.
+4. Swap steps in this SKU are hints — not live Haystack groups. Setup steps that
+   need a confirmed prior group (e.g. Folks escrow) are `compileStatus:
+   deferred`; after those confirm, call `canix_get_execution_quote` with the
+   remaining `quotes[]`.
+5. Sign and submit compiled `encodedTransactions` locally before `expiresAt`,
+   the same way as `canix_get_execution_quote`. Paying for a plan does not
+   execute it.
+
 ## Signing an execution quote
 
 For `canix_get_execution_quote`:

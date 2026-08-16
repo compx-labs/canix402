@@ -46,6 +46,10 @@ function resolveProductionPath(pathPattern: string): string {
     return "/eligibility";
   }
 
+  if (pathPattern === "/plans") {
+    return "/plans";
+  }
+
   if (pathPattern === "/execution/quotes") {
     return "/execution/quotes";
   }
@@ -66,6 +70,19 @@ function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): Pro
       body: {
         address: getProductionPersonalizedAddress(),
         opportunityIds: ["reti-staking-1"]
+      }
+    };
+  }
+
+  if (entry.pathPattern === "/plans") {
+    return {
+      ...base,
+      method: "POST",
+      body: {
+        address: getProductionPersonalizedAddress(),
+        budget: { assetId: 0, amount: "1000000" },
+        constraints: { noNewBorrows: true, executionReadyOnly: true, maxAllocations: 1 },
+        opportunityIds: ["reti-staking-12"]
       }
     };
   }

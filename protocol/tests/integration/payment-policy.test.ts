@@ -60,6 +60,15 @@ test("eligibility is a dedicated paid POST route", () => {
   );
 });
 
+test("plans is a dedicated paid compiler POST route", () => {
+  assert.equal(classifyEndpointAccess("/plans", "POST"), "paid");
+  const plans = endpointPolicyMatrix.find((endpoint) => endpoint.id === "plans");
+  assert.equal(plans?.method, "POST");
+  assert.equal(plans?.access, "paid");
+  assert.equal(plans?.pathPattern, "/plans");
+  assert.equal(plans?.priceUsdc, process.env.X402_PRICE_PLANS_USDC ?? "0.25");
+});
+
 test("Brownie showcase positions are free while arbitrary /positions stays paid", () => {
   assert.equal(
     classifyEndpointAccess("/public/agents/brownie/positions", "GET"),

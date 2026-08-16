@@ -211,7 +211,10 @@ function buildDiscoveryDocument(): DiscoveryDocument {
       pathParams: endpoint.pathParams ?? [],
       queryParams: endpoint.queryParams ?? [],
       responseCodes:
-        endpoint.id === "positions" || endpoint.id === "positionsClaimable" || endpoint.id === "eligibility"
+        endpoint.id === "positions" ||
+        endpoint.id === "positionsClaimable" ||
+        endpoint.id === "eligibility" ||
+        endpoint.id === "plans"
           ? [200, 400, 402, 500, 502]
           : endpoint.id === "tokenPricing"
             ? [200, 400, 502]
@@ -245,6 +248,7 @@ function buildDiscoveryDocument(): DiscoveryDocument {
       "agent-discovery",
       "openapi",
       "execution-quotes",
+      "intent-plans",
       "haystack-swaps",
       "token-pricing",
       "mcp-server"

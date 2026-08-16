@@ -980,6 +980,90 @@
         }
       }
     },
+    "/plans": {
+      "post": {
+        "summary": "Compile an allocation intent into an ordered unsigned plan",
+        "description": "Agent states an allocation intent (address, budget/asset, constraints such as max protocol weight, no new borrows, execution-ready only, TVL/freshness floors). Canix returns ordered steps: eligibility, optional swap hints, protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume POST /plans rather than forking a compiler.",
+        "tags": [
+          "defi",
+          "plans",
+          "execution",
+          "eligibility",
+          "wallet"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanRequest"
+              },
+              "examples": {
+                "default": {
+                  "$ref": "#/components/examples/PlanRequestSample"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ordered unsigned plan with eligibility, quotes[], and fee totals",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponse"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/PlanSample"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "502": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-payment-info": {
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ],
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.25"
+          }
+        },
+        "x-x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "[REDACTED]", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "[REDACTED]", "x-pragma-asset": "pragma: allowlist secret",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.25"
+          }
+        }
+      }
+    },
     "/positions": {
       "get": {
         "summary": "Algorand DeFi positions held by a wallet",
@@ -4603,6 +4687,191 @@
             }
           }
         }
+      },
+      "PlanBudget": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "assetId",
+          "amount"
+        ],
+        "properties": {
+          "assetId": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "description": "Budget in asset base units."
+          }
+        }
+      },
+      "PlanConstraints": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "maxProtocolWeightBps": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000
+          },
+          "noNewBorrows": {
+            "type": "boolean"
+          },
+          "executionReadyOnly": {
+            "type": "boolean"
+          },
+          "minTvlUsd": {
+            "type": "number",
+            "minimum": 0
+          },
+          "maxSourceAgeSeconds": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "maxAllocations": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          }
+        }
+      },
+      "PlanRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "address",
+          "budget"
+        ],
+        "properties": {
+          "address": {
+            "type": "string",
+            "description": "Algorand account address that will sign returned groups.", "x-pragma": "pragma: allowlist secret"
+          },
+          "budget": {
+            "$ref": "#/components/schemas/PlanBudget"
+          },
+          "constraints": {
+            "$ref": "#/components/schemas/PlanConstraints"
+          },
+          "opportunityIds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 25,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "refresh": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PlanData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "allocations",
+          "blocked",
+          "expectedPositionDelta",
+          "fees",
+          "expiresAt",
+          "warnings"
+        ],
+        "properties": {
+          "allocations": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "blocked": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "expectedPositionDelta": {
+            "type": "object"
+          },
+          "fees": {
+            "type": "object"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PlanResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PlanData"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "address",
+              "budget",
+              "fetchedAt",
+              "paymentRequired",
+              "executionSubmitted",
+              "quoteTimeAuthoritative",
+              "eligibilityEndpoint"
+            ],
+            "properties": {
+              "address": {
+                "type": "string"
+              },
+              "budget": {
+                "$ref": "#/components/schemas/PlanBudget"
+              },
+              "fetchedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "paymentRequired": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
+              },
+              "executionSubmitted": {
+                "type": "boolean",
+                "enum": [
+                  false
+                ]
+              },
+              "quoteTimeAuthoritative": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
+              },
+              "eligibilityEndpoint": {
+                "type": "string",
+                "enum": [
+                  "/eligibility"
+                ]
+              }
+            }
+          }
+        }
       }
     },
     "responses": {
@@ -6357,6 +6626,79 @@
             "fetchedAt": "2026-08-14T21:00:00.000Z",
             "paymentRequired": true,
             "quoteTimeAuthoritative": true
+          }
+        }
+      },
+      "PlanRequestSample": {
+        "summary": "ALGO budget for a R\u00e9ti enter plan",
+        "value": {
+          "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "budget": {
+            "assetId": 0,
+            "amount": "1000000"
+          },
+          "constraints": {
+            "noNewBorrows": true,
+            "executionReadyOnly": true,
+            "maxAllocations": 1
+          },
+          "opportunityIds": [
+            "reti-staking-12"
+          ]
+        }
+      },
+      "PlanSample": {
+        "summary": "ALGO to R\u00e9ti enter plan with unsigned group",
+        "value": {
+          "data": {
+            "allocations": [
+              {
+                "opportunityId": "reti-staking-12",
+                "protocol": "reti",
+                "quotes": [
+                  {
+                    "shapeKey": "mainnet:reti:v1:stake:algo",
+                    "input": {
+                      "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                      "validatorId": 12,
+                      "amount": "1000000"
+                    }
+                  }
+                ]
+              }
+            ],
+            "blocked": [],
+            "expectedPositionDelta": {
+              "summary": "Enter 1000000 of asset 0 into reti-staking-12 (reti).",
+              "entries": [
+                {
+                  "opportunityId": "reti-staking-12",
+                  "protocol": "reti",
+                  "assetId": 0,
+                  "amount": "1000000",
+                  "action": "enter"
+                }
+              ]
+            },
+            "fees": {
+              "x402Usdc": "0.25",
+              "estimatedNetworkFeeMicroAlgos": "4000",
+              "estimatedNetworkFeeUsd": null
+            },
+            "expiresAt": "2026-08-16T10:00:30.000Z",
+            "warnings": []
+          },
+          "meta": {
+            "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "budget": {
+              "assetId": 0,
+              "amount": "1000000"
+            },
+            "fetchedAt": "2026-08-16T10:00:00.000Z",
+            "paymentRequired": true,
+            "executionSubmitted": false,
+            "quoteTimeAuthoritative": true,
+            "eligibilityEndpoint": "/eligibility"
           }
         }
       }
