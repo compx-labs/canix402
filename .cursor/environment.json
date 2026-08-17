@@ -1,0 +1,20 @@
+{
+  "name": "canix402",
+  "install": "bash .cursor/install.sh",
+  "ports": [
+    { "name": "protocol-api", "port": 3000 },
+    { "name": "caddy-x402-gateway", "port": 8081 }
+  ],
+  "terminals": [
+    {
+      "name": "protocol-api",
+      "command": "npm run dev:protocol",
+      "description": "Fastify protocol API (tsx watch) on http://localhost:3000. Upstream for the Caddy x402 gateway."
+    },
+    {
+      "name": "caddy-x402-gateway",
+      "command": "cd protocol && CADDY_SITE_ADDRESS=:8081 UPSTREAM_API=http://localhost:3000 FACILITATOR_URL=https://facilitator.goplausible.xyz X402_PAY_TO=3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ X402_PRICE_AGGREGATE_USDC=0.01 X402_PRICE_SEARCH_USDC=0.01 X402_PRICE_PERSONALIZED_USDC=0.05 X402_PRICE_POSITIONS_USDC=0.005 X402_PRICE_POSITIONS_CLAIMABLE_USDC=0.001 X402_PRICE_PROTOCOL_USDC=0.01 X402_PRICE_EXECUTION_QUOTE_USDC=0.1 X402_PRICE_HAYSTACK_SWAP_USDC=0.005 X402_NETWORK=algorand-mainnet X402_SCHEME=exact X402_USDC_ASSET_ID=31566704 X402_NETWORK_CAIP2=algorand:wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8= npm run dev:caddy",
+      "description": "Caddy x402 edge gateway on http://localhost:8081. Free routes proxy to the API; paid routes return 402 + PAYMENT-REQUIRED. Uses local dev payment policy; the payer wallet is client-side."
+    }
+  ]
+}
