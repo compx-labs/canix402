@@ -14,6 +14,9 @@ Stateless remote MCP server for canix402, designed for Cloudflare Workers deploy
   pass `claimAllQuotes` into `canix_get_execution_quote` to compile unsigned claims
 - Exposes `canix_check_eligibility` for paid `POST /eligibility` (0.01 USDC);
   check `canEnter` / gates / capacity before quoting an enter
+- Exposes `canix_get_plan` for paid `POST /plans` (0.25 USDC); compile an
+  allocation intent into ordered unsigned groups. Consume this rather than
+  forking a compiler.
 - Exposes stateless Haystack tools:
   - `canix_get_quote` → free `POST /swaps/quote`
   - `canix_optin` → free `POST /swaps/optin`

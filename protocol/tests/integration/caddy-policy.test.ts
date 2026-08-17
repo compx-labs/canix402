@@ -27,6 +27,14 @@ test("Caddy gives eligibility a dedicated paid policy", () => {
   );
 });
 
+test("Caddy gives plans a dedicated compiler paid policy", () => {
+  assert.match(caddyfile, /@paid_plans path \/plans/);
+  assert.match(
+    caddyfile,
+    /handle @paid_plans \{[\s\S]*?price \{\$X402_PRICE_PLANS_USDC\}[\s\S]*?reverse_proxy \{\$UPSTREAM_API\}[\s\S]*?\}/
+  );
+});
+
 test("Caddy gives claimable positions a dedicated paid policy", () => {
   assert.match(
     caddyfile,

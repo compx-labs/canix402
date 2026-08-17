@@ -6,6 +6,7 @@ import aggregateSample from "../data/opportunities.sample.json";
 import searchSample from "../data/opportunities-search.sample.json";
 import personalizedSample from "../data/opportunities-personalized.sample.json";
 import eligibilitySample from "../data/eligibility.sample.json";
+import plansSample from "../data/plans.sample.json";
 import protocolSample from "../data/protocol-opportunities.sample.json";
 import positionsSample from "../data/positions.sample.json";
 import positionsClaimableSample from "../data/positions-claimable.sample.json";
@@ -17,6 +18,7 @@ import swapsTransactionsSample from "../data/swaps-transactions.sample.json";
 
 const format = (value: unknown): string => JSON.stringify(value, null, 2);
 const eligibilityCurl = `curl -i ${config.gatewayBaseUrl}/eligibility -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","opportunityIds":["reti-staking-12"]}'`; // pragma: allowlist secret
+const plansCurl = `curl -i ${config.gatewayBaseUrl}/plans -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","budget":{"assetId":0,"amount":"1000000"},"constraints":{"noNewBorrows":true,"executionReadyOnly":true},"opportunityIds":["reti-staking-12"]}'`; // pragma: allowlist secret
 ---
 
 <BaseLayout
@@ -123,6 +125,21 @@ const eligibilityCurl = `curl -i ${config.gatewayBaseUrl}/eligibility -H 'conten
     <CodeBlock code={eligibilityCurl} />
     <h3>Sample response (200)</h3>
     <CodeBlock code={format(eligibilitySample)} />
+  </section>
+
+  <section class="panel">
+    <h2>Intent compiler (paid)</h2>
+    <p>
+      <code>POST /plans</code> — flagship compiler SKU (~0.25 USDC). State an allocation intent
+      (address, budget/asset, constraints). Returns ordered steps: eligibility, optional swap hints,
+      protocol setup chains, and enter quotes as independent unsigned groups (never merged).
+      Reuses <code>quotes[]</code> / <code>order</code> / <code>prerequisiteShapeKeys</code>.
+      Brownie and other agents should consume this route rather than forking a compiler.
+      Canix never signs or submits.
+    </p>
+    <CodeBlock code={plansCurl} />
+    <h3>Sample response (200)</h3>
+    <CodeBlock code={format(plansSample)} />
   </section>
 
   <section class="panel">

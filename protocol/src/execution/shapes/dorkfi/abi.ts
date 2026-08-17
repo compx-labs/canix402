@@ -1,5 +1,7 @@
 import algosdk, { Algodv2 } from "algosdk";
 
+import { DEFAULT_DORKFI_GROUP_FEE } from "./constants.js";
+
 export const GET_MARKET_METHOD = new algosdk.ABIMethod({
   name: "get_market",
   args: [{ type: "uint64", name: "market_id" }],
@@ -87,6 +89,21 @@ export function decodeMarketResult(returnValue: unknown): DecodedDorkFiMarket {
 
 const emptySignSigner = algosdk.makeEmptyTransactionSigner();
 
+/**
+ * `get_user` / `get_user_borrow_amount` inner-call the market app (`itxn_submit`).
+ * A 1000µA simulate fails with "no ABI return", which the positions collector
+ * treats as a debt-read failure and marks Dork.fi `partial` — blocking Brownie.
+ */
+export function withDorkFiReadonlyInnerFee(
+  params: algosdk.SuggestedParams
+): algosdk.SuggestedParams {
+  return {
+    ...params,
+    flatFee: true,
+    fee: DEFAULT_DORKFI_GROUP_FEE
+  };
+}
+
 /** Keep simulate failures short — never surface full algosdk txn dumps. */
 function throwCompactSimulateError(method: string, methodResult: {
   decodeError?: Error;
@@ -169,7 +186,7 @@ export async function simulateGetUser(params: {
     method: GET_USER_METHOD,
     methodArgs: [params.userAddress, params.marketAppId],
     sender,
-    suggestedParams: paramsSuggested,
+    suggestedParams: withDorkFiReadonlyInnerFee(paramsSuggested),
     signer: emptySignSigner,
     appForeignApps: [params.marketAppId]
   });
@@ -209,7 +226,7 @@ export async function trySimulateGetUserBorrowAmount(params: {
       method: GET_USER_BORROW_AMOUNT_METHOD,
       methodArgs: [params.userAddress, params.marketAppId],
       sender,
-      suggestedParams: paramsSuggested,
+      suggestedParams: withDorkFiReadonlyInnerFee(paramsSuggested),
       signer: emptySignSigner,
       appForeignApps: [params.marketAppId]
     });
@@ -312,11 +329,7 @@ export async function simulateWithdrawUnderlyingAmount(params: {
     method: withdrawMethod,
     methodArgs: [params.marketAppId, params.nTokenAmount],
     sender: params.userAddress,
-    suggestedParams: {
-      ...paramsSuggested,
-      flatFee: true,
-      fee: 20_000n
-    },
+    suggestedParams: withDorkFiReadonlyInnerFee(paramsSuggested),
     signer: emptySignSigner,
     appForeignApps: [params.marketAppId]
   });

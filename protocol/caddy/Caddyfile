@@ -120,6 +120,28 @@
 		reverse_proxy {$UPSTREAM_API}
 	}
 
+	@paid_plans path /plans
+	handle @paid_plans {
+		x402 {
+			description "canix402 intent compiler plan endpoint"
+			mime_type application/json
+			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile plans
+
+			accept {
+				pay_to {$X402_PAY_TO}
+				price {$X402_PRICE_PLANS_USDC}
+				network {$X402_NETWORK}
+				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+		}
+
+		reverse_proxy {$UPSTREAM_API}
+	}
+
 	@paid_positions path /positions
 	handle @paid_positions {
 		x402 {

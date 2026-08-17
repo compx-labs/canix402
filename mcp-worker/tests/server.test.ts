@@ -196,6 +196,58 @@ test("canix_check_eligibility posts body and reports 0.01 preflight price", asyn
   assert.deepEqual(payload.request.body.opportunityIds, ["reti-staking-1"]);
 });
 
+test("canix_get_plan posts body and reports 0.25 preflight price", async () => {
+  let requestUrl = "";
+  let method = "";
+  let requestBody = "";
+  let paymentSignature = "";
+  const server = createCanixWorkerMcpServer({
+    config: {
+      gatewayUrl: "https://gateway.example",
+      publicUrl: "https://mcp.example/mcp",
+      network: "[REDACTED]"
+    },
+    fetchImpl: async (input, init) => {
+      requestUrl = String(input);
+      method = init?.method ?? "";
+      requestBody = String(init?.body);
+      paymentSignature =
+        (init?.headers as Record<string, string> | undefined)?.["PAYMENT-SIGNATURE"] ?? "";
+      return new Response("payment required", { status: 402 });
+    }
+  });
+
+  const result = await registeredTools(server).canix_get_plan!.handler(
+    {
+      address: "WALLET",
+      budget: { assetId: 0, amount: "1000000" },
+      opportunityIds: ["reti-staking-12"],
+      paymentSignature: "signed-payload"
+    },
+    {}
+  );
+
+  assert.equal(new URL(requestUrl).pathname, "/plans");
+  assert.equal(method, "POST");
+  assert.equal(paymentSignature, "signed-payload");
+  assert.deepEqual(JSON.parse(requestBody), {
+    address: "WALLET",
+    budget: { assetId: 0, amount: "1000000" },
+    opportunityIds: ["reti-staking-12"]
+  });
+  const text = result.content.find((part) => part.type === "text");
+  assert.ok(text?.text);
+  const payload = JSON.parse(text.text) as {
+    error: string;
+    mcpPayment: { priceUsdc: string };
+    request: { body: { budget: { amount: string } } };
+  };
+  assert.equal(payload.error, "PAYMENT_REQUIRED");
+  assert.equal(payload.mcpPayment.priceUsdc, "0.25");
+  assert.equal(payload.request.body.budget.amount, "1000000");
+});
+
+
 test("canix_list_claimable forwards address and reports 0.001 preflight price", async () => {
   let requestUrl = "";
   let paymentSignature = "";

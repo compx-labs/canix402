@@ -170,6 +170,30 @@ compiler SKU (`POST /execution/quotes`, ~0.10 USDC flat per request).
   `X402_PRICE_ELIGIBILITY_USDC=0.01` (10000 micro-USDC).
 - MCP: `canix_check_eligibility`.
 
+### Intent compiler (`POST /plans`)
+
+A paid compiler SKU priced at 0.25 USDC (dearer than `POST /execution/quotes` at
+0.10 USDC). Brownie and other user agents should consume this route rather than
+forking a local compiler.
+
+- Body: `{ address, budget: { assetId, amount }, constraints?, opportunityIds?, refresh? }`.
+  Amounts are asset base units (`assetId` 0 = ALGO).
+- Constraints: `maxProtocolWeightBps`, `noNewBorrows` (default true),
+  `executionReadyOnly` (default true), `minTvlUsd`, `maxSourceAgeSeconds`,
+  `maxAllocations` (default 1).
+- Response: ordered steps (eligibility, optional swap hints, protocol setup
+  chains, enter quotes), `quotes[]` / `order` / `prerequisiteShapeKeys`, expected
+  position delta, x402 + estimated network fee totals, and `expiresAt`.
+- Groups stay unsigned and unmerged. Setup steps that need a confirmed prior
+  group (e.g. Folks escrow address) are deferred with the `quotes[]` input for a
+  later `POST /execution/quotes`. Swap legs in this SKU are hints, not live
+  Haystack groups.
+- Discovery and OpenAPI advertise `maxAmountRequired: "0.25"`. Caddy enforces
+  `X402_PRICE_PLANS_USDC=0.25` (250000 micro-USDC).
+- MCP: `canix_get_plan`. Agent loop: optional personalized → plan → review
+  eligibility/warnings → local sign/submit in `order`. Quote-time on-chain
+  checks remain authoritative.
+
 ### Wallet Positions (`GET /positions?address=`)
 
 A paid wallet data route priced at exactly 0.005 USDC:

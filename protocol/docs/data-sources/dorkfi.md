@@ -52,6 +52,11 @@ Paused catalog markets are skipped quietly for supply. Debt probes still run whe
 possible. `borrowedUsdComplete` is false when any on-chain debt row is unpriced or
 a debt probe fails.
 
+Readonly `get_user` / `get_user_borrow_amount` simulates must pay the Dork.fi
+inner-call group fee (`DEFAULT_DORKFI_GROUP_FEE`). A 1000µA simulate fails with
+`no ABI return` even for wallets with no user box, which marks Dork.fi `partial`
+and blocks autonomous agents that treat any ≠ `ok` as an incomplete snapshot.
+
 If the indexed source is unavailable, on-chain ASA supply and debt rows are still
 returned. Indexed USD aggregates are optional; on-chain debt coverage drives
 `borrowedUsdComplete`.

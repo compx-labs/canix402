@@ -5,7 +5,7 @@ MCP server that exposes canix402 free and paid gateway endpoints as agent tools.
 ## What it does
 
 - Free tools: health, metadata, discovery, OpenAPI, execution shape catalog, Haystack quotes, and Haystack opt-ins
-- Paid tools: opportunities (list/search/personalized/protocol), wallet positions, claimable rewards, eligibility, execution quotes, and Haystack swap transactions
+- Paid tools: opportunities (list/search/personalized/protocol), wallet positions, claimable rewards, eligibility, intent plans, execution quotes, and Haystack swap transactions
 - Walletless x402 passthrough: paid tool preflight returns `PAYMENT-REQUIRED`, retry with `paymentSignature`
 - Resources: `canix://discovery`, `canix://openapi`, `canix://execution-shapes` (live `GET /execution/shapes`)
 - Prompt: `analyze-opportunity`
@@ -40,6 +40,16 @@ execution quote → local sign/submit. Tinyman farm claims use
 never true until fully checkable. Personalized ranking uses the same rules so
 full/gated venues are not recommended as enterable. Quote-time on-chain checks
 remain authoritative.
+
+## Intent compiler tool
+
+`canix_get_plan` calls paid `POST /plans` with `address` and
+`budget: { assetId, amount }` (fallback price 0.25 USDC). Optional constraints
+and `opportunityIds` pin the compiler. The response includes eligibility, optional
+swap hints, setup/enter `quotes[]` as independent unsigned groups (never merged),
+expected position delta, x402 + network fee totals, and expiry. Brownie and other
+agents should consume this SKU rather than forking a compiler. Sign and submit
+locally in `order` / `prerequisiteShapeKeys` sequence.
 
 ## Haystack swap tools
 

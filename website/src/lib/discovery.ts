@@ -3,6 +3,7 @@ import {
   defaultPaidPriceUsdc,
   eligibilityPriceUsdc,
   personalizedPriceUsdc,
+  plansPriceUsdc,
   positionsClaimablePriceUsdc,
   positionsPriceUsdc
 } from "./config";
@@ -87,6 +88,10 @@ function isEligibilityEndpoint(endpoint: DiscoveryEndpoint): boolean {
   return endpoint.id === "eligibility" || endpoint.path === "/eligibility";
 }
 
+function isPlansEndpoint(endpoint: DiscoveryEndpoint): boolean {
+  return endpoint.id === "plans" || endpoint.path === "/plans";
+}
+
 function resolvePaidAmount(endpoint: DiscoveryEndpoint): string {
   const raw = endpoint.x402?.requirementTemplate.maxAmountRequired?.trim();
   if (raw) {
@@ -104,6 +109,10 @@ function resolvePaidAmount(endpoint: DiscoveryEndpoint): string {
 
   if (isEligibilityEndpoint(endpoint)) {
     return eligibilityPriceUsdc;
+  }
+
+  if (isPlansEndpoint(endpoint)) {
+    return plansPriceUsdc;
   }
 
   if (isPositionsEndpoint(endpoint)) {
@@ -156,6 +165,7 @@ export function tagBadgeClass(tag: string): string {
     "search",
     "personalized",
     "eligibility",
+    "plans",
     "discovery",
     "system",
     "openapi",

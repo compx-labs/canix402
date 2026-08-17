@@ -335,6 +335,59 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
   );
 
   server.registerTool(
+    "canix_get_plan",
+    {
+      description:
+        "Compile an allocation intent into an ordered unsigned plan (POST /plans). Pass address and budget { assetId, amount } (base units; 0 = ALGO). Optional constraints and opportunityIds. Returns eligibility, optional swap hints, setup/enter quotes[] as independent unsigned groups (never merged), expected position delta, x402 + network fee totals, and expiry. Paid ~0.25 USDC. Canix does not sign or submit.",
+      inputSchema: {
+        address: z.string().min(1),
+        budget: z.object({
+          assetId: z.number().int().min(0),
+          amount: z.string().min(1)
+        }),
+        constraints: z
+          .object({
+            maxProtocolWeightBps: z.number().int().min(1).max(10_000).optional(),
+            noNewBorrows: z.boolean().optional(),
+            executionReadyOnly: z.boolean().optional(),
+            minTvlUsd: z.number().min(0).optional(),
+            maxSourceAgeSeconds: z.number().int().min(0).optional(),
+            maxAllocations: z.number().int().min(1).max(10).optional()
+          })
+          .optional(),
+        opportunityIds: z.array(z.string().min(1)).min(1).max(25).optional(),
+        refresh: z.boolean().optional(),
+        paymentSignature: paymentSignatureArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const body = {
+          address: args.address,
+          budget: args.budget,
+          ...(args.constraints !== undefined ? { constraints: args.constraints } : {}),
+          ...(args.opportunityIds !== undefined
+            ? { opportunityIds: args.opportunityIds }
+            : {}),
+          ...(args.refresh !== undefined ? { refresh: args.refresh } : {})
+        };
+        const result = await client.fetchPaid("/plans", {
+          method: "POST",
+          body,
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+        });
+        return paidToolResult(result, "0.25", {
+          path: "/plans",
+          method: "POST",
+          body
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
     "canix_get_protocol_opportunities",
     {
       description:
