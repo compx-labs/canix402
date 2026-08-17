@@ -49,25 +49,30 @@ function resolveProductionPath(pathPattern: string): string {
   return pathPattern;
 }
 
+const USDC_ASSET_ID = 31566704;
+const ALGO_ASSET_ID = 0;
+/** 0.1 USDC — quote-only; smoke never submits a swap. */
+const SMOKE_QUOTE_AMOUNT = "100000";
+
 function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): ProductionEndpoint {
   const base: ProductionEndpoint = {
     id: entry.id,
-    path: resolveProductionPath(entry.pathPattern)
+    path: resolveProductionPath(entry.pathPattern),
+    method: entry.method
   };
 
   if (entry.pathPattern === "/execution/quotes") {
     return {
       ...base,
-      method: "POST",
       body: {
         quotes: [
           {
             shapeKey: "mainnet:tinyman:v2:addLiquidity:flexible",
             input: {
               userAddress: getProductionPersonalizedAddress(),
-              assetAId: 31566704,
+              assetAId: USDC_ASSET_ID,
               assetAAmount: "1000000",
-              assetBId: 0,
+              assetBId: ALGO_ASSET_ID,
               assetBAmount: "1000000",
               maxSlippageBps: 50
             }
@@ -80,10 +85,25 @@ function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): Pro
   if (entry.pathPattern === "/pricing") {
     return {
       ...base,
-      method: "POST",
-      body: { assetIds: [0, 31566704] }
+      body: { assetIds: [ALGO_ASSET_ID, USDC_ASSET_ID] }
     };
   }
+
+  if (entry.pathPattern === "/swaps/quote") {
+    return {
+      ...base,
+      body: {
+        address: getProductionPersonalizedAddress(),
+        fromAssetId: USDC_ASSET_ID,
+        toAssetId: ALGO_ASSET_ID,
+        amount: SMOKE_QUOTE_AMOUNT,
+        type: "fixed-input"
+      }
+    };
+  }
+
+  // `/swaps/optin` stays POST without a fixture body. Production smoke feeds it
+  // the quote returned by `/swaps/quote` — static Haystack quotes expire.
 
   return base;
 }

@@ -3,8 +3,8 @@ import {
   productionPaidEndpoints
 } from "../tests/helpers/productionEndpoints.js";
 import {
-  assertFreeEndpoint,
   assertPaidPreflight,
+  assertProductionFreeEndpoints,
   getProductionBaseUrl,
   loadLiveEnvFiles
 } from "../tests/helpers/x402LiveClient.js";
@@ -14,9 +14,7 @@ loadLiveEnvFiles();
 async function main(): Promise<void> {
   const baseUrl = getProductionBaseUrl();
 
-  for (const endpoint of productionFreeEndpoints) {
-    await assertFreeEndpoint(baseUrl, endpoint.path);
-  }
+  await assertProductionFreeEndpoints(baseUrl);
 
   for (const endpoint of productionPaidEndpoints) {
     await assertPaidPreflight(baseUrl, endpoint.path, {

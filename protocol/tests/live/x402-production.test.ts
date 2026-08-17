@@ -1,13 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { productionPaidEndpoints } from "../helpers/productionEndpoints.js";
 import {
-  productionFreeEndpoints,
-  productionPaidEndpoints
-} from "../helpers/productionEndpoints.js";
-import {
-  assertFreeEndpoint,
   assertPaidPreflight,
+  assertProductionFreeEndpoints,
   executePaidRequest,
   getLiveEnv,
   getProductionBaseUrl,
@@ -18,11 +15,7 @@ import {
 loadLiveEnvFiles();
 
 test("production free endpoints return 200", async () => {
-  const baseUrl = getProductionBaseUrl();
-
-  for (const endpoint of productionFreeEndpoints) {
-    await assertFreeEndpoint(baseUrl, endpoint);
-  }
+  await assertProductionFreeEndpoints(getProductionBaseUrl());
 });
 
 test("production paid endpoints return 402 preflight", async () => {
