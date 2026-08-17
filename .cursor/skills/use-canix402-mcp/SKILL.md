@@ -143,6 +143,23 @@ Supported claim desk protocols: Tinyman farm, Tinyman stALGO TINY claim, CompX
 staking, Pact farm, Haystack, Alpha Arcade. Fee/worth-claiming hints compare
 reward USD to estimated network fees only — they are not a simulation.
 
+## Eligibility agent loop
+
+Before quoting an enter (especially Réti validators with gates or capacity):
+
+1. Optionally call `canix_get_personalized_opportunities` for wallet-aware ranking.
+   That route already applies eligibility rules so full or gated venues are not
+   recommended as enterable. Ranking is not a substitute for this check.
+2. Call `canix_check_eligibility` with `address` and `opportunityIds` (paid ~0.01
+   USDC). Response rows include `canEnter`, `missingAssets`, `gates`, `capacity`,
+   `suggestedSwap`, and `eligibilityFullyCheckable`.
+3. If `eligibilityFullyCheckable` is false (NFD/creator gates), do not treat
+   `canEnter` as true. Publish the unresolved gates to the user.
+4. If `suggestedSwap` is present, it is a hint only — fetch a live quote via
+   `canix_get_quote` / `POST /swaps/quote`, then re-check eligibility.
+5. Quote-time on-chain checks remain authoritative. Compile with
+   `canix_get_execution_quote` only after reviewing eligibility.
+
 ## Signing an execution quote
 
 For `canix_get_execution_quote`:

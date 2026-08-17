@@ -73,6 +73,33 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 			},
 		)
 
+	case "eligibility":
+		return bazaar.DeclareDiscoveryExtension(
+			bazaar.MethodPOST,
+			map[string]interface{}{
+				"address":        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+				"opportunityIds": []interface{}{"reti-staking-1"},
+			},
+			bazaar.JSONSchema{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"address": map[string]interface{}{"type": "string"},
+					"opportunityIds": map[string]interface{}{
+						"type":  "array",
+						"items": map[string]interface{}{"type": "string"},
+					},
+					"refresh": map[string]interface{}{"type": "boolean"},
+				},
+				"required": []string{"address", "opportunityIds"},
+			},
+			bazaar.BodyTypeJSON,
+			&bazaar.OutputConfig{
+				Example: map[string]interface{}{
+					"data": []interface{}{},
+				},
+			},
+		)
+
 	case "positions":
 		return bazaar.DeclareDiscoveryExtension(
 			bazaar.MethodGET,
@@ -200,6 +227,7 @@ func knownBazaarProfiles() []string {
 		"opportunities",
 		"opportunities_search",
 		"opportunities_personalized",
+		"eligibility",
 		"positions",
 		"positions_claimable",
 		"protocol_opportunities",

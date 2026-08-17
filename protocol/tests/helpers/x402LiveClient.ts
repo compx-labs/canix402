@@ -2,7 +2,12 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import algosdk from "algosdk";
 
-import { buildProductionUrl, type ProductionEndpoint } from "./productionEndpoints.js";
+import {
+  buildProductionUrl,
+  getProductionPersonalizedAddress,
+  productionFreeEndpoints,
+  type ProductionEndpoint
+} from "./productionEndpoints.js";
 import type { ExecutableQuote } from "../../src/execution/types.js";
 
 export async function buildLivePaymentSignature(
@@ -123,10 +128,43 @@ export interface ExecutionQuoteResponse {
   };
 }
 
+export async function assertProductionFreeEndpoints(baseUrl: string): Promise<void> {
+  let haystackQuote: unknown;
+
+  for (const endpoint of productionFreeEndpoints) {
+    const request =
+      endpoint.id === "haystackSwapOptIn"
+        ? withHaystackOptInBody(endpoint, haystackQuote)
+        : endpoint;
+    const body = await assertFreeEndpoint(baseUrl, request);
+    if (endpoint.id === "haystackSwapQuote") {
+      haystackQuote = (body as { data?: unknown } | undefined)?.data;
+    }
+  }
+}
+
+function withHaystackOptInBody(
+  endpoint: ProductionEndpoint,
+  haystackQuote: unknown
+): ProductionEndpoint {
+  if (haystackQuote === undefined || haystackQuote === null) {
+    throw new Error("/swaps/optin: missing quote from POST /swaps/quote");
+  }
+
+  return {
+    ...endpoint,
+    method: "POST",
+    body: {
+      address: getProductionPersonalizedAddress(),
+      quote: haystackQuote
+    }
+  };
+}
+
 export async function assertFreeEndpoint(
   baseUrl: string,
   endpoint: string | ProductionEndpoint
-): Promise<void> {
+): Promise<unknown> {
   const path = typeof endpoint === "string" ? endpoint : endpoint.path;
   const requestUrl = buildProductionUrl(baseUrl, path);
   const method = typeof endpoint === "string" ? "GET" : endpoint.method ?? "GET";
@@ -145,7 +183,10 @@ export async function assertFreeEndpoint(
   });
 
   if (response.status !== 200) {
-    throw new Error(`${path}: expected 200, got ${response.status}`);
+    const detail = await response.text();
+    throw new Error(
+      `${method} ${path}: expected 200, got ${response.status}${detail ? `. ${detail.slice(0, 400)}` : ""}`
+    );
   }
 
   if (path === "/favicon.ico" || path === "/favicon.png" || path === "/logo.png" || path === "/banner.png") {
@@ -241,6 +282,30 @@ export async function assertFreeEndpoint(
       throw new Error(`${path}: prices missing`);
     }
   }
+
+  if (path === "/swaps/quote") {
+    const data = body.data as Record<string, unknown> | undefined;
+    const meta = body.meta as Record<string, unknown> | undefined;
+    if (typeof data?.quotedAmount !== "string" || data.quotedAmount.length === 0) {
+      throw new Error(`${path}: missing quotedAmount`);
+    }
+    if (meta?.paymentRequired !== false) {
+      throw new Error(`${path}: expected meta.paymentRequired to be false`);
+    }
+  }
+
+  if (path === "/swaps/optin") {
+    const data = body.data as Record<string, unknown> | undefined;
+    const meta = body.meta as Record<string, unknown> | undefined;
+    if (typeof data?.required !== "boolean" || !Array.isArray(data.transactions)) {
+      throw new Error(`${path}: unexpected opt-in payload`);
+    }
+    if (meta?.paymentRequired !== false) {
+      throw new Error(`${path}: expected meta.paymentRequired to be false`);
+    }
+  }
+
+  return body;
 }
 
 export async function assertPaidPreflight(

@@ -70,6 +70,8 @@ Files:
 - `tests/integration/discovery-contract.test.ts`
 - `tests/integration/openapi-consistency.test.ts`
 - `tests/integration/x402-gating.test.ts`
+- `tests/integration/positions-claimable-route.test.ts`
+- `tests/integration/eligibility.test.ts`
 - `tests/integration/execution-quotes-route.test.ts`
 - `tests/integration/execution-registry.test.ts`
 - `tests/integration/folks-finance-escrow-shapes.test.ts`
@@ -345,7 +347,7 @@ npm run test:production-smoke -w protocol
 Coverage on every production test run:
 
 - **Free (expect 200):** `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/favicon.ico`, `/favicon.png`, `/.well-known/x402`, `/.well-known/x402.json`
-- **Paid preflight (expect 402 + `PAYMENT-REQUIRED`):** `/opportunities`, `/opportunities/search`, `/opportunities/personalized`, `/positions?address=...`, `/positions/claimable?address=...`, `/protocols/tinyman/opportunities`, `/execution/quotes`
+- **Paid preflight (expect 402 + `PAYMENT-REQUIRED`):** `/opportunities`, `/opportunities/search`, `/opportunities/personalized`, `/eligibility`, `/positions?address=...`, `/positions/claimable?address=...`, `/protocols/tinyman/opportunities`, `/execution/quotes`
 
 Behavior:
 
@@ -357,6 +359,8 @@ Behavior:
   micro-USDC (`0.005 USDC`) in `PAYMENT-REQUIRED`.
 - Claimable (`GET /positions/claimable`) must advertise exactly `1000`
   micro-USDC (`0.001 USDC`) in `PAYMENT-REQUIRED`.
+- Eligibility (`POST /eligibility`) must advertise exactly `10000`
+  micro-USDC (`0.01 USDC`) in `PAYMENT-REQUIRED`.
 
 Wallet requirements for paid settlement:
 

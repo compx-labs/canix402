@@ -266,7 +266,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_get_personalized_opportunities",
     {
       description:
-        "Fetch wallet-aware opportunities matched to held assets (GET /opportunities/personalized). Paid ~0.05 USDC.",
+        "Fetch wallet-aware opportunities matched to held assets (GET /opportunities/personalized). Applies eligibility rules so full/gated venues are not recommended as enterable. Use canix_check_eligibility for missingAssets/gates/capacity. Paid ~0.05 USDC.",
       inputSchema: {
         address: AlgorandAddressSchema,
         limit: z.number().int().min(1).max(200).optional(),
@@ -292,6 +292,41 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
           path: "/opportunities/personalized",
           method: "GET",
           query
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_check_eligibility",
+    {
+      description:
+        "Check whether a wallet can enter selected opportunities before quoting (POST /eligibility). Pass address and opportunityIds (1–25). Returns canEnter, missingAssets, gates, capacity, suggestedSwap, and eligibilityFullyCheckable. NFD/creator gates stay unresolved — canEnter is never true until fully checkable. Paid ~0.01 USDC.",
+      inputSchema: {
+        address: z.string().min(1),
+        opportunityIds: z.array(z.string().min(1)).min(1).max(25),
+        refresh: z.boolean().optional(),
+        paymentSignature: paymentSignatureArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const body = {
+          address: args.address,
+          opportunityIds: args.opportunityIds,
+          ...(args.refresh !== undefined ? { refresh: args.refresh } : {})
+        };
+        const result = await client.fetchPaid("/eligibility", {
+          method: "POST",
+          body,
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+        });
+        return paidToolResult(result, "0.01", {
+          path: "/eligibility",
+          method: "POST",
+          body
         });
       } catch (error) {
         return errorResult(error);

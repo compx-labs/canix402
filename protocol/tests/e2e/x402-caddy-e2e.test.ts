@@ -78,6 +78,32 @@ test("positions endpoint advertises exactly 5000 micro-USDC", async () => {
   }
 });
 
+test("eligibility endpoint advertises exactly 10000 micro-USDC", async () => {
+  const context = await setup();
+  try {
+    const response = await fetch(`${context.baseUrl}/eligibility`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        address: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+        opportunityIds: ["reti-staking-1"]
+      })
+    });
+    assert.equal(response.status, 402);
+
+    const paymentRequired = response.headers.get("payment-required");
+    assert.ok(paymentRequired);
+    const decoded = decodePaymentRequired(paymentRequired);
+    assert.equal(
+      decoded.accepts[0]?.maxAmountRequired ?? decoded.accepts[0]?.amount,
+      "10000"
+    );
+    assert.equal(context.facilitator.calls.length, 0);
+  } finally {
+    await context.teardown();
+  }
+});
+
 test("positions/claimable endpoint advertises exactly 1000 micro-USDC", async () => {
   const context = await setup();
   try {

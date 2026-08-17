@@ -68,6 +68,17 @@ canix_list_claimable({
   paymentSignature: "<base64-json-payload>"
 })
 
+// Eligibility
+canix_check_eligibility({
+  address: "YOUR_ALGORAND_ADDRESS",  // pragma: allowlist secret
+  opportunityIds: ["reti-staking-12"]
+})
+canix_check_eligibility({
+  address: "YOUR_ALGORAND_ADDRESS",  // pragma: allowlist secret
+  opportunityIds: ["reti-staking-12"],
+  paymentSignature: "<base64-json-payload>"
+})
+
 // Execution quotes (batch)
 canix_get_execution_quote({
   quotes: [{

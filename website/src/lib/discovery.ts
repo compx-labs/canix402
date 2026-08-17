@@ -1,6 +1,7 @@
 import snapshot from "../data/discovery.snapshot.json";
 import {
   defaultPaidPriceUsdc,
+  eligibilityPriceUsdc,
   personalizedPriceUsdc,
   positionsClaimablePriceUsdc,
   positionsPriceUsdc
@@ -82,6 +83,10 @@ function isClaimableEndpoint(endpoint: DiscoveryEndpoint): boolean {
   );
 }
 
+function isEligibilityEndpoint(endpoint: DiscoveryEndpoint): boolean {
+  return endpoint.id === "eligibility" || endpoint.path === "/eligibility";
+}
+
 function resolvePaidAmount(endpoint: DiscoveryEndpoint): string {
   const raw = endpoint.x402?.requirementTemplate.maxAmountRequired?.trim();
   if (raw) {
@@ -95,6 +100,10 @@ function resolvePaidAmount(endpoint: DiscoveryEndpoint): string {
 
   if (isPersonalizedEndpoint(endpoint)) {
     return personalizedPriceUsdc;
+  }
+
+  if (isEligibilityEndpoint(endpoint)) {
+    return eligibilityPriceUsdc;
   }
 
   if (isPositionsEndpoint(endpoint)) {
@@ -146,6 +155,7 @@ export function tagBadgeClass(tag: string): string {
     "protocol",
     "search",
     "personalized",
+    "eligibility",
     "discovery",
     "system",
     "openapi",

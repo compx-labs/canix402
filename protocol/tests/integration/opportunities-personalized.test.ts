@@ -206,12 +206,19 @@ test("GET /opportunities/personalized returns wallet-matched opportunities ranke
 
     assert.equal(response.statusCode, 200);
     const body = response.json() as {
-      data: Array<{ opportunityId: string; assetIds?: number[] }>;
+      data: Array<{
+        opportunityId: string;
+        assetIds?: number[];
+        canEnter?: boolean;
+        eligibilityFullyCheckable?: boolean;
+      }>;
       meta: {
         limit: number;
         paymentRequired: boolean;
         address: string;
         heldAssetCount: number;
+        eligibilityApplied?: boolean;
+        eligibilityEndpoint?: string;
       };
     };
 
@@ -223,6 +230,13 @@ test("GET /opportunities/personalized returns wallet-matched opportunities ranke
     assert.equal(body.meta.paymentRequired, true);
     assert.equal(body.meta.address, VALID_ADDRESS);
     assert.equal(body.meta.heldAssetCount, 3);
+    assert.equal(body.meta.eligibilityApplied, true);
+    assert.equal(body.meta.eligibilityEndpoint, "/eligibility");
+    assert.equal(body.data.every((row) => row.canEnter === true), true);
+    assert.equal(
+      body.data.every((row) => row.eligibilityFullyCheckable === true),
+      true
+    );
   } finally {
     await app.close();
     await tinymanMock.close();

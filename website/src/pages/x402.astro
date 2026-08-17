@@ -5,6 +5,7 @@ import CodeBlock from "../components/CodeBlock.astro";
 import {
   config,
   defaultPaidPriceUsdc,
+  eligibilityPriceUsdc,
   personalizedPriceUsdc,
   positionsClaimablePriceUsdc,
   positionsPriceUsdc,
@@ -52,6 +53,8 @@ import {
       opportunities at <code>/opportunities/personalized</code> cost
       <code>{personalizedPriceUsdc} USDC</code>, while <code>/positions?address=</code> costs
       exactly <code>{positionsPriceUsdc} USDC</code> (<code>5000</code> micro-USDC).
+      Eligibility <code>POST /eligibility</code> costs
+      <code>{eligibilityPriceUsdc} USDC</code> (<code>10000</code> micro-USDC).
       Claim desk <code>/positions/claimable?address=</code> costs
       exactly <code>{positionsClaimablePriceUsdc} USDC</code> (<code>1000</code> micro-USDC).
       Batch execution quotes at <code>POST /execution/quotes</code> cost

@@ -15,6 +15,15 @@ export type {
   ClaimableRewardsResponse,
   ClaimableWorthClaiming
 } from "./claimable.js";
+export type {
+  EligibilityGateResult,
+  EligibilityMissingAsset,
+  EligibilityReason,
+  EligibilityRequest,
+  EligibilityResponse,
+  EligibilitySuggestedSwap,
+  OpportunityEligibility
+} from "./eligibility.js";
 export {
   PositionRecordSchema,
   PositionTypeSchema,
@@ -29,6 +38,12 @@ export {
   ClaimableRewardRecordSchema,
   ClaimableRewardsResponseSchema
 } from "./claimable-schema.js";
+export {
+  ELIGIBILITY_MAX_OPPORTUNITY_IDS,
+  EligibilityRequestSchema,
+  EligibilityResponseSchema,
+  OpportunityEligibilitySchema
+} from "./eligibility-schema.js";
 export type {
   DiscoveryDocument,
   DiscoveryEndpointDescriptor,

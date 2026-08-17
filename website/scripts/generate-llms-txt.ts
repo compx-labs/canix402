@@ -164,6 +164,7 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
     opportunities: loadSample("opportunities.sample.json"),
     search: loadSample("opportunities-search.sample.json"),
     personalized: loadSample("opportunities-personalized.sample.json"),
+    eligibility: loadSample("eligibility.sample.json"),
     protocol: loadSample("protocol-opportunities.sample.json"),
     positions: loadSample("positions.sample.json"),
     positionsClaimable: loadSample("positions-claimable.sample.json"),
@@ -204,7 +205,7 @@ Always call the **gateway**, not an internal upstream API. x402 enforcement, \`P
 
 ### MCP server
 
-Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${MCP_URL}\` (streamable-http). Metadata: \`${MCP_WELL_KNOWN}\`. Walletless: paid tool preflight returns payment requirements; retry with \`paymentSignature\`. Tools include \`canix_list_opportunities\`, \`canix_list_execution_shapes\`, \`canix_get_positions\`, \`canix_list_claimable\`, \`canix_get_execution_quote\`, and free discovery helpers. See ${DOCS_SITE}/mcp.
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${MCP_URL}\` (streamable-http). Metadata: \`${MCP_WELL_KNOWN}\`. Walletless: paid tool preflight returns payment requirements; retry with \`paymentSignature\`. Tools include \`canix_list_opportunities\`, \`canix_list_execution_shapes\`, \`canix_get_positions\`, \`canix_list_claimable\`, \`canix_check_eligibility\`, \`canix_get_execution_quote\`, and free discovery helpers. See ${DOCS_SITE}/mcp.
 
 ## x402 payment flow
 
@@ -236,7 +237,8 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 - \`GET /opportunities\` — top aggregated opportunities ranked by APY (default limit 10).
 - \`GET /protocols/:protocol/opportunities\` — protocol slug e.g. \`tinyman\`, \`pact\`, \`folks-finance\`, \`compx\`, \`dorkfi\`, \`myth-finance\`, \`haystack\`, \`reti\`, \`alpha-arcade\`.
 - \`GET /opportunities/search\` — filter by \`platform\`, \`type\`, \`minApy\`, \`maxApy\`, \`minTvlUsd\`, \`assetIds\` (comma-separated ASA ids; 0 = ALGO; ANY intersection with opportunity.assetIds).
-- \`GET /opportunities/personalized\` — requires \`address\` (Algorand account); premium price; matches opportunities to wallet-held assets.
+- \`GET /opportunities/personalized\` — requires \`address\` (Algorand account); premium price; matches opportunities to wallet-held assets using eligibility rules (full/gated venues are not recommended as enterable).  // pragma: allowlist secret
+- \`POST /eligibility\` — requires \`address\` and \`opportunityIds\`; 0.01 USDC; returns \`canEnter\`, \`missingAssets\`, \`gates\`, \`capacity\`, \`suggestedSwap\`. NFD/creator gates stay unresolved (\`eligibilityFullyCheckable: false\`). Quote-time checks remain authoritative.  // pragma: allowlist secret
 - \`GET /positions\` — requires \`address\` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
 - \`GET /positions/claimable\` — requires \`address\`; claim desk with USD, fee/worth-claiming hints, and \`claimAllQuotes\` for exactly 0.001 USDC. Compile via \`POST /execution/quotes\` (~0.1 USDC flat; groups never merged).
 - \`GET /execution/shapes\` — free catalog of verified shape keys and requiredInputs (metadata only).
@@ -269,6 +271,12 @@ ${JSON.stringify(samples.search, null, 2)}
 
 \`\`\`json
 ${JSON.stringify(samples.personalized, null, 2)}
+\`\`\`
+
+### POST /eligibility
+
+\`\`\`json
+${JSON.stringify(samples.eligibility, null, 2)}
 \`\`\`
 
 ### GET /protocols/{protocol}/opportunities
