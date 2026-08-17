@@ -2000,6 +2000,8 @@ async function collectDorkFiOnChainSupply(
       }
 
       try {
+        // Brownie treats any protocol status ≠ ok as a blocking incomplete snapshot.
+        // get_user must use the inner-call group fee or this probe throws "no ABI return".
         const debt = await deps.resolveUserDebt({
           algod,
           poolAppId: market.poolAppId,

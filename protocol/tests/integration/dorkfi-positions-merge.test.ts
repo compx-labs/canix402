@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { withDorkFiReadonlyInnerFee } from "../../src/execution/shapes/dorkfi/abi.js";
+import { DEFAULT_DORKFI_GROUP_FEE } from "../../src/execution/shapes/dorkfi/constants.js";
 import {
   DORKFI_MAINNET_USDC_ASA_ID,
   DORKFI_MAINNET_USDC_MARKET_APP_ID,
@@ -359,6 +361,20 @@ test("Dork.fi market probe warnings stay short without algosdk dumps", async () 
     assert.ok(warning.length <= 180, warning);
     assert.equal(warning.includes('"txn"'), false);
   }
+});
+
+test("Dork.fi readonly user simulates pay the inner-call group fee", () => {
+  const suggested = withDorkFiReadonlyInnerFee({
+    fee: 1000n,
+    minFee: 1000n,
+    firstValid: 1n,
+    lastValid: 1001n,
+    genesisID: "mainnet-v1.0",
+    genesisHash: new Uint8Array(32),
+    flatFee: false
+  });
+  assert.equal(suggested.flatFee, true);
+  assert.equal(suggested.fee, DEFAULT_DORKFI_GROUP_FEE);
 });
 
 test("Dork.fi USD aggregates alone never advertise withdraw shapes", () => {
