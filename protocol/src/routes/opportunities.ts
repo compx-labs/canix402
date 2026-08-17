@@ -11,11 +11,13 @@ import { filterOpportunitiesByActivity } from "../services/opportunity-activity.
 import { rankOpportunitiesByApy } from "../services/opportunity-ranking.js";
 import { formatOpportunitiesForAgent } from "../services/precision.js";
 import { selectPersonalizedOpportunities } from "../services/personalized-opportunities.js";
+import { evaluateOpportunityEligibility } from "../services/eligibility.js";
 import { ApiError, ApiSuccess } from "../types/index.js";
 import { OpportunityRecordV1 } from "../types/opportunity.js";
 import {
   OpportunitiesListResponseSchema,
-  PersonalizedOpportunitiesListResponseSchema
+  PersonalizedOpportunitiesListResponseSchema,
+  type PersonalizedOpportunityRecord
 } from "../types/opportunity-schema.js";
 import {
   AGGREGATE_OPPORTUNITIES_DEFAULT_LIMIT,
@@ -153,7 +155,7 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
 
   app.get<{
     Querystring: PersonalizedOpportunitiesQuery;
-    Reply: ApiSuccess<OpportunityRecordV1[]> | ApiError;
+    Reply: ApiSuccess<PersonalizedOpportunityRecord[]> | ApiError;
   }>(
     "/opportunities/personalized",
     {
@@ -196,8 +198,21 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
         { includeInactive }
       ).slice(offset, offset + limit);
 
+      const formatted = formatOpportunitiesForAgent(personalized).map((row, index) => {
+        const eligibility = evaluateOpportunityEligibility(
+          personalized[index],
+          row.opportunityId,
+          holdings
+        );
+        return {
+          ...row,
+          canEnter: eligibility.canEnter,
+          eligibilityFullyCheckable: eligibility.eligibilityFullyCheckable
+        };
+      });
+
       return reply.send({
-        data: formatOpportunitiesForAgent(personalized),
+        data: formatted,
         meta: {
           limit,
           offset,
@@ -205,6 +220,8 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
           paymentRequired: true,
           address,
           heldAssetCount: holdings.heldAssetIds.size,
+          eligibilityApplied: true,
+          eligibilityEndpoint: "/eligibility",
           ...cacheMetaForResponse(cache)
         }
       });

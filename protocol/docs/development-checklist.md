@@ -47,11 +47,11 @@ New surface on existing `reward` position rows and per-protocol claim shapes.
 
 Make personalized matching honest. Quote-time on-chain validation remains authoritative.
 
-- [ ] Add paid `POST /eligibility` (address × opportunityId(s)) returning `{ canEnter, missingAssets, gates, capacity, suggestedSwap }`.
-- [ ] Resolve Réti `entryRequirements` / `capacity` (min amount, ASA gates, staker slots, ALGO room) before quote.
-- [ ] Define NFD / creator-gate behavior: publish unresolved gates rather than false `canEnter: true` until full NFD resolution exists (`eligibilityFullyCheckable`).
-- [ ] Stop treating “wallet holds any overlapping `assetIds`” as sufficient for `/opportunities/personalized`; use eligibility (or link to it) so full/gated venues are not recommended as enterable.
-- [ ] MCP tool + discovery/OpenAPI/Caddy wiring.
+- [x] Add paid `POST /eligibility` (address × opportunityId(s)) returning `{ canEnter, missingAssets, gates, capacity, suggestedSwap }`.
+- [x] Resolve Réti `entryRequirements` / `capacity` (min amount, ASA gates, staker slots, ALGO room) before quote.
+- [x] Define NFD / creator-gate behavior: publish unresolved gates rather than false `canEnter: true` until full NFD resolution exists (`eligibilityFullyCheckable`).
+- [x] Stop treating “wallet holds any overlapping `assetIds`” as sufficient for `/opportunities/personalized`; use eligibility (or link to it) so full/gated venues are not recommended as enterable.
+- [x] MCP tool + discovery/OpenAPI/Caddy wiring.
 
 ### 13.3 Intent compiler (`POST /plans`)
 

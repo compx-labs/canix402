@@ -790,7 +790,7 @@
     "/opportunities/personalized": {
       "get": {
         "summary": "Top opportunities tuned to a wallet's held assets",
-        "description": "Returns Algorand DeFi opportunities whose underlying assets match a supplied wallet's holdings, including opted-in ASAs with positive balance and native ALGO when held. Use when an agent needs wallet-aware yield ideas based on assets the account already owns, with normalized APY/APR, TVL, asset ids, source freshness, and caveats. This endpoint provides normalized market data only; it does not build or submit transactions.",
+        "description": "Returns Algorand DeFi opportunities whose underlying assets match a supplied wallet's holdings, including opted-in ASAs with positive balance and native ALGO when held. Matching applies POST /eligibility rules (min amount, ASA gates, capacity, unresolved NFD/creator gates) so full or gated venues are not recommended as enterable. Each row includes canEnter and eligibilityFullyCheckable; quote-time on-chain checks remain authoritative. Use POST /eligibility for the diagnostic (missingAssets, gates, capacity, suggestedSwap). This endpoint provides normalized market data only; it does not build or submit transactions.", "x-pragma": "pragma: allowlist secret",
         "tags": [
           "defi",
           "opportunities",
@@ -897,6 +897,89 @@
         }
       }
     },
+    "/eligibility": {
+      "post": {
+        "summary": "Wallet eligibility and capacity for selected opportunities",
+        "description": "Checks whether a wallet can enter one or more opportunities before requesting an execution quote. Resolves R\u00e9ti entryRequirements and capacity (min amount, ASA gates, staker slots, ALGO room). NFD and creator gates are published as unresolved \u2014 canEnter is never true until eligibilityFullyCheckable is true. Returns missingAssets, gates, capacity, and an optional suggestedSwap hint (not a live quote). Quote-time on-chain checks remain authoritative. Canix does not sign or submit transactions.",
+        "tags": [
+          "defi",
+          "opportunities",
+          "eligibility",
+          "wallet"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EligibilityRequest"
+              },
+              "examples": {
+                "default": {
+                  "$ref": "#/components/examples/EligibilityRequestSample"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Eligibility diagnostics for the requested opportunities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EligibilityResponse"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/EligibilitySample"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "502": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-payment-info": {
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ],
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.01"
+          }
+        },
+        "x-x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.01"
+          }
+        }
+      }
+    },
     "/positions": {
       "get": {
         "summary": "Algorand DeFi positions held by a wallet",
@@ -973,7 +1056,7 @@
     "/positions/claimable": {
       "get": {
         "summary": "Claimable DeFi rewards across supported protocols",
-        "description": "Returns claimable reward rows for a wallet with USD value, network-fee / worth-claiming hints, compatible claim shapeKeys, and ready-to-POST quote inputs. Use claimAllQuotes (or selected per-row quotes) with POST /execution/quotes to compile unsigned claim groups — groups are never merged. Covers Tinyman farm, stALGO TINY claim, CompX staking, Pact farm, Haystack, and Alpha Arcade. This endpoint does not build or submit transactions.",
+        "description": "Returns claimable reward rows for a wallet with USD value, network-fee / worth-claiming hints, compatible claim shapeKeys, and ready-to-POST quote inputs. Use claimAllQuotes (or selected per-row quotes) with POST /execution/quotes to compile unsigned claim groups \u2014 groups are never merged. Covers Tinyman farm, stALGO TINY claim, CompX staking, Pact farm, Haystack, and Alpha Arcade. This endpoint does not build or submit transactions.",
         "tags": [
           "defi",
           "positions",
@@ -1053,7 +1136,7 @@
     "/public/agents/brownie/positions": {
       "get": {
         "summary": "Public DeFi positions for the Brownie Bot showcase wallet",
-        "description": "Free showcase route that returns normalized DeFi positions for the Brownie Bot treasury wallet only. The wallet address is hardcoded server-side — this is not a general free /positions browser. Use GET /positions?address= for arbitrary wallets (paid).",
+        "description": "Free showcase route that returns normalized DeFi positions for the Brownie Bot treasury wallet only. The wallet address is hardcoded server-side \u2014 this is not a general free /positions browser. Use GET /positions?address= for arbitrary wallets (paid).",
         "tags": [
           "defi",
           "positions",
@@ -1200,7 +1283,7 @@
     "/execution/shapes": {
       "get": {
         "summary": "List verified execution shape catalog metadata",
-        "description": "Returns the live catalog of verified transaction shapes (shapeKey, requiredInputs, opportunityRole, docsPath). Catalog metadata only — does not compile quotes or return unsigned transactions. Use POST /execution/quotes to compile executable groups.",
+        "description": "Returns the live catalog of verified transaction shapes (shapeKey, requiredInputs, opportunityRole, docsPath). Catalog metadata only \u2014 does not compile quotes or return unsigned transactions. Use POST /execution/quotes to compile executable groups.",
         "tags": [
           "execution",
           "discovery",
@@ -1740,7 +1823,28 @@
         }
       },
       "PersonalizedOpportunityRecord": {
-        "$ref": "#/components/schemas/OpportunityRecord"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OpportunityRecord"
+          },
+          {
+            "type": "object",
+            "required": [
+              "canEnter",
+              "eligibilityFullyCheckable"
+            ],
+            "properties": {
+              "canEnter": {
+                "type": "boolean",
+                "description": "Whether the wallet currently passes checkable entry and capacity rules. Never true when eligibilityFullyCheckable is false."
+              },
+              "eligibilityFullyCheckable": {
+                "type": "boolean",
+                "description": "False when NFD/creator gates are present and cannot be resolved. Use POST /eligibility for the diagnostic."
+              }
+            }
+          }
+        ]
       },
       "OpportunitiesListMeta": {
         "type": "object",
@@ -1808,7 +1912,9 @@
             "type": "object",
             "required": [
               "address",
-              "heldAssetCount"
+              "heldAssetCount",
+              "eligibilityApplied",
+              "eligibilityEndpoint"
             ],
             "properties": {
               "address": {
@@ -1818,6 +1924,20 @@
               "heldAssetCount": {
                 "type": "integer",
                 "description": "Number of distinct held assets used for matching."
+              },
+              "eligibilityApplied": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ],
+                "description": "True when ranking used POST /eligibility rules."
+              },
+              "eligibilityEndpoint": {
+                "type": "string",
+                "enum": [
+                  "/eligibility"
+                ],
+                "description": "Paid diagnostic endpoint for missingAssets, gates, and capacity."
               }
             }
           }
@@ -3791,7 +3911,7 @@
           "validatorId": {
             "type": "integer",
             "minimum": 1,
-            "description": "Réti validator id (stake target). Amounts never appear in hints."
+            "description": "R\u00e9ti validator id (stake target). Amounts never appear in hints."
           },
           "loanAppId": {
             "type": "integer",
@@ -4028,7 +4148,7 @@
               "any",
               "all"
             ],
-            "description": "How multiple ASA gates combine. Réti uses any."
+            "description": "How multiple ASA gates combine. R\u00e9ti uses any."
           },
           "eligibilityFullyCheckable": {
             "type": "boolean",
@@ -4071,6 +4191,416 @@
           },
           "acceptingStake": {
             "type": "boolean"
+          }
+        }
+      },
+      "EligibilityRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "address",
+          "opportunityIds"
+        ],
+        "properties": {
+          "address": {
+            "type": "string",
+            "description": "Algorand account address to evaluate.", "x-pragma": "pragma: allowlist secret"
+          },
+          "opportunityIds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 25,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Opportunity ids to check, in request order."
+          },
+          "refresh": {
+            "type": "boolean",
+            "description": "Bypass Redis and refetch adapters; still writes a fresh cache entry."
+          }
+        }
+      },
+      "EligibilityMissingAsset": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "assetId",
+          "requiredAmount",
+          "heldAmount",
+          "shortfall",
+          "role"
+        ],
+        "properties": {
+          "assetId": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "requiredAmount": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "heldAmount": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "shortfall": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "min-amount",
+              "asa-gate",
+              "required-asset"
+            ]
+          }
+        }
+      },
+      "EligibilityGateResult": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "assetId",
+              "status"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "asa"
+                ]
+              },
+              "assetId": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "minBalance": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pass",
+                  "fail",
+                  "unresolved"
+                ]
+              },
+              "heldAmount": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "reason": {
+                "$ref": "#/components/schemas/EligibilityReason"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "creator",
+              "status"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "asa-creator"
+                ]
+              },
+              "creator": {
+                "type": "string",
+                "minLength": 58,
+                "maxLength": 58
+              },
+              "minBalance": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pass",
+                  "fail",
+                  "unresolved"
+                ]
+              },
+              "heldAmount": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "reason": {
+                "$ref": "#/components/schemas/EligibilityReason"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "nfd",
+              "status"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "nfd-linked-creators"
+                ]
+              },
+              "nfd": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pass",
+                  "fail",
+                  "unresolved"
+                ]
+              },
+              "heldAmount": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "reason": {
+                "$ref": "#/components/schemas/EligibilityReason"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "nfdRoot",
+              "status"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "nfd-root-segment"
+                ]
+              },
+              "nfdRoot": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pass",
+                  "fail",
+                  "unresolved"
+                ]
+              },
+              "heldAmount": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "reason": {
+                "$ref": "#/components/schemas/EligibilityReason"
+              }
+            }
+          }
+        ]
+      },
+      "EligibilityReason": {
+        "type": "string",
+        "enum": [
+          "opportunity-not-found",
+          "capacity-not-accepting",
+          "capacity-no-slots",
+          "capacity-no-algo-room",
+          "below-min-amount",
+          "missing-asa-gate",
+          "unresolved-nfd-gate",
+          "unresolved-creator-gate",
+          "missing-required-asset"
+        ]
+      },
+      "EligibilitySuggestedSwap": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "fromAssetId",
+          "toAssetId",
+          "amount",
+          "reason",
+          "note"
+        ],
+        "properties": {
+          "fromAssetId": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "toAssetId": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "missing-asa-gate",
+              "missing-min-amount",
+              "missing-required-asset"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "OpportunityEligibility": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "opportunityId",
+          "protocol",
+          "found",
+          "canEnter",
+          "eligibilityFullyCheckable",
+          "missingAssets",
+          "gates",
+          "capacity",
+          "suggestedSwap",
+          "reasons"
+        ],
+        "properties": {
+          "opportunityId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "protocol": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "tinyman",
+                  "pact",
+                  "folks-finance",
+                  "compx",
+                  "dorkfi",
+                  "myth-finance",
+                  "haystack",
+                  "reti",
+                  "alpha-arcade"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "found": {
+            "type": "boolean"
+          },
+          "canEnter": {
+            "type": "boolean"
+          },
+          "eligibilityFullyCheckable": {
+            "type": "boolean"
+          },
+          "missingAssets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EligibilityMissingAsset"
+            }
+          },
+          "gates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EligibilityGateResult"
+            }
+          },
+          "capacity": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OpportunityCapacity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "suggestedSwap": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/EligibilitySuggestedSwap"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EligibilityReason"
+            }
+          }
+        }
+      },
+      "EligibilityResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpportunityEligibility"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "address",
+              "fetchedAt",
+              "paymentRequired",
+              "quoteTimeAuthoritative"
+            ],
+            "properties": {
+              "address": {
+                "type": "string"
+              },
+              "fetchedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "paymentRequired": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
+              },
+              "quoteTimeAuthoritative": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
+              }
+            }
           }
         }
       }
@@ -4322,8 +4852,8 @@
                   "facilitator": "https://facilitator.goplausible.xyz",
                   "requirementTemplate": {
                     "scheme": "exact",
-                    "network": "algorand-mainnet",
-                    "asset": "31566704",
+                    "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+                    "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
                     "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
                     "maxAmountRequired": "0.01"
                   }
@@ -4537,7 +5067,7 @@
                 "algoRoomMicroAlgos": "50000000000",
                 "acceptingStake": true
               },
-              "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+              "notes": "R\u00e9ti validator-level consensus staking; quote-time eligibility checks are authoritative.",
               "executionReady": true,
               "executionShapes": [
                 {
@@ -4546,8 +5076,8 @@
                   "protocolVersion": "v1",
                   "action": "stake",
                   "variant": "algo",
-                  "title": "Réti ALGO stake to validator",
-                  "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+                  "title": "R\u00e9ti ALGO stake to validator",
+                  "summary": "Stakes ALGO to a R\u00e9ti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas \u00d72, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -4571,8 +5101,8 @@
                   "protocolVersion": "v1",
                   "action": "unstake",
                   "variant": "algo",
-                  "title": "Réti ALGO unstake from pool",
-                  "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+                  "title": "R\u00e9ti ALGO unstake from pool",
+                  "summary": "Removes ALGO stake from a R\u00e9ti staking pool via StakingPool.removeStake. Builds gas \u00d72, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -5021,7 +5551,9 @@
                   }
                 }
               ],
-              "compatibleExitShapes": []
+              "compatibleExitShapes": [],
+              "canEnter": true,
+              "eligibilityFullyCheckable": true
             },
             {
               "protocol": "tinyman",
@@ -5122,7 +5654,9 @@
                   }
                 }
               ],
-              "compatibleExitShapes": []
+              "compatibleExitShapes": [],
+              "canEnter": true,
+              "eligibilityFullyCheckable": true
             },
             {
               "protocol": "reti",
@@ -5150,7 +5684,7 @@
                 "algoRoomMicroAlgos": "50000000000",
                 "acceptingStake": true
               },
-              "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+              "notes": "R\u00e9ti validator-level consensus staking; quote-time eligibility checks are authoritative.",
               "executionReady": true,
               "executionShapes": [
                 {
@@ -5159,8 +5693,8 @@
                   "protocolVersion": "v1",
                   "action": "stake",
                   "variant": "algo",
-                  "title": "Réti ALGO stake to validator",
-                  "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+                  "title": "R\u00e9ti ALGO stake to validator",
+                  "summary": "Stakes ALGO to a R\u00e9ti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas \u00d72, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -5184,8 +5718,8 @@
                   "protocolVersion": "v1",
                   "action": "unstake",
                   "variant": "algo",
-                  "title": "Réti ALGO unstake from pool",
-                  "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+                  "title": "R\u00e9ti ALGO unstake from pool",
+                  "summary": "Removes ALGO stake from a R\u00e9ti staking pool via StakingPool.removeStake. Builds gas \u00d72, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -5202,7 +5736,9 @@
                     "depositAssetId": 0
                   }
                 }
-              ]
+              ],
+              "canEnter": true,
+              "eligibilityFullyCheckable": true
             }
           ],
           "meta": {
@@ -5212,11 +5748,8 @@
             "paymentRequired": true,
             "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
             "heldAssetCount": 2,
-            "cacheEnabled": false,
-            "cacheHit": false,
-            "cachedAt": null,
-            "cacheAgeMs": null,
-            "cacheTtlSec": 180
+            "eligibilityApplied": true,
+            "eligibilityEndpoint": "/eligibility"
           }
         }
       },
@@ -5250,7 +5783,7 @@
                 "algoRoomMicroAlgos": "50000000000",
                 "acceptingStake": true
               },
-              "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+              "notes": "R\u00e9ti validator-level consensus staking; quote-time eligibility checks are authoritative.",
               "executionReady": true,
               "executionShapes": [
                 {
@@ -5259,8 +5792,8 @@
                   "protocolVersion": "v1",
                   "action": "stake",
                   "variant": "algo",
-                  "title": "Réti ALGO stake to validator",
-                  "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+                  "title": "R\u00e9ti ALGO stake to validator",
+                  "summary": "Stakes ALGO to a R\u00e9ti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas \u00d72, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -5284,8 +5817,8 @@
                   "protocolVersion": "v1",
                   "action": "unstake",
                   "variant": "algo",
-                  "title": "Réti ALGO unstake from pool",
-                  "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+                  "title": "R\u00e9ti ALGO unstake from pool",
+                  "summary": "Removes ALGO stake from a R\u00e9ti staking pool via StakingPool.removeStake. Builds gas \u00d72, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -5787,6 +6320,44 @@
               }
             }
           ]
+        }
+      },
+      "EligibilityRequestSample": {
+        "summary": "Eligibility request for a R\u00e9ti validator",
+        "value": {
+          "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "opportunityIds": [
+            "reti-staking-12"
+          ]
+        }
+      },
+      "EligibilitySample": {
+        "summary": "Wallet can enter a R\u00e9ti validator",
+        "value": {
+          "data": [
+            {
+              "opportunityId": "reti-staking-12",
+              "protocol": "reti",
+              "found": true,
+              "canEnter": true,
+              "eligibilityFullyCheckable": true,
+              "missingAssets": [],
+              "gates": [],
+              "capacity": {
+                "stakerSlotsRemaining": 20,
+                "algoRoomMicroAlgos": "50000000000",
+                "acceptingStake": true
+              },
+              "suggestedSwap": null,
+              "reasons": []
+            }
+          ],
+          "meta": {
+            "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "fetchedAt": "2026-08-14T21:00:00.000Z",
+            "paymentRequired": true,
+            "quoteTimeAuthoritative": true
+          }
         }
       }
     }

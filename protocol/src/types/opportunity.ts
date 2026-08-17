@@ -6,5 +6,6 @@ export type {
   OpportunityExecutionShape,
   OpportunityMarketRecord,
   OpportunityRecordV1,
+  PersonalizedOpportunityRecord,
   YieldBasis
 } from "./opportunity-schema.js";

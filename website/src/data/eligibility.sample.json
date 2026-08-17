@@ -1,0 +1,26 @@
+{
+  "data": [
+    {
+      "opportunityId": "reti-staking-12",
+      "protocol": "reti",
+      "found": true,
+      "canEnter": true,
+      "eligibilityFullyCheckable": true,
+      "missingAssets": [],
+      "gates": [],
+      "capacity": {
+        "stakerSlotsRemaining": 20,
+        "algoRoomMicroAlgos": "50000000000",
+        "acceptingStake": true
+      },
+      "suggestedSwap": null,
+      "reasons": []
+    }
+  ],
+  "meta": {
+    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "fetchedAt": "2026-08-14T21:00:00.000Z",
+    "paymentRequired": true,
+    "quoteTimeAuthoritative": true
+  }
+}

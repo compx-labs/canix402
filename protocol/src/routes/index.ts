@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 
 import { registerAssetRoutes } from "./assets.js";
 import { registerDiscoveryRoutes } from "./discovery.js";
+import { registerEligibilityRoutes } from "./eligibility.js";
 import { registerExecutionRoutes } from "./execution.js";
 import { registerHealthRoutes } from "./health.js";
 import { registerOpportunityRoutes } from "./opportunities.js";
@@ -15,6 +16,7 @@ export function registerRoutes(app: FastifyInstance) {
   registerAssetRoutes(app);
   registerHealthRoutes(app);
   registerDiscoveryRoutes(app);
+  registerEligibilityRoutes(app);
   registerExecutionRoutes(app);
   registerOpportunityRoutes(app);
   registerPositionRoutes(app);

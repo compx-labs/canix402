@@ -1,23 +1,23 @@
-import type {
-  OpportunityEntryGate,
-  OpportunityMarketRecord
-} from "../types/opportunity.js";
+import type { OpportunityMarketRecord } from "../types/opportunity.js";
+import {
+  evaluateOpportunityEligibility,
+  matchesPersonalizedFromEligibility,
+  type EligibilityHoldings
+} from "./eligibility.js";
 
-export interface PersonalizedHoldings {
-  heldAssetIds: ReadonlySet<number>;
-  /** Base-unit balances keyed by asset id (0 = ALGO). */
-  balances?: ReadonlyMap<number, bigint>;
-}
+export type PersonalizedHoldings = EligibilityHoldings;
 
 /**
- * Soft-match opportunities to a wallet.
+ * Soft-match opportunities to a wallet using the same eligibility rules as
+ * POST /eligibility.
  *
  * Base rule: opportunity `assetIds` intersect held assets.
  * When `entryRequirements` / `capacity` are present (Réti-first):
- * - exclude when not accepting stake
- * - require ALGO (or other) balance >= minAmount when balances are known
- * - for ASA gates with gateMatch any/all, require checkable ASA balances
- * - exclude when gates are only uncheckable (NFD/creator) — never guess eligibility
+ * - exclude when not accepting stake (unless includeInactive)
+ * - require minAmount and checkable ASA gates
+ * - exclude unresolved NFD/creator gates — never guess eligibility
+ * Ranking is not a substitute for POST /eligibility; quote-time checks remain
+ * authoritative.
  */
 export function selectPersonalizedOpportunities(
   opportunities: readonly OpportunityMarketRecord[],
@@ -63,80 +63,15 @@ export function matchesPersonalizedOpportunity(
   holdings: PersonalizedHoldings,
   options: { includeInactive?: boolean } = {}
 ): boolean {
-  const assetMatch = (opportunity.assetIds ?? []).some((assetId) =>
-    holdings.heldAssetIds.has(assetId)
+  const eligibility = evaluateOpportunityEligibility(
+    opportunity,
+    opportunity.opportunityId,
+    holdings
   );
-  if (!assetMatch) {
-    return false;
-  }
-
-  const capacity = opportunity.capacity;
-  if (
-    options.includeInactive !== true &&
-    capacity !== undefined &&
-    capacity.acceptingStake === false
-  ) {
-    return false;
-  }
-
-  const requirements = opportunity.entryRequirements;
-  if (requirements === undefined) {
-    return true;
-  }
-
-  if (requirements.minAmount !== undefined && holdings.balances !== undefined) {
-    const balance = holdings.balances.get(requirements.minAmount.assetId) ?? 0n;
-    let minAmount: bigint;
-    try {
-      minAmount = BigInt(requirements.minAmount.amount);
-    } catch {
-      return false;
-    }
-    if (balance < minAmount) {
-      return false;
-    }
-  }
-
-  const gates = requirements.gates ?? [];
-  if (gates.length === 0) {
-    return true;
-  }
-
-  const asaGates = gates.filter(
-    (gate): gate is Extract<OpportunityEntryGate, { kind: "asa" }> =>
-      gate.kind === "asa"
+  return matchesPersonalizedFromEligibility(
+    opportunity,
+    eligibility,
+    holdings,
+    options
   );
-  const uncheckableGates = gates.filter(
-    (gate) => gate.kind !== "asa"
-  );
-
-  // Never soft-pass on NFD/creator-only gates.
-  if (asaGates.length === 0 && uncheckableGates.length > 0) {
-    return false;
-  }
-
-  if (asaGates.length === 0) {
-    return true;
-  }
-
-  if (holdings.balances === undefined) {
-    // Fall back to presence-only when balances unavailable.
-    const matchAny = requirements.gateMatch !== "all";
-    if (matchAny) {
-      return asaGates.some((gate) => holdings.heldAssetIds.has(gate.assetId));
-    }
-    return asaGates.every((gate) => holdings.heldAssetIds.has(gate.assetId));
-  }
-
-  const gateOk = (gate: Extract<OpportunityEntryGate, { kind: "asa" }>): boolean => {
-    const balance = holdings.balances!.get(gate.assetId) ?? 0n;
-    const minBalance =
-      gate.minBalance !== undefined ? BigInt(gate.minBalance) : 1n;
-    return balance >= minBalance;
-  };
-
-  if (requirements.gateMatch === "all") {
-    return asaGates.every(gateOk);
-  }
-  return asaGates.some(gateOk);
 }

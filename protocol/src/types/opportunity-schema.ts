@@ -196,12 +196,20 @@ export const PersonalizedOpportunitiesListMetaSchema = Type.Composite([
   OpportunitiesListMetaSchema,
   Type.Object({
     address: Type.String(),
-    heldAssetCount: Type.Integer()
+    heldAssetCount: Type.Integer(),
+    eligibilityApplied: Type.Literal(true),
+    eligibilityEndpoint: Type.Literal("/eligibility")
   })
 ]);
 
+export const PersonalizedOpportunityRecordSchema = Type.Object({
+  ...OpportunityRecordSchema.properties,
+  canEnter: Type.Boolean(),
+  eligibilityFullyCheckable: Type.Boolean()
+});
+
 export const PersonalizedOpportunitiesListResponseSchema = Type.Object({
-  data: Type.Array(OpportunityRecordSchema),
+  data: Type.Array(PersonalizedOpportunityRecordSchema),
   meta: Type.Optional(PersonalizedOpportunitiesListMetaSchema)
 });
 
@@ -220,3 +228,6 @@ export type OpportunityEntryRequirements = Static<
   typeof OpportunityEntryRequirementsSchema
 >;
 export type OpportunityCapacity = Static<typeof OpportunityCapacitySchema>;
+export type PersonalizedOpportunityRecord = Static<
+  typeof PersonalizedOpportunityRecordSchema
+>;
