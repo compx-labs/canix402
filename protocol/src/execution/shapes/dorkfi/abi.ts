@@ -91,8 +91,7 @@ const emptySignSigner = algosdk.makeEmptyTransactionSigner();
 
 /**
  * `get_user` / `get_user_borrow_amount` inner-call the market app (`itxn_submit`).
- * A 1000µA simulate fails with "no ABI return", which the positions collector
- * treats as a debt-read failure and marks Dork.fi `partial` — blocking Brownie.
+ * A 1000µA simulate fails with "no ABI return"; use the lending group fee.
  */
 export function withDorkFiReadonlyInnerFee(
   params: algosdk.SuggestedParams
@@ -102,6 +101,31 @@ export function withDorkFiReadonlyInnerFee(
     flatFee: true,
     fee: DEFAULT_DORKFI_GROUP_FEE
   };
+}
+
+export function emptyDorkFiUser(): DecodedDorkFiUser {
+  return {
+    scaledDeposits: 0n,
+    scaledBorrows: 0n,
+    depositIndex: 0n,
+    borrowIndex: 0n,
+    lastUpdateTime: 0n,
+    lastPrice: 0n
+  };
+}
+
+function isMissingAbiReturn(methodResult: {
+  decodeError?: Error;
+  returnValue?: unknown;
+}): boolean {
+  if (methodResult.returnValue !== undefined) {
+    return false;
+  }
+  const raw =
+    methodResult.decodeError instanceof Error
+      ? methodResult.decodeError.message
+      : "";
+  return raw.length === 0 || /did not log a return value/i.test(raw);
 }
 
 /** Keep simulate failures short — never surface full algosdk txn dumps. */
@@ -199,6 +223,11 @@ export async function simulateGetUser(params: {
 
   const response = await atc.simulate(params.algod, simRequest);
   const methodResult = response.methodResults[0];
+  // Missing user boxes and under-fee inner calls both log no ABI return.
+  // That is zero debt, not a coverage gap — do not throw.
+  if (isMissingAbiReturn(methodResult ?? {})) {
+    return emptyDorkFiUser();
+  }
   if (methodResult?.decodeError || methodResult?.returnValue === undefined) {
     throwCompactSimulateError("get_user", methodResult ?? {});
   }

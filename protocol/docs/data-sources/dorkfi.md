@@ -54,8 +54,9 @@ a debt probe fails.
 
 Readonly `get_user` / `get_user_borrow_amount` simulates must pay the Dork.fi
 inner-call group fee (`DEFAULT_DORKFI_GROUP_FEE`). A 1000µA simulate fails with
-`no ABI return` even for wallets with no user box, which marks Dork.fi `partial`
-and blocks autonomous agents that treat any ≠ `ok` as an incomplete snapshot.
+`no ABI return` even for wallets with no user box. Positions treat that result
+as zero debt (not a coverage gap) so agents that block on protocol `partial`
+are not stalled when the wallet has no Dork.fi user record.
 
 If the indexed source is unavailable, on-chain ASA supply and debt rows are still
 returned. Indexed USD aggregates are optional; on-chain debt coverage drives

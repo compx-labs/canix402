@@ -2048,6 +2048,9 @@ async function collectDorkFiOnChainSupply(
           pausedMarkets += 1;
           return;
         }
+        if (isDorkFiMissingUserDebtError(error)) {
+          return;
+        }
         debtReadFailures += 1;
         warnings.push(
           `${market.marketAppId}:debt: ${compactErrorMessage(error)}`.slice(
@@ -2107,6 +2110,16 @@ async function collectDorkFiOnChainSupply(
 function isDorkFiPausedMarketError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
   return /market is paused/i.test(message);
+}
+
+/** Simulate artifact / missing user box — not outstanding debt we failed to read. */
+function isDorkFiMissingUserDebtError(error: unknown): boolean {
+  const raw = error instanceof Error ? error.message : String(error);
+  const compact = compactErrorMessage(error);
+  return (
+    /get_user simulate: no ABI return/i.test(raw) ||
+    (/no ABI return/i.test(compact) && /get_user/i.test(raw))
+  );
 }
 
 function compactErrorMessage(error: unknown): string {
