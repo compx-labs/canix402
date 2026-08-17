@@ -60,6 +60,13 @@ export {
 } from "./eligibility.js";
 export type { EligibilityHoldings } from "./eligibility.js";
 export {
+  compilePlan,
+  PlanValidationError,
+  resolvePlanPriceUsdc,
+  setPlanCompilerDependenciesForTests
+} from "./plans.js";
+export type { PlanCompilerDependencies } from "./plans.js";
+export {
   PRECISION_DEFAULT_DECIMALS,
   PRECISION_MAX_DECIMALS,
   formatDecimalForAgent,

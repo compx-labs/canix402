@@ -79,6 +79,21 @@ canix_check_eligibility({
   paymentSignature: "<base64-json-payload>"
 })
 
+// Intent compiler (consume this instead of forking a local compiler)
+canix_get_plan({
+  address: "YOUR_ALGORAND_ADDRESS",  // pragma: allowlist secret
+  budget: { assetId: 0, amount: "1000000" },
+  constraints: { noNewBorrows: true, executionReadyOnly: true },
+  opportunityIds: ["reti-staking-12"]
+})
+canix_get_plan({
+  address: "YOUR_ALGORAND_ADDRESS",  // pragma: allowlist secret
+  budget: { assetId: 0, amount: "1000000" },
+  constraints: { noNewBorrows: true, executionReadyOnly: true },
+  opportunityIds: ["reti-staking-12"],
+  paymentSignature: "<base64-json-payload>"
+})
+
 // Execution quotes (batch)
 canix_get_execution_quote({
   quotes: [{

@@ -100,6 +100,47 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 			},
 		)
 
+	case "plans":
+		return bazaar.DeclareDiscoveryExtension(
+			bazaar.MethodPOST,
+			map[string]interface{}{
+				"address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+				"budget": map[string]interface{}{
+					"assetId": 0,
+					"amount":  "1000000",
+				},
+			},
+			bazaar.JSONSchema{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"address": map[string]interface{}{"type": "string"},
+					"budget": map[string]interface{}{
+						"type": "object",
+						"properties": map[string]interface{}{
+							"assetId": map[string]interface{}{"type": "number"},
+							"amount":  map[string]interface{}{"type": "string"},
+						},
+						"required": []string{"assetId", "amount"},
+					},
+					"constraints": map[string]interface{}{"type": "object"},
+					"opportunityIds": map[string]interface{}{
+						"type":  "array",
+						"items": map[string]interface{}{"type": "string"},
+					},
+					"refresh": map[string]interface{}{"type": "boolean"},
+				},
+				"required": []string{"address", "budget"},
+			},
+			bazaar.BodyTypeJSON,
+			&bazaar.OutputConfig{
+				Example: map[string]interface{}{
+					"data": map[string]interface{}{
+						"allocations": []interface{}{},
+					},
+				},
+			},
+		)
+
 	case "positions":
 		return bazaar.DeclareDiscoveryExtension(
 			bazaar.MethodGET,
@@ -228,6 +269,7 @@ func knownBazaarProfiles() []string {
 		"opportunities_search",
 		"opportunities_personalized",
 		"eligibility",
+		"plans",
 		"positions",
 		"positions_claimable",
 		"protocol_opportunities",

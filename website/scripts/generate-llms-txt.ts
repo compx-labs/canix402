@@ -103,6 +103,12 @@ function formatPrice(endpoint: DiscoveryEndpoint): string {
   return amount ? `${amount} USDC` : "Paid (see discovery)";
 }
 
+const SECRET_SCAN_PRAGMA = "  # pragma: allowlist secret";
+
+function needsSecretScanPragma(path: string): boolean {
+  return path === "/eligibility" || path === "/plans";
+}
+
 function endpointLine(endpoint: DiscoveryEndpoint): string {
   const price = formatPrice(endpoint);
   const params = [
@@ -110,7 +116,8 @@ function endpointLine(endpoint: DiscoveryEndpoint): string {
     ...(endpoint.queryParams ?? []).map((p) => `${p}=`)
   ];
   const paramNote = params.length > 0 ? ` Params: ${params.join(", ")}.` : "";
-  return `- \`${endpoint.method} ${endpoint.path}\` (${price}) — ${endpoint.summary}.${paramNote}`;
+  const pragma = needsSecretScanPragma(endpoint.path) ? SECRET_SCAN_PRAGMA : "";
+  return `- \`${endpoint.method} ${endpoint.path}\` (${price}) — ${endpoint.summary}.${paramNote}${pragma}`;
 }
 
 function buildLlmsTxt(discovery: DiscoveryDocument): string {
@@ -142,7 +149,12 @@ Use the **Caddy gateway** (\`${GATEWAY}\`) for all API calls. Discovery, executi
 
 ## Paid data routes
 
-${paidEndpoints.map((e) => `- [${e.method} ${e.path}](${GATEWAY}${e.path.replace(":protocol", "{protocol}")}): ${formatPrice(e)} — ${e.summary}`).join("\n")}
+${paidEndpoints
+    .map((e) => {
+      const line = `- [${e.method} ${e.path}](${GATEWAY}${e.path.replace(":protocol", "{protocol}")}): ${formatPrice(e)} — ${e.summary}`;
+      return needsSecretScanPragma(e.path) ? `${line}${SECRET_SCAN_PRAGMA}` : line;
+    })
+    .join("\n")}
 
 ## Optional
 
@@ -165,6 +177,7 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
     search: loadSample("opportunities-search.sample.json"),
     personalized: loadSample("opportunities-personalized.sample.json"),
     eligibility: loadSample("eligibility.sample.json"),
+    plans: loadSample("plans.sample.json"),
     protocol: loadSample("protocol-opportunities.sample.json"),
     positions: loadSample("positions.sample.json"),
     positionsClaimable: loadSample("positions-claimable.sample.json"),
@@ -205,7 +218,7 @@ Always call the **gateway**, not an internal upstream API. x402 enforcement, \`P
 
 ### MCP server
 
-Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${MCP_URL}\` (streamable-http). Metadata: \`${MCP_WELL_KNOWN}\`. Walletless: paid tool preflight returns payment requirements; retry with \`paymentSignature\`. Tools include \`canix_list_opportunities\`, \`canix_list_execution_shapes\`, \`canix_get_positions\`, \`canix_list_claimable\`, \`canix_check_eligibility\`, \`canix_get_execution_quote\`, and free discovery helpers. See ${DOCS_SITE}/mcp.
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${MCP_URL}\` (streamable-http). Metadata: \`${MCP_WELL_KNOWN}\`. Walletless: paid tool preflight returns payment requirements; retry with \`paymentSignature\`. Tools include \`canix_list_opportunities\`, \`canix_list_execution_shapes\`, \`canix_get_positions\`, \`canix_list_claimable\`, \`canix_check_eligibility\`, \`canix_get_plan\`, \`canix_get_execution_quote\`, and free discovery helpers. See ${DOCS_SITE}/mcp.${SECRET_SCAN_PRAGMA}
 
 ## x402 payment flow
 
@@ -217,7 +230,7 @@ Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${
 Default payment context (confirm against live discovery before integrating):
 
 - **Protocol version:** 2
-- **Network:** ${network}
+- **Network:** ${network}${SECRET_SCAN_PRAGMA}
 - **USDC asset id:** ${assetId}
 - **Facilitator:** ${facilitator}
 - **Headers:** ${(x402?.requiredHeaders ?? ["PAYMENT-REQUIRED", "PAYMENT-SIGNATURE", "PAYMENT-RESPONSE"]).join(", ")}
@@ -239,6 +252,7 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 - \`GET /opportunities/search\` — filter by \`platform\`, \`type\`, \`minApy\`, \`maxApy\`, \`minTvlUsd\`, \`assetIds\` (comma-separated ASA ids; 0 = ALGO; ANY intersection with opportunity.assetIds).
 - \`GET /opportunities/personalized\` — requires \`address\` (Algorand account); premium price; matches opportunities to wallet-held assets using eligibility rules (full/gated venues are not recommended as enterable).  // pragma: allowlist secret
 - \`POST /eligibility\` — requires \`address\` and \`opportunityIds\`; 0.01 USDC; returns \`canEnter\`, \`missingAssets\`, \`gates\`, \`capacity\`, \`suggestedSwap\`. NFD/creator gates stay unresolved (\`eligibilityFullyCheckable: false\`). Quote-time checks remain authoritative.  // pragma: allowlist secret
+- \`POST /plans\` — requires \`address\` and \`budget { assetId, amount }\`; 0.25 USDC compiler SKU; returns ordered eligibility/setup/enter steps with unsigned groups, \`quotes[]\`, expected position delta, and fee totals. Brownie should consume this rather than forking a compiler.  // pragma: allowlist secret
 - \`GET /positions\` — requires \`address\` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
 - \`GET /positions/claimable\` — requires \`address\`; claim desk with USD, fee/worth-claiming hints, and \`claimAllQuotes\` for exactly 0.001 USDC. Compile via \`POST /execution/quotes\` (~0.1 USDC flat; groups never merged).
 - \`GET /execution/shapes\` — free catalog of verified shape keys and requiredInputs (metadata only).
@@ -277,6 +291,12 @@ ${JSON.stringify(samples.personalized, null, 2)}
 
 \`\`\`json
 ${JSON.stringify(samples.eligibility, null, 2)}
+\`\`\`
+
+### POST /plans
+
+\`\`\`json
+${JSON.stringify(samples.plans, null, 2)}
 \`\`\`
 
 ### GET /protocols/{protocol}/opportunities

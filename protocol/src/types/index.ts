@@ -24,6 +24,13 @@ export type {
   EligibilitySuggestedSwap,
   OpportunityEligibility
 } from "./eligibility.js";
+export type {
+  PlanAllocation,
+  PlanBlockedAllocation,
+  PlanRequest,
+  PlanResponse,
+  PlanStep
+} from "./plan.js";
 export {
   PositionRecordSchema,
   PositionTypeSchema,
@@ -44,6 +51,13 @@ export {
   EligibilityResponseSchema,
   OpportunityEligibilitySchema
 } from "./eligibility-schema.js";
+export {
+  DEFAULT_PLAN_PRICE_USDC,
+  PLAN_MAX_ALLOCATIONS,
+  PLAN_MAX_OPPORTUNITY_IDS,
+  PlanRequestSchema,
+  PlanResponseSchema
+} from "./plan-schema.js";
 export type {
   DiscoveryDocument,
   DiscoveryEndpointDescriptor,

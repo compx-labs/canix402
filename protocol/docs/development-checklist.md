@@ -57,11 +57,11 @@ Make personalized matching honest. Quote-time on-chain validation remains author
 
 The flagship SKU. Agent states an allocation intent; Canix returns a sequenced plan. Point Brownie at this so the reference agent does not compete with the API.
 
-- [ ] Define the plan request contract (address, budget/asset, constraints such as max protocol weight, no new borrows, execution-ready only, TVL/freshness floors).
-- [ ] Add paid `POST /plans` returning ordered steps: eligibility, optional swap legs, protocol setup chains (e.g. Folks depositEscrow → optEscrowAsset → deposit), enter quotes, expected position delta summary, x402 + network fee totals, expiry.
-- [ ] Keep groups unsigned and unmerged; reuse `quotes[]` / `order` / `prerequisiteShapeKeys`. Canix does not sign or submit.
-- [ ] Price as a compiler SKU (dearer than 0.10 USDC list quotes; exact amount TBD in payment policy + Caddy).
-- [ ] MCP tool (`canix_get_plan` or equivalent), discovery/OpenAPI, samples, and Brownie integration notes.
+- [x] Define the plan request contract (address, budget/asset, constraints such as max protocol weight, no new borrows, execution-ready only, TVL/freshness floors).
+- [x] Add paid `POST /plans` returning ordered steps: eligibility, optional swap legs, protocol setup chains (e.g. Folks depositEscrow → optEscrowAsset → deposit), enter quotes, expected position delta summary, x402 + network fee totals, expiry.
+- [x] Keep groups unsigned and unmerged; reuse `quotes[]` / `order` / `prerequisiteShapeKeys`. Canix does not sign or submit.
+- [x] Price as a compiler SKU (dearer than 0.10 USDC list quotes; exact amount TBD in payment policy + Caddy).
+- [x] MCP tool (`canix_get_plan` or equivalent), discovery/OpenAPI, samples, and Brownie integration notes.
 
 ### 13.4 Swap-aware enter (compose)
 

@@ -1,0 +1,144 @@
+{
+  "data": {
+    "allocations": [
+      {
+        "opportunityId": "reti-staking-12",
+        "protocol": "reti",
+        "opportunityType": "staking",
+        "assetPair": "ALGO",
+        "apy": 8.5,
+        "allocatedAmount": "1000000",
+        "allocatedAssetId": 0,
+        "weightBps": 10000,
+        "eligibility": {
+          "opportunityId": "reti-staking-12",
+          "protocol": "reti",
+          "found": true,
+          "canEnter": true,
+          "eligibilityFullyCheckable": true,
+          "missingAssets": [],
+          "gates": [],
+          "capacity": {
+            "stakerSlotsRemaining": 20,
+            "algoRoomMicroAlgos": "50000000000",
+            "acceptingStake": true
+          },
+          "suggestedSwap": null,
+          "reasons": []
+        },
+        "executionShapes": [
+          {
+            "shapeKey": "mainnet:reti:v1:stake:algo",
+            "protocol": "reti",
+            "protocolVersion": "v1",
+            "action": "stake",
+            "variant": "algo",
+            "title": "Réti ALGO stake to validator",
+            "summary": "Stakes ALGO to a Réti validator.",
+            "order": 0,
+            "requiredInputs": ["userAddress", "validatorId", "amount"],
+            "requiredAssetIds": [0],
+            "inputHints": {
+              "validatorId": 12,
+              "assetId": 0,
+              "depositAssetId": 0
+            }
+          }
+        ],
+        "steps": [
+          {
+            "kind": "eligibility",
+            "order": 0,
+            "compileStatus": "compiled",
+            "warnings": []
+          },
+          {
+            "kind": "enter",
+            "order": 1,
+            "compileStatus": "compiled",
+            "shapeKey": "mainnet:reti:v1:stake:algo",
+            "quoteRequest": {
+              "shapeKey": "mainnet:reti:v1:stake:algo",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                "validatorId": 12,
+                "assetId": 0,
+                "depositAssetId": 0,
+                "amount": "1000000"
+              }
+            },
+            "quote": {
+              "shapeKey": "mainnet:reti:v1:stake:algo",
+              "shapeVersion": "1.0.0",
+              "identity": {
+                "network": "mainnet",
+                "protocol": "reti",
+                "protocolVersion": "v1",
+                "action": "stake",
+                "variant": "algo"
+              },
+              "createdAt": "2026-08-16T10:00:00.000Z",
+              "expiresAt": "2026-08-16T10:00:30.000Z",
+              "transactions": [
+                {
+                  "type": "pay",
+                  "sender": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                  "fee": "1000",
+                  "groupPresent": true
+                }
+              ],
+              "encodedTransactions": ["<base64-unsigned-txn>"],
+              "warnings": [],
+              "metadata": {}
+            },
+            "warnings": []
+          }
+        ],
+        "quotes": [
+          {
+            "shapeKey": "mainnet:reti:v1:stake:algo",
+            "input": {
+              "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "validatorId": 12,
+              "assetId": 0,
+              "depositAssetId": 0,
+              "amount": "1000000"
+            }
+          }
+        ]
+      }
+    ],
+    "blocked": [],
+    "expectedPositionDelta": {
+      "summary": "Enter 1000000 of asset 0 into reti-staking-12 (reti).",
+      "entries": [
+        {
+          "opportunityId": "reti-staking-12",
+          "protocol": "reti",
+          "assetId": 0,
+          "amount": "1000000",
+          "action": "enter"
+        }
+      ]
+    },
+    "fees": {
+      "x402Usdc": "0.25",
+      "estimatedNetworkFeeMicroAlgos": "1000",
+      "estimatedNetworkFeeUsd": null
+    },
+    "expiresAt": "2026-08-16T10:00:30.000Z",
+    "warnings": []
+  },
+  "meta": {
+    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "budget": {
+      "assetId": 0,
+      "amount": "1000000"
+    },
+    "fetchedAt": "2026-08-16T10:00:00.000Z",
+    "paymentRequired": true,
+    "executionSubmitted": false,
+    "quoteTimeAuthoritative": true,
+    "eligibilityEndpoint": "/eligibility"
+  }
+}

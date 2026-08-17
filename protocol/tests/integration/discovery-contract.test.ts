@@ -134,6 +134,10 @@ test("well-known x402 manifest lists paid resources and indexing links", async (
     "0.01"
   );
   assert.equal(
+    manifest.resources.find((resource) => resource.id === "plans")?.price.amount,
+    "0.25"
+  );
+  assert.equal(
     manifest.resources.find((resource) => resource.id === "haystackSwapTransactions")?.price
       .amount,
     "0.005"
@@ -232,6 +236,7 @@ test("well-known x402 fan-out lists paid resource URLs", async () => {
     payload.resources.includes("https://canix402-api.compx.io/positions/claimable")
   );
   assert.ok(payload.resources.some((url) => url.endsWith("/eligibility")));
+  assert.ok(payload.resources.some((url) => url.endsWith("/plans")));
   assert.ok(
     payload.resources.includes("https://canix402-api.compx.io/swaps/transactions")
   );
