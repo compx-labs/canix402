@@ -344,6 +344,50 @@ test("Dork.fi paused markets are skipped quietly and do not hide USDC supply", a
   );
 });
 
+test("Dork.fi get_user no ABI return is zero debt, not protocol partial", async () => {
+  setDorkFiPositionCollectorDependenciesForTests({
+    fetchIndexedPositions: async () => ({ positions: [], warnings: [] }),
+    resolveMarketState: async (params) => {
+      if (params.marketAppId === DORKFI_MAINNET_USDC_MARKET_APP_ID) {
+        return usdcMarketState();
+      }
+      return usdcMarketState({
+        poolAppId: params.poolAppId,
+        marketAppId: params.marketAppId,
+        assetId: params.assetId,
+        userNTokenBalance: 0n,
+        symbol: "OTHER",
+        catalogMarket: {
+          symbol: "OTHER",
+          poolAppId: params.poolAppId,
+          marketAppId: params.marketAppId,
+          nTokenAppId: 1,
+          assetId: params.assetId,
+          decimals: 6,
+          tokenStandard: "asa"
+        }
+      });
+    },
+    resolveUserDebt: async () => {
+      throw new Error("get_user simulate: no ABI return");
+    }
+  });
+
+  const result = await collectDorkFiPositions(ADDRESS, emptyWalletSnapshot(ADDRESS));
+  assert.equal(result.warnings.length, 0);
+  assert.equal(result.coverage?.borrowedUsdComplete, true);
+  assert.equal(
+    result.positions.some((position) => position.positionType === "debt"),
+    false
+  );
+  assert.ok(
+    result.positions.some(
+      (position) =>
+        position.positionId === `dorkfi:supplied:${DORKFI_MAINNET_USDC_MARKET_APP_ID}`
+    )
+  );
+});
+
 test("Dork.fi market probe warnings stay short without algosdk dumps", async () => {
   setDorkFiPositionCollectorDependenciesForTests({
     fetchIndexedPositions: async () => ({ positions: [], warnings: [] }),
