@@ -25,6 +25,11 @@ Each protocol document should include:
 - rate-limit and reliability assumptions
 - known caveats and fallback behavior
 
+Execution-layer construction caveats (pool discovery, opt-ins, min-balance,
+slippage, liquidity limits, app upgrades) for Tinyman, Folks, Pact, CompX, and
+Dork.fi live next to the shape specs in
+[execution-shapes/protocol-caveats.md](../execution-shapes/protocol-caveats.md).
+
 ## Normalization unit tests
 
 Adapter `normalize*` transforms for Tinyman, Folks Finance, Pact, CompX, and

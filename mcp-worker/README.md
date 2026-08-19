@@ -8,6 +8,9 @@ Stateless remote MCP server for canix402, designed for Cloudflare Workers deploy
 - Calls the public Caddy gateway (`CANIX402_GATEWAY_URL`)
 - Never stores or uses wallet mnemonics
 - For paid tools: first call returns payment requirements, retry call forwards `PAYMENT-SIGNATURE`
+- `canix_list_execution_shapes` / `canix_get_execution_quote` point at
+  `protocol/docs/execution-shapes/protocol-caveats.md` so agents do not guess
+  pool discovery, opt-ins, min-balance, slippage, or app upgrades
 - Exposes `canix_get_positions` for paid `GET /positions` calls with a required
   wallet `address` and a 0.005 USDC fallback price
 - Exposes `canix_list_claimable` for paid `GET /positions/claimable` (0.001 USDC);

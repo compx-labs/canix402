@@ -50,7 +50,7 @@ export function registerResources(server: McpServer, client: X402Client): void {
     "canix://execution-shapes",
     {
       description:
-        "Live verified execution shape catalog (GET /execution/shapes). Metadata only; quotes remain paid.",
+        "Live verified execution shape catalog (GET /execution/shapes). Metadata only; quotes remain paid. meta.caveatsDocsPath is protocol/docs/execution-shapes/protocol-caveats.md.",
       mimeType: "application/json"
     },
     async (uri) => {

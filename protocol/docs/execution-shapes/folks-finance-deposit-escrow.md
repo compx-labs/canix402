@@ -13,6 +13,10 @@ escrow**. fAssets accrue in the escrow, not the user's wallet.
 2. Run `mainnet:folks-finance:v2:setup:optEscrowAsset` for the target pool fAsset.
 3. Ensure the user holds enough underlying asset.
 
+Do not merge those groups. Confirm each, then re-quote. Protocol-wide Folks
+construction notes (indexer escrow discovery, 0.25 / 0.1 ALGO MBR, OpUp,
+escrow key metadata): [protocol-caveats.md](./protocol-caveats.md#folks-finance).
+
 ## Example request
 
 ```json

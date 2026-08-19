@@ -198,7 +198,10 @@ For `canix_get_execution_quote`:
    `ExecutableQuote[]` in the same order — each item is an independent unsigned
    group; groups are never merged. Price is flat ~0.10 USDC **per request**, not
    per quote item. On failure, `error.details.quoteIndex` and `shapeKey` identify
-   the failing item.
+   the failing item. Do not invent pool/app IDs, opt-ins, min-balance funding,
+   or slippage — read `protocol/docs/execution-shapes/protocol-caveats.md`
+   (also `GET /execution/shapes` `meta.caveatsDocsPath`) and each shape's
+   `docsPath`.
 3. Complete the x402 payment workflow above.
 4. Require `meta.executionSubmitted === false`.
 5. For each quote in `data`, before signing, review:

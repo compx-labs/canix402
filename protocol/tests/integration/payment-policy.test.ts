@@ -39,6 +39,8 @@ test("execution shapes catalog is free while quote compile remains paid", () => 
   assert.equal(shapes?.access, "free");
   assert.equal(quotes?.method, "POST");
   assert.equal(quotes?.access, "paid");
+  assert.match(shapes?.description ?? "", /protocol-caveats/);
+  assert.match(quotes?.description ?? "", /protocol-caveats/);
 });
 
 test("ready and metrics are free system routes", () => {

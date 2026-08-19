@@ -10,7 +10,7 @@ Status legend:
 
 Work through section 13 in listed order. Canix stays walletless: new routes return data or unsigned groups; the client signs and submits. Do not treat another protocol adapter as a substitute for these items.
 
-Leftover tightening from the execution chapter stays in sections 3 and 8 and can proceed in parallel. Section 3's Tinyman / Folks / Pact / CompX / Dork.fi unit-test expansion is archived; remaining adapter transforms and execution-layer golden fixtures / caveats are still open.
+Leftover tightening from the execution chapter stays in sections 3 and 8 and can proceed in parallel. Section 3's Tinyman / Folks / Pact / CompX / Dork.fi unit-test expansion is archived; remaining adapter transforms and execution-layer golden fixtures are still open. Protocol-specific execution caveats are documented.
 
 
 ## 3) Testing and Quality Gates
@@ -23,7 +23,7 @@ Leftover tightening from the execution chapter stays in sections 3 and 8 and can
 ### Protocol Transaction Shape Mapping
 
 - [~] Build golden fixtures for each supported protocol/action so generated groups can be compared deterministically. Tinyman + Folks + Pact + CompX + Dork.fi integration fixtures in CI (mock-SDK deterministic groups; not separate committed golden JSON blobs).
-- [ ] Document protocol-specific caveats that can affect transaction construction (pool discovery, opt-ins, minimum balance, slippage math, liquidity limits, app upgrades).
+- [x] Document protocol-specific caveats that can affect transaction construction (pool discovery, opt-ins, minimum balance, slippage math, liquidity limits, app upgrades). See `docs/execution-shapes/protocol-caveats.md` (also `GET /execution/shapes` `meta.caveatsDocsPath`).
 
 ### Execution Compiler
 

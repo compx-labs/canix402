@@ -20,4 +20,11 @@ Opts an existing deposit escrow into a pool fAsset so it can receive deposits.
 
 ## Expected transaction group
 
-Single deposits-app `opt_escrow_into_asset` call (fee 2000 microAlgos).
+Two outer transactions:
+
+1. Payment: user → escrow for the recoverable **0.1 ALGO** (100_000 µA) fAsset
+   opt-in minimum balance.
+2. Deposits-app `opt_escrow_into_asset` call.
+
+Do not drop the funding payment. See
+[protocol-caveats.md](./protocol-caveats.md#minimum-balance-and-escrow-funding).
