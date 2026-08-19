@@ -23,7 +23,7 @@ Leftover tightening from the execution chapter stays in sections 3 and 8 and can
 ### Protocol Transaction Shape Mapping
 
 - [~] Build golden fixtures for each supported protocol/action so generated groups can be compared deterministically. Tinyman + Folks + Pact + CompX + Dork.fi integration fixtures in CI (mock-SDK deterministic groups; not separate committed golden JSON blobs).
-- [ ] Document protocol-specific caveats that can affect transaction construction (pool discovery, opt-ins, minimum balance, slippage math, liquidity limits, app upgrades).
+- [x] Document protocol-specific caveats that can affect transaction construction (pool discovery, opt-ins, minimum balance, slippage math, liquidity limits, app upgrades). See `docs/execution-shapes/protocol-caveats.md` (also `GET /execution/shapes` `meta.caveatsDocsPath`).
 
 ### Execution Compiler
 

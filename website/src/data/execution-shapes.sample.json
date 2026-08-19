@@ -53,6 +53,7 @@
   "meta": {
     "paymentRequired": false,
     "shapeCount": 2,
-    "note": "Catalog metadata only. Compile unsigned groups via paid POST /execution/quotes. Full catalog is larger; this sample is trimmed to CompX borrow/repay."
+    "note": "Catalog metadata only. Compile unsigned groups via paid POST /execution/quotes. Protocol construction caveats: protocol/docs/execution-shapes/protocol-caveats.md. Full catalog is larger; this sample is trimmed to CompX borrow/repay.",
+    "caveatsDocsPath": "protocol/docs/execution-shapes/protocol-caveats.md"
   }
 }

@@ -46,7 +46,8 @@ export const ExecutionShapesListResponseSchema = Type.Object(
       {
         paymentRequired: Type.Literal(false),
         shapeCount: Type.Integer({ minimum: 0 }),
-        note: Type.Optional(Type.String())
+        note: Type.Optional(Type.String()),
+        caveatsDocsPath: Type.Optional(Type.String({ minLength: 1 }))
       },
       { additionalProperties: true }
     )

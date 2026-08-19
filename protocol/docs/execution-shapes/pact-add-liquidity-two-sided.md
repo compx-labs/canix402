@@ -44,6 +44,10 @@ For ALGO/USDC, primary is ALGO (`0`) and secondary is USDC (`31566704`). Caller
 
 ## Caveats
 
+Protocol-wide Pact construction notes (poolAppId discovery, bps→percent slippage,
+empty-pool LP lock, remove min-out `0/0`):
+[protocol-caveats.md](./protocol-caveats.md#pact).
+
 - User must be opted into the LP token ASA before receiving minted liquidity.
 - First liquidity into an empty pool must satisfy `sqrt(a*b) - 1000 > 0`; 1000 LP
   tokens are permanently locked on initial mint.

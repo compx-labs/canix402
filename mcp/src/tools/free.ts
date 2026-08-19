@@ -99,7 +99,7 @@ export function registerFreeTools(server: McpServer, client: X402Client): void {
     "canix_list_execution_shapes",
     {
       description:
-        "List verified execution shape catalog metadata via GET /execution/shapes (free). Returns shapeKey, requiredInputs, opportunityRole, and docsPath from the live protocol registry. Catalog only — compile unsigned groups with canix_get_execution_quote (paid POST /execution/quotes).",
+        "List verified execution shape catalog metadata via GET /execution/shapes (free). Returns shapeKey, requiredInputs, opportunityRole, docsPath, and meta.caveatsDocsPath from the live protocol registry. Catalog only — compile unsigned groups with canix_get_execution_quote (paid POST /execution/quotes). Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades — read protocol/docs/execution-shapes/protocol-caveats.md and each shape's docsPath.",
       inputSchema: {}
     },
     async () => {

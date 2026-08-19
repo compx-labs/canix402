@@ -24,6 +24,7 @@ test("GET /execution/shapes returns the live registry catalog for free", async (
       paymentRequired: boolean;
       shapeCount: number;
       note?: string;
+      caveatsDocsPath?: string;
     };
   };
 
@@ -49,5 +50,41 @@ test("GET /execution/shapes returns the live registry catalog for free", async (
   assert.ok(reti);
   assert.ok(reti.requiredInputs.includes("validatorId"));
 
+  assert.equal(
+    body.meta.caveatsDocsPath,
+    "protocol/docs/execution-shapes/protocol-caveats.md"
+  );
+  assert.match(body.meta.note ?? "", /protocol-caveats/);
+
   await app.close();
+});
+
+test("protocol execution caveats doc covers construction topics for fixture protocols", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const { dirname, resolve } = await import("node:path");
+  const { fileURLToPath } = await import("node:url");
+  const markdown = await readFile(
+    resolve(
+      dirname(fileURLToPath(import.meta.url)),
+      "../../docs/execution-shapes/protocol-caveats.md"
+    ),
+    "utf-8"
+  );
+
+  for (const token of [
+    "Tinyman",
+    "Folks Finance",
+    "Pact",
+    "CompX",
+    "Dork.fi",
+    "Pool discovery",
+    "Opt-ins",
+    "Slippage math",
+    "Liquidity limits",
+    "App upgrades",
+    "Empty-user simulate",
+    "no ABI return"
+  ]) {
+    assert.ok(markdown.includes(token), `missing ${token}`);
+  }
 });

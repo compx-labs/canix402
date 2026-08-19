@@ -3,6 +3,13 @@
  * Kept alongside the registry so GET /execution/shapes can surface them without
  * duplicating the full catalog in MCP clients.
  */
+export const EXECUTION_PROTOCOL_CAVEATS_DOCS_PATH =
+  "protocol/docs/execution-shapes/protocol-caveats.md";
+
+/** Agent-facing hint so OpenAPI/MCP clients do not invent construction details. */
+export const EXECUTION_PROTOCOL_CAVEATS_AGENT_HINT =
+  "Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.";
+
 export const EXECUTION_SHAPE_DOCS_PATHS: Readonly<Record<string, string>> = {
   "mainnet:tinyman:v2:addLiquidity:flexible":
     "protocol/docs/execution-shapes/tinyman-add-liquidity-flexible.md",

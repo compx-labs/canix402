@@ -150,6 +150,9 @@ Source references:
 
 ## Scope and caveats
 
+Protocol-wide Tinyman construction notes (pool discovery, LP-token opt-in, slippage
+fraction, validator app id): [protocol-caveats.md](./protocol-caveats.md#tinyman).
+
 - This shape covers subsequent (flexible) liquidity into an existing, ready
   pool only.
 - Initial liquidity (`add_initial_liquidity`) and single-asset liquidity are

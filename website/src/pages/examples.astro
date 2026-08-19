@@ -159,7 +159,9 @@ const plansCurl = `curl -i ${config.gatewayBaseUrl}/plans -H 'content-type: appl
     <h2>Execution shape catalog (free)</h2>
     <p>
       <code>GET /execution/shapes</code> — live catalog of verified shape keys, required inputs, and
-      docs paths. Metadata only; does not compile quotes.
+      docs paths. Metadata only; does not compile quotes. <code>meta.caveatsDocsPath</code> points at
+      protocol-specific construction caveats so agents do not guess pool discovery, opt-ins,
+      min-balance, slippage, or app upgrades.
     </p>
     <CodeBlock code={`curl -s ${config.gatewayBaseUrl}/execution/shapes | jq '.meta, (.data | length)'`} />
     <h3>Sample response (200, trimmed)</h3>

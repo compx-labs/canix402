@@ -129,3 +129,6 @@ Execution shapes: deposit / withdraw / borrow / repay ASA (`@compx/sdk` builders
 - Pending staking reward math uses the stored on-chain `reward_per_token` (same as
   a claim before `updatePool` accrual); live claimable can be slightly higher
   after the contract accrues to the current timestamp.
+- Transaction construction (marketAppId discovery, LST/base opt-ins, staker-box
+  MBR, active `contractState`):
+  [execution-shapes/protocol-caveats.md](../execution-shapes/protocol-caveats.md#compx).

@@ -7,10 +7,15 @@ MCP server that exposes canix402 free and paid gateway endpoints as agent tools.
 - Free tools: health, metadata, discovery, OpenAPI, execution shape catalog, Haystack quotes, and Haystack opt-ins
 - Paid tools: opportunities (list/search/personalized/protocol), wallet positions, claimable rewards, eligibility, intent plans, execution quotes, and Haystack swap transactions
 - Walletless x402 passthrough: paid tool preflight returns `PAYMENT-REQUIRED`, retry with `paymentSignature`
-- Resources: `canix://discovery`, `canix://openapi`, `canix://execution-shapes` (live `GET /execution/shapes`)
+- Resources: `canix://discovery`, `canix://openapi`, `canix://execution-shapes` (live `GET /execution/shapes`, including `meta.caveatsDocsPath`)
 - Prompt: `analyze-opportunity`
 
 Always call the **Caddy gateway** (`CANIX402_API_URL`), never the raw Fastify upstream.
+
+`canix_list_execution_shapes` / `canix_get_execution_quote` point at
+`protocol/docs/execution-shapes/protocol-caveats.md` for protocol-specific
+construction caveats (pool discovery, opt-ins, min-balance, slippage, liquidity
+limits, app upgrades). Do not guess those details from opportunity rows.
 
 For hosted/remote agent usage, use the Cloudflare Worker remote endpoint in `mcp-worker/`.
 

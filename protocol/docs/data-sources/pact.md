@@ -92,3 +92,6 @@ One pool can emit multiple opportunities:
   Executable farm shapes are `farm:deployEscrow` → `farm:stake` /
   `addLiquidityAndFarm:twoSided`, plus `farm:unstake` and `farm:claimRewards`
   (see `docs/execution-shapes/pact-farm-*.md`).
+- Transaction construction (poolAppId discovery, bps→percent slippage, empty-pool
+  LP lock, remove min-out `0/0`):
+  [execution-shapes/protocol-caveats.md](../execution-shapes/protocol-caveats.md#pact).

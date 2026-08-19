@@ -40,6 +40,9 @@ Two or three outer transactions in order:
 
 ## Caveats
 
+Protocol-wide CompX construction notes (marketAppId discovery, LST opt-in, active
+`contractState`, staker-box MBR): [protocol-caveats.md](./protocol-caveats.md#compx).
+
 - ASA-base markets only; ALGO-base lending markets are rejected.
 - Inactive or mismatched market state fails at quote compile time.
 - Quotes expire after 30 seconds; recompile before signing stale groups.
