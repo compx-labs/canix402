@@ -43,8 +43,11 @@ jobs:
       - name: Typecheck protocol
         run: npm run typecheck:protocol
 
+      - name: Run protocol unit tests
+        run: npm run test:unit -w protocol
+
       - name: Run protocol integration tests
-        run: npm run test -w protocol
+        run: npm run test:api -w protocol
 
       - name: Install xcaddy
         run: |

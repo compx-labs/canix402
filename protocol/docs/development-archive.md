@@ -2,13 +2,24 @@
 
 Completed work moved out of `docs/development-checklist.md` so the checklist can stay focused on active and upcoming work.
 
+## Archived 2026-08-19
+
+### 3) Testing and Quality Gates
+
+- [x] Expand unit tests for opportunity normalization and adapter transforms (NEO-172).
+  - Dedicated `protocol/tests/unit/` suite, fixture-based (recorded SDK/API shapes; no live chain, no paid x402).
+  - Protocols: Tinyman (LP/farm/tALGO/stALGO), Folks Finance (lending + xALGO), Pact (LP + farm join), CompX (lending + staking), Dork.fi (network-filtered feed).
+  - Enter-shape attachment covered via `tests/unit/adapter-execution-enrichment.test.ts`.
+  - Existing integration fixtures kept; `npm run test:unit` is a protocol CI step on `dev` and `main`.
+  - Remaining gap stays on the living checklist: Myth Finance, Haystack, Réti, Alpha Arcade.
+
 ## Archived 2026-08-13
 
 Checklist hygiene while opening section 13 (agent execution OS). No newly completed implementation — these items were already done or were relocated.
 
 - [x] Formal launch checklist sign-off (duplicate leftover under Testing and Quality Gates; originally completed under Go-Live Readiness on 2026-07-30).
 - Relocated, not completed: dry-run/simulation endpoint moved from Execution Layer “Validation and Safety (optional follow-up)” to checklist section 13.6 (simulate / expected delta as a product).
-- Relocated leftover tightening stays in checklist sections 3 and 8: unit-test expansion, golden fixtures, protocol-specific execution caveats, richer quote-time state refresh.
+- Relocated leftover tightening stays in checklist sections 3 and 8. Unit-test expansion for Tinyman / Folks / Pact / CompX / Dork.fi completed 2026-08-19 (see archive above). Still open: remaining adapter unit tests (Myth / Haystack / Réti / Alpha Arcade), golden fixtures, protocol-specific execution caveats, richer quote-time state refresh.
 
 ## Archived 2026-07-30
 

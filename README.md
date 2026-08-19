@@ -19,6 +19,7 @@ npm install
 npm run dev:protocol
 npm run build:caddy-x402
 npm run dev:caddy -w protocol
+npm run test:unit
 npm run test:protocol
 ```
 
@@ -52,7 +53,7 @@ Copy `website/.env.example` to `website/.env` for local gateway/discovery URLs.
 npm run check
 ```
 
-Runs protocol typecheck, Caddy build, protocol tests (including x402 E2E), website typecheck, and website build.
+Runs protocol typecheck, Caddy build, protocol tests (unit + API + x402 E2E), website typecheck, and website build.
 
 ## Layout
 

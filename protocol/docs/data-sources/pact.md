@@ -92,3 +92,9 @@ One pool can emit multiple opportunities:
   Executable farm shapes are `farm:deployEscrow` → `farm:stake` /
   `addLiquidityAndFarm:twoSided`, plus `farm:unstake` and `farm:claimRewards`
   (see `docs/execution-shapes/pact-farm-*.md`).
+
+## Tests
+
+Fixture-based normalize coverage: `tests/unit/pact-normalize.test.ts` plus
+`tests/fixtures/adapters/pact-pools.ts` (`npm run test:unit`). Route-level
+coverage remains in `tests/integration/pact-adapter.test.ts`.

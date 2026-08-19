@@ -112,3 +112,9 @@ Other emitted fields:
 - Source payload field types can vary (`assetId` can be number or string).
 - Dork.fi feed includes non-Algorand networks; this adapter intentionally keeps only Algorand rows.
 - `sourceTimestamp` is set to adapter fetch time because feed rows currently do not provide per-row timestamps.
+
+## Tests
+
+Fixture-based normalize coverage: `tests/unit/dorkfi-normalize.test.ts` plus
+`tests/fixtures/adapters/dorkfi-feed.ts` (`npm run test:unit`). Route-level
+coverage remains in `tests/integration/dorkfi-adapter.test.ts`.
