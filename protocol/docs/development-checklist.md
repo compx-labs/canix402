@@ -15,7 +15,7 @@ Leftover tightening from the execution chapter stays in sections 3 and 8 and can
 
 ## 3) Testing and Quality Gates
 
-- [~] Expand unit tests for normalization and adapter transforms (currently covered via integration test files; no dedicated `tests/unit/` suite yet).
+- [x] Expand unit tests for normalization and adapter transforms (`protocol/tests/unit/`; Tinyman, Folks, Pact, CompX, Dork.fi). Remaining gap: Myth / Haystack / Réti / Alpha Arcade still live only in integration files.
 
 
 ## 8) Execution Layer (tightening)

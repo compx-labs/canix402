@@ -11,6 +11,7 @@ canix402 uses intentional test lanes. They are separate packages and access patt
 
 | Lane | Location | Access pattern | Default CI |
 |------|----------|----------------|------------|
+| **Unit** | `protocol/tests/unit` | Pure adapter/normalize transforms from recorded fixtures (no live chain, no x402) | Yes |
 | **API** | `protocol/tests/integration` | In-process Fastify (`buildApp` + `inject`) | Yes |
 | **Gateway** | `protocol/tests/e2e` | Local Caddy + facilitator mock + `fetch` | Yes |
 | **MCP (Local stdio)** | `mcp/tests/unit`, `mcp/tests/integration` | MCP tool handlers + mocked `fetch` | Yes |
@@ -20,10 +21,14 @@ canix402 uses intentional test lanes. They are separate packages and access patt
 ### Quick commands (repo root)
 
 ```sh
+# Adapter unit tests (fixture-based, no chain / x402)
+npm run test:unit
+
 # API + gateway (CI gate)
 npm run test:protocol
 
 # Lanes individually
+npm run test:unit
 npm run test:api
 npm run test:gateway
 npm run test:mcp
@@ -42,6 +47,44 @@ npm run check
 ```
 
 ## Test Suites
+
+### Unit tests (`protocol/tests/unit`)
+
+Run with:
+
+```sh
+npm run test:unit -w protocol
+# or
+npm run test:unit
+```
+
+Coverage: fixture-based opportunity normalization and adapter transforms. No live
+chain, no paid x402, and no Fastify HTTP. Recorded SDK/API shapes live in
+`tests/fixtures/adapters/`. Existing integration fixtures are unchanged.
+
+Protocols covered:
+
+- Tinyman (`normalizeTinymanPool`, farm, tALGO/stALGO staking, pool-detail parse)
+- Pact (`normalizePactPool`, farm join / `poolAppId`)
+- Folks Finance (lending + xALGO staking from recorded SDK shapes)
+- CompX (lending + staking from recorded SDK shapes)
+- Dork.fi (network-filtered feed mapping and type aliases)
+
+`adapter-execution-enrichment.test.ts` chains those transforms into
+`attachExecutionShapesToOpportunity` so enter-shape attachment is also asserted
+without HTTP.
+
+Remaining gap: Myth Finance, Haystack, Réti, and Alpha Arcade still live only in
+`tests/integration/*-adapter.test.ts`.
+
+Files:
+
+- `tests/unit/tinyman-normalize.test.ts`
+- `tests/unit/pact-normalize.test.ts`
+- `tests/unit/folks-finance-normalize.test.ts`
+- `tests/unit/compx-normalize.test.ts`
+- `tests/unit/dorkfi-normalize.test.ts`
+- `tests/unit/adapter-execution-enrichment.test.ts`
 
 ### API tests (`protocol/tests/integration`)
 
@@ -178,8 +221,9 @@ npm run test:ci
 
 This runs:
 
-1. API tests (`test:api`)
-2. Gateway tests (`test:gateway`)
+1. Unit tests (`test:unit`)
+2. API tests (`test:api`)
+3. Gateway tests (`test:gateway`)
 
 MCP tests run in a separate CI job (`mcp_checks`).
 
@@ -194,6 +238,7 @@ Triggered on PRs/pushes to `dev` and `main`.
 **Protocol checks** (`protocol_checks`):
 
 - protocol typecheck
+- protocol unit tests (`tests/unit`)
 - API integration tests
 - Caddy x402 binary build + gateway E2E tests
 - Caddy module `go test ./...`
