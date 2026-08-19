@@ -114,6 +114,7 @@ Coverage:
   - Folks Finance
 - Execution quote route coverage (`POST /execution/quotes`)
 - Intent compiler coverage (`POST /plans`)
+- Swap-aware enter compose (`POST /execution/compose`)
 - Transaction-shape registry and Tinyman / Pact / Folks / CompX / Dork.fi execution shape fixtures
 
 Files:
@@ -124,6 +125,7 @@ Files:
 - `tests/integration/positions-claimable-route.test.ts`
 - `tests/integration/eligibility.test.ts`
 - `tests/integration/plans.test.ts`
+- `tests/integration/compose.test.ts`
 - `tests/integration/execution-quotes-route.test.ts`
 - `tests/integration/execution-registry.test.ts`
 - `tests/integration/folks-finance-escrow-shapes.test.ts`
@@ -156,6 +158,7 @@ Coverage:
   - malformed signature -> payment error response
   - invalid verification -> payment error response
 - `POST /execution/quotes` preflight with JSON request body
+- `POST /execution/compose` preflight with JSON request body
 - Free endpoint bypass (`/health`, `/metadata`) without facilitator calls
 
 File:

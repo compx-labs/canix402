@@ -229,7 +229,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     access: "paid",
     summary: "Compile an allocation intent into an ordered unsigned plan",
     description:
-      "Agent states an allocation intent (address, budget/asset, constraints). Canix returns ordered steps: eligibility, optional swap hints, protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume this SKU rather than forking a compiler.",  // pragma: allowlist secret
+      "Agent states an allocation intent (address, budget/asset, constraints). Canix returns ordered steps: eligibility, optional live Haystack swap compose (opt-in → swap → enter, driven by requiredAssetIds), protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume this SKU rather than forking a compiler.",  // pragma: allowlist secret
     tags: ["defi", "plans", "execution", "eligibility", "wallet", "x402", "agents", HACKATHON_TAG],
     priceUsdc: process.env.X402_PRICE_PLANS_USDC ?? "0.25"
   },
@@ -300,7 +300,18 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
       EXECUTION_PROTOCOL_CAVEATS_AGENT_HINT,
     tags: ["execution", "transactions", "x402", "agents", HACKATHON_TAG],
     priceUsdc: process.env.X402_PRICE_EXECUTION_QUOTE_USDC ?? "0.1"
-  }
+  },
+  {
+    id: "executionCompose",
+    method: "POST",
+    pathPattern: "/execution/compose",
+    access: "paid",
+    summary: "Compose opt-in → Haystack swap → enter as unmerged unsigned groups",
+    description:
+      "Compiles “I hold asset A, I want this opportunity” into sequenced groups: optional ASA/app opt-in, Haystack swap (signer indexes and pre-signed members preserved), then enter — driven by requiredAssetIds. Groups are never merged. Failure modes (stale quote, missing opt-in, slippage) are listed on step warnings. Canix does not sign or submit. Caller signs user legs and submits locally in order.",  // pragma: allowlist secret
+    tags: ["execution", "swaps", "haystack", "plans", "x402", "agents", HACKATHON_TAG],
+    priceUsdc: process.env.X402_PRICE_EXECUTION_COMPOSE_USDC ?? "0.1"
+  },
 ] as const;
 
 export interface X402RequirementTemplate {
@@ -391,7 +402,8 @@ const paidPathMatchers = [
   /^\/positions\/claimable$/,
   /^\/protocols\/[^/]+\/opportunities$/,
   /^\/swaps\/transactions$/,
-  /^\/execution\/quotes$/
+  /^\/execution\/quotes$/,
+  /^\/execution\/compose$/
 ];
 
 const freePathMatchers = [

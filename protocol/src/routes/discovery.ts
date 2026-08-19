@@ -214,7 +214,8 @@ function buildDiscoveryDocument(): DiscoveryDocument {
         endpoint.id === "positions" ||
         endpoint.id === "positionsClaimable" ||
         endpoint.id === "eligibility" ||
-        endpoint.id === "plans"
+        endpoint.id === "plans" ||
+        endpoint.id === "executionCompose"
           ? [200, 400, 402, 500, 502]
           : endpoint.id === "tokenPricing"
             ? [200, 400, 502]
@@ -249,6 +250,7 @@ function buildDiscoveryDocument(): DiscoveryDocument {
       "openapi",
       "execution-quotes",
       "intent-plans",
+      "swap-aware-compose",
       "haystack-swaps",
       "token-pricing",
       "mcp-server"

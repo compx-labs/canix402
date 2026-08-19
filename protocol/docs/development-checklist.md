@@ -67,10 +67,10 @@ The flagship SKU. Agent states an allocation intent; Canix returns a sequenced p
 
 Haystack and execution shapes stay separate groups. The new product is the graph, not a merged atomic txn.
 
-- [ ] Compose “I hold asset A, I want this opportunity” into sequenced groups: opt-in → Haystack swap → enter, driven by `requiredAssetIds`.
-- [ ] Wire compose into `POST /plans` (and/or a narrower `POST /execution/compose`) without merging unrelated groups.
-- [ ] Preserve Haystack signer indexes / pre-signed members; caller still signs only user legs and submits locally.
-- [ ] Document failure modes (stale quote, missing opt-in, slippage) in shape/plan caveats.
+- [x] Compose “I hold asset A, I want this opportunity” into sequenced groups: opt-in → Haystack swap → enter, driven by `requiredAssetIds`.
+- [x] Wire compose into `POST /plans` (and/or a narrower `POST /execution/compose`) without merging unrelated groups.
+- [x] Preserve Haystack signer indexes / pre-signed members; caller still signs only user legs and submits locally.
+- [x] Document failure modes (stale quote, missing opt-in, slippage) in shape/plan caveats.
 
 ### 13.5 Rebalance / delta quotes
 

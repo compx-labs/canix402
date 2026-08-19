@@ -77,6 +77,7 @@ positions, execution, and swap routes from checked-in JSON under `src/data`:
 - `opportunities-personalized.sample.json` (`GET /opportunities/personalized`)
 - `eligibility.sample.json` (`POST /eligibility`)
 - `plans.sample.json` (`POST /plans`)
+- `compose.sample.json` (`POST /execution/compose`)
 - `protocol-opportunities.sample.json` (`GET /protocols/{protocol}/opportunities`)
 - `positions.sample.json` (`GET /positions`)
 - `positions-claimable.sample.json` (`GET /positions/claimable`)

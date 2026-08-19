@@ -61,6 +61,7 @@ export const defaultPaidPriceUsdc = "0.01";
 export const personalizedPriceUsdc = "0.05";
 export const eligibilityPriceUsdc = "0.01";
 export const plansPriceUsdc = "0.25";
+export const executionComposePriceUsdc = "0.1";
 export const positionsPriceUsdc = "0.005";
 export const positionsClaimablePriceUsdc = "0.001";
 export const executionQuotePriceUsdc = "0.1";
@@ -78,6 +79,7 @@ export const mcpToolNames = [
   "canix_get_personalized_opportunities",
   "canix_check_eligibility",
   "canix_get_plan",
+  "canix_compose_enter",
   "canix_get_protocol_opportunities",
   "canix_get_positions",
   "canix_list_claimable",

@@ -55,6 +55,8 @@ export async function startCaddyHarness(
         X402_PRICE_PROTOCOL_USDC: process.env.X402_PRICE_PROTOCOL_USDC || defaultPrice,
         X402_PRICE_EXECUTION_QUOTE_USDC:
           process.env.X402_PRICE_EXECUTION_QUOTE_USDC || "0.1",
+        X402_PRICE_EXECUTION_COMPOSE_USDC:
+          process.env.X402_PRICE_EXECUTION_COMPOSE_USDC || "0.1",
         X402_PRICE_HAYSTACK_SWAP_USDC:
           process.env.X402_PRICE_HAYSTACK_SWAP_USDC || "0.005",
         X402_NETWORK: "algorand-mainnet",

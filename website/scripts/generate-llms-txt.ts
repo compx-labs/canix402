@@ -106,7 +106,7 @@ function formatPrice(endpoint: DiscoveryEndpoint): string {
 const SECRET_SCAN_PRAGMA = "  # pragma: allowlist secret";
 
 function needsSecretScanPragma(path: string): boolean {
-  return path === "/eligibility" || path === "/plans";
+  return path === "/eligibility" || path === "/plans" || path === "/execution/compose";
 }
 
 function endpointLine(endpoint: DiscoveryEndpoint): string {
@@ -178,6 +178,7 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
     personalized: loadSample("opportunities-personalized.sample.json"),
     eligibility: loadSample("eligibility.sample.json"),
     plans: loadSample("plans.sample.json"),
+    compose: loadSample("compose.sample.json"),
     protocol: loadSample("protocol-opportunities.sample.json"),
     positions: loadSample("positions.sample.json"),
     positionsClaimable: loadSample("positions-claimable.sample.json"),
@@ -188,9 +189,11 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
     swapsTransactions: loadSample("swaps-transactions.sample.json")
   };
 
+  const fullGuideBlurb = `x402-gated Algorand DeFi data and walletless transaction API (version ${discovery.apiVersion}). Normalized yield data and Haystack swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.`; // pragma: allowlist secret
+
   return `# CANIX402 — full agent integration guide
 
-> x402-gated Algorand DeFi data and walletless transaction API (version ${discovery.apiVersion}). Normalized yield data and Haystack swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.
+> ${fullGuideBlurb}${SECRET_SCAN_PRAGMA}
 
 ## Overview
 
@@ -218,7 +221,7 @@ Always call the **gateway**, not an internal upstream API. x402 enforcement, \`P
 
 ### MCP server
 
-Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${MCP_URL}\` (streamable-http). Metadata: \`${MCP_WELL_KNOWN}\`. Walletless: paid tool preflight returns payment requirements; retry with \`paymentSignature\`. Tools include \`canix_list_opportunities\`, \`canix_list_execution_shapes\`, \`canix_get_positions\`, \`canix_list_claimable\`, \`canix_check_eligibility\`, \`canix_get_plan\`, \`canix_get_execution_quote\`, and free discovery helpers. See ${DOCS_SITE}/mcp.${SECRET_SCAN_PRAGMA}
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${MCP_URL}\` (streamable-http). Metadata: \`${MCP_WELL_KNOWN}\`. Walletless: paid tool preflight returns payment requirements; retry with \`paymentSignature\`. Tools include \`canix_list_opportunities\`, \`canix_list_execution_shapes\`, \`canix_get_positions\`, \`canix_list_claimable\`, \`canix_check_eligibility\`, \`canix_get_plan\`, \`canix_compose_enter\`, \`canix_get_execution_quote\`, and free discovery helpers. See ${DOCS_SITE}/mcp.${SECRET_SCAN_PRAGMA}
 
 ## x402 payment flow
 
@@ -252,7 +255,8 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 - \`GET /opportunities/search\` — filter by \`platform\`, \`type\`, \`minApy\`, \`maxApy\`, \`minTvlUsd\`, \`assetIds\` (comma-separated ASA ids; 0 = ALGO; ANY intersection with opportunity.assetIds).
 - \`GET /opportunities/personalized\` — requires \`address\` (Algorand account); premium price; matches opportunities to wallet-held assets using eligibility rules (full/gated venues are not recommended as enterable).  // pragma: allowlist secret
 - \`POST /eligibility\` — requires \`address\` and \`opportunityIds\`; 0.01 USDC; returns \`canEnter\`, \`missingAssets\`, \`gates\`, \`capacity\`, \`suggestedSwap\`. NFD/creator gates stay unresolved (\`eligibilityFullyCheckable: false\`). Quote-time checks remain authoritative.  // pragma: allowlist secret
-- \`POST /plans\` — requires \`address\` and \`budget { assetId, amount }\`; 0.25 USDC compiler SKU; returns ordered eligibility/setup/enter steps with unsigned groups, \`quotes[]\`, expected position delta, and fee totals. Brownie should consume this rather than forking a compiler.  // pragma: allowlist secret
+- \`POST /plans\` — requires \`address\` and \`budget { assetId, amount }\`; 0.25 USDC compiler SKU; returns ordered eligibility/setup/enter steps with unsigned groups, live Haystack opt-in → swap compose when \`requiredAssetIds\` differ from the budget asset, \`quotes[]\`, expected position delta, and fee totals. Brownie should consume this rather than forking a compiler.  // pragma: allowlist secret
+- \`POST /execution/compose\` — requires \`address\`, \`opportunityId\`, \`fromAssetId\`, \`amount\`; 0.10 USDC; sequenced unsigned groups opt-in → Haystack swap → enter. Groups never merged; sign only user legs. Failure modes (stale quote, missing opt-in, slippage) on step warnings.  // pragma: allowlist secret
 - \`GET /positions\` — requires \`address\` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
 - \`GET /positions/claimable\` — requires \`address\`; claim desk with USD, fee/worth-claiming hints, and \`claimAllQuotes\` for exactly 0.001 USDC. Compile via \`POST /execution/quotes\` (~0.1 USDC flat; groups never merged).
 - \`GET /execution/shapes\` — free catalog of verified shape keys and requiredInputs (metadata only). \`meta.caveatsDocsPath\` is \`protocol/docs/execution-shapes/protocol-caveats.md\` (pool discovery, opt-ins, min-balance, slippage, liquidity limits, app upgrades). Do not guess those details.
@@ -297,6 +301,12 @@ ${JSON.stringify(samples.eligibility, null, 2)}
 
 \`\`\`json
 ${JSON.stringify(samples.plans, null, 2)}
+\`\`\`
+
+### POST /execution/compose
+
+\`\`\`json
+${JSON.stringify(samples.compose, null, 2)}
 \`\`\`
 
 ### GET /protocols/{protocol}/opportunities

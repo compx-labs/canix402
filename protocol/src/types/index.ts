@@ -58,6 +58,17 @@ export {
   PlanRequestSchema,
   PlanResponseSchema
 } from "./plan-schema.js";
+export {
+  DEFAULT_COMPOSE_PRICE_USDC,
+  DEFAULT_COMPOSE_SLIPPAGE_PERCENT,
+  ComposeRequestSchema,
+  ComposeResponseSchema
+} from "./compose-schema.js";
+export type {
+  ComposeData,
+  ComposeRequest,
+  ComposeResponse
+} from "./compose-schema.js";
 export type {
   DiscoveryDocument,
   DiscoveryEndpointDescriptor,
