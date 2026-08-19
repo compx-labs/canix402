@@ -183,7 +183,7 @@ export async function compilePlan(request: PlanRequest): Promise<PlanResponse> {
       allocatedAmount: slice.amount,
       weightBps: slice.weightBps,
       candidate: slice.candidate,
-      swapSlippage: request.swapSlippage
+      ...(request.swapSlippage !== undefined ? { swapSlippage: request.swapSlippage } : {})
     });
     const hasCompiledGroup = compiled.allocation.steps.some(
       (step) =>

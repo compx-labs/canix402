@@ -203,6 +203,7 @@ export async function composeEnterSteps(
   const swapPrereqs: string[] = [];
 
   if (swapTarget !== undefined) {
+    const haystack = args.haystack ?? composeOverrides?.haystack;
     const composed = await composeHaystackLegs({
       address: args.address,
       fromAssetId: args.fromAssetId,
@@ -210,7 +211,7 @@ export async function composeEnterSteps(
       amount: args.amount,
       slippage,
       eligibility: args.eligibility,
-      haystack: args.haystack ?? composeOverrides?.haystack,
+      ...(haystack ? { haystack } : {}),
       now,
       order
     });
