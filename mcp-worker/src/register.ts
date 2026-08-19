@@ -162,7 +162,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_list_execution_shapes",
     {
       description:
-        "List verified execution shape catalog metadata via GET /execution/shapes (free). Returns shapeKey, requiredInputs, opportunityRole, and docsPath from the live protocol registry. Catalog only — compile unsigned groups with canix_get_execution_quote (paid).",
+        "List verified execution shape catalog metadata via GET /execution/shapes (free). Returns shapeKey, requiredInputs, opportunityRole, docsPath, and meta.caveatsDocsPath from the live protocol registry. Catalog only — compile unsigned groups with canix_get_execution_quote (paid). Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades — read protocol/docs/execution-shapes/protocol-caveats.md and each shape's docsPath.",
       inputSchema: {}
     },
     async () => {
@@ -533,7 +533,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_get_execution_quote",
     {
       description:
-        "Compile one or more unsigned Algorand transaction groups (POST /execution/quotes). Pass quotes: [{ shapeKey, input }, ...]. Required input fields vary by shapeKey — call canix_list_execution_shapes and use each shape's requiredInputs (userAddress is always required). Response data is an ExecutableQuote array. Paid flat ~0.10 USDC per request (not per item). On failure, error.details includes quoteIndex and shapeKey.",
+        "Compile one or more unsigned Algorand transaction groups (POST /execution/quotes). Pass quotes: [{ shapeKey, input }, ...]. Required input fields vary by shapeKey — call canix_list_execution_shapes and use each shape's requiredInputs (userAddress is always required). Response data is an ExecutableQuote array. Paid flat ~0.10 USDC per request (not per item). On failure, error.details includes quoteIndex and shapeKey. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades — read protocol/docs/execution-shapes/protocol-caveats.md and each shape's docsPath.", // pragma: allowlist secret
       inputSchema: {
         quotes: z
           .array(
@@ -731,7 +731,7 @@ export function registerCanixResources(server: McpServer, client: GatewayClient)
     "canix://execution-shapes",
     {
       description:
-        "Live verified execution shape catalog (GET /execution/shapes). Metadata only; quotes remain paid.",
+        "Live verified execution shape catalog (GET /execution/shapes). Metadata only; quotes remain paid. meta.caveatsDocsPath is protocol/docs/execution-shapes/protocol-caveats.md.",
       mimeType: "application/json"
     },
     async (uri) => {

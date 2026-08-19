@@ -170,6 +170,15 @@ test("paid operations expose x-x402 metadata", async () => {
   assert.match(haystackSwapOperation?.description ?? "", /sign/i);
   assert.match(haystackSwapOperation?.description ?? "", /10 bps/i);
 
+  assert.match(
+    openapi.paths["/execution/shapes"]?.get?.description ?? "",
+    /protocol-caveats/
+  );
+  assert.match(
+    openapi.paths["/execution/quotes"]?.post?.description ?? "",
+    /protocol-caveats/
+  );
+
   assert.deepEqual(openapi.paths["/swaps/quote"]?.post?.security, []);
   assert.deepEqual(openapi.paths["/swaps/optin"]?.post?.security, []);
 

@@ -42,7 +42,10 @@ application calls and funding transactions around those core actions.
 
 - ASA-backed markets only; native ALGO and ARC-200/WAD paths are rejected.
 - Requires existing collateral in the pool; health factor is not enforced client-side.
-- User must be opted into the underlying ASA.
+- User must be opted into the underlying ASA. The group does **not** include that opt-in.
+- Empty-user `get_user` simulate is zero debt, not a coverage gap — borrow still
+  needs collateral from a prior deposit. See
+  [protocol-caveats.md](./protocol-caveats.md#empty-user-simulate-prs-79--80).
 - Quotes expire after 30 seconds; recompile before signing stale groups.
 
 ## Tests

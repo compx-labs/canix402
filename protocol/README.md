@@ -11,6 +11,7 @@ This package lives in the `protocol/` workspace of the canix402 monorepo.
 - [Testing Guide](docs/testing.md)
 - [Caddy Gateway Setup](caddy/README.md)
 - [Data Source Docs](docs/data-sources/README.md)
+- [Execution shape caveats](docs/execution-shapes/protocol-caveats.md)
 
 ## Scripts
 

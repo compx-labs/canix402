@@ -11,7 +11,8 @@ import {
   compileExecutableQuote,
   createExecutionAlgodClient,
   executionRegistry,
-  listExecutionShapeCatalog
+  listExecutionShapeCatalog,
+  EXECUTION_PROTOCOL_CAVEATS_DOCS_PATH
 } from "../execution/index.js";
 import { ApiError, ApiSuccess } from "../types/index.js";
 import {
@@ -56,7 +57,8 @@ export function registerExecutionRoutes(app: FastifyInstance) {
           paymentRequired: false,
           shapeCount: data.length,
           note:
-            "Catalog metadata only. Compile unsigned groups via paid POST /execution/quotes."
+            "Catalog metadata only. Compile unsigned groups via paid POST /execution/quotes. Protocol construction caveats: protocol/docs/execution-shapes/protocol-caveats.md",
+          caveatsDocsPath: EXECUTION_PROTOCOL_CAVEATS_DOCS_PATH
         }
       });
     }

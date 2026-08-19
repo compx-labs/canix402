@@ -19,7 +19,7 @@ Checklist hygiene while opening section 13 (agent execution OS). No newly comple
 
 - [x] Formal launch checklist sign-off (duplicate leftover under Testing and Quality Gates; originally completed under Go-Live Readiness on 2026-07-30).
 - Relocated, not completed: dry-run/simulation endpoint moved from Execution Layer “Validation and Safety (optional follow-up)” to checklist section 13.6 (simulate / expected delta as a product).
-- Relocated leftover tightening stays in checklist sections 3 and 8. Unit-test expansion for Tinyman / Folks / Pact / CompX / Dork.fi completed 2026-08-19 (see archive above). Still open: remaining adapter unit tests (Myth / Haystack / Réti / Alpha Arcade), golden fixtures, protocol-specific execution caveats, richer quote-time state refresh.
+- Relocated leftover tightening stays in checklist sections 3 and 8. Unit-test expansion for Tinyman / Folks / Pact / CompX / Dork.fi completed 2026-08-19 (see archive above). Protocol-specific execution caveats are documented (`docs/execution-shapes/protocol-caveats.md`). Still open: remaining adapter unit tests (Myth / Haystack / Réti / Alpha Arcade), golden fixtures, richer quote-time state refresh.
 
 ## Archived 2026-07-30
 

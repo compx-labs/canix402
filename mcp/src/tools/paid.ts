@@ -445,7 +445,7 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
     "canix_get_execution_quote",
     {
       description:
-        "Compile one or more unsigned Algorand transaction groups for verified execution shapes (POST /execution/quotes). Pass quotes: [{ shapeKey, input }, ...] (min 1). Required input fields vary by shapeKey — call canix_list_execution_shapes and use each shape's requiredInputs (userAddress is always required). Response data is an ExecutableQuote array in the same order — groups are never merged. Paid: flat ~0.10 USDC via x402 per request (not per quote item). On failure, error.details includes quoteIndex and shapeKey. Canix does not sign or submit transactions.",
+        "Compile one or more unsigned Algorand transaction groups for verified execution shapes (POST /execution/quotes). Pass quotes: [{ shapeKey, input }, ...] (min 1). Required input fields vary by shapeKey — call canix_list_execution_shapes and use each shape's requiredInputs (userAddress is always required). Response data is an ExecutableQuote array in the same order — groups are never merged. Paid: flat ~0.10 USDC via x402 per request (not per quote item). On failure, error.details includes quoteIndex and shapeKey. Canix does not sign or submit transactions. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades — read protocol/docs/execution-shapes/protocol-caveats.md (also GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.", // pragma: allowlist secret
       inputSchema: {
         quotes: z
           .array(
