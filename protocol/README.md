@@ -19,6 +19,7 @@ From repo root:
 ```sh
 npm run dev:protocol
 npm run typecheck:protocol
+npm run test:unit
 npm run build:caddy-x402
 npm run test:protocol
 ```
@@ -27,6 +28,7 @@ From this directory:
 
 ```sh
 npm run dev
+npm run test:unit
 npm run test
 npm run test:x402-e2e
 ```

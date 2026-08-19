@@ -12,7 +12,9 @@ This document defines the GitHub workflow and merge policy for canix402.
 ## Required Status Checks
 
 The CI workflow is defined in `.github/workflows/ci.yml` and should be required
-for merges into `dev` and `main`.
+for merges into `dev` and `main`. Protocol checks include typecheck, fixture-based
+unit tests (`tests/unit`), API integration tests, Caddy x402 E2E, and the Caddy
+Go module tests.
 
 Require these checks:
 

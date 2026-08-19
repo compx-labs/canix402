@@ -24,11 +24,10 @@ canix402 uses intentional test lanes. They are separate packages and access patt
 # Adapter unit tests (fixture-based, no chain / x402)
 npm run test:unit
 
-# API + gateway (CI gate)
+# Unit + API + gateway (CI gate)
 npm run test:protocol
 
 # Lanes individually
-npm run test:unit
 npm run test:api
 npm run test:gateway
 npm run test:mcp
@@ -64,8 +63,8 @@ chain, no paid x402, and no Fastify HTTP. Recorded SDK/API shapes live in
 
 Protocols covered:
 
-- Tinyman (`normalizeTinymanPool`, farm, tALGO/stALGO staking, pool-detail parse)
-- Pact (`normalizePactPool`, farm join / `poolAppId`)
+- Tinyman (`normalizeTinymanPool`, `normalizeTinymanFarm`, tALGO/stALGO staking, pool-detail parse)
+- Pact (`normalizePactPool`, `normalizePactFarm` join / `poolAppId`)
 - Folks Finance (lending + xALGO staking from recorded SDK shapes)
 - CompX (lending + staking from recorded SDK shapes)
 - Dork.fi (network-filtered feed mapping and type aliases)
@@ -75,7 +74,7 @@ Protocols covered:
 without HTTP.
 
 Remaining gap: Myth Finance, Haystack, Réti, and Alpha Arcade still live only in
-`tests/integration/*-adapter.test.ts`.
+`tests/integration/*-adapter.test.ts` (open on the living checklist §3).
 
 Files:
 
@@ -85,6 +84,14 @@ Files:
 - `tests/unit/compx-normalize.test.ts`
 - `tests/unit/dorkfi-normalize.test.ts`
 - `tests/unit/adapter-execution-enrichment.test.ts`
+
+Fixtures:
+
+- `tests/fixtures/adapters/tinyman-pools.ts`
+- `tests/fixtures/adapters/pact-pools.ts`
+- `tests/fixtures/adapters/folks-sdk.ts`
+- `tests/fixtures/adapters/compx-sdk.ts`
+- `tests/fixtures/adapters/dorkfi-feed.ts
 
 ### API tests (`protocol/tests/integration`)
 
@@ -238,7 +245,7 @@ Triggered on PRs/pushes to `dev` and `main`.
 **Protocol checks** (`protocol_checks`):
 
 - protocol typecheck
-- protocol unit tests (`tests/unit`)
+- protocol unit tests (`tests/unit`; fixture-based adapter transforms)
 - API integration tests
 - Caddy x402 binary build + gateway E2E tests
 - Caddy module `go test ./...`

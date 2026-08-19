@@ -129,3 +129,9 @@ Execution shapes: deposit / withdraw / borrow / repay ASA (`@compx/sdk` builders
 - Pending staking reward math uses the stored on-chain `reward_per_token` (same as
   a claim before `updatePool` accrual); live claimable can be slightly higher
   after the contract accrues to the current timestamp.
+
+## Tests
+
+Fixture-based normalize coverage: `tests/unit/compx-normalize.test.ts` plus
+`tests/fixtures/adapters/compx-sdk.ts` (`npm run test:unit`). Route-level
+coverage remains in `tests/integration/compx-adapter.test.ts`.
