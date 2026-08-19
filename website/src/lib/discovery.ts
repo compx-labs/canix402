@@ -4,6 +4,7 @@ import {
   eligibilityPriceUsdc,
   personalizedPriceUsdc,
   plansPriceUsdc,
+  executionComposePriceUsdc,
   positionsClaimablePriceUsdc,
   positionsPriceUsdc
 } from "./config";
@@ -92,6 +93,10 @@ function isPlansEndpoint(endpoint: DiscoveryEndpoint): boolean {
   return endpoint.id === "plans" || endpoint.path === "/plans";
 }
 
+function isComposeEndpoint(endpoint: DiscoveryEndpoint): boolean {
+  return endpoint.id === "executionCompose" || endpoint.path === "/execution/compose";
+}
+
 function resolvePaidAmount(endpoint: DiscoveryEndpoint): string {
   const raw = endpoint.x402?.requirementTemplate.maxAmountRequired?.trim();
   if (raw) {
@@ -113,6 +118,10 @@ function resolvePaidAmount(endpoint: DiscoveryEndpoint): string {
 
   if (isPlansEndpoint(endpoint)) {
     return plansPriceUsdc;
+  }
+
+  if (isComposeEndpoint(endpoint)) {
+    return executionComposePriceUsdc;
   }
 
   if (isPositionsEndpoint(endpoint)) {

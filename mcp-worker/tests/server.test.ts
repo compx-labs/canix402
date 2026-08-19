@@ -247,6 +247,59 @@ test("canix_get_plan posts body and reports 0.25 preflight price", async () => {
   assert.equal(payload.request.body.budget.amount, "1000000");
 });
 
+test("canix_compose_enter posts body and reports 0.1 preflight price", async () => {
+  let requestUrl = "";
+  let method = "";
+  let requestBody = "";
+  let paymentSignature = "";
+  const server = createCanixWorkerMcpServer({
+    config: {
+      gatewayUrl: "https://gateway.example",
+      publicUrl: "https://mcp.example/mcp",
+      network: "[REDACTED]"
+    },
+    fetchImpl: async (input, init) => {
+      requestUrl = String(input);
+      method = init?.method ?? "";
+      requestBody = String(init?.body);
+      paymentSignature =
+        (init?.headers as Record<string, string> | undefined)?.["PAYMENT-SIGNATURE"] ?? "";
+      return new Response("payment required", { status: 402 });
+    }
+  });
+
+  const result = await registeredTools(server).canix_compose_enter!.handler(
+    {
+      address: "WALLET",
+      opportunityId: "reti-staking-12",
+      fromAssetId: 1,
+      amount: "1000000",
+      slippage: 1,
+      paymentSignature: "signed-payload"
+    },
+    {}
+  );
+
+  assert.equal(new URL(requestUrl).pathname, "/execution/compose");
+  assert.equal(method, "POST");
+  assert.equal(paymentSignature, "signed-payload");
+  assert.deepEqual(JSON.parse(requestBody), {
+    address: "WALLET",
+    opportunityId: "reti-staking-12",
+    fromAssetId: 1,
+    amount: "1000000",
+    slippage: 1
+  });
+  const text = result.content.find((part) => part.type === "text");
+  assert.ok(text?.text);
+  const payload = JSON.parse(text.text) as {
+    error: string;
+    mcpPayment: { priceUsdc: string };
+  };
+  assert.equal(payload.error, "PAYMENT_REQUIRED");
+  assert.equal(payload.mcpPayment.priceUsdc, "0.1");
+});
+
 
 test("canix_list_claimable forwards address and reports 0.001 preflight price", async () => {
   let requestUrl = "";

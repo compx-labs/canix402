@@ -1,7 +1,7 @@
 {
   "data": {
     "service": "canix402",
-    "apiVersion": "0.1.0",
+    "apiVersion": "1.4.0",
     "discoveryVersion": "1.0.0",
     "capabilities": [
       "algorand-defi-opportunities",
@@ -11,6 +11,7 @@
       "openapi",
       "execution-quotes",
       "intent-plans",
+      "swap-aware-compose",
       "haystack-swaps",
       "token-pricing",
       "mcp-server"
@@ -538,7 +539,7 @@
         "path": "/plans",
         "access": "paid",
         "summary": "Compile an allocation intent into an ordered unsigned plan",
-        "description": "Agent states an allocation intent (address, budget/asset, constraints). Canix returns ordered steps: eligibility, optional swap hints, protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume this SKU rather than forking a compiler.",
+        "description": "Agent states an allocation intent (address, budget/asset, constraints). Canix returns ordered steps: eligibility, optional live Haystack swap compose (opt-in → swap → enter, driven by requiredAssetIds), protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume this SKU rather than forking a compiler.",
         "tags": [
           "defi",
           "plans",
@@ -787,6 +788,50 @@
           "amountUsdc": "0.1",
           "amountMicro": "100000"
         }
+      },
+      {
+        "id": "executionCompose",
+        "method": "POST",
+        "path": "/execution/compose",
+        "access": "paid",
+        "summary": "Compose opt-in → Haystack swap → enter as unmerged unsigned groups",
+        "description": "Compiles “I hold asset A, I want this opportunity” into sequenced groups: optional ASA/app opt-in, Haystack swap (signer indexes and pre-signed members preserved), then enter — driven by requiredAssetIds. Groups are never merged. Failure modes (stale quote, missing opt-in, slippage) are listed on step warnings. Canix does not sign or submit. Caller signs user legs and submits locally in order.", "x-pragma": "pragma: allowlist secret",
+        "tags": [
+          "execution",
+          "swaps",
+          "haystack",
+          "plans",
+          "x402",
+          "agents",
+          "x402-global-challenge"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          400,
+          402,
+          500,
+          502
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.1"
+          },
+          "amountUsdc": "0.1",
+          "amountMicro": "100000"
+        }
       }
     ],
     "errorCatalog": [
@@ -837,6 +882,7 @@
         "canix_get_personalized_opportunities",
         "canix_check_eligibility",
         "canix_get_plan",
+        "canix_compose_enter",
         "canix_get_protocol_opportunities",
         "canix_get_positions",
         "canix_list_claimable",

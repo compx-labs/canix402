@@ -173,16 +173,20 @@ SKU rather than forking a compiler.
    the compiler. Paid ~0.25 USDC.
 2. Review `data.blocked[]` eligibility gates. Do not sign when `canEnter` is
    false or `eligibilityFullyCheckable` is false.
-3. Response `allocations[].steps` are ordered: eligibility, optional swap hints,
-   protocol setup, enter. Groups are unsigned and never merged. Reuse
-   `quotes[]` / `order` / `prerequisiteShapeKeys`.
-4. Swap steps in this SKU are hints — not live Haystack groups. Setup steps that
-   need a confirmed prior group (e.g. Folks escrow) are `compileStatus:
-   deferred`; after those confirm, call `canix_get_execution_quote` with the
-   remaining `quotes[]`.
+3. Response `allocations[].steps` are ordered: eligibility, optional Haystack
+   opt-in/swap compose, protocol setup, enter. Groups are unsigned and never
+   merged. Reuse `quotes[]` / `order` / `prerequisiteShapeKeys`.
+4. Swap steps are live Haystack groups when `requiredAssetIds` differ from the
+   budget asset (opt-in → swap → enter, never merged). Setup steps that need a
+   confirmed prior group (e.g. Folks escrow) are `compileStatus: deferred`;
+   after those confirm, call `canix_get_execution_quote` with the remaining
+   `quotes[]`. For a single “I hold A, I want this opportunity” path, use
+   `canix_compose_enter` (`POST /execution/compose`).
 5. Sign and submit compiled `encodedTransactions` locally before `expiresAt`,
    the same way as `canix_get_execution_quote`. Paying for a plan does not
-   execute it.
+   execute it. Sign only `userSignIndexes` / `signer: "user"` legs; preserve
+   Haystack pre-signed members. Review stale-quote, missing-opt-in, and
+   slippage warnings before signing.
 
 ## Signing an execution quote
 

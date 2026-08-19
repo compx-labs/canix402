@@ -7,10 +7,7 @@ import {
 import { evaluateOpportunityEligibility } from "./eligibility.js";
 import { attachExecutionShapesToOpportunity } from "./opportunity-execution-shapes.js";
 import {
-  compileExecutableQuote,
-  createExecutionAlgodClient,
   DEFAULT_QUOTE_TTL_MS,
-  executionRegistry,
   type ExecutableQuote
 } from "../execution/index.js";
 import type {
@@ -23,20 +20,17 @@ import type {
   PlanAllocation,
   PlanBlockedAllocation,
   PlanConstraints,
-  PlanQuoteRequest,
   PlanRequest,
-  PlanResponse,
-  PlanStep
+  PlanResponse
 } from "../types/plan.js";
 import { DEFAULT_PLAN_PRICE_USDC } from "../types/plan-schema.js";
-
-const AMOUNT_INPUT_FIELDS = [
-  "amount",
-  "assetAmount",
-  "assetAAmount",
-  "depositAmount",
-  "commitAmount"
-] as const;
+import {
+  composeCanUnblockEligibility,
+  composeEnterSteps,
+  selectComposeTargetAsset,
+  setComposeDependenciesForTests
+} from "./compose.js";
+import type { HaystackService } from "./haystack-router.js";
 
 const DEFAULT_CONSTRAINTS = {
   maxProtocolWeightBps: 10_000,
@@ -46,12 +40,13 @@ const DEFAULT_CONSTRAINTS = {
 } as const;
 
 const SWAP_COMPOSE_NOTE =
-  "Swap legs are hints only in this SKU (not live Haystack groups). Use POST /swaps/quote then re-check eligibility, or wait for compose (13.4). Quote-time on-chain checks remain authoritative.";
+  "No live Haystack compose was possible for blocked rows (ambiguous requiredAssetIds, capacity, or unresolved gates). Use POST /execution/compose or POST /swaps/quote when a single swap target is known. Quote-time on-chain checks remain authoritative.";
 
 export interface PlanCompilerDependencies {
   fetchHoldings?: (address: string) => Promise<AccountHoldings>;
   fetchOpportunities?: (refresh: boolean) => Promise<OpportunityMarketRecord[]>;
   compileQuote?: (shapeKey: string, input: unknown) => Promise<ExecutableQuote>;
+  haystack?: HaystackService;
   now?: () => Date;
   priceUsdc?: string;
 }
@@ -62,6 +57,21 @@ export function setPlanCompilerDependenciesForTests(
   overrides?: PlanCompilerDependencies
 ): void {
   dependencyOverrides = overrides;
+  setComposeDependenciesForTests(
+    overrides
+      ? {
+          ...(overrides.fetchHoldings
+            ? { fetchHoldings: overrides.fetchHoldings }
+            : {}),
+          ...(overrides.fetchOpportunities
+            ? { fetchOpportunities: overrides.fetchOpportunities }
+            : {}),
+          ...(overrides.compileQuote ? { compileQuote: overrides.compileQuote } : {}),
+          ...(overrides.haystack ? { haystack: overrides.haystack } : {}),
+          ...(overrides.now ? { now: overrides.now } : {})
+        }
+      : undefined
+  );
 }
 
 export function resolvePlanPriceUsdc(): string {
@@ -119,19 +129,24 @@ export async function compilePlan(request: PlanRequest): Promise<PlanResponse> {
       holdings
     );
     const chain = selectEnterChain(opportunity, constraints.noNewBorrows);
+    const swapTarget = selectComposeTargetAsset(chain, request.budget.assetId);
+    const canCompose =
+      swapTarget !== undefined &&
+      composeCanUnblockEligibility(eligibility, swapTarget);
     const rejectReasons = constraintRejectReasons(
       opportunity,
       chain,
       request.budget.assetId,
       constraints,
-      now
+      now,
+      { skipBudgetMismatch: swapTarget !== undefined }
     );
 
-    if (rejectReasons.length > 0 || !eligibility.canEnter) {
+    if (rejectReasons.length > 0 || (!eligibility.canEnter && !canCompose)) {
       const reasons = [
         ...rejectReasons,
         ...eligibility.reasons,
-        ...(eligibility.canEnter ? [] : (["eligibility-gate"] as const))
+        ...(eligibility.canEnter || canCompose ? [] : (["eligibility-gate"] as const))
       ];
       blocked.push({
         opportunityId: opportunity.opportunityId,
@@ -160,18 +175,23 @@ export async function compilePlan(request: PlanRequest): Promise<PlanResponse> {
   );
 
   const allocations: PlanAllocation[] = [];
+  const positionEntries: PlanResponse["data"]["expectedPositionDelta"]["entries"] = [];
   for (const slice of slices) {
     const compiled = await compileAllocation({
       address: request.address,
       budgetAssetId: request.budget.assetId,
       allocatedAmount: slice.amount,
       weightBps: slice.weightBps,
-      candidate: slice.candidate
+      candidate: slice.candidate,
+      swapSlippage: request.swapSlippage
     });
     const hasCompiledGroup = compiled.allocation.steps.some(
       (step) =>
         step.compileStatus === "compiled" &&
-        (step.kind === "enter" || step.kind === "setup")
+        (step.kind === "enter" ||
+          step.kind === "setup" ||
+          step.kind === "swap" ||
+          step.kind === "opt-in")
     );
     if (!hasCompiledGroup) {
       blocked.push({
@@ -189,6 +209,13 @@ export async function compilePlan(request: PlanRequest): Promise<PlanResponse> {
       continue;
     }
     allocations.push(compiled.allocation);
+    positionEntries.push({
+      opportunityId: compiled.allocation.opportunityId,
+      protocol: compiled.allocation.protocol,
+      assetId: compiled.enterAssetId,
+      amount: compiled.enterAmount,
+      action: "enter"
+    });
     warnings.push(...compiled.warnings);
   }
 
@@ -208,7 +235,7 @@ export async function compilePlan(request: PlanRequest): Promise<PlanResponse> {
     data: {
       allocations,
       blocked,
-      expectedPositionDelta: buildPositionDelta(allocations, request.budget.assetId),
+      expectedPositionDelta: buildPositionDelta(positionEntries),
       fees: {
         x402Usdc: resolvePlanPriceUsdc(),
         estimatedNetworkFeeMicroAlgos: networkFee.toString(),
@@ -278,10 +305,6 @@ function isBorrowShape(shape: OpportunityExecutionShape): boolean {
   return shape.action === "borrow" || shape.shapeKey.includes(":borrow:");
 }
 
-function isSetupShape(shape: OpportunityExecutionShape): boolean {
-  return shape.action.startsWith("setup") || shape.shapeKey.includes(":setup:");
-}
-
 function selectEnterChain(
   opportunity: OpportunityRecordV1,
   noNewBorrows: boolean
@@ -305,7 +328,8 @@ function constraintRejectReasons(
   chain: readonly OpportunityExecutionShape[],
   budgetAssetId: number,
   constraints: ResolvedConstraints,
-  now: Date
+  now: Date,
+  options: { skipBudgetMismatch?: boolean } = {}
 ): string[] {
   const reasons: string[] = [];
   if (constraints.executionReadyOnly && !opportunity.executionReady) {
@@ -314,7 +338,10 @@ function constraintRejectReasons(
   if (chain.length === 0) {
     reasons.push(constraints.noNewBorrows ? "no-non-borrow-enter-shapes" : "no-enter-shapes");
   }
-  if (!acceptsBudgetAsset(opportunity, chain, budgetAssetId)) {
+  if (
+    !options.skipBudgetMismatch &&
+    !acceptsBudgetAsset(opportunity, chain, budgetAssetId)
+  ) {
     reasons.push("budget-asset-mismatch");
   }
   if (constraints.minTvlUsd !== undefined && opportunity.tvlUsd < constraints.minTvlUsd) {
@@ -374,113 +401,31 @@ async function compileAllocation(args: {
   allocatedAmount: bigint;
   weightBps: number;
   candidate: RankedCandidate;
-}): Promise<{ allocation: PlanAllocation; warnings: string[] }> {
+  swapSlippage?: number;
+}): Promise<{
+  allocation: PlanAllocation;
+  warnings: string[];
+  enterAssetId: number;
+  enterAmount: string;
+}> {
   const { opportunity, eligibility, chain } = args.candidate;
   const amount = args.allocatedAmount.toString();
-  const warnings: string[] = [];
-  const steps: PlanStep[] = [];
-  const quotes: PlanQuoteRequest[] = [];
-  const compiledKeys = new Set<string>();
-  let order = 0;
-
-  steps.push({
-    kind: "eligibility",
-    order,
-    compileStatus: eligibility.canEnter ? "compiled" : "blocked",
-    warnings: [],
-    ...(eligibility.suggestedSwap
-      ? { suggestedSwap: eligibility.suggestedSwap }
-      : {})
+  const composed = await composeEnterSteps({
+    address: args.address,
+    fromAssetId: args.budgetAssetId,
+    amount,
+    opportunity,
+    eligibility,
+    chain,
+    ...(args.swapSlippage !== undefined ? { slippage: args.swapSlippage } : {}),
+    ...(dependencyOverrides?.compileQuote
+      ? { compileQuote: dependencyOverrides.compileQuote }
+      : {}),
+    ...(dependencyOverrides?.haystack
+      ? { haystack: dependencyOverrides.haystack }
+      : {}),
+    ...(dependencyOverrides?.now ? { now: dependencyOverrides.now() } : {})
   });
-  order += 1;
-
-  if (eligibility.suggestedSwap) {
-    steps.push({
-      kind: "swap",
-      order,
-      compileStatus: "hint",
-      suggestedSwap: eligibility.suggestedSwap,
-      warnings: [SWAP_COMPOSE_NOTE]
-    });
-    order += 1;
-    warnings.push(SWAP_COMPOSE_NOTE);
-  }
-
-  for (const shape of chain) {
-    const input = buildQuoteInput(
-      args.address,
-      amount,
-      args.budgetAssetId,
-      shape
-    );
-    const quoteRequest: PlanQuoteRequest = {
-      shapeKey: shape.shapeKey,
-      input: input as PlanQuoteRequest["input"]
-    };
-    quotes.push(quoteRequest);
-
-    const missing = missingRequiredInputs(shape, input);
-    const prerequisites = shape.prerequisiteShapeKeys ?? [];
-    const unmetPrereq = prerequisites.filter((key) => !compiledKeys.has(key));
-    const kind = isSetupShape(shape) ? "setup" : "enter";
-
-    if (missing.length > 0 || unmetPrereq.length > 0) {
-      const deferredWarnings = [
-        ...(missing.length > 0
-          ? [`Deferred until inputs are known: ${missing.join(", ")}.`]
-          : []),
-        ...(unmetPrereq.length > 0
-          ? [
-              `Deferred until prerequisite groups confirm: ${unmetPrereq.join(", ")}. Submit prior quotes first, then POST /execution/quotes.`
-            ]
-          : [])
-      ];
-      steps.push({
-        kind,
-        order,
-        compileStatus: "deferred",
-        shapeKey: shape.shapeKey,
-        ...(prerequisites.length > 0 ? { prerequisiteShapeKeys: [...prerequisites] } : {}),
-        quoteRequest,
-        warnings: deferredWarnings
-      });
-      order += 1;
-      warnings.push(...deferredWarnings);
-      continue;
-    }
-
-    try {
-      const quote = await compileOneQuote(shape.shapeKey, input);
-      compiledKeys.add(shape.shapeKey);
-      steps.push({
-        kind,
-        order,
-        compileStatus: "compiled",
-        shapeKey: shape.shapeKey,
-        ...(prerequisites.length > 0 ? { prerequisiteShapeKeys: [...prerequisites] } : {}),
-        quoteRequest,
-        quote,
-        warnings: [...quote.warnings]
-      });
-      order += 1;
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : `Failed to compile ${shape.shapeKey}.`;
-      steps.push({
-        kind,
-        order,
-        compileStatus: "blocked",
-        shapeKey: shape.shapeKey,
-        ...(prerequisites.length > 0 ? { prerequisiteShapeKeys: [...prerequisites] } : {}),
-        quoteRequest,
-        warnings: [message]
-      });
-      order += 1;
-      warnings.push(message);
-    }
-  }
 
   return {
     allocation: {
@@ -494,70 +439,13 @@ async function compileAllocation(args: {
       weightBps: args.weightBps,
       eligibility,
       executionShapes: chain,
-      steps,
-      quotes
+      steps: composed.steps,
+      quotes: composed.quotes
     },
-    warnings
+    warnings: composed.warnings,
+    enterAssetId: composed.enterAssetId,
+    enterAmount: composed.enterAmount
   };
-}
-
-function buildQuoteInput(
-  address: string,
-  allocatedAmount: string,
-  budgetAssetId: number,
-  shape: OpportunityExecutionShape
-): Record<string, unknown> {
-  const hints = shape.inputHints ?? {};
-  const input: Record<string, unknown> = {
-    userAddress: address
-  };
-
-  for (const [key, value] of Object.entries(hints)) {
-    if (value !== undefined) {
-      input[key] = value;
-    }
-  }
-
-  for (const field of AMOUNT_INPUT_FIELDS) {
-    if (shape.requiredInputs.includes(field) && input[field] === undefined) {
-      input[field] = allocatedAmount;
-    }
-  }
-
-  if (shape.requiredInputs.includes("assetId") && input.assetId === undefined) {
-    input.assetId = hints.assetId ?? hints.depositAssetId ?? budgetAssetId;
-  }
-  if (
-    shape.requiredInputs.includes("depositAssetId") &&
-    input.depositAssetId === undefined
-  ) {
-    input.depositAssetId = hints.depositAssetId ?? budgetAssetId;
-  }
-
-  return input;
-}
-
-function missingRequiredInputs(
-  shape: OpportunityExecutionShape,
-  input: Record<string, unknown>
-): string[] {
-  return shape.requiredInputs.filter((field) => {
-    const value = input[field];
-    return value === undefined || value === null || value === "";
-  });
-}
-
-async function compileOneQuote(
-  shapeKey: string,
-  input: unknown
-): Promise<ExecutableQuote> {
-  if (dependencyOverrides?.compileQuote) {
-    return dependencyOverrides.compileQuote(shapeKey, input);
-  }
-  return compileExecutableQuote(executionRegistry, shapeKey, input, {
-    network: "mainnet",
-    algod: createExecutionAlgodClient()
-  });
 }
 
 function resolveExpiry(quotes: readonly ExecutableQuote[], now: Date): string {
@@ -586,16 +474,8 @@ function sumNetworkFees(quotes: readonly ExecutableQuote[]): bigint {
 }
 
 function buildPositionDelta(
-  allocations: readonly PlanAllocation[],
-  assetId: number
+  entries: PlanResponse["data"]["expectedPositionDelta"]["entries"]
 ): PlanResponse["data"]["expectedPositionDelta"] {
-  const entries = allocations.map((allocation) => ({
-    opportunityId: allocation.opportunityId,
-    protocol: allocation.protocol,
-    assetId,
-    amount: allocation.allocatedAmount,
-    action: "enter" as const
-  }));
   const summary =
     entries.length === 0
       ? "No executable enter allocations. Review blocked[] eligibility gates."

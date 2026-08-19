@@ -55,6 +55,8 @@ export const PlanRequestSchema = Type.Object(
         maxItems: PLAN_MAX_OPPORTUNITY_IDS
       })
     ),
+    /** Haystack slippage percent (0–100) for swap-aware compose. Default 1. */
+    swapSlippage: Type.Optional(Type.Number({ minimum: 0, maximum: 100 })),
     refresh: Type.Optional(Type.Boolean())
   },
   { additionalProperties: false }
@@ -70,6 +72,7 @@ export const PlanQuoteRequestSchema = Type.Object(
 
 export const PlanStepKindSchema = Type.Union([
   Type.Literal("eligibility"),
+  Type.Literal("opt-in"),
   Type.Literal("swap"),
   Type.Literal("setup"),
   Type.Literal("enter")

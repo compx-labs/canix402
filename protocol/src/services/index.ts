@@ -67,6 +67,23 @@ export {
 } from "./plans.js";
 export type { PlanCompilerDependencies } from "./plans.js";
 export {
+  COMPOSE_MISSING_OPTIN_CAVEAT,
+  COMPOSE_SIGNER_CAVEAT,
+  COMPOSE_SLIPPAGE_CAVEAT,
+  COMPOSE_STALE_QUOTE_CAVEAT,
+  HAYSTACK_OPTIN_SHAPE_KEY,
+  HAYSTACK_SWAP_SHAPE_KEY,
+  applySlippageHaircut,
+  compileCompose,
+  composeCanUnblockEligibility,
+  composeEnterSteps,
+  ComposeValidationError,
+  resolveComposePriceUsdc,
+  selectComposeTargetAsset,
+  setComposeDependenciesForTests
+} from "./compose.js";
+export type { ComposeEnterResult, ComposeServiceDependencies } from "./compose.js";
+export {
   PRECISION_DEFAULT_DECIMALS,
   PRECISION_MAX_DECIMALS,
   formatDecimalForAgent,

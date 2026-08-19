@@ -69,6 +69,18 @@ test("plans is a dedicated paid compiler POST route", () => {
   assert.equal(plans?.priceUsdc, process.env.X402_PRICE_PLANS_USDC ?? "0.25");
 });
 
+test("execution compose is a dedicated paid compiler POST route", () => {
+  assert.equal(classifyEndpointAccess("/execution/compose", "POST"), "paid");
+  const compose = endpointPolicyMatrix.find((endpoint) => endpoint.id === "executionCompose");
+  assert.equal(compose?.method, "POST");
+  assert.equal(compose?.access, "paid");
+  assert.equal(compose?.pathPattern, "/execution/compose");
+  assert.equal(
+    compose?.priceUsdc,
+    process.env.X402_PRICE_EXECUTION_COMPOSE_USDC ?? "0.1"
+  );
+});
+
 test("Brownie showcase positions are free while arbitrary /positions stays paid", () => {
   assert.equal(
     classifyEndpointAccess("/public/agents/brownie/positions", "GET"),

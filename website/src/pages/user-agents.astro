@@ -77,7 +77,9 @@ const protocolLogos = Object.fromEntries(
               Brownie Bot is an autonomous community treasury on Algorand mainnet. Once per day it
               reads liquid balances and Canix402 DeFi positions, researches personalized and global
               opportunities, then consumes paid <code>POST /plans</code> for a sequenced unsigned
-              intent rather than forking a local compiler. It validates that plan against
+              intent rather than forking a local compiler. When the budget asset is not the unique
+              required enter asset, plans compose live Haystack opt-in → swap → enter groups.
+              It validates that plan against
               deterministic policy limits, and — when signing is enabled — signs and submits
               execution groups locally. Canix402 never receives the mnemonic.
             </p>

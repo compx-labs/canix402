@@ -15,8 +15,11 @@ Stateless remote MCP server for canix402, designed for Cloudflare Workers deploy
 - Exposes `canix_check_eligibility` for paid `POST /eligibility` (0.01 USDC);
   check `canEnter` / gates / capacity before quoting an enter
 - Exposes `canix_get_plan` for paid `POST /plans` (0.25 USDC); compile an
-  allocation intent into ordered unsigned groups. Consume this rather than
-  forking a compiler.
+  allocation intent into ordered unsigned groups, including live Haystack
+  opt-in → swap compose when `requiredAssetIds` differ from the budget asset.
+  Consume this rather than forking a compiler.
+- Exposes `canix_compose_enter` for paid `POST /execution/compose` (0.10 USDC);
+  “I hold asset A, I want this opportunity” as sequenced unsigned groups.
 - Exposes stateless Haystack tools:
   - `canix_get_quote` → free `POST /swaps/quote`
   - `canix_optin` → free `POST /swaps/optin`

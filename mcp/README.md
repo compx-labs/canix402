@@ -45,11 +45,20 @@ remain authoritative.
 
 `canix_get_plan` calls paid `POST /plans` with `address` and
 `budget: { assetId, amount }` (fallback price 0.25 USDC). Optional constraints
-and `opportunityIds` pin the compiler. The response includes eligibility, optional
-swap hints, setup/enter `quotes[]` as independent unsigned groups (never merged),
-expected position delta, x402 + network fee totals, and expiry. Brownie and other
-agents should consume this SKU rather than forking a compiler. Sign and submit
-locally in `order` / `prerequisiteShapeKeys` sequence.
+and `opportunityIds` pin the compiler. The response includes eligibility, live Haystack
+opt-in → swap compose when `requiredAssetIds` differ from the budget asset, setup/enter
+`quotes[]` as independent unsigned groups (never merged), expected position delta, x402 +
+network fee totals, and expiry. Brownie and other agents should consume this SKU rather
+than forking a compiler. Sign and submit locally in `order` / `prerequisiteShapeKeys`
+sequence.
+
+## Swap-aware enter compose
+
+`canix_compose_enter` calls paid `POST /execution/compose` (fallback price 0.10 USDC)
+with `address`, `opportunityId`, `fromAssetId`, and `amount`. Optional `slippage`
+(Haystack percent, default 1). Returns sequenced unsigned groups: opt-in → Haystack swap
+→ enter. Groups stay unmerged; sign only user legs and preserve Haystack pre-signed
+members. Prefer `canix_get_plan` for budget allocation.
 
 ## Haystack swap tools
 
