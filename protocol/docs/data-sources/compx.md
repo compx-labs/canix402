@@ -132,3 +132,9 @@ Execution shapes: deposit / withdraw / borrow / repay ASA (`@compx/sdk` builders
 - Transaction construction (marketAppId discovery, LST/base opt-ins, staker-box
   MBR, active `contractState`):
   [execution-shapes/protocol-caveats.md](../execution-shapes/protocol-caveats.md#compx).
+
+## Tests
+
+Fixture-based normalize coverage: `tests/unit/compx-normalize.test.ts` plus
+`tests/fixtures/adapters/compx-sdk.ts` (`npm run test:unit`). Route-level
+coverage remains in `tests/integration/compx-adapter.test.ts`.

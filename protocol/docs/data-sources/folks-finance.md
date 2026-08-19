@@ -120,3 +120,9 @@ recent block headers (`bonus`, `feesCollected`).
 - Transaction construction (escrow setup order, 0.25 / 0.1 ALGO MBR, OpUp,
   escrow key metadata):
   [execution-shapes/protocol-caveats.md](../execution-shapes/protocol-caveats.md#folks-finance).
+
+## Tests
+
+Fixture-based normalize coverage: `tests/unit/folks-finance-normalize.test.ts`
+plus `tests/fixtures/adapters/folks-sdk.ts` (`npm run test:unit`). Route-level
+coverage remains in `tests/integration/folks-finance-adapter.test.ts`.

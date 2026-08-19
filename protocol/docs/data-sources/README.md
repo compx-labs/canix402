@@ -30,6 +30,16 @@ slippage, liquidity limits, app upgrades) for Tinyman, Folks, Pact, CompX, and
 Dork.fi live next to the shape specs in
 [execution-shapes/protocol-caveats.md](../execution-shapes/protocol-caveats.md).
 
+## Normalization unit tests
+
+Adapter `normalize*` transforms for Tinyman, Folks Finance, Pact, CompX, and
+Dork.fi are covered by fixture-based tests in `protocol/tests/unit/` (recorded
+SDK/API shapes; no live chain, no paid x402). Run `npm run test:unit` from repo
+root. See `docs/testing.md`.
+
+Myth Finance, Haystack, Réti, and Alpha Arcade still rely on integration-file
+coverage only (`tests/integration/*-adapter.test.ts`).
+
 ## Asset ID Enrichment
 
 To support the wallet-personalized route (`GET /opportunities/personalized`), adapters

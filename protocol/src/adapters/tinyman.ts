@@ -585,9 +585,9 @@ function normalizeTinymanPoolOpportunities(
   return output;
 }
 
-function normalizeTinymanFarm(
+export function normalizeTinymanFarm(
   record: TinymanPoolApiRecord,
-  fetchedAtIso: string
+  fetchedAtIso: string = new Date().toISOString()
 ): OpportunityMarketRecord | null {
   const sourceStakingApy = toNumber(record.staking_total_annual_percentage_yield);
   const sourceStakingApr = toNumber(record.staking_total_annual_percentage_rate);

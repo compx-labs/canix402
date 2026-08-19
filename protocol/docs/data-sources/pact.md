@@ -95,3 +95,9 @@ One pool can emit multiple opportunities:
 - Transaction construction (poolAppId discovery, bps→percent slippage, empty-pool
   LP lock, remove min-out `0/0`):
   [execution-shapes/protocol-caveats.md](../execution-shapes/protocol-caveats.md#pact).
+
+## Tests
+
+Fixture-based normalize coverage: `tests/unit/pact-normalize.test.ts` plus
+`tests/fixtures/adapters/pact-pools.ts` (`npm run test:unit`). Route-level
+coverage remains in `tests/integration/pact-adapter.test.ts`.

@@ -123,3 +123,9 @@ Other emitted fields:
 - Empty-user `get_user` simulate (`no ABI return`) is zero debt, not a coverage
   gap. Construction caveats:
   [execution-shapes/protocol-caveats.md](../execution-shapes/protocol-caveats.md#dorkfi).
+
+## Tests
+
+Fixture-based normalize coverage: `tests/unit/dorkfi-normalize.test.ts` plus
+`tests/fixtures/adapters/dorkfi-feed.ts` (`npm run test:unit`). Route-level
+coverage remains in `tests/integration/dorkfi-adapter.test.ts`.

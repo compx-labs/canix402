@@ -162,10 +162,10 @@ function normalizePactPoolOpportunities(
   return output;
 }
 
-function normalizePactFarm(
+export function normalizePactFarm(
   pool: PactPoolApiRecord,
   farm: PactFarmApiRecord,
-  fetchedAtIso: string
+  fetchedAtIso: string = new Date().toISOString()
 ): OpportunityMarketRecord | null {
   const sourceApr = toNumber(farm.apr);
   const sourceAverageApr = toNumber(farm.average_apr);
