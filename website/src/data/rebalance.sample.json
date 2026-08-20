@@ -1,0 +1,74 @@
+{
+  "data": {
+    "mode": "harvest-idle",
+    "book": {
+      "totalUsd": null,
+      "idleAlgoMicroAlgos": "4000000",
+      "weights": [],
+      "unweightedUsd": null
+    },
+    "steps": [
+      {
+        "kind": "eligibility",
+        "order": 0,
+        "compileStatus": "compiled",
+        "warnings": []
+      },
+      {
+        "kind": "enter",
+        "order": 1,
+        "compileStatus": "compiled",
+        "shapeKey": "mainnet:reti:v1:stake:algo",
+        "quoteRequest": {
+          "shapeKey": "mainnet:reti:v1:stake:algo",
+          "input": {
+            "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "validatorId": 12,
+            "amount": "4000000"
+          }
+        },
+        "warnings": []
+      }
+    ],
+    "quotes": [
+      {
+        "shapeKey": "mainnet:reti:v1:stake:algo",
+        "input": {
+          "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "validatorId": 12,
+          "amount": "4000000"
+        }
+      }
+    ],
+    "blocked": [],
+    "expectedPositionDelta": {
+      "summary": "Enter 4000000 of asset 0 on reti-staking-12 (reti).",
+      "entries": [
+        {
+          "opportunityId": "reti-staking-12",
+          "protocol": "reti",
+          "assetId": 0,
+          "amount": "4000000",
+          "action": "enter"
+        }
+      ]
+    },
+    "fees": {
+      "x402Usdc": "0.25",
+      "estimatedNetworkFeeMicroAlgos": "1000",
+      "estimatedNetworkFeeUsd": null
+    },
+    "expiresAt": "2026-08-20T10:00:30.000Z",
+    "warnings": []
+  },
+  "meta": {
+    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "harvestIdle": true,
+    "fetchedAt": "2026-08-20T10:00:00.000Z",
+    "paymentRequired": true,
+    "executionSubmitted": false,
+    "quoteTimeAuthoritative": true,
+    "groupsMerged": false,
+    "eligibilityEndpoint": "/eligibility"
+  }
+}

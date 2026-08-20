@@ -50,6 +50,10 @@ function resolveProductionPath(pathPattern: string): string {
     return "/plans";
   }
 
+  if (pathPattern === "/plans/rebalance") {
+    return "/plans/rebalance";
+  }
+
   if (pathPattern === "/execution/quotes") {
     return "/execution/quotes";
   }
@@ -93,6 +97,18 @@ function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): Pro
         budget: { assetId: 0, amount: "1000000" },
         constraints: { noNewBorrows: true, executionReadyOnly: true, maxAllocations: 1 },
         opportunityIds: ["reti-staking-12"]
+      }
+    };
+  }
+
+  if (entry.pathPattern === "/plans/rebalance") {
+    return {
+      ...base,
+      method: "POST",
+      body: {
+        address: getProductionPersonalizedAddress(),
+        harvestIdle: true,
+        constraints: { noNewBorrows: true, executionReadyOnly: true, maxAllocations: 1 }
       }
     };
   }

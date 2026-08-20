@@ -390,6 +390,73 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
   );
 
   server.registerTool(
+    "canix_get_rebalance_plan",
+    {
+      description:
+        "Compile a delta rebalance plan (POST /plans/rebalance). Pass address plus targetWeights (bps summing to 10000) and/or harvestIdle to claim and redeploy idle ALGO. Ordered unsigned groups only (claims, exits, swaps, enters) — deltas, never a full unwind. Groups never merged. Paid ~0.25 USDC. Canix does not sign or submit.",
+      inputSchema: {
+        address: z.string().min(1),
+        targetWeights: z
+          .array(
+            z.object({
+              opportunityId: z.string().min(1),
+              weightBps: z.number().int().min(0).max(10_000)
+            })
+          )
+          .min(1)
+          .max(25)
+          .optional(),
+        harvestIdle: z.boolean().optional(),
+        includeClaims: z.boolean().optional(),
+        algoReserveMicroAlgos: z.string().min(1).optional(),
+        minDeltaBps: z.number().int().min(0).max(10_000).optional(),
+        constraints: z
+          .object({
+            maxProtocolWeightBps: z.number().int().min(1).max(10_000).optional(),
+            noNewBorrows: z.boolean().optional(),
+            executionReadyOnly: z.boolean().optional(),
+            minTvlUsd: z.number().min(0).optional(),
+            maxSourceAgeSeconds: z.number().int().min(0).optional(),
+            maxAllocations: z.number().int().min(1).max(10).optional()
+          })
+          .optional(),
+        swapSlippage: z.number().min(0).max(100).optional(),
+        refresh: z.boolean().optional(),
+        paymentSignature: paymentSignatureArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const body = {
+          address: args.address,
+          ...(args.targetWeights !== undefined ? { targetWeights: args.targetWeights } : {}),
+          ...(args.harvestIdle !== undefined ? { harvestIdle: args.harvestIdle } : {}),
+          ...(args.includeClaims !== undefined ? { includeClaims: args.includeClaims } : {}),
+          ...(args.algoReserveMicroAlgos !== undefined
+            ? { algoReserveMicroAlgos: args.algoReserveMicroAlgos }
+            : {}),
+          ...(args.minDeltaBps !== undefined ? { minDeltaBps: args.minDeltaBps } : {}),
+          ...(args.constraints !== undefined ? { constraints: args.constraints } : {}),
+          ...(args.swapSlippage !== undefined ? { swapSlippage: args.swapSlippage } : {}),
+          ...(args.refresh !== undefined ? { refresh: args.refresh } : {})
+        };
+        const result = await client.fetchPaid("/plans/rebalance", {
+          method: "POST",
+          body,
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+        });
+        return paidToolResult(result, "0.25", {
+          path: "/plans/rebalance",
+          method: "POST",
+          body
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
     "canix_compose_enter",
     {
       description:

@@ -65,6 +65,14 @@ with `address`, `opportunityId`, `fromAssetId`, and `amount`. Optional `slippage
 → enter. Groups stay unmerged; sign only user legs and preserve Haystack pre-signed
 members. Prefer `canix_get_plan` for budget allocation.
 
+## Rebalance / delta quotes
+
+`canix_get_rebalance_plan` calls paid `POST /plans/rebalance` (fallback price 0.25 USDC)
+with `address` plus `targetWeights` (bps summing to 10000) and/or `harvestIdle`.
+Returns ordered unsigned groups — claims, partial exits, optional Haystack compose,
+enters — only the legs that change the book. Positions not listed in `targetWeights`
+are left alone. Groups stay unmerged; sign and submit locally.
+
 ## Haystack swap tools
 
 - `canix_get_quote` passes `{address, fromAssetId, toAssetId, amount, type?, disabledProtocols?, maxGroupSize?, maxDepth?}` to free `POST /swaps/quote`.

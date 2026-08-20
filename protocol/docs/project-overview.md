@@ -211,6 +211,29 @@ Use when the agent already knows the opportunity and the asset it holds.
   `X402_PRICE_EXECUTION_COMPOSE_USDC=0.1` (100000 micro-USDC).
 - MCP: `canix_compose_enter`. Prefer `canix_get_plan` for budget allocation.
 
+### Rebalance / delta quotes (`POST /plans/rebalance`)
+
+A paid compiler SKU priced at 0.25 USDC (same band as `POST /plans`). Positions
+are the book; opportunities are the menu.
+
+- Body: `{ address, targetWeights?, harvestIdle?, includeClaims?, algoReserveMicroAlgos?, minDeltaBps?, constraints?, swapSlippage?, refresh? }`.
+  Provide `targetWeights` (bps summing to 10000) and/or `harvestIdle: true`.
+- `targetWeights` apply only to listed opportunity ids. Other positions are left
+  unchanged — not a full unwind-and-rebuild. Overweight rows emit a **partial**
+  exit via `compatibleExitShapeKeys`. Underweight rows enter from idle ALGO when
+  `harvestIdle` (or other idle above reserve); otherwise enter is deferred until
+  exit groups confirm.
+- `harvestIdle` claims worth-claiming reward rows from the claim desk and
+  redeploys wallet ALGO above `algoReserveMicroAlgos` (default 1 ALGO).
+- Response: ordered unsigned steps (claim → exit → optional Haystack compose →
+  enter), `quotes[]`, expected position delta (`enter` / `exit` / `claim`),
+  x402 + network fee totals, expiry. Groups stay unmerged.
+- Discovery and OpenAPI advertise `maxAmountRequired: "0.25"`. Caddy enforces
+  `X402_PRICE_PLANS_REBALANCE_USDC=0.25` (250000 micro-USDC).
+- MCP: `canix_get_rebalance_plan`. Agent loop: positions/claimable → rebalance →
+  review warnings → local sign/submit in `order`. Quote-time on-chain checks
+  remain authoritative.
+
 ### Wallet Positions (`GET /positions?address=`)
 
 A paid wallet data route priced at exactly 0.005 USDC:

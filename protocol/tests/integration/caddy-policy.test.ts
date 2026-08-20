@@ -35,6 +35,14 @@ test("Caddy gives plans a dedicated compiler paid policy", () => {
   );
 });
 
+test("Caddy gives plans rebalance a dedicated compiler paid policy", () => {
+  assert.match(caddyfile, /@paid_plans_rebalance path \/plans\/rebalance/);
+  assert.match(
+    caddyfile,
+    /handle @paid_plans_rebalance \{[\s\S]*?price \{\$X402_PRICE_PLANS_REBALANCE_USDC\}[\s\S]*?reverse_proxy \{\$UPSTREAM_API\}[\s\S]*?\}/
+  );
+});
+
 test("Caddy gives execution compose a dedicated compiler paid policy", () => {
   assert.match(caddyfile, /@paid_execution_compose path \/execution\/compose/);
   assert.match(

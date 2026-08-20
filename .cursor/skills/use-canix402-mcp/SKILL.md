@@ -188,6 +188,23 @@ SKU rather than forking a compiler.
    Haystack pre-signed members. Review stale-quote, missing-opt-in, and
    slippage warnings before signing.
 
+## Rebalance / delta quotes agent loop
+
+For a delta vs the existing book (target weights, or harvest idle ALGO / claim
+and redeploy), prefer `canix_get_rebalance_plan` over assembling exits and
+enters yourself.
+
+1. Optionally call `canix_get_positions` and `canix_list_claimable`.
+2. Call `canix_get_rebalance_plan` with `address` plus `targetWeights`
+   (`{ opportunityId, weightBps }[]` summing to 10000) and/or `harvestIdle: true`.
+   Paid ~0.25 USDC. Positions not listed in `targetWeights` are left alone.
+3. Review `data.steps` in order: claims, partial exits, optional Haystack
+   compose, enters. Groups are unsigned and never merged
+   (`meta.groupsMerged === false`). Enter that depends on unconfirmed exit
+   proceeds is `compileStatus: deferred`.
+4. Sign and submit locally the same way as `canix_get_execution_quote`. Paying
+   for the plan does not execute it.
+
 ## Signing an execution quote
 
 For `canix_get_execution_quote`:

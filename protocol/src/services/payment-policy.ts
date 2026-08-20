@@ -234,6 +234,17 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     priceUsdc: process.env.X402_PRICE_PLANS_USDC ?? "0.25"
   },
   {
+    id: "plansRebalance",
+    method: "POST",
+    pathPattern: "/plans/rebalance",
+    access: "paid",
+    summary: "Compile a delta rebalance plan of unsigned groups",
+    description:
+      "Positions are the book; opportunities are the menu. Pass address plus targetWeights (bps summing to 10000) and/or harvestIdle to claim worth-claiming rewards and redeploy idle ALGO. Returns ordered unsigned groups — claims, partial exits, optional Haystack swap compose, and enters — only the delta legs that change the book (not a full unwind-and-rebuild). Reuses claim desk, eligibility, compose, and position exit/manage shapeKeys. Groups are never merged. Canix does not sign or submit.",  // pragma: allowlist secret
+    tags: ["defi", "plans", "rebalance", "execution", "eligibility", "wallet", "x402", "agents", HACKATHON_TAG],
+    priceUsdc: process.env.X402_PRICE_PLANS_REBALANCE_USDC ?? "0.25"
+  },
+  {
     id: "positions",
     method: "GET",
     pathPattern: "/positions",
@@ -398,6 +409,7 @@ const paidPathMatchers = [
   /^\/opportunities\/personalized$/,
   /^\/eligibility$/,
   /^\/plans$/,
+  /^\/plans\/rebalance$/,
   /^\/positions$/,
   /^\/positions\/claimable$/,
   /^\/protocols\/[^/]+\/opportunities$/,

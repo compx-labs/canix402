@@ -31,6 +31,12 @@ export type {
   PlanResponse,
   PlanStep
 } from "./plan.js";
+export type {
+  RebalanceBook,
+  RebalanceData,
+  RebalanceRequest,
+  RebalanceResponse
+} from "./rebalance.js";
 export {
   PositionRecordSchema,
   PositionTypeSchema,
@@ -58,6 +64,13 @@ export {
   PlanRequestSchema,
   PlanResponseSchema
 } from "./plan-schema.js";
+export {
+  DEFAULT_REBALANCE_PRICE_USDC,
+  DEFAULT_ALGO_RESERVE_MICRO,
+  DEFAULT_MIN_DELTA_BPS,
+  RebalanceRequestSchema,
+  RebalanceResponseSchema
+} from "./rebalance-schema.js";
 export {
   DEFAULT_COMPOSE_PRICE_USDC,
   DEFAULT_COMPOSE_SLIPPAGE_PERCENT,

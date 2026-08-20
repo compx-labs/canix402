@@ -106,7 +106,12 @@ function formatPrice(endpoint: DiscoveryEndpoint): string {
 const SECRET_SCAN_PRAGMA = "  # pragma: allowlist secret";
 
 function needsSecretScanPragma(path: string): boolean {
-  return path === "/eligibility" || path === "/plans" || path === "/execution/compose";
+  return (
+    path === "/eligibility" ||
+    path === "/plans" ||
+    path === "/plans/rebalance" ||
+    path === "/execution/compose"
+  );
 }
 
 function endpointLine(endpoint: DiscoveryEndpoint): string {
@@ -178,6 +183,7 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
     personalized: loadSample("opportunities-personalized.sample.json"),
     eligibility: loadSample("eligibility.sample.json"),
     plans: loadSample("plans.sample.json"),
+    rebalance: loadSample("rebalance.sample.json"),
     compose: loadSample("compose.sample.json"),
     protocol: loadSample("protocol-opportunities.sample.json"),
     positions: loadSample("positions.sample.json"),
@@ -221,7 +227,7 @@ Always call the **gateway**, not an internal upstream API. x402 enforcement, \`P
 
 ### MCP server
 
-Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${MCP_URL}\` (streamable-http). Metadata: \`${MCP_WELL_KNOWN}\`. Walletless: paid tool preflight returns payment requirements; retry with \`paymentSignature\`. Tools include \`canix_list_opportunities\`, \`canix_list_execution_shapes\`, \`canix_get_positions\`, \`canix_list_claimable\`, \`canix_check_eligibility\`, \`canix_get_plan\`, \`canix_compose_enter\`, \`canix_get_execution_quote\`, and free discovery helpers. See ${DOCS_SITE}/mcp.${SECRET_SCAN_PRAGMA}
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${MCP_URL}\` (streamable-http). Metadata: \`${MCP_WELL_KNOWN}\`. Walletless: paid tool preflight returns payment requirements; retry with \`paymentSignature\`. Tools include \`canix_list_opportunities\`, \`canix_list_execution_shapes\`, \`canix_get_positions\`, \`canix_list_claimable\`, \`canix_check_eligibility\`, \`canix_get_plan\`, \`canix_get_rebalance_plan\`, \`canix_compose_enter\`, \`canix_get_execution_quote\`, and free discovery helpers. See ${DOCS_SITE}/mcp.${SECRET_SCAN_PRAGMA}
 
 ## x402 payment flow
 
@@ -256,6 +262,7 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 - \`GET /opportunities/personalized\` — requires \`address\` (Algorand account); premium price; matches opportunities to wallet-held assets using eligibility rules (full/gated venues are not recommended as enterable).  // pragma: allowlist secret
 - \`POST /eligibility\` — requires \`address\` and \`opportunityIds\`; 0.01 USDC; returns \`canEnter\`, \`missingAssets\`, \`gates\`, \`capacity\`, \`suggestedSwap\`. NFD/creator gates stay unresolved (\`eligibilityFullyCheckable: false\`). Quote-time checks remain authoritative.  // pragma: allowlist secret
 - \`POST /plans\` — requires \`address\` and \`budget { assetId, amount }\`; 0.25 USDC compiler SKU; returns ordered eligibility/setup/enter steps with unsigned groups, live Haystack opt-in → swap compose when \`requiredAssetIds\` differ from the budget asset, \`quotes[]\`, expected position delta, and fee totals. Brownie should consume this rather than forking a compiler.  // pragma: allowlist secret
+- \`POST /plans/rebalance\` — requires \`address\` plus \`targetWeights\` and/or \`harvestIdle\`; 0.25 USDC; delta claims/exits/swaps/enters as unmerged unsigned groups (not a full unwind).  // pragma: allowlist secret
 - \`POST /execution/compose\` — requires \`address\`, \`opportunityId\`, \`fromAssetId\`, \`amount\`; 0.10 USDC; sequenced unsigned groups opt-in → Haystack swap → enter. Groups never merged; sign only user legs. Failure modes (stale quote, missing opt-in, slippage) on step warnings.  // pragma: allowlist secret
 - \`GET /positions\` — requires \`address\` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
 - \`GET /positions/claimable\` — requires \`address\`; claim desk with USD, fee/worth-claiming hints, and \`claimAllQuotes\` for exactly 0.001 USDC. Compile via \`POST /execution/quotes\` (~0.1 USDC flat; groups never merged).
@@ -301,6 +308,12 @@ ${JSON.stringify(samples.eligibility, null, 2)}
 
 \`\`\`json
 ${JSON.stringify(samples.plans, null, 2)}
+\`\`\`
+
+### POST /plans/rebalance
+
+\`\`\`json
+${JSON.stringify(samples.rebalance, null, 2)}
 \`\`\`
 
 ### POST /execution/compose

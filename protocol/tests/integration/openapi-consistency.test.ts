@@ -16,6 +16,11 @@ import {
   PlanResponseSchema
 } from "../../src/types/plan-schema.js";
 import {
+  RebalanceDataSchema,
+  RebalanceRequestSchema,
+  RebalanceResponseSchema
+} from "../../src/types/rebalance-schema.js";
+import {
   ComposeDataSchema,
   ComposeRequestSchema,
   ComposeResponseSchema
@@ -151,6 +156,15 @@ test("paid operations expose x-x402 metadata", async () => {
   assert.equal(plansOperation?.["x-payment-info"]?.price?.amount, "0.25");
   assert.match(plansOperation?.description ?? "", /unsigned/i);
   assert.match(plansOperation?.description ?? "", /Brownie/i);
+
+  const rebalanceOperation = openapi.paths["/plans/rebalance"]?.post;
+  assert.equal(
+    rebalanceOperation?.["x-x402"]?.requirementTemplate?.maxAmountRequired,
+    "0.25"
+  );
+  assert.equal(rebalanceOperation?.["x-payment-info"]?.price?.amount, "0.25");
+  assert.match(rebalanceOperation?.description ?? "", /delta/i);
+  assert.match(rebalanceOperation?.description ?? "", /never merged/i);
 
   const composeOperation = openapi.paths["/execution/compose"]?.post;
   assert.equal(
@@ -371,6 +385,46 @@ test("plans OpenAPI request and response envelopes stay aligned", async () => {
     ["PlanRequest", PlanRequestSchema],
     ["PlanResponse", PlanResponseSchema],
     ["PlanData", PlanDataSchema]
+  ] as const;
+
+  for (const [name, typeboxSchema] of pairs) {
+    const openapiSchema = openapi.components.schemas[name];
+    assert.ok(openapiSchema, name);
+    assert.deepEqual(
+      [...(openapiSchema.required ?? [])].sort(),
+      [
+        ...((typeboxSchema as unknown as { required?: string[] }).required ?? [])
+      ].sort(),
+      `${name} required fields`
+    );
+    assert.deepEqual(
+      Object.keys(openapiSchema.properties ?? {}).sort(),
+      Object.keys(
+        (typeboxSchema as unknown as { properties?: Record<string, unknown> }).properties
+          ?? {}
+      ).sort(),
+      `${name} properties`
+    );
+  }
+
+  await app.close();
+});
+
+test("rebalance OpenAPI request and response envelopes stay aligned", async () => {
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "GET",
+    url: "/openapi.json"
+  });
+  assert.equal(response.statusCode, 200);
+
+  const openapi = response.json() as OpenApiDocument;
+  const pairs = [
+    ["RebalanceRequest", RebalanceRequestSchema],
+    ["RebalanceResponse", RebalanceResponseSchema],
+    ["RebalanceData", RebalanceDataSchema]
   ] as const;
 
   for (const [name, typeboxSchema] of pairs) {
