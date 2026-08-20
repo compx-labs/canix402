@@ -1,0 +1,100 @@
+{
+  "data": {
+    "opportunityId": "reti-staking-12",
+    "protocol": "reti",
+    "opportunityType": "staking",
+    "assetPair": "ALGO",
+    "fromAssetId": 1,
+    "toAssetId": 0,
+    "inputAmount": "1000000",
+    "enterAmount": "247500",
+    "slippage": 1,
+    "steps": [
+      {
+        "kind": "eligibility",
+        "order": 0,
+        "compileStatus": "compiled",
+        "warnings": [
+          "Eligibility is gated on missing required assets; swap-aware compose unblocks enter after the Haystack group confirms."
+        ]
+      },
+      {
+        "kind": "opt-in",
+        "order": 1,
+        "compileStatus": "compiled",
+        "shapeKey": "mainnet:haystack:router:optin:required",
+        "quote": {
+          "shapeKey": "mainnet:haystack:router:optin:required",
+          "encodedTransactions": ["<base64-unsigned-opt-in>"],
+          "userSignIndexes": [0],
+          "groupTransactions": [
+            {
+              "index": 0,
+              "signer": "user",
+              "encodedTransaction": "<base64-unsigned-opt-in>"
+            }
+          ]
+        },
+        "warnings": [
+          "Missing opt-in: submit the opt-in group and wait for confirmation before submitting the Haystack swap group."
+        ]
+      },
+      {
+        "kind": "swap",
+        "order": 2,
+        "compileStatus": "compiled",
+        "shapeKey": "mainnet:haystack:router:swap:fixed-input",
+        "prerequisiteShapeKeys": ["mainnet:haystack:router:optin:required"],
+        "quote": {
+          "shapeKey": "mainnet:haystack:router:swap:fixed-input",
+          "encodedTransactions": ["<base64-user-leg>"],
+          "userSignIndexes": [0],
+          "groupTransactions": [
+            {
+              "index": 0,
+              "signer": "user",
+              "encodedTransaction": "<base64-user-leg>"
+            },
+            {
+              "index": 1,
+              "signer": "logicsig",
+              "encodedTransaction": "<base64-haystack-leg>",
+              "signedTransaction": "<base64-presigned>"
+            }
+          ]
+        },
+        "warnings": [
+          "Stale quote: submit the swap group before quote.expiresAt.",
+          "Slippage: enter is compiled with a haircut of quotedAmount; re-quote enter if the confirmed swap delivers less."
+        ]
+      },
+      {
+        "kind": "enter",
+        "order": 3,
+        "compileStatus": "compiled",
+        "shapeKey": "mainnet:reti:v1:stake:algo",
+        "prerequisiteShapeKeys": [
+          "mainnet:haystack:router:optin:required",
+          "mainnet:haystack:router:swap:fixed-input"
+        ]
+      }
+    ],
+    "quotes": [
+      {
+        "shapeKey": "mainnet:reti:v1:stake:algo",
+        "input": {
+          "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "amount": "247500"
+        }
+      }
+    ],
+    "warnings": [
+      "Groups stay unsigned and unmerged. Sign only user legs; preserve Haystack pre-signed members."
+    ]
+  },
+  "meta": {
+    "paymentRequired": true,
+    "executionSubmitted": false,
+    "groupsMerged": false
+  }
+}

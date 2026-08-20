@@ -230,6 +230,28 @@
 		reverse_proxy {$UPSTREAM_API}
 	}
 
+	@paid_execution_compose path /execution/compose
+	handle @paid_execution_compose {
+		x402 {
+			description "canix402 swap-aware enter compose endpoint"
+			mime_type application/json
+			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile execution_compose
+
+			accept {
+				pay_to {$X402_PAY_TO}
+				price {$X402_PRICE_EXECUTION_COMPOSE_USDC}
+				network {$X402_NETWORK}
+				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+		}
+
+		reverse_proxy {$UPSTREAM_API}
+	}
+
 	@paid_haystack_swap path /swaps/transactions
 	handle @paid_haystack_swap {
 		x402 {

@@ -22,6 +22,8 @@ export {
 export type { ExecutionShapeCatalogEntry } from "./catalog.js";
 export {
   EXECUTION_SHAPE_DOCS_PATHS,
+  EXECUTION_PROTOCOL_CAVEATS_DOCS_PATH,
+  EXECUTION_PROTOCOL_CAVEATS_AGENT_HINT,
   getExecutionShapeDocsPath
 } from "./shape-docs.js";
 export * from "./normalize-transaction.js";

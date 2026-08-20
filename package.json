@@ -14,6 +14,7 @@
     "build:protocol": "npm run build -w protocol",
     "typecheck:protocol": "npm run typecheck -w protocol",
     "build:caddy-x402": "npm run build:caddy-x402 -w protocol",
+    "test:unit": "npm run test:unit -w protocol",
     "test:api": "npm run test:api -w protocol",
     "test:gateway": "npm run test:gateway -w protocol",
     "test:protocol": "npm run test:ci -w protocol",

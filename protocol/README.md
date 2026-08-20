@@ -11,6 +11,7 @@ This package lives in the `protocol/` workspace of the canix402 monorepo.
 - [Testing Guide](docs/testing.md)
 - [Caddy Gateway Setup](caddy/README.md)
 - [Data Source Docs](docs/data-sources/README.md)
+- [Execution shape caveats](docs/execution-shapes/protocol-caveats.md)
 
 ## Scripts
 
@@ -19,6 +20,7 @@ From repo root:
 ```sh
 npm run dev:protocol
 npm run typecheck:protocol
+npm run test:unit
 npm run build:caddy-x402
 npm run test:protocol
 ```
@@ -27,6 +29,7 @@ From this directory:
 
 ```sh
 npm run dev
+npm run test:unit
 npm run test
 npm run test:x402-e2e
 ```

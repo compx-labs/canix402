@@ -58,6 +58,14 @@ inner-call group fee (`DEFAULT_DORKFI_GROUP_FEE`). A 1000µA simulate fails with
 as zero debt (not a coverage gap) so agents that block on protocol `partial`
 are not stalled when the wallet has no Dork.fi user record.
 
+That empty-user simulate behavior shipped in
+[canix402#79](https://github.com/compx-labs/canix402/pull/79) /
+[canix402#80](https://github.com/compx-labs/canix402/pull/80). There is no
+`setup:createUser` execution shape — the first `deposit:asa` creates the user
+box. Do not treat `no ABI return` as a reason to skip deposit or invent a
+bootstrap group. Full construction caveats:
+[execution-shapes/protocol-caveats.md](../execution-shapes/protocol-caveats.md#dorkfi).
+
 If the indexed source is unavailable, on-chain ASA supply and debt rows are still
 returned. Indexed USD aggregates are optional; on-chain debt coverage drives
 `borrowedUsdComplete`.
@@ -112,3 +120,12 @@ Other emitted fields:
 - Source payload field types can vary (`assetId` can be number or string).
 - Dork.fi feed includes non-Algorand networks; this adapter intentionally keeps only Algorand rows.
 - `sourceTimestamp` is set to adapter fetch time because feed rows currently do not provide per-row timestamps.
+- Empty-user `get_user` simulate (`no ABI return`) is zero debt, not a coverage
+  gap. Construction caveats:
+  [execution-shapes/protocol-caveats.md](../execution-shapes/protocol-caveats.md#dorkfi).
+
+## Tests
+
+Fixture-based normalize coverage: `tests/unit/dorkfi-normalize.test.ts` plus
+`tests/fixtures/adapters/dorkfi-feed.ts` (`npm run test:unit`). Route-level
+coverage remains in `tests/integration/dorkfi-adapter.test.ts`.

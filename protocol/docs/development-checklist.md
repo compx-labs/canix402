@@ -10,12 +10,12 @@ Status legend:
 
 Work through section 13 in listed order. Canix stays walletless: new routes return data or unsigned groups; the client signs and submits. Do not treat another protocol adapter as a substitute for these items.
 
-Leftover tightening from the execution chapter stays in sections 3 and 8 and can proceed in parallel.
+Leftover tightening from the execution chapter stays in sections 3 and 8 and can proceed in parallel. Section 3's Tinyman / Folks / Pact / CompX / Dork.fi unit-test expansion is archived; remaining adapter transforms and execution-layer golden fixtures are still open. Protocol-specific execution caveats are documented.
 
 
 ## 3) Testing and Quality Gates
 
-- [~] Expand unit tests for normalization and adapter transforms (currently covered via integration test files; no dedicated `tests/unit/` suite yet).
+- [ ] Add dedicated unit tests for remaining adapter transforms (Myth Finance, Haystack, Réti, Alpha Arcade). Tinyman / Folks / Pact / CompX / Dork.fi already run in `protocol/tests/unit/` on CI.
 
 
 ## 8) Execution Layer (tightening)
@@ -23,7 +23,7 @@ Leftover tightening from the execution chapter stays in sections 3 and 8 and can
 ### Protocol Transaction Shape Mapping
 
 - [~] Build golden fixtures for each supported protocol/action so generated groups can be compared deterministically. Tinyman + Folks + Pact + CompX + Dork.fi integration fixtures in CI (mock-SDK deterministic groups; not separate committed golden JSON blobs).
-- [ ] Document protocol-specific caveats that can affect transaction construction (pool discovery, opt-ins, minimum balance, slippage math, liquidity limits, app upgrades).
+- [x] Document protocol-specific caveats that can affect transaction construction (pool discovery, opt-ins, minimum balance, slippage math, liquidity limits, app upgrades). See `docs/execution-shapes/protocol-caveats.md` (also `GET /execution/shapes` `meta.caveatsDocsPath`).
 
 ### Execution Compiler
 
@@ -67,10 +67,10 @@ The flagship SKU. Agent states an allocation intent; Canix returns a sequenced p
 
 Haystack and execution shapes stay separate groups. The new product is the graph, not a merged atomic txn.
 
-- [ ] Compose “I hold asset A, I want this opportunity” into sequenced groups: opt-in → Haystack swap → enter, driven by `requiredAssetIds`.
-- [ ] Wire compose into `POST /plans` (and/or a narrower `POST /execution/compose`) without merging unrelated groups.
-- [ ] Preserve Haystack signer indexes / pre-signed members; caller still signs only user legs and submits locally.
-- [ ] Document failure modes (stale quote, missing opt-in, slippage) in shape/plan caveats.
+- [x] Compose “I hold asset A, I want this opportunity” into sequenced groups: opt-in → Haystack swap → enter, driven by `requiredAssetIds`.
+- [x] Wire compose into `POST /plans` (and/or a narrower `POST /execution/compose`) without merging unrelated groups.
+- [x] Preserve Haystack signer indexes / pre-signed members; caller still signs only user legs and submits locally.
+- [x] Document failure modes (stale quote, missing opt-in, slippage) in shape/plan caveats.
 
 ### 13.5 Rebalance / delta quotes
 

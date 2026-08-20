@@ -145,3 +145,11 @@ recent block headers (`bonus`, `feesCollected`). See `src/services/consensus-sta
 - Tinyman stALGO restake is emitted as `tinyman-staking-stalgo` with APR derived
   from restake app `current_reward_rate_per_time` × TINY USD / staked TVL.
 - `tvlUsd` and `apy` for LP/farm are trusted from source; tALGO/stALGO staking are derived.
+- Transaction construction (on-chain pool discovery, LP-token opt-in, slippage
+  fraction, validator app id): [execution-shapes/protocol-caveats.md](../execution-shapes/protocol-caveats.md#tinyman).
+
+## Tests
+
+Fixture-based normalize coverage: `tests/unit/tinyman-normalize.test.ts` plus
+`tests/fixtures/adapters/tinyman-pools.ts` (`npm run test:unit`). Route-level
+coverage remains in `tests/integration/tinyman-adapter.test.ts`.

@@ -43,8 +43,14 @@ application calls and funding transactions around those core actions.
 
 - ASA-backed markets only; native ALGO and ARC-200/WAD paths are rejected.
 - Mainnet beacon app `3209233839` and oracle app `3333688254` are included in builder metadata.
-- User must be opted into the underlying ASA.
+- User must be opted into the underlying ASA. The group does **not** include that opt-in.
+- First deposit creates the Dork.fi user box. An empty-user `get_user` simulate
+  (`no ABI return`) is zero state, not a reason to invent a setup shape. See
+  [protocol-caveats.md](./protocol-caveats.md#empty-user-simulate-prs-79--80).
 - Quotes expire after 30 seconds; recompile before signing stale groups.
+
+Protocol-wide construction notes (catalog discovery, inner-call fees, nToken
+upgrades): [protocol-caveats.md](./protocol-caveats.md#dorkfi).
 
 ## Tests
 

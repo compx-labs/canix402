@@ -162,7 +162,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_list_execution_shapes",
     {
       description:
-        "List verified execution shape catalog metadata via GET /execution/shapes (free). Returns shapeKey, requiredInputs, opportunityRole, and docsPath from the live protocol registry. Catalog only — compile unsigned groups with canix_get_execution_quote (paid).",
+        "List verified execution shape catalog metadata via GET /execution/shapes (free). Returns shapeKey, requiredInputs, opportunityRole, docsPath, and meta.caveatsDocsPath from the live protocol registry. Catalog only — compile unsigned groups with canix_get_execution_quote (paid). Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades — read protocol/docs/execution-shapes/protocol-caveats.md and each shape's docsPath.",
       inputSchema: {}
     },
     async () => {
@@ -338,7 +338,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_get_plan",
     {
       description:
-        "Compile an allocation intent into an ordered unsigned plan (POST /plans). Pass address and budget { assetId, amount } (base units; 0 = ALGO). Optional constraints and opportunityIds. Returns eligibility, optional swap hints, setup/enter quotes[] as independent unsigned groups (never merged), expected position delta, x402 + network fee totals, and expiry. Paid ~0.25 USDC. Canix does not sign or submit.",
+        "Compile an allocation intent into an ordered unsigned plan (POST /plans). Pass address and budget { assetId, amount } (base units; 0 = ALGO). Optional constraints and opportunityIds. Optional swapSlippage for Haystack compose. Returns eligibility, live Haystack opt-in/swap groups when requiredAssetIds differ from the budget asset, setup/enter quotes[] as independent unsigned groups (never merged), expected position delta, x402 + network fee totals, and expiry. Paid ~0.25 USDC. Canix does not sign or submit.",
       inputSchema: {
         address: z.string().min(1),
         budget: z.object({
@@ -356,6 +356,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
           })
           .optional(),
         opportunityIds: z.array(z.string().min(1)).min(1).max(25).optional(),
+        swapSlippage: z.number().min(0).max(100).optional(),
         refresh: z.boolean().optional(),
         paymentSignature: paymentSignatureArgSchema()
       }
@@ -369,6 +370,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
           ...(args.opportunityIds !== undefined
             ? { opportunityIds: args.opportunityIds }
             : {}),
+          ...(args.swapSlippage !== undefined ? { swapSlippage: args.swapSlippage } : {}),
           ...(args.refresh !== undefined ? { refresh: args.refresh } : {})
         };
         const result = await client.fetchPaid("/plans", {
@@ -378,6 +380,47 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         });
         return paidToolResult(result, "0.25", {
           path: "/plans",
+          method: "POST",
+          body
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_compose_enter",
+    {
+      description:
+        "Compose “I hold asset A, I want this opportunity” into sequenced unsigned groups (POST /execution/compose): opt-in → Haystack swap → enter, driven by requiredAssetIds. Groups are never merged. Preserve Haystack signer indexes / pre-signed members. Paid ~0.10 USDC. Canix does not sign or submit.",
+      inputSchema: {
+        address: z.string().min(1),
+        opportunityId: z.string().min(1),
+        fromAssetId: z.number().int().min(0),
+        amount: z.string().min(1),
+        slippage: z.number().min(0).max(100).optional(),
+        refresh: z.boolean().optional(),
+        paymentSignature: paymentSignatureArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const body = {
+          address: args.address,
+          opportunityId: args.opportunityId,
+          fromAssetId: args.fromAssetId,
+          amount: args.amount,
+          ...(args.slippage !== undefined ? { slippage: args.slippage } : {}),
+          ...(args.refresh !== undefined ? { refresh: args.refresh } : {})
+        };
+        const result = await client.fetchPaid("/execution/compose", {
+          method: "POST",
+          body,
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+        });
+        return paidToolResult(result, "0.1", {
+          path: "/execution/compose",
           method: "POST",
           body
         });
@@ -490,7 +533,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_get_execution_quote",
     {
       description:
-        "Compile one or more unsigned Algorand transaction groups (POST /execution/quotes). Pass quotes: [{ shapeKey, input }, ...]. Required input fields vary by shapeKey — call canix_list_execution_shapes and use each shape's requiredInputs (userAddress is always required). Response data is an ExecutableQuote array. Paid flat ~0.10 USDC per request (not per item). On failure, error.details includes quoteIndex and shapeKey.",
+        "Compile one or more unsigned Algorand transaction groups (POST /execution/quotes). Pass quotes: [{ shapeKey, input }, ...]. Required input fields vary by shapeKey — call canix_list_execution_shapes and use each shape's requiredInputs (userAddress is always required). Response data is an ExecutableQuote array. Paid flat ~0.10 USDC per request (not per item). On failure, error.details includes quoteIndex and shapeKey. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades — read protocol/docs/execution-shapes/protocol-caveats.md and each shape's docsPath.", // pragma: allowlist secret
       inputSchema: {
         quotes: z
           .array(
@@ -688,7 +731,7 @@ export function registerCanixResources(server: McpServer, client: GatewayClient)
     "canix://execution-shapes",
     {
       description:
-        "Live verified execution shape catalog (GET /execution/shapes). Metadata only; quotes remain paid.",
+        "Live verified execution shape catalog (GET /execution/shapes). Metadata only; quotes remain paid. meta.caveatsDocsPath is protocol/docs/execution-shapes/protocol-caveats.md.",
       mimeType: "application/json"
     },
     async (uri) => {

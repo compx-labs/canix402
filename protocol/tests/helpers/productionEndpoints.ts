@@ -54,6 +54,10 @@ function resolveProductionPath(pathPattern: string): string {
     return "/execution/quotes";
   }
 
+  if (pathPattern === "/execution/compose") {
+    return "/execution/compose";
+  }
+
   return pathPattern;
 }
 
@@ -110,6 +114,20 @@ function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): Pro
             }
           }
         ]
+      }
+    };
+  }
+
+  if (entry.pathPattern === "/execution/compose") {
+    return {
+      ...base,
+      method: "POST",
+      body: {
+        address: getProductionPersonalizedAddress(),
+        opportunityId: "reti-staking-12",
+        fromAssetId: USDC_ASSET_ID,
+        amount: SMOKE_QUOTE_AMOUNT,
+        slippage: 1
       }
     };
   }

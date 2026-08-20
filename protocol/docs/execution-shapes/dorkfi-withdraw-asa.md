@@ -43,6 +43,9 @@ Two to three outer transactions built via ulujs `custom()`:
 - ASA-backed markets only; native ALGO and ARC-200/WAD paths are rejected.
 - Withdraw amount must not exceed the wallet's nToken ARC-200 balance.
 - Underlying ASA received may differ slightly from a naive 1:1 estimate due to index accrual.
+- A naked `withdraw` simulate (without the ulujs custom group) often fails;
+  positions use nToken × deposit index instead. See
+  [protocol-caveats.md](./protocol-caveats.md#dorkfi).
 - Quotes expire after 30 seconds; recompile before signing stale groups.
 
 ## Tests

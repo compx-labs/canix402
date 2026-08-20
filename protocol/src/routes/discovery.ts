@@ -214,7 +214,8 @@ function buildDiscoveryDocument(): DiscoveryDocument {
         endpoint.id === "positions" ||
         endpoint.id === "positionsClaimable" ||
         endpoint.id === "eligibility" ||
-        endpoint.id === "plans"
+        endpoint.id === "plans" ||
+        endpoint.id === "executionCompose"
           ? [200, 400, 402, 500, 502]
           : endpoint.id === "tokenPricing"
             ? [200, 400, 502]
@@ -249,6 +250,7 @@ function buildDiscoveryDocument(): DiscoveryDocument {
       "openapi",
       "execution-quotes",
       "intent-plans",
+      "swap-aware-compose",
       "haystack-swaps",
       "token-pricing",
       "mcp-server"
@@ -476,7 +478,8 @@ function buildLlmsText(includeAllEndpoints = false): string {
 
   lines.push(
     "",
-    "Unpaid paid-route requests return HTTP 402 with PAYMENT-REQUIRED. Sign a USDC payment client-side and retry with PAYMENT-SIGNATURE. Canix never receives wallet keys or submits transactions."
+    "Unpaid paid-route requests return HTTP 402 with PAYMENT-REQUIRED. Sign a USDC payment client-side and retry with PAYMENT-SIGNATURE. Canix never receives wallet keys or submits transactions.",
+    "Do not guess execution construction (pool discovery, opt-ins, min-balance, slippage, liquidity limits, app upgrades). Read protocol/docs/execution-shapes/protocol-caveats.md and GET /execution/shapes meta.caveatsDocsPath."
   );
 
   return `${lines.join("\n")}\n`;

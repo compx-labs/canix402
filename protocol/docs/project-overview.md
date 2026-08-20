@@ -181,18 +181,35 @@ forking a local compiler.
 - Constraints: `maxProtocolWeightBps`, `noNewBorrows` (default true),
   `executionReadyOnly` (default true), `minTvlUsd`, `maxSourceAgeSeconds`,
   `maxAllocations` (default 1).
-- Response: ordered steps (eligibility, optional swap hints, protocol setup
+- Response: ordered steps (eligibility, optional live Haystack opt-in/swap compose when `requiredAssetIds` differ from the budget asset, protocol setup
   chains, enter quotes), `quotes[]` / `order` / `prerequisiteShapeKeys`, expected
   position delta, x402 + estimated network fee totals, and `expiresAt`.
 - Groups stay unsigned and unmerged. Setup steps that need a confirmed prior
   group (e.g. Folks escrow address) are deferred with the `quotes[]` input for a
-  later `POST /execution/quotes`. Swap legs in this SKU are hints, not live
-  Haystack groups.
+  later `POST /execution/quotes`. Swap legs are live Haystack groups when a
+  single `requiredAssetIds` target is known (opt-in → swap → enter); see
+  `POST /execution/compose` and `docs/execution-shapes/haystack-swap-compose.md`.
 - Discovery and OpenAPI advertise `maxAmountRequired: "0.25"`. Caddy enforces
   `X402_PRICE_PLANS_USDC=0.25` (250000 micro-USDC).
 - MCP: `canix_get_plan`. Agent loop: optional personalized → plan → review
   eligibility/warnings → local sign/submit in `order`. Quote-time on-chain
   checks remain authoritative.
+
+### Swap-aware enter compose (`POST /execution/compose`)
+
+A paid compiler SKU priced at 0.10 USDC (same band as `POST /execution/quotes`).
+Use when the agent already knows the opportunity and the asset it holds.
+
+- Body: `{ address, opportunityId, fromAssetId, amount, slippage?, refresh? }`.
+  Amounts are asset base units (`fromAssetId` 0 = ALGO). Default slippage is 1%.
+- Response: sequenced steps — eligibility, optional opt-in, Haystack swap,
+  setup/enter — as independent unsigned groups (never merged). Haystack
+  `userSignIndexes` and pre-signed members are preserved.
+- Failure modes (stale quote, missing opt-in, slippage) are listed on step
+  warnings. See `docs/execution-shapes/haystack-swap-compose.md`.
+- Discovery and OpenAPI advertise `maxAmountRequired: "0.1"`. Caddy enforces
+  `X402_PRICE_EXECUTION_COMPOSE_USDC=0.1` (100000 micro-USDC).
+- MCP: `canix_compose_enter`. Prefer `canix_get_plan` for budget allocation.
 
 ### Wallet Positions (`GET /positions?address=`)
 
@@ -317,3 +334,4 @@ Use this section to record major decisions as the project evolves.
 - 2026-07-06: Restructured repo into monorepo workspaces (`protocol/`, `website/`) and implemented Astro onboarding site with CANIX402 branding.
 - 2026-07-07: Finalized `OpportunityRecordV1` contract for API `1.0.0` with required `yieldBasis`, optional `assetIds`, and a canonical schema spec in `docs/normalized-opportunity-schema.md`.
 - 2026-08-14: Added paid `POST /eligibility` (0.01 USDC) and taught `/opportunities/personalized` to use the same eligibility rules so full/gated Réti venues are not recommended as enterable. NFD/creator gates stay unresolved (`eligibilityFullyCheckable: false`).
+- 2026-08-19: Added dedicated `protocol/tests/unit/` coverage for opportunity normalization and adapter transforms (Tinyman, Folks, Pact, CompX, Dork.fi; fixture-based, CI on `dev`). Remaining adapters stay integration-only until checklist §3 is closed.

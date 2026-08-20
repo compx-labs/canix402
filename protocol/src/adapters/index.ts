@@ -12,6 +12,7 @@ export type AdapterName =
 export {
   fetchTinymanOpportunities,
   normalizeTinymanPool,
+  normalizeTinymanFarm,
   normalizeTinymanTAlgoStakingOpportunity,
   normalizeTinymanStAlgoStakingOpportunity,
   parseTinymanPoolDetail,
@@ -23,7 +24,12 @@ export {
   TINYMAN_STALGO_STAKING_OPPORTUNITY_ID,
   TinymanAdapterError
 } from "./tinyman.js";
-export { fetchPactOpportunities, normalizePactPool, PactAdapterError } from "./pact.js";
+export {
+  fetchPactOpportunities,
+  normalizePactPool,
+  normalizePactFarm,
+  PactAdapterError
+} from "./pact.js";
 export {
   fetchFolksFinanceOpportunities,
   normalizeFolksLendingOpportunity,

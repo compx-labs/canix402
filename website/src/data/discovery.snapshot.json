@@ -1,7 +1,7 @@
 {
   "data": {
     "service": "canix402",
-    "apiVersion": "0.1.0",
+    "apiVersion": "1.4.0",
     "discoveryVersion": "1.0.0",
     "capabilities": [
       "algorand-defi-opportunities",
@@ -11,6 +11,7 @@
       "openapi",
       "execution-quotes",
       "intent-plans",
+      "swap-aware-compose",
       "haystack-swaps",
       "token-pricing",
       "mcp-server"
@@ -538,7 +539,7 @@
         "path": "/plans",
         "access": "paid",
         "summary": "Compile an allocation intent into an ordered unsigned plan",
-        "description": "Agent states an allocation intent (address, budget/asset, constraints). Canix returns ordered steps: eligibility, optional swap hints, protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume this SKU rather than forking a compiler.",
+        "description": "Agent states an allocation intent (address, budget/asset, constraints). Canix returns ordered steps: eligibility, optional live Haystack swap compose (opt-in → swap → enter, driven by requiredAssetIds), protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume this SKU rather than forking a compiler.",
         "tags": [
           "defi",
           "plans",
@@ -735,7 +736,7 @@
         "path": "/execution/shapes",
         "access": "free",
         "summary": "List verified execution shape catalog metadata",
-        "description": "Returns the live catalog of verified transaction shapes (shapeKey, requiredInputs, opportunityRole, docsPath). Catalog metadata only — does not compile quotes or return unsigned transactions. Use POST /execution/quotes to compile executable groups.",
+        "description": "Returns the live catalog of verified transaction shapes (shapeKey, requiredInputs, opportunityRole, docsPath). meta.caveatsDocsPath points at protocol-specific construction caveats. Catalog metadata only — does not compile quotes or return unsigned transactions. Use POST /execution/quotes to compile executable groups. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
         "tags": [
           "execution",
           "discovery",
@@ -754,7 +755,7 @@
         "path": "/execution/quotes",
         "access": "paid",
         "summary": "Compile one or more verified transaction shapes into unsigned Algorand transaction groups",
-        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), and Réti v1 ALGO staking shapes (stake/unstake). Canix does not sign or submit transactions in this endpoint.",
+        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), and Réti v1 ALGO staking shapes (stake/unstake). Canix does not sign or submit transactions in this endpoint. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
         "tags": [
           "execution",
           "transactions",
@@ -781,6 +782,50 @@
             "scheme": "exact",
             "network": "algorand-mainnet",
             "asset": "31566704",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.1"
+          },
+          "amountUsdc": "0.1",
+          "amountMicro": "100000"
+        }
+      },
+      {
+        "id": "executionCompose",
+        "method": "POST",
+        "path": "/execution/compose",
+        "access": "paid",
+        "summary": "Compose opt-in → Haystack swap → enter as unmerged unsigned groups",
+        "description": "Compiles “I hold asset A, I want this opportunity” into sequenced groups: optional ASA/app opt-in, Haystack swap (signer indexes and pre-signed members preserved), then enter — driven by requiredAssetIds. Groups are never merged. Failure modes (stale quote, missing opt-in, slippage) are listed on step warnings. Canix does not sign or submit. Caller signs user legs and submits locally in order.", "x-pragma": "pragma: allowlist secret",
+        "tags": [
+          "execution",
+          "swaps",
+          "haystack",
+          "plans",
+          "x402",
+          "agents",
+          "x402-global-challenge"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          400,
+          402,
+          500,
+          502
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.1"
           },
@@ -837,6 +882,7 @@
         "canix_get_personalized_opportunities",
         "canix_check_eligibility",
         "canix_get_plan",
+        "canix_compose_enter",
         "canix_get_protocol_opportunities",
         "canix_get_positions",
         "canix_list_claimable",

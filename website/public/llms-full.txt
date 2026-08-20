@@ -1,6 +1,6 @@
 # CANIX402 — full agent integration guide
 
-> x402-gated Algorand DeFi data and walletless transaction API (version 0.1.0). Normalized yield data and Haystack swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.
+> x402-gated Algorand DeFi data and walletless transaction API (version 1.4.0). Normalized yield data and Haystack swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.  # pragma: allowlist secret
 
 ## Overview
 
@@ -28,7 +28,7 @@ Always call the **gateway**, not an internal upstream API. x402 enforcement, `PA
 
 ### MCP server
 
-Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_list_execution_shapes`, `canix_get_positions`, `canix_list_claimable`, `canix_check_eligibility`, `canix_get_plan`, `canix_get_execution_quote`, and free discovery helpers. See https://canix402.compx.io/mcp.  # pragma: allowlist secret
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_list_execution_shapes`, `canix_get_positions`, `canix_list_claimable`, `canix_check_eligibility`, `canix_get_plan`, `canix_compose_enter`, `canix_get_execution_quote`, and free discovery helpers. See https://canix402.compx.io/mcp.  # pragma: allowlist secret
 
 ## x402 payment flow
 
@@ -81,6 +81,7 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `POST /swaps/transactions` (0.005 USDC) — Build a walletless Haystack swap transaction group.
 - `GET /execution/shapes` (Free) — List verified execution shape catalog metadata.
 - `POST /execution/quotes` (0.1 USDC) — Compile one or more verified transaction shapes into unsigned Algorand transaction groups.
+- `POST /execution/compose` (0.1 USDC) — Compose opt-in → Haystack swap → enter as unmerged unsigned groups.  # pragma: allowlist secret
 
 ### Route notes
 
@@ -89,11 +90,12 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `GET /opportunities/search` — filter by `platform`, `type`, `minApy`, `maxApy`, `minTvlUsd`, `assetIds` (comma-separated ASA ids; 0 = ALGO; ANY intersection with opportunity.assetIds).
 - `GET /opportunities/personalized` — requires `address` (Algorand account); premium price; matches opportunities to wallet-held assets using eligibility rules (full/gated venues are not recommended as enterable).  // pragma: allowlist secret
 - `POST /eligibility` — requires `address` and `opportunityIds`; 0.01 USDC; returns `canEnter`, `missingAssets`, `gates`, `capacity`, `suggestedSwap`. NFD/creator gates stay unresolved (`eligibilityFullyCheckable: false`). Quote-time checks remain authoritative.  // pragma: allowlist secret
-- `POST /plans` — requires `address` and `budget { assetId, amount }`; 0.25 USDC compiler SKU; returns ordered eligibility/setup/enter steps with unsigned groups, `quotes[]`, expected position delta, and fee totals. Brownie should consume this rather than forking a compiler.  // pragma: allowlist secret
+- `POST /plans` — requires `address` and `budget { assetId, amount }`; 0.25 USDC compiler SKU; returns ordered eligibility/setup/enter steps with unsigned groups, live Haystack opt-in → swap compose when `requiredAssetIds` differ from the budget asset, `quotes[]`, expected position delta, and fee totals. Brownie should consume this rather than forking a compiler.  // pragma: allowlist secret
+- `POST /execution/compose` — requires `address`, `opportunityId`, `fromAssetId`, `amount`; 0.10 USDC; sequenced unsigned groups opt-in → Haystack swap → enter. Groups never merged; sign only user legs. Failure modes (stale quote, missing opt-in, slippage) on step warnings.  // pragma: allowlist secret
 - `GET /positions` — requires `address` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
 - `GET /positions/claimable` — requires `address`; claim desk with USD, fee/worth-claiming hints, and `claimAllQuotes` for exactly 0.001 USDC. Compile via `POST /execution/quotes` (~0.1 USDC flat; groups never merged).
-- `GET /execution/shapes` — free catalog of verified shape keys and requiredInputs (metadata only).
-- `POST /execution/quotes` — batch unsigned transaction groups for verified shapes; flat ~0.1 USDC per request.
+- `GET /execution/shapes` — free catalog of verified shape keys and requiredInputs (metadata only). `meta.caveatsDocsPath` is `protocol/docs/execution-shapes/protocol-caveats.md` (pool discovery, opt-ins, min-balance, slippage, liquidity limits, app upgrades). Do not guess those details.
+- `POST /execution/quotes` — batch unsigned transaction groups for verified shapes; flat ~0.1 USDC per request. Canix never signs or submits. Read each shape's `docsPath` plus the protocol caveats doc before filling inputs.
 - Haystack swaps — call free `POST /swaps/quote`, sign and submit any group from free `POST /swaps/optin`, refresh the short-lived quote, then call paid `POST /swaps/transactions` for 0.005 USDC. Amounts are asset base units.
 - Walletless handoff — sign only the returned `userSignIndexes`, preserve Haystack pre-signed members and group order, and submit the complete group through the caller's Algod client.
 - Swap costs — the 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee/referral, DEX fees, price impact, and Algorand network fees.
@@ -854,6 +856,121 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
 }
 ```
 
+### POST /execution/compose
+
+```json
+{
+  "data": {
+    "opportunityId": "reti-staking-12",
+    "protocol": "reti",
+    "opportunityType": "staking",
+    "assetPair": "ALGO",
+    "fromAssetId": 1,
+    "toAssetId": 0,
+    "inputAmount": "1000000",
+    "enterAmount": "247500",
+    "slippage": 1,
+    "steps": [
+      {
+        "kind": "eligibility",
+        "order": 0,
+        "compileStatus": "compiled",
+        "warnings": [
+          "Eligibility is gated on missing required assets; swap-aware compose unblocks enter after the Haystack group confirms."
+        ]
+      },
+      {
+        "kind": "opt-in",
+        "order": 1,
+        "compileStatus": "compiled",
+        "shapeKey": "mainnet:haystack:router:optin:required",
+        "quote": {
+          "shapeKey": "mainnet:haystack:router:optin:required",
+          "encodedTransactions": [
+            "<base64-unsigned-opt-in>"
+          ],
+          "userSignIndexes": [
+            0
+          ],
+          "groupTransactions": [
+            {
+              "index": 0,
+              "signer": "user",
+              "encodedTransaction": "<base64-unsigned-opt-in>"
+            }
+          ]
+        },
+        "warnings": [
+          "Missing opt-in: submit the opt-in group and wait for confirmation before submitting the Haystack swap group."
+        ]
+      },
+      {
+        "kind": "swap",
+        "order": 2,
+        "compileStatus": "compiled",
+        "shapeKey": "mainnet:haystack:router:swap:fixed-input",
+        "prerequisiteShapeKeys": [
+          "mainnet:haystack:router:optin:required"
+        ],
+        "quote": {
+          "shapeKey": "mainnet:haystack:router:swap:fixed-input",
+          "encodedTransactions": [
+            "<base64-user-leg>"
+          ],
+          "userSignIndexes": [
+            0
+          ],
+          "groupTransactions": [
+            {
+              "index": 0,
+              "signer": "user",
+              "encodedTransaction": "<base64-user-leg>"
+            },
+            {
+              "index": 1,
+              "signer": "logicsig",
+              "encodedTransaction": "<base64-haystack-leg>",
+              "signedTransaction": "<base64-presigned>"
+            }
+          ]
+        },
+        "warnings": [
+          "Stale quote: submit the swap group before quote.expiresAt.",
+          "Slippage: enter is compiled with a haircut of quotedAmount; re-quote enter if the confirmed swap delivers less."
+        ]
+      },
+      {
+        "kind": "enter",
+        "order": 3,
+        "compileStatus": "compiled",
+        "shapeKey": "mainnet:reti:v1:stake:algo",
+        "prerequisiteShapeKeys": [
+          "mainnet:haystack:router:optin:required",
+          "mainnet:haystack:router:swap:fixed-input"
+        ]
+      }
+    ],
+    "quotes": [
+      {
+        "shapeKey": "mainnet:reti:v1:stake:algo",
+        "input": {
+          "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "amount": "247500"
+        }
+      }
+    ],
+    "warnings": [
+      "Groups stay unsigned and unmerged. Sign only user legs; preserve Haystack pre-signed members."
+    ]
+  },
+  "meta": {
+    "paymentRequired": true,
+    "executionSubmitted": false,
+    "groupsMerged": false
+  }
+}
+```
+
 ### GET /protocols/{protocol}/opportunities
 
 ```json
@@ -1015,7 +1132,8 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
   "meta": {
     "paymentRequired": false,
     "shapeCount": 2,
-    "note": "Catalog metadata only. Compile unsigned groups via paid POST /execution/quotes. Full catalog is larger; this sample is trimmed to CompX borrow/repay."
+    "note": "Catalog metadata only. Compile unsigned groups via paid POST /execution/quotes. Protocol construction caveats: protocol/docs/execution-shapes/protocol-caveats.md. Full catalog is larger; this sample is trimmed to CompX borrow/repay.",
+    "caveatsDocsPath": "protocol/docs/execution-shapes/protocol-caveats.md"
   }
 }
 ```

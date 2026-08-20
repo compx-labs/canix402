@@ -8,6 +8,9 @@ Stateless remote MCP server for canix402, designed for Cloudflare Workers deploy
 - Calls the public Caddy gateway (`CANIX402_GATEWAY_URL`)
 - Never stores or uses wallet mnemonics
 - For paid tools: first call returns payment requirements, retry call forwards `PAYMENT-SIGNATURE`
+- `canix_list_execution_shapes` / `canix_get_execution_quote` point at
+  `protocol/docs/execution-shapes/protocol-caveats.md` so agents do not guess
+  pool discovery, opt-ins, min-balance, slippage, or app upgrades
 - Exposes `canix_get_positions` for paid `GET /positions` calls with a required
   wallet `address` and a 0.005 USDC fallback price
 - Exposes `canix_list_claimable` for paid `GET /positions/claimable` (0.001 USDC);
@@ -15,8 +18,11 @@ Stateless remote MCP server for canix402, designed for Cloudflare Workers deploy
 - Exposes `canix_check_eligibility` for paid `POST /eligibility` (0.01 USDC);
   check `canEnter` / gates / capacity before quoting an enter
 - Exposes `canix_get_plan` for paid `POST /plans` (0.25 USDC); compile an
-  allocation intent into ordered unsigned groups. Consume this rather than
-  forking a compiler.
+  allocation intent into ordered unsigned groups, including live Haystack
+  opt-in → swap compose when `requiredAssetIds` differ from the budget asset.
+  Consume this rather than forking a compiler.
+- Exposes `canix_compose_enter` for paid `POST /execution/compose` (0.10 USDC);
+  “I hold asset A, I want this opportunity” as sequenced unsigned groups.
 - Exposes stateless Haystack tools:
   - `canix_get_quote` → free `POST /swaps/quote`
   - `canix_optin` → free `POST /swaps/optin`

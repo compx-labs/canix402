@@ -94,6 +94,23 @@ canix_get_plan({
   paymentSignature: "<base64-json-payload>"
 })
 
+// Swap-aware enter compose (hold asset A, enter this opportunity)
+canix_compose_enter({
+  address: "YOUR_ALGORAND_ADDRESS",  // pragma: allowlist secret
+  opportunityId: "reti-staking-12",
+  fromAssetId: 0,
+  amount: "1000000",
+  slippage: 1
+})
+canix_compose_enter({
+  address: "YOUR_ALGORAND_ADDRESS",  // pragma: allowlist secret
+  opportunityId: "reti-staking-12",
+  fromAssetId: 0,
+  amount: "1000000",
+  slippage: 1,
+  paymentSignature: "<base64-json-payload>"
+})
+
 // Execution quotes (batch)
 canix_get_execution_quote({
   quotes: [{

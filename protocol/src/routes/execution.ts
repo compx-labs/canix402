@@ -1,3 +1,4 @@
+import algosdk from "algosdk";
 import { FastifyInstance, FastifyReply } from "fastify";
 
 import {
@@ -10,7 +11,8 @@ import {
   compileExecutableQuote,
   createExecutionAlgodClient,
   executionRegistry,
-  listExecutionShapeCatalog
+  listExecutionShapeCatalog,
+  EXECUTION_PROTOCOL_CAVEATS_DOCS_PATH
 } from "../execution/index.js";
 import { ApiError, ApiSuccess } from "../types/index.js";
 import {
@@ -23,6 +25,17 @@ import {
   ExecutionShapesListResponseSchema
 } from "../types/execution-shapes-schema.js";
 import type { ExecutableQuote } from "../execution/types.js";
+import {
+  compileCompose,
+  ComposeValidationError
+} from "../services/compose.js";
+import { HaystackRouterError } from "../services/haystack-router.js";
+import {
+  ComposeRequestSchema,
+  ComposeResponseSchema,
+  type ComposeRequest,
+  type ComposeResponse
+} from "../types/compose-schema.js";
 
 export function registerExecutionRoutes(app: FastifyInstance) {
   app.get<{
@@ -44,7 +57,8 @@ export function registerExecutionRoutes(app: FastifyInstance) {
           paymentRequired: false,
           shapeCount: data.length,
           note:
-            "Catalog metadata only. Compile unsigned groups via paid POST /execution/quotes."
+            "Catalog metadata only. Compile unsigned groups via paid POST /execution/quotes. Protocol construction caveats: protocol/docs/execution-shapes/protocol-caveats.md",
+          caveatsDocsPath: EXECUTION_PROTOCOL_CAVEATS_DOCS_PATH
         }
       });
     }
@@ -99,6 +113,79 @@ export function registerExecutionRoutes(app: FastifyInstance) {
           quoteCount: quotes.length
         }
       });
+    }
+  );
+
+  app.post<{
+    Body: ComposeRequest;
+    Reply: ComposeResponse | ApiError;
+  }>(
+    "/execution/compose",
+    {
+      schema: {
+        body: ComposeRequestSchema,
+        response: {
+          200: ComposeResponseSchema
+        }
+      }
+    },
+    async (request, reply) => {
+      const { address, amount } = request.body;
+      if (!algosdk.isValidAddress(address)) {
+        return reply.status(400).send({
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Body field 'address' is not a valid Algorand address." // pragma: allowlist secret
+          }
+        });
+      }
+
+      try {
+        if (BigInt(amount) <= 0n) {
+          return reply.status(400).send({
+            error: {
+              code: "VALIDATION_ERROR",
+              message: "Body field 'amount' must be greater than zero."
+            }
+          });
+        }
+      } catch {
+        return reply.status(400).send({
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Body field 'amount' must be a base-unit integer string."
+          }
+        });
+      }
+
+      try {
+        return reply.send(await compileCompose(request.body));
+      } catch (error) {
+        if (error instanceof ComposeValidationError) {
+          return reply.status(400).send({
+            error: {
+              code: "VALIDATION_ERROR",
+              message: error.message
+            }
+          });
+        }
+        if (error instanceof HaystackRouterError) {
+          const statusCode =
+            error.kind === "validation"
+              ? 400
+              : error.kind === "rate-limit"
+                ? 429
+                : 502;
+          return reply.status(statusCode).send({
+            error: {
+              code: error.kind === "validation" ? "VALIDATION_ERROR" : "INTERNAL_ERROR",
+              message: error.message,
+              ...(error.details === undefined ? {} : { details: error.details })
+            }
+          });
+        }
+        throw error;
+      }
     }
   );
 }
