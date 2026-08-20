@@ -1,7 +1,7 @@
 {
   "data": {
     "service": "canix402",
-    "apiVersion": "1.4.0",
+    "apiVersion": "1.5.0",
     "discoveryVersion": "1.0.0",
     "capabilities": [
       "algorand-defi-opportunities",
@@ -11,6 +11,7 @@
       "openapi",
       "execution-quotes",
       "intent-plans",
+      "rebalance-delta-plans",
       "swap-aware-compose",
       "haystack-swaps",
       "token-pricing",
@@ -579,6 +580,52 @@
         }
       },
       {
+        "id": "plansRebalance",
+        "method": "POST",
+        "path": "/plans/rebalance",
+        "access": "paid",
+        "summary": "Compile a delta rebalance plan of unsigned groups",
+        "description": "Positions are the book; opportunities are the menu. Pass address plus targetWeights (bps summing to 10000) and/or harvestIdle to claim worth-claiming rewards and redeploy idle ALGO. Returns ordered unsigned groups — claims, partial exits, optional Haystack swap compose, and enters — only the delta legs that change the book (not a full unwind-and-rebuild). Reuses claim desk, eligibility, compose, and position exit/manage shapeKeys. Groups are never merged. Canix does not sign or submit.",
+        "tags": [
+          "defi",
+          "plans",
+          "rebalance",
+          "execution",
+          "eligibility",
+          "wallet",
+          "x402",
+          "agents",
+          "x402-global-challenge"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          400,
+          402,
+          500,
+          502
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "[REDACTED]", "x-pragma": "pragma: allowlist secret",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "[REDACTED]", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "[REDACTED]", "x-pragma-asset": "pragma: allowlist secret",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.25"
+          },
+          "amountUsdc": "0.25",
+          "amountMicro": "250000"
+        }
+      },
+      {
         "id": "positions",
         "method": "GET",
         "path": "/positions",
@@ -882,6 +929,7 @@
         "canix_get_personalized_opportunities",
         "canix_check_eligibility",
         "canix_get_plan",
+        "canix_get_rebalance_plan",
         "canix_compose_enter",
         "canix_get_protocol_opportunities",
         "canix_get_positions",

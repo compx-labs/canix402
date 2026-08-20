@@ -76,9 +76,9 @@ Haystack and execution shapes stay separate groups. The new product is the graph
 
 Positions are the book; opportunities are the menu. Emit only the legs that change the book.
 
-- [ ] Add a plan mode (or `POST /plans/rebalance`) that takes address + target weights or “harvest idle ALGO / claim and redeploy.”
-- [ ] Emit exits, claims, swaps, and enters as ordered unsigned groups — only deltas, not a full unwind-and-rebuild by default.
-- [ ] Reuse claim desk, eligibility, compose, and existing exit/manage `shapeKey`s on positions.
+- [x] Add a plan mode (or `POST /plans/rebalance`) that takes address + target weights or “harvest idle ALGO / claim and redeploy.”
+- [x] Emit exits, claims, swaps, and enters as ordered unsigned groups — only deltas, not a full unwind-and-rebuild by default.
+- [x] Reuse claim desk, eligibility, compose, and existing exit/manage `shapeKey`s on positions.
 
 ### 13.6 Simulate / expected delta
 

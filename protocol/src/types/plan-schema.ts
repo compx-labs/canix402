@@ -72,6 +72,8 @@ export const PlanQuoteRequestSchema = Type.Object(
 
 export const PlanStepKindSchema = Type.Union([
   Type.Literal("eligibility"),
+  Type.Literal("claim"),
+  Type.Literal("exit"),
   Type.Literal("opt-in"),
   Type.Literal("swap"),
   Type.Literal("setup"),
@@ -136,7 +138,11 @@ export const PlanPositionDeltaEntrySchema = Type.Object(
     protocol: ProtocolSchema,
     assetId: Type.Integer({ minimum: 0 }),
     amount: Type.String({ minLength: 1, pattern: "^[0-9]+$" }),
-    action: Type.Literal("enter")
+    action: Type.Union([
+      Type.Literal("enter"),
+      Type.Literal("exit"),
+      Type.Literal("claim")
+    ])
   },
   { additionalProperties: false }
 );

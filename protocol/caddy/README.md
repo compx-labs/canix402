@@ -26,6 +26,7 @@ single source directory.
   - `GET /opportunities/personalized`
   - `POST /eligibility` (price: `X402_PRICE_ELIGIBILITY_USDC`, default `0.01`)
   - `POST /plans` (price: `X402_PRICE_PLANS_USDC`, default `0.25`)
+  - `POST /plans/rebalance` (price: `X402_PRICE_PLANS_REBALANCE_USDC`, default `0.25`)
   - `GET /positions?address=` (price: `X402_PRICE_POSITIONS_USDC`, exactly `0.005`)
   - `GET /positions/claimable?address=` (price: `X402_PRICE_POSITIONS_CLAIMABLE_USDC`, exactly `0.001`)
   - `GET /protocols/:protocol/opportunities`
