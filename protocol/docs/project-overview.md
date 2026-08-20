@@ -357,4 +357,5 @@ Use this section to record major decisions as the project evolves.
 - 2026-07-06: Restructured repo into monorepo workspaces (`protocol/`, `website/`) and implemented Astro onboarding site with CANIX402 branding.
 - 2026-07-07: Finalized `OpportunityRecordV1` contract for API `1.0.0` with required `yieldBasis`, optional `assetIds`, and a canonical schema spec in `docs/normalized-opportunity-schema.md`.
 - 2026-08-14: Added paid `POST /eligibility` (0.01 USDC) and taught `/opportunities/personalized` to use the same eligibility rules so full/gated Réti venues are not recommended as enterable. NFD/creator gates stay unresolved (`eligibilityFullyCheckable: false`).
+- 2026-08-20: Extended `protocol/tests/unit/` coverage to Myth Finance, Haystack, Réti, and Alpha Arcade adapter/normalize transforms (mocked SDK dependencies; no live chain, no x402). Checklist §3 remaining-adapter line is done.
 - 2026-08-19: Added dedicated `protocol/tests/unit/` coverage for opportunity normalization and adapter transforms (Tinyman, Folks, Pact, CompX, Dork.fi; fixture-based, CI on `dev`). Remaining adapters stay integration-only until checklist §3 is closed.

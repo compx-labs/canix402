@@ -68,13 +68,14 @@ Protocols covered:
 - Folks Finance (lending + xALGO staking from recorded SDK shapes)
 - CompX (lending + staking from recorded SDK shapes)
 - Dork.fi (network-filtered feed mapping and type aliases)
+- Myth Finance (dualSTAKE staking + passive farm; mocked SDK listing/farm deps)
+- Haystack (HAY staking EMA APR; mocked pool snapshot)
+- Réti (per-validator consensus APR, gates, capacity; mocked registry snapshots)
+- Alpha Arcade (trailing USDC fee-share APR; mocked pool + indexer inflows)
 
 `adapter-execution-enrichment.test.ts` chains those transforms into
 `attachExecutionShapesToOpportunity` so enter-shape attachment is also asserted
 without HTTP.
-
-Remaining gap: Myth Finance, Haystack, Réti, and Alpha Arcade still live only in
-`tests/integration/*-adapter.test.ts` (open on the living checklist §3).
 
 Files:
 
@@ -83,6 +84,10 @@ Files:
 - `tests/unit/folks-finance-normalize.test.ts`
 - `tests/unit/compx-normalize.test.ts`
 - `tests/unit/dorkfi-normalize.test.ts`
+- `tests/unit/myth-finance-normalize.test.ts`
+- `tests/unit/haystack-normalize.test.ts`
+- `tests/unit/reti-normalize.test.ts`
+- `tests/unit/alpha-arcade-normalize.test.ts`
 - `tests/unit/adapter-execution-enrichment.test.ts`
 
 Fixtures:
@@ -91,7 +96,11 @@ Fixtures:
 - `tests/fixtures/adapters/pact-pools.ts`
 - `tests/fixtures/adapters/folks-sdk.ts`
 - `tests/fixtures/adapters/compx-sdk.ts`
-- `tests/fixtures/adapters/dorkfi-feed.ts
+- `tests/fixtures/adapters/dorkfi-feed.ts`
+- `tests/fixtures/adapters/myth-finance.ts`
+- `tests/fixtures/adapters/haystack.ts`
+- `tests/fixtures/adapters/reti.ts`
+- `tests/fixtures/adapters/alpha-arcade.ts`
 
 ### API tests (`protocol/tests/integration`)
 
