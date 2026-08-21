@@ -5,7 +5,6 @@ import { fetchAccountHoldings } from "./account-assets.js";
 import { fetchWalletPositions } from "./aggregate-positions.js";
 import {
   serializeTransaction,
-  type ExecutableQuote,
   type SerializedTransaction
 } from "../execution/index.js";
 import type { OpportunityCapacity } from "../types/opportunity.js";
@@ -65,7 +64,15 @@ export function resolveSimulatePriceUsdc(): string {
 }
 
 export function executableQuoteToSimulateGroup(
-  quote: ExecutableQuote,
+  quote: {
+    shapeKey: string;
+    expiresAt: string;
+    identity: NonNullable<SimulationGroupInput["identity"]>;
+    transactions: SerializedTransaction[];
+    encodedTransactions: string[];
+    warnings: string[];
+    metadata?: Record<string, unknown>;
+  },
   extras: {
     opportunityId?: string;
     capacity?: OpportunityCapacity | null;
@@ -77,9 +84,11 @@ export function executableQuoteToSimulateGroup(
     identity: quote.identity,
     transactions: quote.transactions,
     encodedTransactions: quote.encodedTransactions,
-    warnings: quote.warnings,
-    metadata: quote.metadata
+    warnings: quote.warnings
   };
+  if (quote.metadata !== undefined) {
+    group.metadata = quote.metadata;
+  }
   if (extras.opportunityId !== undefined) {
     group.opportunityId = extras.opportunityId;
   }
@@ -122,9 +131,9 @@ export async function simulateCompiledGroups(
         group,
         index,
         now,
-        holdings,
-        holdingsError,
-        positions
+        positions,
+        ...(holdings !== undefined ? { holdings } : {}),
+        ...(holdingsError !== undefined ? { holdingsError } : {})
       })
     );
   }
