@@ -21,6 +21,7 @@ export const MCP_TOOL_NAMES = [
   "canix_get_positions",
   "canix_list_claimable",
   "canix_get_execution_quote",
+  "canix_simulate_execution",
   "canix_get_quote",
   "canix_optin",
   "canix_swap"

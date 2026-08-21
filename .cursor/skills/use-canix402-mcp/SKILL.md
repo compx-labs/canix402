@@ -205,6 +205,21 @@ enters yourself.
 4. Sign and submit locally the same way as `canix_get_execution_quote`. Paying
    for the plan does not execute it.
 
+## Simulate / expected delta agent loop
+
+Before signing compiled groups, simulate predicted deltas. Canix never signs
+or submits.
+
+1. Compile with `canix_get_plan`, `canix_get_rebalance_plan`, or
+   `canix_get_execution_quote`. Review `data.simulation` on plans when present.
+2. Or call `canix_simulate_execution` with `address` and `groups[]` from the
+   compiled quotes (`transactions` and/or `encodedTransactions`). Paid ~0.10 USDC.
+3. Require `wouldSucceed === true` and `signed === false` /
+   `submitted === false` / `meta.executionSubmitted === false`. If reasons are
+   present (`stale-quote`, `not-opted-in`, `min-balance`,
+   `health-factor-too-low`, `capacity`), do not sign.
+4. Sign and submit locally the same way as `canix_get_execution_quote`.
+
 ## Signing an execution quote
 
 For `canix_get_execution_quote`:

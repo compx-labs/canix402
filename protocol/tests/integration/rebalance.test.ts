@@ -236,6 +236,7 @@ test("POST /plans/rebalance returns 200 for harvest-idle with unsigned groups", 
       data: {
         mode: string;
         steps: Array<{ kind: string; compileStatus: string; quote?: { encodedTransactions: string[] } }>;
+        simulation?: { signed: boolean; submitted: boolean };
       };
       meta: { executionSubmitted: boolean; groupsMerged: boolean };
     };
@@ -245,6 +246,8 @@ test("POST /plans/rebalance returns 200 for harvest-idle with unsigned groups", 
     const enter = body.data.steps.find((step) => step.kind === "enter");
     assert.equal(enter?.compileStatus, "compiled");
     assert.ok((enter?.quote?.encodedTransactions.length ?? 0) > 0);
+    assert.equal(body.data.simulation?.signed, false);
+    assert.equal(body.data.simulation?.submitted, false);
   } finally {
     await app.close();
   }

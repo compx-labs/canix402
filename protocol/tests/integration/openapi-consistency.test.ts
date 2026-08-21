@@ -26,6 +26,11 @@ import {
   ComposeResponseSchema
 } from "../../src/types/compose-schema.js";
 import {
+  SimulationRequestSchema,
+  SimulationResponseSchema,
+  SimulationSummarySchema
+} from "../../src/types/simulate-schema.js";
+import {
   PositionRecordSchema,
   WalletPositionsResponseSchema
 } from "../../src/types/position-schema.js";
@@ -174,6 +179,15 @@ test("paid operations expose x-x402 metadata", async () => {
   assert.equal(composeOperation?.["x-payment-info"]?.price?.amount, "0.1");
   assert.match(composeOperation?.description ?? "", /requiredAssetIds/i);
   assert.match(composeOperation?.description ?? "", /never merged/i);
+
+  const simulateOperation = openapi.paths["/execution/simulate"]?.post;
+  assert.equal(
+    simulateOperation?.["x-x402"]?.requirementTemplate?.maxAmountRequired,
+    "0.1"
+  );
+  assert.equal(simulateOperation?.["x-payment-info"]?.price?.amount, "0.1");
+  assert.match(simulateOperation?.description ?? "", /fail/i);
+  assert.match(simulateOperation?.description ?? "", /does not sign/i);
 
   const haystackSwapOperation = openapi.paths["/swaps/transactions"]?.post;
   assert.equal(
@@ -465,6 +479,46 @@ test("compose OpenAPI request and response envelopes stay aligned", async () => 
     ["ComposeRequest", ComposeRequestSchema],
     ["ComposeResponse", ComposeResponseSchema],
     ["ComposeData", ComposeDataSchema]
+  ] as const;
+
+  for (const [name, typeboxSchema] of pairs) {
+    const openapiSchema = openapi.components.schemas[name];
+    assert.ok(openapiSchema, name);
+    assert.deepEqual(
+      [...(openapiSchema.required ?? [])].sort(),
+      [
+        ...((typeboxSchema as unknown as { required?: string[] }).required ?? [])
+      ].sort(),
+      `${name} required fields`
+    );
+    assert.deepEqual(
+      Object.keys(openapiSchema.properties ?? {}).sort(),
+      Object.keys(
+        (typeboxSchema as unknown as { properties?: Record<string, unknown> }).properties
+          ?? {}
+      ).sort(),
+      `${name} properties`
+    );
+  }
+
+  await app.close();
+});
+
+test("simulate OpenAPI request and response envelopes stay aligned", async () => {
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "GET",
+    url: "/openapi.json"
+  });
+  assert.equal(response.statusCode, 200);
+
+  const openapi = response.json() as OpenApiDocument;
+  const pairs = [
+    ["SimulationRequest", SimulationRequestSchema],
+    ["SimulationResponse", SimulationResponseSchema],
+    ["SimulationSummary", SimulationSummarySchema]
   ] as const;
 
   for (const [name, typeboxSchema] of pairs) {

@@ -225,6 +225,25 @@ test("execution compose route requires payment signature", async () => {
   await app.close();
 });
 
+test("execution simulate route requires payment signature", async () => {
+  const app = await buildEdgeGatedApp();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/execution/simulate",
+    payload: {
+      address: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+      groups: [{ encodedTransactions: ["AAAA"] }]
+    }
+  });
+
+  assert.equal(response.statusCode, 402);
+  assert.equal(response.headers["payment-required"] !== undefined, true);
+  assert.equal(response.json().error.code, "MISSING_PAYMENT_SIGNATURE");
+
+  await app.close();
+});
+
 test("execution quote route requires payment signature", async () => {
   const app = await buildEdgeGatedApp();
 

@@ -9,6 +9,7 @@ import {
   PlanQuoteRequestSchema,
   PlanStepSchema
 } from "./plan-schema.js";
+import { SimulationSummarySchema } from "./simulate-schema.js";
 
 /** Compiler SKU: same band as POST /plans (0.25 USDC). */
 export const DEFAULT_REBALANCE_PRICE_USDC = "0.25";
@@ -100,7 +101,9 @@ export const RebalanceDataSchema = Type.Object(
     expectedPositionDelta: PlanExpectedPositionDeltaSchema,
     fees: PlanFeesSchema,
     expiresAt: Type.String({ format: "date-time" }),
-    warnings: Type.Array(Type.String())
+    warnings: Type.Array(Type.String()),
+    /** Fail-closed dry-run of compiled groups when present. Never signed or submitted. */
+    simulation: Type.Optional(SimulationSummarySchema)
   },
   { additionalProperties: false }
 );

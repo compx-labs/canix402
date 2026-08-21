@@ -52,6 +52,7 @@ X402_PRICE_POSITIONS_CLAIMABLE_USDC=0.001
 X402_PRICE_PROTOCOL_USDC=0.01
 X402_PRICE_EXECUTION_QUOTE_USDC=0.1
 X402_PRICE_EXECUTION_COMPOSE_USDC=0.1
+X402_PRICE_EXECUTION_SIMULATE_USDC=0.1
 X402_NETWORK=algorand-mainnet
 X402_SCHEME=exact
 ```
@@ -62,7 +63,8 @@ The **protocol** (internal API) component should also set
 `X402_PRICE_PLANS_USDC=0.25`,
 `X402_PRICE_PLANS_REBALANCE_USDC=0.25`,
 and `X402_PRICE_EXECUTION_QUOTE_USDC=0.1`,
-`X402_PRICE_EXECUTION_COMPOSE_USDC=0.1` so discovery/OpenAPI metadata matches
+`X402_PRICE_EXECUTION_COMPOSE_USDC=0.1`,
+`X402_PRICE_EXECUTION_SIMULATE_USDC=0.1` so discovery/OpenAPI metadata matches
 the Caddy gate (see [`protocol/.env.example`](../.env.example)).
 
 ### Redis (opportunity cache)

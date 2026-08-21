@@ -95,6 +95,15 @@ export {
 } from "./compose.js";
 export type { ComposeEnterResult, ComposeServiceDependencies } from "./compose.js";
 export {
+  executableQuoteToSimulateGroup,
+  resolveSimulatePriceUsdc,
+  setSimulateDependenciesForTests,
+  simulateCompiledGroups,
+  simulateQuotesForPlan,
+  SimulateValidationError
+} from "./simulate.js";
+export type { SimulateServiceDependencies } from "./simulate.js";
+export {
   PRECISION_DEFAULT_DECIMALS,
   PRECISION_MAX_DECIMALS,
   formatDecimalForAgent,

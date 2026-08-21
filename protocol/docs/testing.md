@@ -124,6 +124,7 @@ Coverage:
 - Execution quote route coverage (`POST /execution/quotes`)
 - Intent compiler coverage (`POST /plans`)
 - Rebalance / delta compiler (`POST /plans/rebalance`)
+- Simulate / expected delta (`POST /execution/simulate`)
 - Swap-aware enter compose (`POST /execution/compose`)
 - Transaction-shape registry and Tinyman / Pact / Folks / CompX / Dork.fi execution shape fixtures
 
@@ -136,6 +137,7 @@ Files:
 - `tests/integration/eligibility.test.ts`
 - `tests/integration/plans.test.ts`
 - `tests/integration/rebalance.test.ts`
+- `tests/integration/simulate.test.ts`
 - `tests/integration/rebalance-graph.test.ts`
 - `tests/integration/compose.test.ts`
 - `tests/integration/execution-quotes-route.test.ts`

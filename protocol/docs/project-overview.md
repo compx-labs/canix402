@@ -234,6 +234,25 @@ are the book; opportunities are the menu.
   review warnings → local sign/submit in `order`. Quote-time on-chain checks
   remain authoritative.
 
+### Simulate / expected delta (`POST /execution/simulate`)
+
+A paid compiler SKU priced at 0.10 USDC (same band as `POST /execution/quotes`).
+Dry-run compiled unsigned groups; Canix never signs or submits.
+
+- Body: `{ address, groups[] }` where each group is a compiled quote view
+  (`transactions` and/or `encodedTransactions`, plus optional `shapeKey`,
+  `expiresAt`, `opportunityId`, `capacity`).
+- Response: predicted `balanceDeltas` and `expectedPositionDelta`, plus
+  fail-closed `reasons[]` (`stale-quote`, `not-opted-in`, `min-balance`,
+  `health-factor-too-low`, `capacity`). `wouldSucceed` is true only when every
+  group is proven safe. `signed` and `submitted` are always `false`.
+- `POST /plans` and `POST /plans/rebalance` attach the same summary as
+  `data.simulation` when compiled groups are available.
+- Discovery and OpenAPI advertise `maxAmountRequired: "0.1"`. Caddy enforces
+  `X402_PRICE_EXECUTION_SIMULATE_USDC=0.1` (100000 micro-USDC).
+- MCP: `canix_simulate_execution`. See
+  `docs/execution-shapes/simulate-expected-delta.md`.
+
 ### Wallet Positions (`GET /positions?address=`)
 
 A paid wallet data route priced at exactly 0.005 USDC:

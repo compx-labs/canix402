@@ -8,6 +8,7 @@ import personalizedSample from "../data/opportunities-personalized.sample.json";
 import eligibilitySample from "../data/eligibility.sample.json";
 import plansSample from "../data/plans.sample.json";
 import composeSample from "../data/compose.sample.json";
+import simulateSample from "../data/simulate.sample.json";
 import protocolSample from "../data/protocol-opportunities.sample.json";
 import positionsSample from "../data/positions.sample.json";
 import positionsClaimableSample from "../data/positions-claimable.sample.json";
@@ -21,6 +22,7 @@ const format = (value: unknown): string => JSON.stringify(value, null, 2);
 const eligibilityCurl = `curl -i ${config.gatewayBaseUrl}/eligibility -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","opportunityIds":["reti-staking-12"]}'`; // pragma: allowlist secret
 const plansCurl = `curl -i ${config.gatewayBaseUrl}/plans -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","budget":{"assetId":0,"amount":"1000000"},"constraints":{"noNewBorrows":true,"executionReadyOnly":true},"opportunityIds":["reti-staking-12"]}'`; // pragma: allowlist secret
 const composeCurl = `curl -i ${config.gatewayBaseUrl}/execution/compose -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","opportunityId":"reti-staking-12","fromAssetId":1,"amount":"1000000","slippage":1}'`; // pragma: allowlist secret
+const simulateCurl = `curl -i ${config.gatewayBaseUrl}/execution/simulate -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","groups":[{"shapeKey":"mainnet:reti:v1:stake:algo","encodedTransactions":["<base64-unsigned-txn>"]}]}'`; // pragma: allowlist secret
 ---
 
 <BaseLayout
@@ -137,7 +139,8 @@ const composeCurl = `curl -i ${config.gatewayBaseUrl}/execution/compose -H 'cont
       opt-in → swap compose when <code>requiredAssetIds</code> differ from the budget asset,
       protocol setup chains, and enter quotes as independent unsigned groups (never merged).
       Reuses <code>quotes[]</code> / <code>order</code> / <code>prerequisiteShapeKeys</code>.
-      Brownie and other agents should consume this route rather than forking a compiler.
+      Attaches <code>data.simulation</code> (predicted deltas, fail-closed reasons) when groups
+      are compiled. Brownie and other agents should consume this route rather than forking a compiler.
       Canix never signs or submits.
     </p>
     <CodeBlock code={plansCurl} />
@@ -158,6 +161,22 @@ const composeCurl = `curl -i ${config.gatewayBaseUrl}/execution/compose -H 'cont
     <CodeBlock code={composeCurl} />
     <h3>Sample response (200)</h3>
     <CodeBlock code={format(composeSample)} />
+  </section>
+
+  <section class="panel">
+    <h2>Simulate / expected delta (paid)</h2>
+    <p>
+      <code>POST /execution/simulate</code> — ~0.10 USDC. Pass compiled unsigned
+      <code>groups[]</code> from a plan or quote. Returns predicted balance and position deltas
+      without signing or submitting. Fail closed with machine-readable
+      <code>reasons[].code</code> (<code>stale-quote</code>, <code>not-opted-in</code>,
+      <code>min-balance</code>, <code>health-factor-too-low</code>, <code>capacity</code>).
+      <code>POST /plans</code> already attaches <code>data.simulation</code> when groups are compiled.
+      Canix never signs or submits.
+    </p>
+    <CodeBlock code={simulateCurl} />
+    <h3>Sample response (200)</h3>
+    <CodeBlock code={format(simulateSample)} />
   </section>
 
   <section class="panel">

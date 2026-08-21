@@ -229,7 +229,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     access: "paid",
     summary: "Compile an allocation intent into an ordered unsigned plan",
     description:
-      "Agent states an allocation intent (address, budget/asset, constraints). Canix returns ordered steps: eligibility, optional live Haystack swap compose (opt-in → swap → enter, driven by requiredAssetIds), protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume this SKU rather than forking a compiler.",  // pragma: allowlist secret
+      "Agent states an allocation intent (address, budget/asset, constraints). Canix returns ordered steps: eligibility, optional live Haystack swap compose (opt-in → swap → enter, driven by requiredAssetIds), protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, a fail-closed simulation summary when compiled groups are available, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume this SKU rather than forking a compiler.",  // pragma: allowlist secret
     tags: ["defi", "plans", "execution", "eligibility", "wallet", "x402", "agents", HACKATHON_TAG],
     priceUsdc: process.env.X402_PRICE_PLANS_USDC ?? "0.25"
   },
@@ -240,7 +240,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     access: "paid",
     summary: "Compile a delta rebalance plan of unsigned groups",
     description:
-      "Positions are the book; opportunities are the menu. Pass address plus targetWeights (bps summing to 10000) and/or harvestIdle to claim worth-claiming rewards and redeploy idle ALGO. Returns ordered unsigned groups — claims, partial exits, optional Haystack swap compose, and enters — only the delta legs that change the book (not a full unwind-and-rebuild). Reuses claim desk, eligibility, compose, and position exit/manage shapeKeys. Groups are never merged. Canix does not sign or submit.",  // pragma: allowlist secret
+      "Positions are the book; opportunities are the menu. Pass address plus targetWeights (bps summing to 10000) and/or harvestIdle to claim worth-claiming rewards and redeploy idle ALGO. Returns ordered unsigned groups — claims, partial exits, optional Haystack swap compose, and enters — only the delta legs that change the book (not a full unwind-and-rebuild). Reuses claim desk, eligibility, compose, and position exit/manage shapeKeys. Groups are never merged. Attaches a fail-closed simulation summary when compiled groups are available. Canix does not sign or submit.",  // pragma: allowlist secret
     tags: ["defi", "plans", "rebalance", "execution", "eligibility", "wallet", "x402", "agents", HACKATHON_TAG],
     priceUsdc: process.env.X402_PRICE_PLANS_REBALANCE_USDC ?? "0.25"
   },
@@ -322,6 +322,17 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
       "Compiles “I hold asset A, I want this opportunity” into sequenced groups: optional ASA/app opt-in, Haystack swap (signer indexes and pre-signed members preserved), then enter — driven by requiredAssetIds. Groups are never merged. Failure modes (stale quote, missing opt-in, slippage) are listed on step warnings. Canix does not sign or submit. Caller signs user legs and submits locally in order.",  // pragma: allowlist secret
     tags: ["execution", "swaps", "haystack", "plans", "x402", "agents", HACKATHON_TAG],
     priceUsdc: process.env.X402_PRICE_EXECUTION_COMPOSE_USDC ?? "0.1"
+  },
+  {
+    id: "executionSimulate",
+    method: "POST",
+    pathPattern: "/execution/simulate",
+    access: "paid",
+    summary: "Simulate compiled unsigned groups for predicted balance and position deltas",
+    description:
+      "Given compiled unsigned group(s) from a plan or execution quote, returns predicted wallet balance and position deltas without signing or submitting. Fails closed with machine-readable reasons when the group would not succeed (stale quote, not opted in, min balance, health factor too low, capacity). Canix does not sign or submit. POST /plans attaches the same simulation summary when compiled groups are available.",  // pragma: allowlist secret
+    tags: ["defi", "execution", "plans", "simulation", "x402", "agents", HACKATHON_TAG],
+    priceUsdc: process.env.X402_PRICE_EXECUTION_SIMULATE_USDC ?? "0.1"
   },
 ] as const;
 
@@ -415,7 +426,8 @@ const paidPathMatchers = [
   /^\/protocols\/[^/]+\/opportunities$/,
   /^\/swaps\/transactions$/,
   /^\/execution\/quotes$/,
-  /^\/execution\/compose$/
+  /^\/execution\/compose$/,
+  /^\/execution\/simulate$/
 ];
 
 const freePathMatchers = [

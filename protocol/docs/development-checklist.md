@@ -84,9 +84,9 @@ Positions are the book; opportunities are the menu. Emit only the legs that chan
 
 Relocated from Execution Layer “optional follow-up.” Product, not a hidden dry-run.
 
-- [ ] Add a simulation path (dedicated endpoint or plan/quote option) that, given compiled group(s), returns predicted balance and position deltas.
-- [ ] Fail closed with machine-readable reasons when the group would not succeed (min balance, not opted in, health factor too low, capacity, stale quote).
-- [ ] Do not require signing; do not submit. Attach simulation summaries on `POST /plans` when available.
+- [x] Add a simulation path (dedicated endpoint or plan/quote option) that, given compiled group(s), returns predicted balance and position deltas.
+- [x] Fail closed with machine-readable reasons when the group would not succeed (min balance, not opted in, health factor too low, capacity, stale quote).
+- [x] Do not require signing; do not submit. Attach simulation summaries on `POST /plans` when available.
 
 ### 13.7 Risk object (opportunity schema V2)
 

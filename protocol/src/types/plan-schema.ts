@@ -10,6 +10,7 @@ import {
   ExecutionQuoteInputSchema
 } from "./execution-quote-schema.js";
 import { OpportunityExecutionShapeSchema } from "./opportunity-schema.js";
+import { SimulationSummarySchema } from "./simulate-schema.js";
 
 export const PLAN_MAX_OPPORTUNITY_IDS = 25;
 export const PLAN_MAX_ALLOCATIONS = 10;
@@ -171,7 +172,9 @@ export const PlanDataSchema = Type.Object(
     expectedPositionDelta: PlanExpectedPositionDeltaSchema,
     fees: PlanFeesSchema,
     expiresAt: Type.String({ format: "date-time" }),
-    warnings: Type.Array(Type.String())
+    warnings: Type.Array(Type.String()),
+    /** Fail-closed dry-run of compiled groups when present. Never signed or submitted. */
+    simulation: Type.Optional(SimulationSummarySchema)
   },
   { additionalProperties: false }
 );

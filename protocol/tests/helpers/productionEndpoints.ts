@@ -62,6 +62,10 @@ function resolveProductionPath(pathPattern: string): string {
     return "/execution/compose";
   }
 
+  if (pathPattern === "/execution/simulate") {
+    return "/execution/simulate";
+  }
+
   return pathPattern;
 }
 
@@ -144,6 +148,22 @@ function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): Pro
         fromAssetId: USDC_ASSET_ID,
         amount: SMOKE_QUOTE_AMOUNT,
         slippage: 1
+      }
+    };
+  }
+
+  if (entry.pathPattern === "/execution/simulate") {
+    return {
+      ...base,
+      method: "POST",
+      body: {
+        address: getProductionPersonalizedAddress(),
+        groups: [
+          {
+            shapeKey: "mainnet:reti:v1:stake:algo",
+            encodedTransactions: ["AAAA"]
+          }
+        ]
       }
     };
   }
