@@ -84,6 +84,9 @@ jobs:
       - name: Typecheck website
         run: npm run typecheck:website
 
+      - name: Assert latest release notes match protocol version
+        run: npm run assert:release -w website
+
       - name: Build website
         run: npm run build:website
 
