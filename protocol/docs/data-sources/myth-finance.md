@@ -95,3 +95,9 @@ Wallet LST balance is the source of truth for liquid-staking size
   approximation of exit value.
 - Offline contracts are still listed when TVL is positive; notes flag online status.
 - Farm yield is passive; farm opportunities attach the same mint/redeem shapes.
+
+## Tests
+
+Fixture-based normalize coverage: `tests/unit/myth-finance-normalize.test.ts`
+plus `tests/fixtures/adapters/myth-finance.ts` (`npm run test:unit`). Route-level
+coverage remains in `tests/integration/myth-finance-adapter.test.ts`.

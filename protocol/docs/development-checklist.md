@@ -10,12 +10,12 @@ Status legend:
 
 Work through section 13 in listed order. Canix stays walletless: new routes return data or unsigned groups; the client signs and submits. Do not treat another protocol adapter as a substitute for these items.
 
-Leftover tightening from the execution chapter stays in sections 3 and 8 and can proceed in parallel. Section 3's Tinyman / Folks / Pact / CompX / Dork.fi unit-test expansion is archived; remaining adapter transforms and execution-layer golden fixtures are still open. Protocol-specific execution caveats are documented.
+Leftover tightening from the execution chapter stays in sections 3 and 8 and can proceed in parallel. Section 3 adapter unit tests (Tinyman / Folks / Pact / CompX / Dork.fi / Myth Finance / Haystack / Réti / Alpha Arcade) are done; execution-layer golden fixtures in section 8 are still open. Protocol-specific execution caveats are documented.
 
 
 ## 3) Testing and Quality Gates
 
-- [ ] Add dedicated unit tests for remaining adapter transforms (Myth Finance, Haystack, Réti, Alpha Arcade). Tinyman / Folks / Pact / CompX / Dork.fi already run in `protocol/tests/unit/` on CI.
+- [x] Add dedicated unit tests for remaining adapter transforms (Myth Finance, Haystack, Réti, Alpha Arcade). All nine adapters now run in `protocol/tests/unit/` on CI.
 
 
 ## 8) Execution Layer (tightening)

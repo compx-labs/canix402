@@ -40,3 +40,9 @@ Paused pools (`paus != 0`) are omitted.
 
 - Dual-reward APR is the sum of USDC and HAY EMA components; treat as an estimate.
 - Swap routes (`/swaps/*`) are a separate Haystack surface and are not part of this adapter.
+
+## Tests
+
+Fixture-based normalize coverage: `tests/unit/haystack-normalize.test.ts` plus
+`tests/fixtures/adapters/haystack.ts` (`npm run test:unit`). Route-level coverage
+remains in `tests/integration/haystack-adapter.test.ts`.
