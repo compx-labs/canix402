@@ -380,6 +380,54 @@ test("canix_get_rebalance_plan posts body and reports 0.25 preflight price", asy
   await server.close();
 });
 
+test("canix_simulate_execution posts body and reports 0.10 preflight price", async () => {
+  let requestUrl = "";
+  let method = "";
+  let requestBody = "";
+  let paymentSignature = "";
+  const server = createCanixMcpServer({
+    config: {
+      apiUrl: "https://example.test",
+      network: "[REDACTED]"
+    },
+    fetchImpl: async (input, init) => {
+      requestUrl = String(input);
+      method = init?.method ?? "";
+      requestBody = String(init?.body);
+      paymentSignature =
+        (init?.headers as Record<string, string> | undefined)?.["PAYMENT-SIGNATURE"] ?? "";
+      return new Response("payment required", { status: 402 });
+    }
+  });
+
+  const result = await registeredTools(server).canix_simulate_execution!.handler(
+    {
+      address: "WALLET",
+      groups: [{ encodedTransactions: ["AAAA"] }],
+      paymentSignature: "signed-payload"
+    },
+    {}
+  );
+
+  assert.equal(new URL(requestUrl).pathname, "/execution/simulate");
+  assert.equal(method, "POST");
+  assert.equal(paymentSignature, "signed-payload");
+  assert.deepEqual(JSON.parse(requestBody), {
+    address: "WALLET",
+    groups: [{ encodedTransactions: ["AAAA"] }]
+  });
+  const text = result.content.find((part) => part.type === "text");
+  assert.ok(text?.text);
+  const payload = JSON.parse(text.text) as {
+    error: string;
+    mcpPayment: { priceUsdc: string };
+  };
+  assert.equal(payload.error, "PAYMENT_REQUIRED");
+  assert.equal(payload.mcpPayment.priceUsdc, "0.10");
+
+  await server.close();
+});
+
 test("canix_compose_enter posts body and reports 0.1 preflight price", async () => {
   let requestUrl = "";
   let method = "";

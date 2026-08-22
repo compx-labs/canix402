@@ -184,7 +184,31 @@ test("execution compose endpoint advertises exactly 100000 micro-USDC", async ()
   }
 });
 
-test("positions/claimable endpoint advertises exactly 1000 micro-USDC", async () => {
+test("execution simulate endpoint advertises exactly 100000 micro-USDC", async () => {
+  const context = await setup();
+  try {
+    const response = await fetch(`${context.baseUrl}/execution/simulate`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        address: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+        groups: [{ encodedTransactions: ["AAAA"] }]
+      })
+    });
+    assert.equal(response.status, 402);
+
+    const paymentRequired = response.headers.get("payment-required");
+    assert.ok(paymentRequired);
+    const decoded = decodePaymentRequired(paymentRequired);
+    assert.equal(
+      decoded.accepts[0]?.maxAmountRequired ?? decoded.accepts[0]?.amount,
+      "100000"
+    );
+    assert.equal(context.facilitator.calls.length, 0);
+  } finally {
+    await context.teardown();
+  }
+});
   const context = await setup();
   try {
     const response = await fetch(

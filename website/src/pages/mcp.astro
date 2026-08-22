@@ -111,6 +111,17 @@ canix_compose_enter({
   paymentSignature: "<base64-json-payload>"
 })
 
+// Simulate compiled groups (no signing)
+canix_simulate_execution({
+  address: "YOUR_ALGORAND_ADDRESS",  // pragma: allowlist secret
+  groups: [{ shapeKey: "mainnet:reti:v1:stake:algo", encodedTransactions: ["<base64-unsigned-txn>"] }]
+})
+canix_simulate_execution({
+  address: "YOUR_ALGORAND_ADDRESS",  // pragma: allowlist secret
+  groups: [{ shapeKey: "mainnet:reti:v1:stake:algo", encodedTransactions: ["<base64-unsigned-txn>"] }],
+  paymentSignature: "<base64-json-payload>"
+})
+
 // Execution quotes (batch)
 canix_get_execution_quote({
   quotes: [{

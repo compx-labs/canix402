@@ -136,6 +136,9 @@ test("ALGO enter plan returns eligibility, unsigned groups, and quotes[]", async
   assert.equal(plan.data.fees.x402Usdc, "0.25");
   assert.equal(plan.data.fees.estimatedNetworkFeeMicroAlgos, "1000");
   assert.match(plan.data.expectedPositionDelta.summary, /reti-staking-12/);
+  assert.equal(plan.data.simulation?.signed, false);
+  assert.equal(plan.data.simulation?.submitted, false);
+  assert.equal(plan.data.simulation?.wouldSucceed, true);
 });
 
 test("eligibility gate blocks ALGO enter when below min amount", async () => {

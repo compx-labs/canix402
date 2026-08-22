@@ -338,7 +338,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_get_plan",
     {
       description:
-        "Compile an allocation intent into an ordered unsigned plan (POST /plans). Pass address and budget { assetId, amount } (base units; 0 = ALGO). Optional constraints and opportunityIds. Optional swapSlippage for Haystack compose. Returns eligibility, live Haystack opt-in/swap groups when requiredAssetIds differ from the budget asset, setup/enter quotes[] as independent unsigned groups (never merged), expected position delta, x402 + network fee totals, and expiry. Paid ~0.25 USDC. Canix does not sign or submit.",
+        "Compile an allocation intent into an ordered unsigned plan (POST /plans). Pass address and budget { assetId, amount } (base units; 0 = ALGO). Optional constraints and opportunityIds. Optional swapSlippage for Haystack compose. Returns eligibility, live Haystack opt-in/swap groups when requiredAssetIds differ from the budget asset, setup/enter quotes[] as independent unsigned groups (never merged), expected position delta, attached data.simulation when groups compiled, x402 + network fee totals, and expiry. Paid ~0.25 USDC. Canix does not sign or submit.",
       inputSchema: {
         address: z.string().min(1),
         budget: z.object({
@@ -393,7 +393,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_get_rebalance_plan",
     {
       description:
-        "Compile a delta rebalance plan (POST /plans/rebalance). Pass address plus targetWeights (bps summing to 10000) and/or harvestIdle to claim and redeploy idle ALGO. Ordered unsigned groups only (claims, exits, swaps, enters) — deltas, never a full unwind. Groups never merged. Paid ~0.25 USDC. Canix does not sign or submit.",
+        "Compile a delta rebalance plan (POST /plans/rebalance). Pass address plus targetWeights (bps summing to 10000) and/or harvestIdle to claim and redeploy idle ALGO. Ordered unsigned groups only (claims, exits, swaps, enters) — deltas, never a full unwind. Groups never merged. Attaches data.simulation when compiled groups exist. Paid ~0.25 USDC. Canix does not sign or submit.",
       inputSchema: {
         address: z.string().min(1),
         targetWeights: z
@@ -589,6 +589,52 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
           path: "/positions/claimable",
           method: "GET",
           query
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_simulate_execution",
+    {
+      description:
+        "Simulate compiled unsigned groups without signing or submitting (POST /execution/simulate). Pass address and groups[] from a plan or canix_get_execution_quote. Returns predicted balance and position deltas. Fails closed with machine-readable reasons (stale-quote, not-opted-in, min-balance, health-factor-too-low, capacity). Paid ~0.10 USDC. POST /plans attaches data.simulation when compiled groups are available. Canix does not sign or submit.",
+      inputSchema: {
+        address: z.string().min(1),
+        groups: z
+          .array(
+            z
+              .object({
+                shapeKey: z.string().min(1).optional(),
+                expiresAt: z.string().min(1).optional(),
+                opportunityId: z.string().min(1).optional(),
+                encodedTransactions: z.array(z.string().min(1)).optional(),
+                transactions: z.array(z.record(z.string(), z.unknown())).optional()
+              })
+              .catchall(z.unknown())
+          )
+          .min(1)
+          .max(25),
+        paymentSignature: paymentSignatureArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const body = {
+          address: args.address,
+          groups: args.groups
+        };
+        const result = await client.fetchPaid("/execution/simulate", {
+          method: "POST",
+          body,
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+        });
+        return paidToolResult(result, "0.10", {
+          path: "/execution/simulate",
+          method: "POST",
+          body
         });
       } catch (error) {
         return errorResult(error);

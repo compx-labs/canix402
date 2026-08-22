@@ -95,6 +95,18 @@ test("execution compose is a dedicated paid compiler POST route", () => {
   );
 });
 
+test("execution simulate is a dedicated paid compiler POST route", () => {
+  assert.equal(classifyEndpointAccess("/execution/simulate", "POST"), "paid");
+  const simulate = endpointPolicyMatrix.find((endpoint) => endpoint.id === "executionSimulate");
+  assert.equal(simulate?.method, "POST");
+  assert.equal(simulate?.access, "paid");
+  assert.equal(simulate?.pathPattern, "/execution/simulate");
+  assert.equal(
+    simulate?.priceUsdc,
+    process.env.X402_PRICE_EXECUTION_SIMULATE_USDC ?? "0.1"
+  );
+});
+
 test("Brownie showcase positions are free while arbitrary /positions stays paid", () => {
   assert.equal(
     classifyEndpointAccess("/public/agents/brownie/positions", "GET"),

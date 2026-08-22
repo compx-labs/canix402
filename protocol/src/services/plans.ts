@@ -31,6 +31,11 @@ import {
   setComposeDependenciesForTests
 } from "./compose.js";
 import type { HaystackService } from "./haystack-router.js";
+import {
+  executableQuoteToSimulateGroup,
+  simulateQuotesForPlan
+} from "./simulate.js";
+import type { SimulationGroupInput } from "../types/simulate-schema.js";
 
 const DEFAULT_CONSTRAINTS = {
   maxProtocolWeightBps: 10_000,
@@ -231,6 +236,17 @@ export async function compilePlan(request: PlanRequest): Promise<PlanResponse> {
     warnings.push(SWAP_COMPOSE_NOTE);
   }
 
+  const simulationGroups = collectSimulationGroups(allocations);
+  const simulation =
+    simulationGroups.length > 0
+      ? simulateQuotesForPlan({
+          address: request.address,
+          groups: simulationGroups,
+          holdings,
+          now
+        })
+      : undefined;
+
   return {
     data: {
       allocations,
@@ -242,7 +258,8 @@ export async function compilePlan(request: PlanRequest): Promise<PlanResponse> {
         estimatedNetworkFeeUsd: null
       },
       expiresAt,
-      warnings: unique(warnings)
+      warnings: unique(warnings),
+      ...(simulation ? { simulation } : {})
     },
     meta: {
       address: request.address,
@@ -490,4 +507,26 @@ function buildPositionDelta(
 
 function unique(values: readonly string[]): string[] {
   return [...new Set(values)];
+}
+
+function collectSimulationGroups(
+  allocations: readonly PlanAllocation[]
+): SimulationGroupInput[] {
+  const groups: SimulationGroupInput[] = [];
+  for (const allocation of allocations) {
+    for (const step of allocation.steps) {
+      if (step.quote === undefined || step.compileStatus !== "compiled") {
+        continue;
+      }
+      groups.push(
+        executableQuoteToSimulateGroup(step.quote, {
+          opportunityId: allocation.opportunityId,
+          ...(allocation.eligibility.capacity
+            ? { capacity: allocation.eligibility.capacity }
+            : {})
+        })
+      );
+    }
+  }
+  return groups;
 }

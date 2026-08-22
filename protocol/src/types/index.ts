@@ -82,6 +82,19 @@ export type {
   ComposeRequest,
   ComposeResponse
 } from "./compose-schema.js";
+export {
+  DEFAULT_SIMULATE_PRICE_USDC,
+  SIMULATE_MAX_GROUPS,
+  SimulationRequestSchema,
+  SimulationResponseSchema,
+  SimulationSummarySchema
+} from "./simulate-schema.js";
+export type {
+  SimulationGroupInput,
+  SimulationRequest,
+  SimulationResponse,
+  SimulationSummary
+} from "./simulate-schema.js";
 export type {
   DiscoveryDocument,
   DiscoveryEndpointDescriptor,

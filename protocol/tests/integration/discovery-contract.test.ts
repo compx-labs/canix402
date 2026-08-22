@@ -241,6 +241,7 @@ test("well-known x402 fan-out lists paid resource URLs", async () => {
   );
   assert.ok(payload.resources.some((url) => url.endsWith("/eligibility")));
   assert.ok(payload.resources.some((url) => url.endsWith("/plans")));
+  assert.ok(payload.resources.some((url) => url.endsWith("/execution/simulate")));
   assert.ok(
     payload.resources.includes("https://canix402-api.compx.io/swaps/transactions")
   );

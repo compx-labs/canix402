@@ -25,6 +25,9 @@ Stateless remote MCP server for canix402, designed for Cloudflare Workers deploy
   delta claims/exits/swaps/enters as unmerged unsigned groups (not a full unwind).
 - Exposes `canix_compose_enter` for paid `POST /execution/compose` (0.10 USDC);
   “I hold asset A, I want this opportunity” as sequenced unsigned groups.
+- Exposes `canix_simulate_execution` for paid `POST /execution/simulate` (0.10 USDC);
+  predicted balance/position deltas for compiled unsigned groups. Fail closed.
+  `POST /plans` attaches `data.simulation` when groups are compiled.
 - Exposes stateless Haystack tools:
   - `canix_get_quote` → free `POST /swaps/quote`
   - `canix_optin` → free `POST /swaps/optin`

@@ -51,6 +51,14 @@ test("Caddy gives execution compose a dedicated compiler paid policy", () => {
   );
 });
 
+test("Caddy gives execution simulate a dedicated compiler paid policy", () => {
+  assert.match(caddyfile, /@paid_execution_simulate path \/execution\/simulate/);
+  assert.match(
+    caddyfile,
+    /handle @paid_execution_simulate \{[\s\S]*?price \{\$X402_PRICE_EXECUTION_SIMULATE_USDC\}[\s\S]*?reverse_proxy \{\$UPSTREAM_API\}[\s\S]*?\}/
+  );
+});
+
 test("Caddy gives claimable positions a dedicated paid policy", () => {
   assert.match(
     caddyfile,

@@ -47,6 +47,11 @@ import {
   resolveIdleAlgoMicro,
   type RebalanceIntent
 } from "./rebalance-graph.js";
+import {
+  executableQuoteToSimulateGroup,
+  simulateQuotesForPlan
+} from "./simulate.js";
+import type { SimulationGroupInput } from "../types/simulate-schema.js";
 
 const DEFAULT_CONSTRAINTS = {
   maxProtocolWeightBps: 10_000,
@@ -251,6 +256,17 @@ export async function compileRebalance(
 
   const expiresAt = resolveExpiry(compiledQuotes, now);
   const networkFee = sumNetworkFees(compiledQuotes);
+  const simulationGroups = collectSimulationGroups(steps, markets);
+  const simulation =
+    simulationGroups.length > 0
+      ? simulateQuotesForPlan({
+          address: request.address,
+          groups: simulationGroups,
+          holdings,
+          positions,
+          now
+        })
+      : undefined;
 
   return {
     data: {
@@ -266,7 +282,8 @@ export async function compileRebalance(
         estimatedNetworkFeeUsd: null
       },
       expiresAt,
-      warnings: unique(warnings)
+      warnings: unique(warnings),
+      ...(simulation ? { simulation } : {})
     },
     meta: {
       address: request.address,
@@ -911,4 +928,33 @@ function capitalize(value: string): string {
 
 function unique(values: readonly string[]): string[] {
   return [...new Set(values)];
+}
+
+function collectSimulationGroups(
+  steps: readonly PlanStep[],
+  markets: readonly OpportunityMarketRecord[]
+): SimulationGroupInput[] {
+  const groups: SimulationGroupInput[] = [];
+  for (const step of steps) {
+    if (step.quote === undefined || step.compileStatus !== "compiled") {
+      continue;
+    }
+    const opportunityId = step.quote.metadata?.opportunityId;
+    const resolvedId =
+      typeof opportunityId === "string" && opportunityId.length > 0
+        ? opportunityId
+        : undefined;
+    const market = resolvedId
+      ? markets.find((row) => row.opportunityId === resolvedId)
+      : step.quote.identity.protocol === "reti"
+        ? markets.find((row) => row.protocol === "reti" && row.capacity)
+        : undefined;
+    groups.push(
+      executableQuoteToSimulateGroup(step.quote, {
+        ...(resolvedId ? { opportunityId: resolvedId } : {}),
+        ...(market?.capacity ? { capacity: market.capacity } : {})
+      })
+    );
+  }
+  return groups;
 }
