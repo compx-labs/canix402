@@ -74,7 +74,7 @@
     "@sinclair/typebox": "^0.34.52",
     "@tinymanorg/tinyman-js-sdk": "^5.1.4",
     "@txnlab/haystack-router": "^2.0.5",
-    "algosdk": "^3.7.0",
+    "algosdk": "^3.6.0",
     "fastify": "^5.12.1",
     "ioredis": "^5.11.1",
     "node-cron": "^4.6.0",
