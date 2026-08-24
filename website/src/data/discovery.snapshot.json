@@ -14,11 +14,22 @@
       "rebalance-delta-plans",
       "swap-aware-compose",
       "execution-simulate",
+      "prepaid-sessions",
       "haystack-swaps",
       "token-pricing",
       "mcp-server"
     ],
     "x402ProtocolVersion": 2,
+    "sessionPolicy": {
+      "header": "X-Canix-Session",
+      "receiptUriTemplate": "canix://session/{sessionId}",
+      "researchBudget": 50,
+      "quoteBudget": 10,
+      "ttlSeconds": 86400,
+      "priceUsdc": "0.25",
+      "oneShotDefault": true,
+      "note": "Exact-scheme one-shots remain the default. Send X-Canix-Session with a prepaid receipt to consume N research or M quotes/plans until TTL. Create/refresh are one-shot only. Fail-closed on expiry, exhausted quota, or store unavailability."
+    },
     "endpoints": [
       {
         "id": "root",
@@ -568,11 +579,11 @@
             "PAYMENT-SIGNATURE",
             "PAYMENT-RESPONSE"
           ],
-          "facilitator": "[REDACTED]", "x-pragma": "pragma: allowlist secret",
+          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "[REDACTED]", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "[REDACTED]", "x-pragma-asset": "pragma: allowlist secret",
+            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
           },
@@ -614,11 +625,11 @@
             "PAYMENT-SIGNATURE",
             "PAYMENT-RESPONSE"
           ],
-          "facilitator": "[REDACTED]", "x-pragma": "pragma: allowlist secret",
+          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "[REDACTED]", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "[REDACTED]", "x-pragma-asset": "pragma: allowlist secret",
+            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
           },
@@ -913,17 +924,119 @@
             "PAYMENT-SIGNATURE",
             "PAYMENT-RESPONSE"
           ],
-          "facilitator": "[REDACTED]", "x-pragma": "pragma: allowlist secret",
+          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "[REDACTED]", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "[REDACTED]", "x-pragma-asset": "pragma: allowlist secret",
+            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.1"
           },
           "amountUsdc": "0.1",
           "amountMicro": "100000"
         }
+      },
+      {
+        "id": "sessionsCreate",
+        "method": "POST",
+        "path": "/sessions",
+        "access": "paid",
+        "summary": "Buy a prepaid agent session receipt",
+        "description": "One compiler-priced x402 payment mints a walletless prepaid session receipt (canix://session/{id}). The receipt unlocks N research calls and M quotes/plans until TTL. Sessions are receipts, not keys.",
+        "tags": [
+          "sessions",
+          "x402",
+          "agents"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          400,
+          402,
+          500,
+          503
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.25"
+          },
+          "amountUsdc": "0.25",
+          "amountMicro": "250000"
+        }
+      },
+      {
+        "id": "sessionsRefresh",
+        "method": "POST",
+        "path": "/sessions/refresh",
+        "access": "paid",
+        "summary": "Refresh a prepaid agent session receipt",
+        "description": "Compiler-priced x402 payment that resets N/M quota and TTL on an existing session id, or mints a new receipt if the previous one is gone. Cannot be paid with an existing session.",
+        "tags": [
+          "sessions",
+          "x402",
+          "agents"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          400,
+          402,
+          500,
+          503
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.25"
+          },
+          "amountUsdc": "0.25",
+          "amountMicro": "250000"
+        }
+      },
+      {
+        "id": "sessionsReceipt",
+        "method": "GET",
+        "path": "/sessions/:sessionId",
+        "access": "free",
+        "summary": "Read prepaid session remaining N/M",
+        "description": "Returns the session receipt including remaining research and quotes/plans quota and expiry. Agents should use this resource instead of the public indexer /transactions showcase.",
+        "tags": [
+          "sessions",
+          "agents",
+          "discovery"
+        ],
+        "pathParams": [
+          "sessionId"
+        ],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          402,
+          404
+        ]
       }
     ],
     "errorCatalog": [
@@ -941,6 +1054,26 @@
         "code": "EXPIRED_PAYMENT_PROOF",
         "httpStatus": 402,
         "description": "PAYMENT-SIGNATURE proof has expired."
+      },
+      {
+        "code": "SESSION_INVALID",
+        "httpStatus": 402,
+        "description": "X-Canix-Session is unknown. Omit the header and pay per request, or buy a new session."
+      },
+      {
+        "code": "SESSION_EXPIRED",
+        "httpStatus": 402,
+        "description": "Prepaid session TTL has elapsed. Fail-closed; one-shots still work without the session header."
+      },
+      {
+        "code": "SESSION_EXHAUSTED",
+        "httpStatus": 402,
+        "description": "Prepaid session N/M quota is exhausted. Fail-closed; refresh with POST /sessions/refresh or pay per request."
+      },
+      {
+        "code": "SESSION_UNAVAILABLE",
+        "httpStatus": 402,
+        "description": "Session store is unavailable. Fail-closed; omit X-Canix-Session and retry with a per-request payment."
       },
       {
         "code": "VALIDATION_ERROR",
@@ -981,6 +1114,9 @@
         "canix_list_claimable",
         "canix_get_execution_quote",
         "canix_simulate_execution",
+        "canix_create_session",
+        "canix_refresh_session",
+        "canix_get_session",
         "canix_get_quote",
         "canix_optin",
         "canix_swap"

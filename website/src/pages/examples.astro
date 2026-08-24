@@ -17,6 +17,7 @@ import executionQuotesSample from "../data/execution-quotes.sample.json";
 import swapsQuoteSample from "../data/swaps-quote.sample.json";
 import swapsOptinSample from "../data/swaps-optin.sample.json";
 import swapsTransactionsSample from "../data/swaps-transactions.sample.json";
+import sessionsSample from "../data/sessions.sample.json";
 
 const format = (value: unknown): string => JSON.stringify(value, null, 2);
 const eligibilityCurl = `curl -i ${config.gatewayBaseUrl}/eligibility -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","opportunityIds":["reti-staking-12"]}'`; // pragma: allowlist secret
@@ -312,6 +313,30 @@ const simulateCurl = `curl -i ${config.gatewayBaseUrl}/execution/simulate -H 'co
       Sign only <code>userSignIndexes</code>, keep Haystack pre-signed members and group order, then
       submit the complete atomic group through your own Algod client.
     </p>
+  </section>
+
+  <section class="panel">
+    <h2>Prepaid agent sessions</h2>
+    <p>
+      One <code>POST /sessions</code> (~0.25 USDC) mints a walletless receipt that unlocks N research
+      calls and M quotes/plans until TTL. Send <code>X-Canix-Session</code> on session-eligible routes
+      instead of spraying tiny one-shots. Create/refresh stay one-shot only. Fail-closed on expiry
+      or exhausted quota — omit the header to fall back to per-request payment.
+    </p>
+    <h3>1) Buy a session (expect 402, then retry with PAYMENT-SIGNATURE)</h3>
+    <CodeBlock
+      code={`curl -i ${config.gatewayBaseUrl}/sessions -X POST -H 'content-type: application/json' -d '{}'`}
+    />
+    <h3>2) Read remaining N/M (free)</h3>
+    <CodeBlock
+      code={`curl -s ${config.gatewayBaseUrl}/sessions/csess_YOUR_SESSION_ID | jq '.data.remaining'`}
+    />
+    <h3>3) Consume research with the receipt</h3>
+    <CodeBlock
+      code={`curl -i '${config.gatewayBaseUrl}/opportunities' -H 'X-Canix-Session: csess_YOUR_SESSION_ID'`}
+    />
+    <h3>Sample receipt (200)</h3>
+    <CodeBlock code={format(sessionsSample)} />
   </section>
 
   <section class="panel">

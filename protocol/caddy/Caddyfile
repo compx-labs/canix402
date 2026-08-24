@@ -6,7 +6,7 @@
 	header {
 		Access-Control-Allow-Origin *
 		Access-Control-Allow-Methods "GET, POST, OPTIONS"
-		Access-Control-Allow-Headers "Content-Type, PAYMENT-SIGNATURE, PAYMENT-REQUIRED, PAYMENT-RESPONSE"
+		Access-Control-Allow-Headers "Content-Type, PAYMENT-SIGNATURE, PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-Canix-Session"
 	}
 
 	@options {
@@ -18,7 +18,7 @@
 
 	@free {
 		method GET
-		path / /health /ready /metadata /discovery /openapi.json /llms.txt /llms-full.txt /robots.txt /favicon.ico /favicon.png /logo.png /banner.png /.well-known/x402 /.well-known/x402.json /.well-known/agent-card.json /.well-known/agent.json /.well-known/ai-plugin.json /swaps/quote /swaps/optin /pricing /execution/shapes /public/agents/brownie/positions
+		path / /health /ready /metadata /discovery /openapi.json /llms.txt /llms-full.txt /robots.txt /favicon.ico /favicon.png /logo.png /banner.png /.well-known/x402 /.well-known/x402.json /.well-known/agent-card.json /.well-known/agent.json /.well-known/ai-plugin.json /swaps/quote /swaps/optin /pricing /execution/shapes /public/agents/brownie/positions /sessions/*
 	}
 	handle @free {
 		reverse_proxy {$UPSTREAM_API}
@@ -29,6 +29,14 @@
 		path /swaps/quote /swaps/optin /pricing
 	}
 	handle @free_post {
+		reverse_proxy {$UPSTREAM_API}
+	}
+
+	@session {
+		header X-Canix-Session *
+		path /opportunities /opportunities/search /opportunities/personalized /eligibility /plans /plans/rebalance /positions /positions/claimable /protocols/*/opportunities /swaps/transactions /execution/quotes /execution/compose /execution/simulate
+	}
+	handle @session {
 		reverse_proxy {$UPSTREAM_API}
 	}
 
@@ -307,6 +315,50 @@
 			accept {
 				pay_to {$X402_PAY_TO}
 				price {$X402_PRICE_HAYSTACK_SWAP_USDC}
+				network {$X402_NETWORK}
+				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+		}
+
+		reverse_proxy {$UPSTREAM_API}
+	}
+
+	@paid_sessions_refresh path /sessions/refresh
+	handle @paid_sessions_refresh {
+		x402 {
+			description "canix402 prepaid session refresh endpoint"
+			mime_type application/json
+			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile sessions_refresh
+
+			accept {
+				pay_to {$X402_PAY_TO}
+				price {$X402_PRICE_SESSIONS_USDC}
+				network {$X402_NETWORK}
+				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+		}
+
+		reverse_proxy {$UPSTREAM_API}
+	}
+
+	@paid_sessions path /sessions
+	handle @paid_sessions {
+		x402 {
+			description "canix402 prepaid session create endpoint"
+			mime_type application/json
+			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile sessions
+
+			accept {
+				pay_to {$X402_PAY_TO}
+				price {$X402_PRICE_SESSIONS_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
 				extra {

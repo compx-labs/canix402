@@ -88,6 +88,9 @@ export const mcpToolNames = [
   "canix_list_claimable",
   "canix_get_execution_quote",
   "canix_simulate_execution",
+  "canix_create_session",
+  "canix_refresh_session",
+  "canix_get_session",
   "canix_get_quote",
   "canix_optin",
   "canix_swap"

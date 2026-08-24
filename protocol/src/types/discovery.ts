@@ -17,6 +17,7 @@ export interface DiscoveryEndpointDescriptor {
   pathParams: string[];
   queryParams: string[];
   responseCodes: number[];
+  sessionAccess?: "research" | "quotes";
   x402?: X402EndpointMetadata;
 }
 
@@ -26,6 +27,7 @@ export interface DiscoveryDocument {
   discoveryVersion: "1.0.0";
   capabilities: string[];
   x402ProtocolVersion: 2;
+  sessionPolicy?: import("../types/session.js").SessionPolicy;
   mcpServer?: {
     name: string;
     transport: "stdio" | "streamable-http";

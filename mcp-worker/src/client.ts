@@ -93,12 +93,13 @@ export class GatewayClient {
       method?: "GET" | "POST";
       query?: Record<string, string | number | boolean | undefined>;
       body?: unknown;
+      headers?: Record<string, string>;
       paymentSignature?: string;
     }
   ): Promise<PaidCallResult> {
     const method = options?.method ?? (options?.body === undefined ? "GET" : "POST");
     const requestUrl = this.buildUrl(path, options?.query);
-    const headers: Record<string, string> = {};
+    const headers: Record<string, string> = { ...(options?.headers ?? {}) };
     let serializedBody: string | undefined;
 
     if (options?.body !== undefined) {

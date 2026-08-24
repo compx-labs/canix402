@@ -81,11 +81,12 @@ function isRedisUrlConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
 }
 
 /**
- * Shared Redis client when REDIS_URL is set. Used by opportunity cache and
- * job locks (fee harvest). Cache read/write still gate on
- * {@link isOpportunityCacheEnabled}.
+ * Shared Redis client when REDIS_URL is set. Used by opportunity cache, job
+ * locks (fee harvest), and prepaid sessions. Cache read/write still gate on
+ * {@link isOpportunityCacheEnabled}; sessions use the client even when the
+ * opportunity cache is disabled so quota enforcement can fail closed.
  */
-function getOrCreateRedisClient(
+export function getOrCreateRedisClient(
   env: NodeJS.ProcessEnv = process.env
 ): Redis | null {
   if (!isRedisUrlConfigured(env)) {

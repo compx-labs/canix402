@@ -39,6 +39,20 @@ function paidMeta(result: PaidCallResult, fallbackPriceUsdc: string) {
   };
 }
 
+function sessionErrorFromBody(body: unknown): { code: string; message: string } | undefined {
+  if (!body || typeof body !== "object") {
+    return undefined;
+  }
+  const error = (body as { error?: { code?: unknown; message?: unknown } }).error;
+  if (typeof error?.code !== "string" || !error.code.startsWith("SESSION_")) {
+    return undefined;
+  }
+  return {
+    code: error.code,
+    message: typeof error.message === "string" ? error.message : error.code
+  };
+}
+
 export function paymentSignatureArgSchema() {
   return z
     .string()
@@ -49,6 +63,26 @@ export function paymentSignatureArgSchema() {
     .optional();
 }
 
+export function sessionReceiptArgSchema() {
+  return z
+    .string()
+    .min(1)
+    .describe(
+      "Prepaid session receipt (X-Canix-Session). Omit to pay per request with paymentSignature. If this header was sent, Caddy skipped x402; a 402 SESSION_* means drop the header and retry with paymentSignature."
+    )
+    .optional();
+}
+
+export function paidAuth(args: {
+  paymentSignature?: string | undefined;
+  sessionReceipt?: string | undefined;
+}) {
+  return {
+    ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {}),
+    ...(args.sessionReceipt ? { headers: { "X-Canix-Session": args.sessionReceipt } } : {})
+  };
+}
+
 export function formatPaidToolResult(
   result: PaidCallResult,
   fallbackPriceUsdc: string,
@@ -57,6 +91,21 @@ export function formatPaidToolResult(
   const payment = paidMeta(result, fallbackPriceUsdc);
 
   if (result.status === 402) {
+    const sessionError = sessionErrorFromBody(result.body);
+    if (sessionError) {
+      return jsonResult({
+        error: sessionError.code,
+        message: sessionError.message,
+        mcpPayment: payment,
+        request,
+        retry: {
+          omitHeader: "X-Canix-Session",
+          arg: "paymentSignature",
+          header: "PAYMENT-SIGNATURE"
+        },
+        gatewayResponse: result.body
+      });
+    }
     return jsonResult({
       error: "PAYMENT_REQUIRED",
       message: "Paid endpoint requires x402 payment. Sign PAYMENT-REQUIRED and retry with paymentSignature.",
@@ -94,7 +143,8 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         offset: z.number().int().min(0).optional(),
         includeInactive: z.boolean().optional(),
         protocol: ProtocolSchema.optional(),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -108,7 +158,7 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         const result = await client.fetchPaid("/opportunities", {
           method: "GET",
           query,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return formatPaidToolResult(result, "0.01", {
           path: "/opportunities",
@@ -139,7 +189,8 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         limit: z.number().int().min(1).max(200).optional(),
         offset: z.number().int().min(0).optional(),
         includeInactive: z.boolean().optional(),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -158,7 +209,7 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         const result = await client.fetchPaid("/opportunities/search", {
           method: "GET",
           query,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return formatPaidToolResult(result, "0.01", {
           path: "/opportunities/search",
@@ -181,7 +232,8 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         limit: z.number().int().min(1).max(200).optional(),
         offset: z.number().int().min(0).optional(),
         includeInactive: z.boolean().optional(),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -195,7 +247,7 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         const result = await client.fetchPaid("/opportunities/personalized", {
           method: "GET",
           query,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return formatPaidToolResult(result, "0.05", {
           path: "/opportunities/personalized",
@@ -217,7 +269,8 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         address: z.string().min(1),
         opportunityIds: z.array(z.string().min(1)).min(1).max(25),
         refresh: z.boolean().optional(),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -230,7 +283,7 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         const result = await client.fetchPaid("/eligibility", {
           method: "POST",
           body,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return formatPaidToolResult(result, "0.01", {
           path: "/eligibility",
@@ -267,7 +320,8 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         opportunityIds: z.array(z.string().min(1)).min(1).max(25).optional(),
         swapSlippage: z.number().min(0).max(100).optional(),
         refresh: z.boolean().optional(),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -285,7 +339,7 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         const result = await client.fetchPaid("/plans", {
           method: "POST",
           body,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return formatPaidToolResult(result, "0.25", {
           path: "/plans",
@@ -331,7 +385,8 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
           .optional(),
         swapSlippage: z.number().min(0).max(100).optional(),
         refresh: z.boolean().optional(),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -352,7 +407,7 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         const result = await client.fetchPaid("/plans/rebalance", {
           method: "POST",
           body,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return formatPaidToolResult(result, "0.25", {
           path: "/plans/rebalance",
@@ -377,7 +432,8 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         amount: z.string().min(1),
         slippage: z.number().min(0).max(100).optional(),
         refresh: z.boolean().optional(),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -393,7 +449,7 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         const result = await client.fetchPaid("/execution/compose", {
           method: "POST",
           body,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return formatPaidToolResult(result, "0.1", {
           path: "/execution/compose",
@@ -416,7 +472,8 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         limit: z.number().int().min(1).max(200).optional(),
         offset: z.number().int().min(0).optional(),
         includeInactive: z.boolean().optional(),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -432,7 +489,7 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
           {
             method: "GET",
             query,
-            ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+            ...paidAuth(args)
           }
         );
         return formatPaidToolResult(result, "0.01", {
@@ -453,7 +510,8 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         "Fetch Algorand DeFi positions for a wallet (GET /positions). Paid: ~0.005 USDC via x402. First call returns PAYMENT-REQUIRED metadata; retry with paymentSignature.",
       inputSchema: {
         address: z.string().min(1),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -464,7 +522,7 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         const result = await client.fetchPaid("/positions", {
           method: "GET",
           query,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return formatPaidToolResult(result, "0.005", {
           path: "/positions",
@@ -484,7 +542,8 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         "List claimable DeFi rewards for a wallet (GET /positions/claimable). Returns USD value, network-fee / worth-claiming hints, claim shapeKeys, and claimAllQuotes ready for canix_get_execution_quote. Paid: ~0.001 USDC via x402. Then compile with canix_get_execution_quote (~0.10 USDC flat); groups are never merged. Sign and submit locally — Canix does not hold keys.",
       inputSchema: {
         address: z.string().min(1),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -495,7 +554,7 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         const result = await client.fetchPaid("/positions/claimable", {
           method: "GET",
           query,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return formatPaidToolResult(result, "0.001", {
           path: "/positions/claimable",
@@ -529,7 +588,8 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
           )
           .min(1)
           .max(25),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -541,7 +601,7 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         const result = await client.fetchPaid("/execution/simulate", {
           method: "POST",
           body,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return formatPaidToolResult(result, "0.10", {
           path: "/execution/simulate",
@@ -579,7 +639,8 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
             })
           )
           .min(1),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -590,13 +651,92 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         const result = await client.fetchPaid("/execution/quotes", {
           method: "POST",
           body,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return formatPaidToolResult(result, "0.10", {
           path: "/execution/quotes",
           method: "POST",
           body
         });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_create_session",
+    {
+      description:
+        "Buy a prepaid agent session (POST /sessions, ~0.25 USDC). One x402 payment mints a walletless receipt that unlocks N research calls and M quotes/plans until TTL. Sessions are receipts, not keys. Create/refresh cannot be paid with an existing session. After purchase, pass sessionReceipt (X-Canix-Session) on research/quote tools instead of spraying per-request payments.",
+      inputSchema: {
+        paymentSignature: paymentSignatureArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const result = await client.fetchPaid("/sessions", {
+          method: "POST",
+          body: {},
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+        });
+        return formatPaidToolResult(result, "0.25", {
+          path: "/sessions",
+          method: "POST",
+          body: {}
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_refresh_session",
+    {
+      description:
+        "Refresh a prepaid session (POST /sessions/refresh, ~0.25 USDC). Resets N/M and TTL on an existing session id, or mints a new receipt if the previous one is gone. One-shot only — do not send sessionReceipt.",
+      inputSchema: {
+        sessionId: z.string().min(1).optional(),
+        paymentSignature: paymentSignatureArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const body = args.sessionId ? { sessionId: args.sessionId } : {};
+        const result = await client.fetchPaid("/sessions/refresh", {
+          method: "POST",
+          body,
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+        });
+        return formatPaidToolResult(result, "0.25", {
+          path: "/sessions/refresh",
+          method: "POST",
+          body
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_get_session",
+    {
+      description:
+        "Read remaining N/M and expiry for a prepaid session receipt (GET /sessions/{sessionId}). Free. Unknown or expired receipts return 402 SESSION_INVALID/SESSION_EXPIRED. Prefer this over the public indexer /transactions showcase.",
+      inputSchema: {
+        sessionId: z.string().min(1)
+      }
+    },
+    async (args) => {
+      try {
+        const path = `/sessions/${encodeURIComponent(args.sessionId)}`;
+        const result = await client.fetchPaid(path, { method: "GET" });
+        if (result.status === 402) {
+          return jsonResult(result.body);
+        }
+        return jsonResult(result.body);
       } catch (error) {
         return errorResult(error);
       }

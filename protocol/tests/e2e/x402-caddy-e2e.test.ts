@@ -209,6 +209,8 @@ test("execution simulate endpoint advertises exactly 100000 micro-USDC", async (
     await context.teardown();
   }
 });
+
+test("claimable positions endpoint advertises exactly 1000 micro-USDC", async () => {
   const context = await setup();
   try {
     const response = await fetch(
@@ -223,6 +225,66 @@ test("execution simulate endpoint advertises exactly 100000 micro-USDC", async (
       decoded.accepts[0]?.maxAmountRequired ?? decoded.accepts[0]?.amount,
       "1000"
     );
+    assert.equal(context.facilitator.calls.length, 0);
+  } finally {
+    await context.teardown();
+  }
+});
+
+test("sessions create advertises exactly 250000 micro-USDC", async () => {
+  const context = await setup();
+  try {
+    const response = await fetch(`${context.baseUrl}/sessions`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{}"
+    });
+    assert.equal(response.status, 402);
+    const paymentRequired = response.headers.get("payment-required");
+    assert.ok(paymentRequired);
+    const decoded = decodePaymentRequired(paymentRequired);
+    assert.equal(
+      decoded.accepts[0]?.maxAmountRequired ?? decoded.accepts[0]?.amount,
+      "250000"
+    );
+    assert.equal(context.facilitator.calls.length, 0);
+  } finally {
+    await context.teardown();
+  }
+});
+
+test("sessions refresh advertises exactly 250000 micro-USDC", async () => {
+  const context = await setup();
+  try {
+    const response = await fetch(`${context.baseUrl}/sessions/refresh`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{}"
+    });
+    assert.equal(response.status, 402);
+    const paymentRequired = response.headers.get("payment-required");
+    assert.ok(paymentRequired);
+    const decoded = decodePaymentRequired(paymentRequired);
+    assert.equal(
+      decoded.accepts[0]?.maxAmountRequired ?? decoded.accepts[0]?.amount,
+      "250000"
+    );
+    assert.equal(context.facilitator.calls.length, 0);
+  } finally {
+    await context.teardown();
+  }
+});
+
+test("session header skips facilitator and fail-closes at the app", async () => {
+  const context = await setup();
+  try {
+    const response = await fetch(`${context.baseUrl}/opportunities`, {
+      headers: { "X-Canix-Session": "csess_invalid" }
+    });
+    assert.equal(response.status, 402);
+    const body = (await response.json()) as { error?: { code?: string } };
+    assert.equal(body.error?.code, "SESSION_INVALID");
+    assert.equal(response.headers.get("payment-required"), null);
     assert.equal(context.facilitator.calls.length, 0);
   } finally {
     await context.teardown();

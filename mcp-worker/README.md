@@ -28,6 +28,13 @@ Stateless remote MCP server for canix402, designed for Cloudflare Workers deploy
 - Exposes `canix_simulate_execution` for paid `POST /execution/simulate` (0.10 USDC);
   predicted balance/position deltas for compiled unsigned groups. Fail closed.
   `POST /plans` attaches `data.simulation` when groups are compiled.
+- Exposes prepaid session tools (receipts, not keys; one-shots remain the default):
+  - `canix_create_session` → paid `POST /sessions` (0.25 USDC)
+  - `canix_refresh_session` → paid `POST /sessions/refresh` (0.25 USDC, one-shot only)
+  - `canix_get_session` → free `GET /sessions/{sessionId}` remaining N/M
+  Session-eligible paid tools accept `sessionReceipt` (`X-Canix-Session`). On
+  `SESSION_*` 402, omit the header and retry with `paymentSignature`.
+- Resource `canix://session` publishes session policy (budget N/M, TTL).
 - Exposes stateless Haystack tools:
   - `canix_get_quote` → free `POST /swaps/quote`
   - `canix_optin` → free `POST /swaps/optin`

@@ -658,7 +658,8 @@ test("MCP resources include discovery openapi and shapes", async () => {
   assert.deepEqual(uris, [
     "canix://discovery",
     "canix://execution-shapes",
-    "canix://openapi"
+    "canix://openapi",
+    "canix://session"
   ]);
 
   await server.close();

@@ -197,8 +197,9 @@ function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): Pro
 export const productionFreeEndpoints: ProductionEndpoint[] = endpointPolicyMatrix
   .filter((entry) => entry.access === "free")
   // `/metrics` is free on the protocol process but intentionally omitted from the
-  // public Caddy free list (internal scrape on :3000 only).
-  .filter((entry) => entry.id !== "metrics")
+  // public Caddy free list (internal scrape on :3000 only). Unknown session
+  // receipts fail-closed 402, so GET /sessions/:sessionId is not a smoke 200.
+  .filter((entry) => entry.id !== "metrics" && entry.id !== "sessionsReceipt")
   .map(toProductionEndpoint);
 
 export const productionPaidEndpoints: ProductionEndpoint[] = endpointPolicyMatrix

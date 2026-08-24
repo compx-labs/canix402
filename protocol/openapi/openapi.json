@@ -1056,8 +1056,8 @@
           ],
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "[REDACTED]", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "[REDACTED]", "x-pragma-asset": "pragma: allowlist secret",
+            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
           }
@@ -1141,8 +1141,8 @@
           ],
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "[REDACTED]", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "[REDACTED]", "x-pragma-asset": "pragma: allowlist secret",
+            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
           }
@@ -1682,8 +1682,8 @@
           ],
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "[REDACTED]", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "[REDACTED]", "x-pragma-asset": "pragma: allowlist secret",
+            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.1"
           }
@@ -1757,8 +1757,8 @@
           ],
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "[REDACTED]", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "[REDACTED]", "x-pragma-asset": "pragma: allowlist secret",
+            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.1"
           }
@@ -1987,6 +1987,175 @@
           }
         }
       }
+    },
+    "/sessions": {
+      "post": {
+        "summary": "Buy a prepaid agent session receipt",
+        "description": "One compiler-priced x402 payment mints a walletless prepaid session receipt (canix://session/{sessionId}). The receipt unlocks N research calls and M quotes/plans until TTL. Sessions are receipts, not keys. Exact-scheme one-shots remain the default; omit X-Canix-Session to pay per request. Fail-closed on expiry, exhausted quota, or store unavailability.",
+        "tags": [
+          "sessions",
+          "x402",
+          "agents"
+        ],
+        "responses": {
+          "200": {
+            "description": "Minted prepaid session receipt with remaining N/M",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-payment-info": {
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ],
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.25"
+          }
+        },
+        "x-x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.25"
+          }
+        }
+      }
+    },
+    "/sessions/refresh": {
+      "post": {
+        "summary": "Refresh a prepaid agent session receipt",
+        "description": "Compiler-priced x402 payment that resets N/M quota and TTL on an existing session id, or mints a new receipt if the previous one is gone. Cannot be paid with an existing session — this route is one-shot only.",
+        "tags": [
+          "sessions",
+          "x402",
+          "agents"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionRefreshRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Refreshed prepaid session receipt with remaining N/M",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-payment-info": {
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ],
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.25"
+          }
+        },
+        "x-x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.25"
+          }
+        }
+      }
+    },
+    "/sessions/{sessionId}": {
+      "get": {
+        "summary": "Read prepaid session remaining N/M",
+        "description": "Returns the session receipt including remaining research and quotes/plans quota and expiry. Agents should use this resource instead of the public indexer /transactions showcase. Fail-closed 402 when the receipt is unknown or expired. Exhausted-but-unexpired receipts return 200 with status exhausted.",
+        "tags": [
+          "sessions",
+          "agents",
+          "discovery"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session receipt with remaining N/M",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2011,6 +2180,10 @@
                   "VALIDATION_ERROR",
                   "INTERNAL_ERROR",
                   "NOT_FOUND",
+                  "SESSION_INVALID",
+                  "SESSION_EXPIRED",
+                  "SESSION_EXHAUSTED",
+                  "SESSION_UNAVAILABLE",
                   "MISSING_PAYMENT_SIGNATURE",
                   "MALFORMED_PAYMENT_SIGNATURE",
                   "EXPIRED_PAYMENT_PROOF"
@@ -2024,6 +2197,69 @@
               }
             }
           }
+        }
+      },
+      "SessionBudget": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["research", "quotes"],
+        "properties": {
+          "research": { "type": "integer", "minimum": 0 },
+          "quotes": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "SessionReceipt": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "uri",
+          "sessionId",
+          "createdAt",
+          "expiresAt",
+          "ttlSeconds",
+          "budget",
+          "remaining",
+          "consumed",
+          "status"
+        ],
+        "properties": {
+          "uri": { "type": "string", "minLength": 1 },
+          "sessionId": { "type": "string", "minLength": 1 },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "expiresAt": { "type": "string", "format": "date-time" },
+          "ttlSeconds": { "type": "integer", "minimum": 1 },
+          "budget": { "$ref": "#/components/schemas/SessionBudget" },
+          "remaining": { "$ref": "#/components/schemas/SessionBudget" },
+          "consumed": { "$ref": "#/components/schemas/SessionBudget" },
+          "status": {
+            "type": "string",
+            "enum": ["active", "expired", "exhausted"]
+          }
+        }
+      },
+      "SessionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["data", "meta"],
+        "properties": {
+          "data": { "$ref": "#/components/schemas/SessionReceipt" },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["paymentRequired", "access", "receiptUri"],
+            "properties": {
+              "paymentRequired": { "type": "boolean" },
+              "access": { "type": "string", "enum": ["session", "receipt"] },
+              "receiptUri": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      },
+      "SessionRefreshRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "sessionId": { "type": "string", "minLength": 1 }
         }
       },
       "OpportunityRecord": {

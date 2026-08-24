@@ -66,4 +66,30 @@ export function registerResources(server: McpServer, client: X402Client): void {
       };
     }
   );
+
+  server.registerResource(
+    "session",
+    "canix://session",
+    {
+      description:
+        "Prepaid session policy (budget N/M, TTL, receipt URI template). Remaining quota is GET /sessions/{sessionId} or canix_get_session. Sessions are receipts, not keys.",
+      mimeType: "application/json"
+    },
+    async (uri) => {
+      const body = (await client.fetchFree("/discovery")) as {
+        data?: { sessionPolicy?: unknown };
+        sessionPolicy?: unknown;
+      };
+      const sessionPolicy = body?.data?.sessionPolicy ?? body?.sessionPolicy ?? body;
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "application/json",
+            text: JSON.stringify(sessionPolicy, null, 2)
+          }
+        ]
+      };
+    }
+  );
 }

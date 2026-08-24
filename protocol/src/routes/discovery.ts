@@ -14,6 +14,7 @@ import {
 import { resolvePublicBaseUrl } from "../constants/public-url.js";
 import {
   endpointPolicyMatrix,
+  getSessionPolicy,
   getX402EndpointMetadata
 } from "../services/payment-policy.js";
 import { ApiSuccess } from "../types/api.js";
@@ -29,6 +30,7 @@ const discoveryReplySchema = Type.Object({
     discoveryVersion: Type.Literal("1.0.0"),
     capabilities: Type.Array(Type.String()),
     x402ProtocolVersion: Type.Literal(2),
+    sessionPolicy: Type.Optional(Type.Any()),
     mcpServer: Type.Optional(
       Type.Object({
         name: Type.String(),
@@ -210,6 +212,7 @@ function buildDiscoveryDocument(): DiscoveryDocument {
       tags: endpoint.tags,
       pathParams: endpoint.pathParams ?? [],
       queryParams: endpoint.queryParams ?? [],
+      ...(endpoint.sessionAccess ? { sessionAccess: endpoint.sessionAccess } : {}),
       responseCodes:
         endpoint.id === "positions" ||
         endpoint.id === "positionsClaimable" ||
@@ -217,8 +220,12 @@ function buildDiscoveryDocument(): DiscoveryDocument {
         endpoint.id === "plans" ||
         endpoint.id === "plansRebalance" ||
         endpoint.id === "executionCompose" ||
-        endpoint.id === "executionSimulate"
-          ? [200, 400, 402, 500, 502]
+        endpoint.id === "executionSimulate" ||
+        endpoint.id === "sessionsCreate" ||
+        endpoint.id === "sessionsRefresh"
+          ? [200, 400, 402, 500, 503]
+          : endpoint.id === "sessionsReceipt"
+            ? [200, 402, 404]
           : endpoint.id === "tokenPricing"
             ? [200, 400, 502]
           : endpoint.id === "haystackSwapQuote"
@@ -255,10 +262,12 @@ function buildDiscoveryDocument(): DiscoveryDocument {
       "rebalance-delta-plans",
       "swap-aware-compose",
       "execution-simulate",
+      "prepaid-sessions",
       "haystack-swaps",
       "token-pricing",
       "mcp-server"
     ],
+    sessionPolicy: getSessionPolicy(),
     x402ProtocolVersion: 2,
     mcpServer: {
       name: "canix402",
@@ -285,6 +294,26 @@ function buildDiscoveryDocument(): DiscoveryDocument {
         code: "EXPIRED_PAYMENT_PROOF",
         httpStatus: 402,
         description: "PAYMENT-SIGNATURE proof has expired."
+      },
+      {
+        code: "SESSION_INVALID",
+        httpStatus: 402,
+        description: "X-Canix-Session is unknown. Omit the header and pay per request, or buy a new session."
+      },
+      {
+        code: "SESSION_EXPIRED",
+        httpStatus: 402,
+        description: "Prepaid session TTL has elapsed. Fail-closed; one-shots still work without the session header."
+      },
+      {
+        code: "SESSION_EXHAUSTED",
+        httpStatus: 402,
+        description: "Prepaid session N/M quota is exhausted. Fail-closed; refresh with POST /sessions/refresh or pay per request."
+      },
+      {
+        code: "SESSION_UNAVAILABLE",
+        httpStatus: 402,
+        description: "Session store is unavailable. Fail-closed; omit X-Canix-Session and retry with a per-request payment."
       },
       {
         code: "VALIDATION_ERROR",
@@ -354,7 +383,7 @@ function buildWellKnownX402FanOut(): { version: 1; resources: string[] } {
   return {
     version: 1,
     resources: paidEndpoints.map((endpoint) => {
-      const path = endpoint.pathPattern.replace(":protocol", "{protocol}");
+      const path = toOpenApiPath(endpoint.pathPattern);
       return `${publicBaseUrl}${path}`;
     })
   };
@@ -405,7 +434,7 @@ function buildX402Manifest(): X402DiscoveryManifest {
     ],
     resources: paidEndpoints.map((endpoint) => {
       const x402 = getX402EndpointMetadata(endpoint.priceUsdc);
-      const path = endpoint.pathPattern.replace(":protocol", "{protocol}");
+      const path = toOpenApiPath(endpoint.pathPattern);
 
       return {
         id: endpoint.id,
@@ -472,7 +501,7 @@ function buildLlmsText(includeAllEndpoints = false): string {
   ];
 
   for (const endpoint of endpoints) {
-    const path = endpoint.pathPattern.replace(":protocol", "{protocol}");
+    const path = toOpenApiPath(endpoint.pathPattern);
     const price =
       endpoint.access === "paid"
         ? ` — ${getX402EndpointMetadata(endpoint.priceUsdc).requirementTemplate.maxAmountRequired} USDC`
@@ -537,7 +566,7 @@ function buildAgentCard() {
     skills: endpointPolicyMatrix
       .filter((endpoint) => endpoint.access === "paid")
       .map((endpoint) => {
-        const path = endpoint.pathPattern.replace(":protocol", "{protocol}");
+        const path = toOpenApiPath(endpoint.pathPattern);
 
         return {
           id: endpoint.id,
@@ -615,4 +644,8 @@ function getDocsSiteUrl(): string {
 
 function getMcpUrl(): string {
   return process.env.X402_MCP_SERVER_URL ?? process.env.MCP_SERVER_URL ?? MCP_SERVER_REMOTE_URL;
+}
+
+function toOpenApiPath(pathPattern: string): string {
+  return pathPattern.replace(/:([A-Za-z]+)/g, "{$1}");
 }

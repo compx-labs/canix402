@@ -101,10 +101,10 @@ Machine-readable risk so plans can be constrained. This is the deferred V1 `rewa
 
 Second money model for operators who currently spray tiny USDC transfers (e.g. Brownie’s daily loop). Keep exact-scheme one-shots.
 
-- [ ] Design a prepaid session: one x402 payment unlocks N research calls + M quotes/plans for a TTL, with a receipt resource (e.g. `canix://session`).
-- [ ] Implement session create/refresh, enforcement at gateway or app, and fail-closed expiry.
-- [ ] Publish receipts/usage to the agent (not only the public indexer `/transactions` showcase).
-- [ ] Discovery/OpenAPI/MCP + policy matrix for session vs per-request routes.
+- [x] Design a prepaid session: one x402 payment unlocks N research calls + M quotes/plans for a TTL, with a receipt resource (e.g. `canix://session`).
+- [x] Implement session create/refresh, enforcement at gateway or app, and fail-closed expiry.
+- [x] Publish receipts/usage to the agent (not only the public indexer `/transactions` showcase).
+- [x] Discovery/OpenAPI/MCP + policy matrix for session vs per-request routes.
 
 ### 13.9 Watch / webhook
 
