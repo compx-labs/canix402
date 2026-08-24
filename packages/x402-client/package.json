@@ -19,10 +19,10 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "algosdk": "^3.6.0"
+    "algosdk": "^3.7.0"
   },
   "devDependencies": {
-    "@types/node": "^24.0.10",
+    "@types/node": "^24.13.3",
     "typescript": "^5.8.3"
   }
 }
