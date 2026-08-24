@@ -1,4 +1,4 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import * as z from "zod";
 
 import type { GatewayClient } from "./client.js";
@@ -85,8 +85,10 @@ function paidAuth(args: {
   paymentSignature?: string | undefined;
   sessionReceipt?: string | undefined;
 }) {
+  if (args.paymentSignature) {
+    return { paymentSignature: args.paymentSignature };
+  }
   return {
-    ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {}),
     ...(args.sessionReceipt ? { headers: { "X-Canix-Session": args.sessionReceipt } } : {})
   };
 }
@@ -975,7 +977,7 @@ export function registerCanixResources(server: McpServer, client: GatewayClient)
     "canix://session",
     {
       description:
-        "Prepaid session policy (budget N/M, TTL, receipt URI). Remaining quota is GET /sessions/{id} or canix_get_session. Sessions are receipts, not keys.",
+        "Prepaid session policy (budget N/M, TTL, receipt URI template). Remaining quota is canix://session/{sessionId}, GET /sessions/{sessionId}, or canix_get_session. Sessions are receipts, not keys.",
       mimeType: "application/json"
     },
     async (uri) => {
@@ -990,6 +992,30 @@ export function registerCanixResources(server: McpServer, client: GatewayClient)
             uri: uri.href,
             mimeType: "application/json",
             text: JSON.stringify(sessionPolicy, null, 2)
+          }
+        ]
+      };
+    }
+  );
+
+  server.registerResource(
+    "session-receipt",
+    new ResourceTemplate("canix://session/{sessionId}", { list: undefined }),
+    {
+      description:
+        "Prepaid session receipt remaining N/M (GET /sessions/{sessionId}). Unknown or expired receipts return 402 SESSION_INVALID/SESSION_EXPIRED.",
+      mimeType: "application/json"
+    },
+    async (uri, { sessionId }) => {
+      const id = Array.isArray(sessionId) ? sessionId[0] : sessionId;
+      const path = `/sessions/${encodeURIComponent(String(id ?? ""))}`;
+      const result = await client.fetchPaid(path, { method: "GET" });
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "application/json",
+            text: JSON.stringify(result.body, null, 2)
           }
         ]
       };

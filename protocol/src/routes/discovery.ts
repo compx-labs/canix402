@@ -225,7 +225,7 @@ function buildDiscoveryDocument(): DiscoveryDocument {
         endpoint.id === "sessionsRefresh"
           ? [200, 400, 402, 500, 503]
           : endpoint.id === "sessionsReceipt"
-            ? [200, 402, 404]
+            ? [200, 402]
           : endpoint.id === "tokenPricing"
             ? [200, 400, 502]
           : endpoint.id === "haystackSwapQuote"

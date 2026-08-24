@@ -40,6 +40,10 @@ export type SessionConsumeResult =
   | { ok: true; receipt: SessionReceipt }
   | { ok: false; reason: SessionFailureReason };
 
+export type SessionGetResult =
+  | { ok: true; receipt: SessionReceipt }
+  | { ok: false; reason: "invalid" | "expired" | "unavailable" };
+
 export type SessionCreateResult =
   | { ok: true; receipt: SessionReceipt }
   | { ok: false; reason: "unavailable" };

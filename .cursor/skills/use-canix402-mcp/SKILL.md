@@ -55,12 +55,13 @@ tiny USDC transfers can buy one session instead:
 1. Call `canix_create_session` without `paymentSignature`, then retry with it
    (~0.25 USDC). The result is a walletless receipt (`canix://session/{id}`).
 2. Pass that id as `sessionReceipt` on research/quote tools (`X-Canix-Session`).
-3. Read remaining N/M with `canix_get_session` or resource `canix://session`.
+3. Read remaining N/M with `canix_get_session` or resource `canix://session/{sessionId}`. `canix://session` is policy only (budget/TTL), not remaining quota.
 4. Create/refresh cannot be paid with a session. On `SESSION_EXPIRED`,
    `SESSION_EXHAUSTED`, or `SESSION_INVALID`, **omit** `sessionReceipt` and
    either refresh (`canix_refresh_session`) or retry with `paymentSignature`.
-   Caddy skips x402 whenever the session header is present, so a stale header
-   must be dropped before a one-shot will work.
+   Caddy skips x402 when `X-Canix-Session` starts with `csess_`, so a stale header
+   must be dropped before a one-shot will work. If both `paymentSignature` and
+   `sessionReceipt` are passed, the payment wins and the session header is omitted.
 
 ## Remote signing model
 

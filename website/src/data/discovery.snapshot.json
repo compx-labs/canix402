@@ -1034,8 +1034,7 @@
         "queryParams": [],
         "responseCodes": [
           200,
-          402,
-          404
+          402
         ]
       }
     ],

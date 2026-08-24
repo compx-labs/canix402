@@ -26,7 +26,7 @@ Token format: `csess_` + 32-byte hex.
 | --- | --- | --- |
 | `POST` | `/sessions` | Paid one-shot x402. Mints a receipt. |
 | `POST` | `/sessions/refresh` | Paid one-shot x402. Resets N/M + TTL in place, or mints a new receipt. **Cannot** be paid with a session header. |
-| `GET` | `/sessions/:sessionId` | Free receipt. Returns remaining N/M. Unknown → `402 SESSION_INVALID`. Expired → `402 SESSION_EXPIRED`. Exhausted-but-unexpired → `200` with `status: "exhausted"`. |
+| `GET` | `/sessions/:sessionId` | Free receipt. Returns remaining N/M. Unknown (including Redis TTL-evicted ids) → `402 SESSION_INVALID`. Expired record still readable → `402 SESSION_EXPIRED`. Store down → `402 SESSION_UNAVAILABLE`. Exhausted-but-unexpired → `200` with `status: "exhausted"`. |
 
 ## Buckets
 
@@ -38,7 +38,7 @@ Create/refresh are never session-eligible.
 
 ## Enforcement
 
-1. Caddy: if `X-Canix-Session` is present on a session-eligible path, skip x402 and proxy. Create/refresh always require x402.
+1. Caddy: if `X-Canix-Session` starts with `csess_` on a session-eligible path, skip x402 and proxy. Empty or whitespace headers do **not** skip payment. Create/refresh always require x402.
 2. App `onRequest` hook: consume one unit from the matching bucket. Fail-closed:
    - unknown token → `SESSION_INVALID`
    - TTL elapsed → `SESSION_EXPIRED`
@@ -50,11 +50,11 @@ A fake or expired header **bypasses Caddy x402**. The app then returns 402. To f
 
 ## Persistence
 
-When `REDIS_URL` is set, receipts live in Redis (`canix402:session:{id}`) with a TTL. Production without Redis fail-closes (create `503`, consume `402 SESSION_UNAVAILABLE`). Non-production falls back to an in-memory store for local/dev tests.
+When `REDIS_URL` is set, receipts live in Redis (`canix402:session:{id}`) with a TTL. After Redis evicts the key, `GET` cannot distinguish expiry from an unknown id and returns `SESSION_INVALID`. Production without Redis fail-closes (create `503`, consume/get `402 SESSION_UNAVAILABLE`). Non-production falls back to an in-memory store for local/dev tests.
 
 ## Agent usage
 
 1. `canix_create_session` (or `POST /sessions`) once per TTL.
 2. Pass `sessionReceipt` / `X-Canix-Session` on research and quote tools.
-3. Read remaining N/M from `canix_get_session`, `canix://session`, or `GET /sessions/:id` — not the public indexer `/transactions` showcase.
+3. Read remaining N/M from `canix_get_session`, `canix://session/{sessionId}`, or `GET /sessions/:id` — not the policy resource `canix://session` and not the public indexer `/transactions` showcase.
 4. On `SESSION_EXPIRED` / `SESSION_EXHAUSTED` / `SESSION_INVALID`, drop the header and either refresh (`POST /sessions/refresh`) or pay per request.

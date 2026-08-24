@@ -78,6 +78,10 @@ test("discovery includes every endpoint in policy matrix", async () => {
   assert.equal(transactions?.x402?.requirementTemplate.maxAmountRequired, "0.005");
   assert.equal(pricing?.access, "free");
   assert.deepEqual(pricing?.responseCodes, [200, 400, 502]);
+  const sessionsReceipt = payload.data.endpoints.find(
+    (endpoint) => endpoint.id === "sessionsReceipt"
+  );
+  assert.deepEqual(sessionsReceipt?.responseCodes, [200, 402]);
   assert.equal(payload.data.mcpServer?.transport, MCP_SERVER_TRANSPORT);
   assert.equal(payload.data.mcpServer?.url, MCP_SERVER_REMOTE_URL);
   assert.deepEqual(

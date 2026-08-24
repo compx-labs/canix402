@@ -77,8 +77,10 @@ export function paidAuth(args: {
   paymentSignature?: string | undefined;
   sessionReceipt?: string | undefined;
 }) {
+  if (args.paymentSignature) {
+    return { paymentSignature: args.paymentSignature };
+  }
   return {
-    ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {}),
     ...(args.sessionReceipt ? { headers: { "X-Canix-Session": args.sessionReceipt } } : {})
   };
 }

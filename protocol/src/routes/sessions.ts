@@ -87,14 +87,11 @@ export function registerSessionRoutes(app: FastifyInstance): void {
       if (!sessionId) {
         return reply.status(402).send(sessionErrorPayload("invalid"));
       }
-      const receipt = await getSessionStore().get(sessionId);
-      if (!receipt) {
-        return reply.status(402).send(sessionErrorPayload("invalid"));
+      const result = await getSessionStore().get(sessionId);
+      if (!result.ok) {
+        return reply.status(402).send(sessionErrorPayload(result.reason));
       }
-      if (receipt.status === "expired") {
-        return reply.status(402).send(sessionErrorPayload("expired"));
-      }
-      return reply.send(sessionSuccess(receipt, "receipt", false));
+      return reply.send(sessionSuccess(result.receipt, "receipt", false));
     }
   );
 }

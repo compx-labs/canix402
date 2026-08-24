@@ -82,7 +82,11 @@ test("Caddy gives Haystack transaction generation a dedicated paid policy", () =
 });
 
 test("Caddy skips x402 when X-Canix-Session is present on session-eligible routes", () => {
-  assert.match(caddyfile, /@session \{[\s\S]*?header X-Canix-Session \*/);
+  assert.match(caddyfile, /@session \{[\s\S]*?header X-Canix-Session csess_\*/);
+  assert.match(
+    caddyfile,
+    /Access-Control-Expose-Headers "PAYMENT-REQUIRED, PAYMENT-RESPONSE, x-canix-session-remaining-research, x-canix-session-remaining-quotes, x-canix-session-expires-at"/
+  );
   assert.match(
     caddyfile,
     /@session \{[\s\S]*?path \/opportunities \/opportunities\/search \/opportunities\/personalized \/eligibility \/plans \/plans\/rebalance \/positions \/positions\/claimable \/protocols\/\*\/opportunities \/swaps\/transactions \/execution\/quotes \/execution\/compose \/execution\/simulate/

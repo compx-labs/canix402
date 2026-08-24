@@ -45,6 +45,8 @@ import {
 
 interface OpenApiOperation {
   description?: string;
+  parameters?: Array<{ $ref?: string; name?: string }>;
+  responses?: Record<string, { $ref?: string }>;
   "x-x402"?: {
     requirementTemplate?: {
       maxAmountRequired?: string;
@@ -58,16 +60,18 @@ interface OpenApiOperation {
   security?: unknown[];
 }
 
-interface OpenApiPathItem {
-  get?: OpenApiOperation;
-  post?: OpenApiOperation;
-}
-
 interface OpenApiDocument {
   components: {
     schemas: Record<string, { required?: string[]; properties?: Record<string, unknown> }>;
+    parameters?: Record<string, unknown>;
+    responses?: Record<string, unknown>;
   };
   paths: Record<string, OpenApiPathItem>;
+}
+
+interface OpenApiPathItem {
+  get?: OpenApiOperation;
+  post?: OpenApiOperation;
 }
 
 function resolveOpenApiOperation(
@@ -214,6 +218,24 @@ test("paid operations expose x-x402 metadata", async () => {
   assert.equal(sessionsRefreshOperation?.["x-payment-info"]?.price?.amount, "0.25");
 
   assert.equal(openapi.paths["/sessions/{sessionId}"]?.get?.["x-x402"], undefined);
+  assert.equal(
+    openapi.paths["/sessions/{sessionId}"]?.get?.responses?.["402"]?.$ref,
+    "#/components/responses/SessionError"
+  );
+  assert.equal(openapi.paths["/sessions/{sessionId}"]?.get?.responses?.["404"], undefined);
+  assert.ok(openapi.components.responses?.SessionError);
+  assert.ok(openapi.components.parameters?.CanixSessionHeader);
+
+  const sessionEligible = endpointPolicyMatrix.filter((endpoint) => endpoint.sessionAccess);
+  for (const endpoint of sessionEligible) {
+    const openapiPath = endpoint.pathPattern.replace(/:([A-Za-z]+)/g, "{$1}");
+    const operation = resolveOpenApiOperation(openapi.paths[openapiPath], endpoint.method);
+    assert.ok(operation, `${endpoint.method} ${openapiPath}`);
+    const hasSessionHeader = operation?.parameters?.some(
+      (param) => param.$ref === "#/components/parameters/CanixSessionHeader"
+    );
+    assert.equal(hasSessionHeader, true, `${endpoint.method} ${openapiPath} session header`);
+  }
 
   assert.match(
     openapi.paths["/execution/shapes"]?.get?.description ?? "",

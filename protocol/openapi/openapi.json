@@ -589,6 +589,9 @@
               "type": "boolean",
               "default": false
             }
+          },
+          {
+            "$ref": "#/components/parameters/CanixSessionHeader"
           }
         ],
         "responses": {
@@ -733,6 +736,9 @@
               "type": "boolean",
               "default": false
             }
+          },
+          {
+            "$ref": "#/components/parameters/CanixSessionHeader"
           }
         ],
         "responses": {
@@ -790,7 +796,8 @@
     "/opportunities/personalized": {
       "get": {
         "summary": "Top opportunities tuned to a wallet's held assets",
-        "description": "Returns Algorand DeFi opportunities whose underlying assets match a supplied wallet's holdings, including opted-in ASAs with positive balance and native ALGO when held. Matching applies POST /eligibility rules (min amount, ASA gates, capacity, unresolved NFD/creator gates) so full or gated venues are not recommended as enterable. Each row includes canEnter and eligibilityFullyCheckable; quote-time on-chain checks remain authoritative. Use POST /eligibility for the diagnostic (missingAssets, gates, capacity, suggestedSwap). This endpoint provides normalized market data only; it does not build or submit transactions.", "x-pragma": "pragma: allowlist secret",
+        "description": "Returns Algorand DeFi opportunities whose underlying assets match a supplied wallet's holdings, including opted-in ASAs with positive balance and native ALGO when held. Matching applies POST /eligibility rules (min amount, ASA gates, capacity, unresolved NFD/creator gates) so full or gated venues are not recommended as enterable. Each row includes canEnter and eligibilityFullyCheckable; quote-time on-chain checks remain authoritative. Use POST /eligibility for the diagnostic (missingAssets, gates, capacity, suggestedSwap). This endpoint provides normalized market data only; it does not build or submit transactions.",
+        "x-pragma": "pragma: allowlist secret",
         "tags": [
           "defi",
           "opportunities",
@@ -840,6 +847,9 @@
               "type": "boolean",
               "default": false
             }
+          },
+          {
+            "$ref": "#/components/parameters/CanixSessionHeader"
           }
         ],
         "responses": {
@@ -900,7 +910,7 @@
     "/eligibility": {
       "post": {
         "summary": "Wallet eligibility and capacity for selected opportunities",
-        "description": "Checks whether a wallet can enter one or more opportunities before requesting an execution quote. Resolves R\u00e9ti entryRequirements and capacity (min amount, ASA gates, staker slots, ALGO room). NFD and creator gates are published as unresolved \u2014 canEnter is never true until eligibilityFullyCheckable is true. Returns missingAssets, gates, capacity, and an optional suggestedSwap hint (not a live quote). Quote-time on-chain checks remain authoritative. Canix does not sign or submit transactions.",
+        "description": "Checks whether a wallet can enter one or more opportunities before requesting an execution quote. Resolves Réti entryRequirements and capacity (min amount, ASA gates, staker slots, ALGO room). NFD and creator gates are published as unresolved — canEnter is never true until eligibilityFullyCheckable is true. Returns missingAssets, gates, capacity, and an optional suggestedSwap hint (not a live quote). Quote-time on-chain checks remain authoritative. Canix does not sign or submit transactions.",
         "tags": [
           "defi",
           "opportunities",
@@ -972,12 +982,19 @@
           ],
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+            "network": "algorand-mainnet",
+            "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704",
+            "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.01"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CanixSessionHeader"
+          }
+        ]
       }
     },
     "/plans": {
@@ -1056,12 +1073,19 @@
           ],
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+            "network": "algorand-mainnet",
+            "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704",
+            "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CanixSessionHeader"
+          }
+        ]
       }
     },
     "/plans/rebalance": {
@@ -1141,12 +1165,19 @@
           ],
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+            "network": "algorand-mainnet",
+            "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704",
+            "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CanixSessionHeader"
+          }
+        ]
       }
     },
     "/positions": {
@@ -1167,6 +1198,9 @@
               "type": "string"
             },
             "description": "Algorand account address whose DeFi positions should be returned."
+          },
+          {
+            "$ref": "#/components/parameters/CanixSessionHeader"
           }
         ],
         "responses": {
@@ -1225,7 +1259,7 @@
     "/positions/claimable": {
       "get": {
         "summary": "Claimable DeFi rewards across supported protocols",
-        "description": "Returns claimable reward rows for a wallet with USD value, network-fee / worth-claiming hints, compatible claim shapeKeys, and ready-to-POST quote inputs. Use claimAllQuotes (or selected per-row quotes) with POST /execution/quotes to compile unsigned claim groups \u2014 groups are never merged. Covers Tinyman farm, stALGO TINY claim, CompX staking, Pact farm, Haystack, and Alpha Arcade. This endpoint does not build or submit transactions.",
+        "description": "Returns claimable reward rows for a wallet with USD value, network-fee / worth-claiming hints, compatible claim shapeKeys, and ready-to-POST quote inputs. Use claimAllQuotes (or selected per-row quotes) with POST /execution/quotes to compile unsigned claim groups — groups are never merged. Covers Tinyman farm, stALGO TINY claim, CompX staking, Pact farm, Haystack, and Alpha Arcade. This endpoint does not build or submit transactions.",
         "tags": [
           "defi",
           "positions",
@@ -1242,6 +1276,9 @@
               "type": "string"
             },
             "description": "Algorand account address whose claimable rewards should be returned."
+          },
+          {
+            "$ref": "#/components/parameters/CanixSessionHeader"
           }
         ],
         "responses": {
@@ -1305,7 +1342,7 @@
     "/public/agents/brownie/positions": {
       "get": {
         "summary": "Public DeFi positions for the Brownie Bot showcase wallet",
-        "description": "Free showcase route that returns normalized DeFi positions for the Brownie Bot treasury wallet only. The wallet address is hardcoded server-side \u2014 this is not a general free /positions browser. Use GET /positions?address= for arbitrary wallets (paid).",
+        "description": "Free showcase route that returns normalized DeFi positions for the Brownie Bot treasury wallet only. The wallet address is hardcoded server-side — this is not a general free /positions browser. Use GET /positions?address= for arbitrary wallets (paid).",
         "tags": [
           "defi",
           "positions",
@@ -1395,6 +1432,9 @@
               "type": "boolean",
               "default": false
             }
+          },
+          {
+            "$ref": "#/components/parameters/CanixSessionHeader"
           }
         ],
         "responses": {
@@ -1452,7 +1492,7 @@
     "/execution/shapes": {
       "get": {
         "summary": "List verified execution shape catalog metadata",
-        "description": "Returns the live catalog of verified transaction shapes (shapeKey, requiredInputs, opportunityRole, docsPath). meta.caveatsDocsPath points at protocol-specific construction caveats. Catalog metadata only \u2014 does not compile quotes or return unsigned transactions. Use POST /execution/quotes to compile executable groups. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
+        "description": "Returns the live catalog of verified transaction shapes (shapeKey, requiredInputs, opportunityRole, docsPath). meta.caveatsDocsPath points at protocol-specific construction caveats. Catalog metadata only — does not compile quotes or return unsigned transactions. Use POST /execution/quotes to compile executable groups. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
         "tags": [
           "execution",
           "discovery",
@@ -1476,7 +1516,7 @@
     "/execution/quotes": {
       "post": {
         "summary": "Compile a verified transaction shape into unsigned Algorand transactions",
-        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), and R\u00e9ti v1 ALGO staking shapes (stake/unstake). Canix does not sign or submit transactions in this endpoint. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
+        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), and Réti v1 ALGO staking shapes (stake/unstake). Canix does not sign or submit transactions in this endpoint. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
         "tags": [
           "execution",
           "transactions",
@@ -1607,7 +1647,12 @@
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.1"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CanixSessionHeader"
+          }
+        ]
       }
     },
     "/execution/compose": {
@@ -1682,12 +1727,19 @@
           ],
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+            "network": "algorand-mainnet",
+            "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704",
+            "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.1"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CanixSessionHeader"
+          }
+        ]
       }
     },
     "/execution/simulate": {
@@ -1757,12 +1809,19 @@
           ],
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+            "network": "algorand-mainnet",
+            "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704",
+            "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.1"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CanixSessionHeader"
+          }
+        ]
       }
     },
     "/pricing": {
@@ -1985,7 +2044,12 @@
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.005"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CanixSessionHeader"
+          }
+        ]
       }
     },
     "/sessions": {
@@ -2039,8 +2103,10 @@
           ],
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+            "network": "algorand-mainnet",
+            "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704",
+            "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
           }
@@ -2108,8 +2174,10 @@
           ],
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+            "network": "algorand-mainnet",
+            "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704",
+            "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
           }
@@ -2149,10 +2217,7 @@
             }
           },
           "402": {
-            "$ref": "#/components/responses/PaymentRequired"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
+            "$ref": "#/components/responses/SessionError"
           }
         }
       }
@@ -2202,10 +2267,19 @@
       "SessionBudget": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["research", "quotes"],
+        "required": [
+          "research",
+          "quotes"
+        ],
         "properties": {
-          "research": { "type": "integer", "minimum": 0 },
-          "quotes": { "type": "integer", "minimum": 0 }
+          "research": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "quotes": {
+            "type": "integer",
+            "minimum": 0
+          }
         }
       },
       "SessionReceipt": {
@@ -2223,34 +2297,79 @@
           "status"
         ],
         "properties": {
-          "uri": { "type": "string", "minLength": 1 },
-          "sessionId": { "type": "string", "minLength": 1 },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "expiresAt": { "type": "string", "format": "date-time" },
-          "ttlSeconds": { "type": "integer", "minimum": 1 },
-          "budget": { "$ref": "#/components/schemas/SessionBudget" },
-          "remaining": { "$ref": "#/components/schemas/SessionBudget" },
-          "consumed": { "$ref": "#/components/schemas/SessionBudget" },
+          "uri": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sessionId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ttlSeconds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "budget": {
+            "$ref": "#/components/schemas/SessionBudget"
+          },
+          "remaining": {
+            "$ref": "#/components/schemas/SessionBudget"
+          },
+          "consumed": {
+            "$ref": "#/components/schemas/SessionBudget"
+          },
           "status": {
             "type": "string",
-            "enum": ["active", "expired", "exhausted"]
+            "enum": [
+              "active",
+              "expired",
+              "exhausted"
+            ]
           }
         }
       },
       "SessionResponse": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["data", "meta"],
+        "required": [
+          "data",
+          "meta"
+        ],
         "properties": {
-          "data": { "$ref": "#/components/schemas/SessionReceipt" },
+          "data": {
+            "$ref": "#/components/schemas/SessionReceipt"
+          },
           "meta": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["paymentRequired", "access", "receiptUri"],
+            "required": [
+              "paymentRequired",
+              "access",
+              "receiptUri"
+            ],
             "properties": {
-              "paymentRequired": { "type": "boolean" },
-              "access": { "type": "string", "enum": ["session", "receipt"] },
-              "receiptUri": { "type": "string", "minLength": 1 }
+              "paymentRequired": {
+                "type": "boolean"
+              },
+              "access": {
+                "type": "string",
+                "enum": [
+                  "session",
+                  "receipt"
+                ]
+              },
+              "receiptUri": {
+                "type": "string",
+                "minLength": 1
+              }
             }
           }
         }
@@ -2259,7 +2378,10 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "sessionId": { "type": "string", "minLength": 1 }
+          "sessionId": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       },
       "OpportunityRecord": {
@@ -4476,7 +4598,7 @@
           "validatorId": {
             "type": "integer",
             "minimum": 1,
-            "description": "R\u00e9ti validator id (stake target). Amounts never appear in hints."
+            "description": "Réti validator id (stake target). Amounts never appear in hints."
           },
           "loanAppId": {
             "type": "integer",
@@ -4713,7 +4835,7 @@
               "any",
               "all"
             ],
-            "description": "How multiple ASA gates combine. R\u00e9ti uses any."
+            "description": "How multiple ASA gates combine. Réti uses any."
           },
           "eligibilityFullyCheckable": {
             "type": "boolean",
@@ -4769,7 +4891,8 @@
         "properties": {
           "address": {
             "type": "string",
-            "description": "Algorand account address to evaluate.", "x-pragma": "pragma: allowlist secret"
+            "description": "Algorand account address to evaluate.",
+            "x-pragma": "pragma: allowlist secret"
           },
           "opportunityIds": {
             "type": "array",
@@ -5228,7 +5351,8 @@
         "properties": {
           "address": {
             "type": "string",
-            "description": "Algorand account address that will sign returned groups.", "x-pragma": "pragma: allowlist secret"
+            "description": "Algorand account address that will sign returned groups.",
+            "x-pragma": "pragma: allowlist secret"
           },
           "budget": {
             "$ref": "#/components/schemas/PlanBudget"
@@ -5351,204 +5475,6 @@
                 "type": "boolean",
                 "enum": [
                   true
-                ]
-              },
-              "eligibilityEndpoint": {
-                "type": "string",
-                "enum": [
-                  "/eligibility"
-                ]
-              }
-            }
-          }
-        }
-      },
-      "RebalanceRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "address"
-        ],
-        "properties": {
-          "address": {
-            "type": "string",
-            "minLength": 1
-          },
-          "targetWeights": {
-            "type": "array",
-            "minItems": 1,
-            "maxItems": 25,
-            "items": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "opportunityId",
-                "weightBps"
-              ],
-              "properties": {
-                "opportunityId": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "weightBps": {
-                  "type": "integer",
-                  "minimum": 0,
-                  "maximum": 10000
-                }
-              }
-            }
-          },
-          "harvestIdle": {
-            "type": "boolean"
-          },
-          "includeClaims": {
-            "type": "boolean"
-          },
-          "algoReserveMicroAlgos": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "^[0-9]+$"
-          },
-          "minDeltaBps": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 10000
-          },
-          "constraints": {
-            "$ref": "#/components/schemas/PlanConstraints"
-          },
-          "swapSlippage": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
-          },
-          "refresh": {
-            "type": "boolean"
-          }
-        }
-      },
-      "RebalanceData": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "mode",
-          "book",
-          "steps",
-          "quotes",
-          "blocked",
-          "expectedPositionDelta",
-          "fees",
-          "expiresAt",
-          "warnings"
-        ],
-        "properties": {
-          "mode": {
-            "type": "string",
-            "enum": [
-              "target-weights",
-              "harvest-idle",
-              "combined"
-            ]
-          },
-          "book": {
-            "type": "object"
-          },
-          "steps": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "quotes": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "blocked": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "expectedPositionDelta": {
-            "type": "object"
-          },
-          "fees": {
-            "type": "object"
-          },
-          "expiresAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "warnings": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "simulation": {
-            "$ref": "#/components/schemas/SimulationSummary"
-          }
-        }
-      },
-      "RebalanceResponse": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "data",
-          "meta"
-        ],
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/RebalanceData"
-          },
-          "meta": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "address",
-              "harvestIdle",
-              "fetchedAt",
-              "paymentRequired",
-              "executionSubmitted",
-              "quoteTimeAuthoritative",
-              "groupsMerged",
-              "eligibilityEndpoint"
-            ],
-            "properties": {
-              "address": {
-                "type": "string"
-              },
-              "harvestIdle": {
-                "type": "boolean"
-              },
-              "fetchedAt": {
-                "type": "string",
-                "format": "date-time"
-              },
-              "paymentRequired": {
-                "type": "boolean",
-                "enum": [
-                  true
-                ]
-              },
-              "executionSubmitted": {
-                "type": "boolean",
-                "enum": [
-                  false
-                ]
-              },
-              "quoteTimeAuthoritative": {
-                "type": "boolean",
-                "enum": [
-                  true
-                ]
-              },
-              "groupsMerged": {
-                "type": "boolean",
-                "enum": [
-                  false
                 ]
               },
               "eligibilityEndpoint": {
@@ -6143,7 +6069,7 @@
     },
     "responses": {
       "PaymentRequired": {
-        "description": "Payment required. The client must retry with a signed PAYMENT-SIGNATURE payload.",
+        "description": "Payment required, or a prepaid session failure when X-Canix-Session was sent. Without a session header, retry with a signed PAYMENT-SIGNATURE payload. If X-Canix-Session was sent, the body is SESSION_INVALID / SESSION_EXPIRED / SESSION_EXHAUSTED / SESSION_UNAVAILABLE and PAYMENT-REQUIRED is absent — omit the session header to fall back to a one-shot.",
         "headers": {
           "PAYMENT-REQUIRED": {
             "description": "Base64-encoded JSON x402 payment requirements the client must satisfy before retrying.",
@@ -6270,6 +6196,27 @@
             }
           }
         }
+      },
+      "SessionError": {
+        "description": "Prepaid session receipt error. Not an x402 payment challenge — PAYMENT-REQUIRED is absent.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            },
+            "examples": {
+              "sessionInvalid": {
+                "$ref": "#/components/examples/SessionInvalidError"
+              },
+              "sessionExpired": {
+                "$ref": "#/components/examples/SessionExpiredError"
+              },
+              "sessionUnavailable": {
+                "$ref": "#/components/examples/SessionUnavailableError"
+              }
+            }
+          }
+        }
       }
     },
     "examples": {
@@ -6388,8 +6335,10 @@
                   "facilitator": "https://facilitator.goplausible.xyz",
                   "requirementTemplate": {
                     "scheme": "exact",
-                    "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
-                    "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+                    "network": "algorand-mainnet",
+                    "x-pragma-network": "pragma: allowlist secret",
+                    "asset": "31566704",
+                    "x-pragma-asset": "pragma: allowlist secret",
                     "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
                     "maxAmountRequired": "0.01"
                   }
@@ -6603,7 +6552,7 @@
                 "algoRoomMicroAlgos": "50000000000",
                 "acceptingStake": true
               },
-              "notes": "R\u00e9ti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+              "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
               "executionReady": true,
               "executionShapes": [
                 {
@@ -6612,8 +6561,8 @@
                   "protocolVersion": "v1",
                   "action": "stake",
                   "variant": "algo",
-                  "title": "R\u00e9ti ALGO stake to validator",
-                  "summary": "Stakes ALGO to a R\u00e9ti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas \u00d72, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+                  "title": "Réti ALGO stake to validator",
+                  "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -6637,8 +6586,8 @@
                   "protocolVersion": "v1",
                   "action": "unstake",
                   "variant": "algo",
-                  "title": "R\u00e9ti ALGO unstake from pool",
-                  "summary": "Removes ALGO stake from a R\u00e9ti staking pool via StakingPool.removeStake. Builds gas \u00d72, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+                  "title": "Réti ALGO unstake from pool",
+                  "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -7220,7 +7169,7 @@
                 "algoRoomMicroAlgos": "50000000000",
                 "acceptingStake": true
               },
-              "notes": "R\u00e9ti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+              "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
               "executionReady": true,
               "executionShapes": [
                 {
@@ -7229,8 +7178,8 @@
                   "protocolVersion": "v1",
                   "action": "stake",
                   "variant": "algo",
-                  "title": "R\u00e9ti ALGO stake to validator",
-                  "summary": "Stakes ALGO to a R\u00e9ti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas \u00d72, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+                  "title": "Réti ALGO stake to validator",
+                  "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -7254,8 +7203,8 @@
                   "protocolVersion": "v1",
                   "action": "unstake",
                   "variant": "algo",
-                  "title": "R\u00e9ti ALGO unstake from pool",
-                  "summary": "Removes ALGO stake from a R\u00e9ti staking pool via StakingPool.removeStake. Builds gas \u00d72, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+                  "title": "Réti ALGO unstake from pool",
+                  "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -7319,7 +7268,7 @@
                 "algoRoomMicroAlgos": "50000000000",
                 "acceptingStake": true
               },
-              "notes": "R\u00e9ti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+              "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
               "executionReady": true,
               "executionShapes": [
                 {
@@ -7328,8 +7277,8 @@
                   "protocolVersion": "v1",
                   "action": "stake",
                   "variant": "algo",
-                  "title": "R\u00e9ti ALGO stake to validator",
-                  "summary": "Stakes ALGO to a R\u00e9ti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas \u00d72, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+                  "title": "Réti ALGO stake to validator",
+                  "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -7353,8 +7302,8 @@
                   "protocolVersion": "v1",
                   "action": "unstake",
                   "variant": "algo",
-                  "title": "R\u00e9ti ALGO unstake from pool",
-                  "summary": "Removes ALGO stake from a R\u00e9ti staking pool via StakingPool.removeStake. Builds gas \u00d72, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+                  "title": "Réti ALGO unstake from pool",
+                  "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -7859,7 +7808,7 @@
         }
       },
       "EligibilityRequestSample": {
-        "summary": "Eligibility request for a R\u00e9ti validator",
+        "summary": "Eligibility request for a Réti validator",
         "value": {
           "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
           "opportunityIds": [
@@ -7868,7 +7817,7 @@
         }
       },
       "EligibilitySample": {
-        "summary": "Wallet can enter a R\u00e9ti validator",
+        "summary": "Wallet can enter a Réti validator",
         "value": {
           "data": [
             {
@@ -7925,7 +7874,7 @@
         }
       },
       "PlanSample": {
-        "summary": "ALGO to R\u00e9ti enter plan with unsigned group",
+        "summary": "ALGO to Réti enter plan with unsigned group",
         "value": {
           "data": {
             "allocations": [
@@ -8052,6 +8001,46 @@
             "groupsMerged": false,
             "eligibilityEndpoint": "/eligibility"
           }
+        }
+      },
+      "SessionInvalidError": {
+        "summary": "Unknown or TTL-evicted session receipt",
+        "value": {
+          "error": {
+            "code": "SESSION_INVALID",
+            "message": "Session receipt is missing or unknown. Omit X-Canix-Session and retry with a per-request PAYMENT-SIGNATURE, or buy a new session."
+          }
+        }
+      },
+      "SessionExpiredError": {
+        "summary": "Prepaid session TTL elapsed",
+        "value": {
+          "error": {
+            "code": "SESSION_EXPIRED",
+            "message": "Prepaid session has expired. Omit X-Canix-Session and retry with a per-request PAYMENT-SIGNATURE, or POST /sessions / POST /sessions/refresh."
+          }
+        }
+      },
+      "SessionUnavailableError": {
+        "summary": "Session store unavailable",
+        "value": {
+          "error": {
+            "code": "SESSION_UNAVAILABLE",
+            "message": "Session store is unavailable. Omit X-Canix-Session and retry with a per-request PAYMENT-SIGNATURE."
+          }
+        }
+      }
+    },
+    "parameters": {
+      "CanixSessionHeader": {
+        "name": "X-Canix-Session",
+        "in": "header",
+        "required": false,
+        "description": "Prepaid session receipt (csess_ + 32-byte hex). When present on a session-eligible route, Caddy skips x402 and the app consumes one research or quotes unit. Omit to pay per request with PAYMENT-SIGNATURE.",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^csess_[0-9a-f]+$"
         }
       }
     }

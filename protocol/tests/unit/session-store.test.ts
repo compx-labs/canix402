@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   MemorySessionStore,
+  RedisSessionStore,
   newSessionRecord
 } from "../../src/services/session-store.js";
 
@@ -111,4 +112,130 @@ test("memory session store refresh of an expired id mints a new receipt", async 
   }
   assert.notEqual(refreshed.receipt.sessionId, record.sessionId);
   assert.equal(refreshed.receipt.status, "active");
+});
+
+test("memory session store get fail-closes expired and unknown receipts", async () => {
+  const store = new MemorySessionStore();
+  const missing = await store.get("csess_missing", 1_000);
+  assert.equal(missing.ok, false);
+  if (!missing.ok) {
+    assert.equal(missing.reason, "invalid");
+  }
+
+  const record = newSessionRecord(1_000);
+  record.expiresAtMs = 1_500;
+  store.put(record);
+  const expired = await store.get(record.sessionId, 2_000);
+  assert.equal(expired.ok, false);
+  if (!expired.ok) {
+    assert.equal(expired.reason, "expired");
+  }
+});
+
+test("redis session store get maps missing client and errors to unavailable", async () => {
+  const unavailable = new RedisSessionStore(undefined, () => null);
+  const noClient = await unavailable.get("csess_any", 1_000);
+  assert.equal(noClient.ok, false);
+  if (!noClient.ok) {
+    assert.equal(noClient.reason, "unavailable");
+  }
+
+  const throwing = new RedisSessionStore(undefined, () => ({
+    get: async () => {
+      throw new Error("redis down");
+    },
+    set: async () => {
+      throw new Error("redis down");
+    },
+    eval: async () => {
+      throw new Error("redis down");
+    }
+  }));
+  const failed = await throwing.get("csess_any", 1_000);
+  assert.equal(failed.ok, false);
+  if (!failed.ok) {
+    assert.equal(failed.reason, "unavailable");
+  }
+});
+
+test("redis session store get distinguishes missing and expired records", async () => {
+  const missing = new RedisSessionStore(undefined, () => ({
+    get: async () => null,
+    set: async () => "OK",
+    eval: async () => ["missing"]
+  }));
+  const invalid = await missing.get("csess_missing", 1_000);
+  assert.equal(invalid.ok, false);
+  if (!invalid.ok) {
+    assert.equal(invalid.reason, "invalid");
+  }
+
+  const record = newSessionRecord(1_000);
+  record.expiresAtMs = 1_500;
+  const expiredStore = new RedisSessionStore(undefined, () => ({
+    get: async () => JSON.stringify(record),
+    set: async () => "OK",
+    eval: async () => ["expired"]
+  }));
+  const expired = await expiredStore.get(record.sessionId, 2_000);
+  assert.equal(expired.ok, false);
+  if (!expired.ok) {
+    assert.equal(expired.reason, "expired");
+  }
+});
+
+test("redis session store refresh uses eval and mints when missing", async () => {
+  let evalCalled = false;
+  const store = new RedisSessionStore(undefined, () => ({
+    get: async () => null,
+    set: async () => "OK",
+    eval: async () => {
+      evalCalled = true;
+      return ["missing"];
+    }
+  }));
+  const refreshed = await store.refresh("csess_old", 1_000);
+  assert.equal(evalCalled, true);
+  assert.equal(refreshed.ok, true);
+  if (!refreshed.ok) {
+    return;
+  }
+  assert.notEqual(refreshed.receipt.sessionId, "csess_old");
+});
+
+test("redis session store refresh resets in place via eval", async () => {
+  const record = newSessionRecord(1_000);
+  record.remainingResearch = 1;
+  const store = new RedisSessionStore(undefined, () => ({
+    get: async () => JSON.stringify(record),
+    set: async () => "OK",
+    eval: async () => [
+      "ok",
+      JSON.stringify({
+        ...record,
+        remainingResearch: record.budgetResearch,
+        remainingQuotes: record.budgetQuotes
+      })
+    ]
+  }));
+  const refreshed = await store.refresh(record.sessionId, 2_000);
+  assert.equal(refreshed.ok, true);
+  if (!refreshed.ok) {
+    return;
+  }
+  assert.equal(refreshed.receipt.sessionId, record.sessionId);
+  assert.equal(refreshed.receipt.remaining.research, record.budgetResearch);
+});
+
+test("redis session store consume maps eval status", async () => {
+  const store = new RedisSessionStore(undefined, () => ({
+    get: async () => null,
+    set: async () => "OK",
+    eval: async () => ["exhausted"]
+  }));
+  const result = await store.consume("csess_any", "research", 1_000);
+  assert.equal(result.ok, false);
+  if (!result.ok) {
+    assert.equal(result.reason, "exhausted");
+  }
 });

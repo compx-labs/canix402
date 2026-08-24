@@ -88,7 +88,11 @@ test("valid session header consumes research without a SESSION_* 402", async () 
   assert.notEqual(response.statusCode, 402);
   assert.equal(response.headers["x-canix-session-remaining-research"], String(created.receipt.budget.research - 1));
   const receipt = await store.get(created.receipt.sessionId);
-  assert.equal(receipt?.remaining.research, created.receipt.budget.research - 1);
+  assert.equal(receipt.ok, true);
+  if (!receipt.ok) {
+    return;
+  }
+  assert.equal(receipt.receipt.remaining.research, created.receipt.budget.research - 1);
 
   await app.close();
 });
@@ -281,8 +285,12 @@ test("valid session header consumes quotes on POST /plans without a SESSION_* 40
     String(created.receipt.budget.quotes - 1)
   );
   const receipt = await store.get(created.receipt.sessionId);
-  assert.equal(receipt?.remaining.quotes, created.receipt.budget.quotes - 1);
-  assert.equal(receipt?.remaining.research, created.receipt.budget.research);
+  assert.equal(receipt.ok, true);
+  if (!receipt.ok) {
+    return;
+  }
+  assert.equal(receipt.receipt.remaining.quotes, created.receipt.budget.quotes - 1);
+  assert.equal(receipt.receipt.remaining.research, created.receipt.budget.research);
 
   await app.close();
 });
@@ -291,7 +299,7 @@ test("unavailable session store fail-closes consume with 402 SESSION_UNAVAILABLE
   setSessionStoreForTests({
     create: async () => ({ ok: false, reason: "unavailable" }),
     refresh: async () => ({ ok: false, reason: "unavailable" }),
-    get: async () => null,
+    get: async () => ({ ok: false, reason: "unavailable" }),
     consume: async () => ({ ok: false, reason: "unavailable" })
   });
   const app = buildApp();
@@ -301,6 +309,26 @@ test("unavailable session store fail-closes consume with 402 SESSION_UNAVAILABLE
     method: "GET",
     url: "/opportunities",
     headers: { "x-canix-session": "csess_any" }
+  });
+  assert.equal(response.statusCode, 402);
+  assert.equal(response.json().error.code, "SESSION_UNAVAILABLE");
+
+  await app.close();
+});
+
+test("GET receipt with unavailable store fail-closes 402 SESSION_UNAVAILABLE", async () => {
+  setSessionStoreForTests({
+    create: async () => ({ ok: false, reason: "unavailable" }),
+    refresh: async () => ({ ok: false, reason: "unavailable" }),
+    get: async () => ({ ok: false, reason: "unavailable" }),
+    consume: async () => ({ ok: false, reason: "unavailable" })
+  });
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "GET",
+    url: "/sessions/csess_any"
   });
   assert.equal(response.statusCode, 402);
   assert.equal(response.json().error.code, "SESSION_UNAVAILABLE");

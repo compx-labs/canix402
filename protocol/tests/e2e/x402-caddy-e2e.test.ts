@@ -12,6 +12,11 @@ import {
 import {
   X402PaymentSignaturePayload
 } from "../helpers/x402Payload.js";
+import {
+  MemorySessionStore,
+  resetSessionStoreForTests,
+  setSessionStoreForTests
+} from "../../src/services/session-store.js";
 
 const CADDY_BINARY = resolve(process.cwd(), ".bin/caddy-x402");
 const fixtures = readFixtures();
@@ -288,6 +293,58 @@ test("session header skips facilitator and fail-closes at the app", async () => 
     assert.equal(context.facilitator.calls.length, 0);
   } finally {
     await context.teardown();
+  }
+});
+
+test("empty or whitespace session header does not skip x402", async () => {
+  const context = await setup();
+  try {
+    for (const value of ["", "   "]) {
+      const response = await fetch(`${context.baseUrl}/opportunities`, {
+        headers: { "X-Canix-Session": value }
+      });
+      assert.equal(response.status, 402, `header ${JSON.stringify(value)}`);
+      const paymentRequired = response.headers.get("payment-required");
+      assert.ok(paymentRequired, `expected PAYMENT-REQUIRED for ${JSON.stringify(value)}`);
+      const text = await response.text();
+      if (text) {
+        const body = JSON.parse(text) as { error?: { code?: string } };
+        assert.equal(
+          body.error?.code?.startsWith("SESSION_") ?? false,
+          false,
+          `header ${JSON.stringify(value)} should not be a SESSION_* 402`
+        );
+      }
+    }
+    assert.equal(context.facilitator.calls.length, 0);
+  } finally {
+    await context.teardown();
+  }
+});
+
+test("valid session header skips facilitator without a SESSION_* 402", async () => {
+  const store = new MemorySessionStore();
+  setSessionStoreForTests(store);
+  const created = await store.create();
+  assert.equal(created.ok, true);
+  if (!created.ok) {
+    resetSessionStoreForTests();
+    return;
+  }
+
+  const context = await setup();
+  try {
+    const response = await fetch(`${context.baseUrl}/opportunities`, {
+      headers: { "X-Canix-Session": created.receipt.sessionId }
+    });
+    assert.notEqual(response.status, 402);
+    assert.equal(response.headers.get("payment-required"), null);
+    assert.equal(context.facilitator.calls.length, 0);
+    const remaining = response.headers.get("x-canix-session-remaining-research");
+    assert.equal(remaining, String(created.receipt.budget.research - 1));
+  } finally {
+    await context.teardown();
+    resetSessionStoreForTests();
   }
 });
 

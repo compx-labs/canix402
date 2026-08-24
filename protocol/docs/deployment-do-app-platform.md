@@ -71,7 +71,11 @@ the Caddy gate (see [`protocol/.env.example`](../.env.example)).
 
 ### Redis (opportunity cache + prepaid sessions)
 
-Optional. When `REDIS_URL` is set on the **protocol** component, aggregated
+Opportunity cache is optional. Prepaid sessions in **production** require Redis:
+`NODE_ENV=production` without `REDIS_URL` fail-closes session create (`503`) and
+consume/get (`402 SESSION_UNAVAILABLE`).
+
+When `REDIS_URL` is set on the **protocol** component, aggregated
 opportunity adapters are cached (`OPPORTUNITIES_CACHE_TTL_SEC`, default **180s /
 3 minutes** — DeFi APR/TVL does not need sub-minute churn). List responses include
 informational cache meta (`cacheEnabled`, `cacheHit`, `cachedAt`, `cacheAgeMs`,
@@ -81,8 +85,8 @@ from CompX/Orbital on a shared Redis instance:
 
 - Dedicated DB index in the URL (e.g. `redis://:password@host:6379/6`)
 - All keys use the `canix402:` prefix (e.g. `canix402:opportunities:protocol:mainnet:tinyman`)
-- Session receipts use `canix402:session:{id}` with a fail-closed TTL; production without Redis rejects session create/consume
-- Leave `REDIS_URL` unset or set `OPPORTUNITIES_CACHE_DISABLED=1` for local/dev without cache
+- Session receipts use `canix402:session:{id}` with a fail-closed TTL
+- Leave `REDIS_URL` unset or set `OPPORTUNITIES_CACHE_DISABLED=1` for local/dev without cache (sessions then use in-memory storage outside production)
 
 Never `FLUSHALL` on a shared Redis instance; `FLUSHDB` only against Canix’s DB.
 

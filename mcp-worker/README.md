@@ -34,7 +34,8 @@ Stateless remote MCP server for canix402, designed for Cloudflare Workers deploy
   - `canix_get_session` → free `GET /sessions/{sessionId}` remaining N/M
   Session-eligible paid tools accept `sessionReceipt` (`X-Canix-Session`). On
   `SESSION_*` 402, omit the header and retry with `paymentSignature`.
-- Resource `canix://session` publishes session policy (budget N/M, TTL).
+- Resource `canix://session` publishes session **policy** (budget N/M, TTL).
+- Resource `canix://session/{sessionId}` publishes remaining N/M for that receipt.
 - Exposes stateless Haystack tools:
   - `canix_get_quote` → free `POST /swaps/quote`
   - `canix_optin` → free `POST /swaps/optin`

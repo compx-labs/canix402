@@ -529,13 +529,12 @@ export function classifyEndpointAccess(
   const methodUpper = method?.toUpperCase();
 
   // POST /sessions and POST /sessions/refresh are paid one-shots.
-  // GET /sessions/:sessionId is the free receipt — but `/sessions/refresh`
-  // must not be classified as a receipt when the method is POST (or omitted).
+  // GET /sessions/:id (including the path segment "refresh") is the free receipt.
   if (pathname === SESSION_CREATE_PATH) {
     return "paid";
   }
-  if (pathname === SESSION_REFRESH_PATH) {
-    return methodUpper === "GET" ? "free" : "paid";
+  if (pathname === SESSION_REFRESH_PATH && methodUpper !== "GET") {
+    return "paid";
   }
   if (SESSION_RECEIPT_PATH.test(pathname)) {
     if (!methodUpper || methodUpper === "GET") {

@@ -6,6 +6,7 @@ import type {
   SessionBucket,
   SessionConsumeResult,
   SessionCreateResult,
+  SessionGetResult,
   SessionReceipt
 } from "../types/session.js";
 import {
@@ -28,10 +29,21 @@ export interface SessionRecord {
   remainingQuotes: number;
 }
 
+export interface SessionRedisClient {
+  get(key: string): Promise<string | null>;
+  set(key: string, value: string, expiryMode: "EX", ttl: number): Promise<unknown>;
+  eval(
+    script: string,
+    numKeys: number,
+    key: string,
+    ...args: string[]
+  ): Promise<unknown>;
+}
+
 export interface SessionStore {
   create(nowMs?: number): Promise<SessionCreateResult>;
   refresh(sessionId: string | undefined, nowMs?: number): Promise<SessionCreateResult>;
-  get(sessionId: string, nowMs?: number): Promise<SessionReceipt | null>;
+  get(sessionId: string, nowMs?: number): Promise<SessionGetResult>;
   consume(
     sessionId: string,
     bucket: SessionBucket,
@@ -161,16 +173,16 @@ export class MemorySessionStore implements SessionStore {
     return this.create(nowMs);
   }
 
-  async get(sessionId: string, nowMs = this.clock.now()): Promise<SessionReceipt | null> {
+  async get(sessionId: string, nowMs = this.clock.now()): Promise<SessionGetResult> {
     const record = this.records.get(sessionId);
     if (!record) {
-      return null;
+      return { ok: false, reason: "invalid" };
     }
     if (record.expiresAtMs <= nowMs) {
       this.records.delete(sessionId);
-      return toSessionReceipt(record, nowMs);
+      return { ok: false, reason: "expired" };
     }
-    return toSessionReceipt(record, nowMs);
+    return { ok: true, receipt: toSessionReceipt(record, nowMs) };
   }
 
   async consume(
@@ -242,11 +254,47 @@ redis.call('SET', KEYS[1], cjson.encode(session), 'EX', ttlSec)
 return {'ok', cjson.encode(session)}
 `;
 
+const REFRESH_LUA = `
+local raw = redis.call('GET', KEYS[1])
+if not raw then
+  return {'missing'}
+end
+local session = cjson.decode(raw)
+local nowMs = tonumber(ARGV[1])
+if tonumber(session.expiresAtMs) <= nowMs then
+  redis.call('DEL', KEYS[1])
+  return {'expired'}
+end
+session.expiresAtMs = tonumber(ARGV[2])
+session.ttlSeconds = tonumber(ARGV[3])
+session.budgetResearch = tonumber(ARGV[4])
+session.budgetQuotes = tonumber(ARGV[5])
+session.remainingResearch = tonumber(ARGV[4])
+session.remainingQuotes = tonumber(ARGV[5])
+local ttlSec = tonumber(ARGV[3])
+if ttlSec < 1 then
+  ttlSec = 1
+end
+redis.call('SET', KEYS[1], cjson.encode(session), 'EX', ttlSec)
+return {'ok', cjson.encode(session)}
+`;
+
+function defaultRedisClient(): SessionRedisClient | null {
+  return getOrCreateRedisClient();
+}
+
 export class RedisSessionStore implements SessionStore {
-  constructor(private readonly clock: SessionClock = defaultClock) {}
+  private readonly clock: SessionClock;
+
+  constructor(
+    clock: SessionClock = defaultClock,
+    private readonly getClient: () => SessionRedisClient | null = defaultRedisClient
+  ) {
+    this.clock = clock ?? defaultClock;
+  }
 
   async create(nowMs = this.clock.now()): Promise<SessionCreateResult> {
-    const client = getOrCreateRedisClient();
+    const client = this.getClient();
     if (!client) {
       return { ok: false, reason: "unavailable" };
     }
@@ -276,44 +324,73 @@ export class RedisSessionStore implements SessionStore {
     sessionId: string | undefined,
     nowMs = this.clock.now()
   ): Promise<SessionCreateResult> {
-    if (sessionId) {
-      const existing = await this.readRecord(sessionId);
-      if (existing && existing.expiresAtMs > nowMs) {
-        const client = getOrCreateRedisClient();
-        if (!client) {
-          return { ok: false, reason: "unavailable" };
-        }
-        const refreshed = resetSessionBudgets(existing, nowMs);
-        try {
-          await client.set(
-            sessionCacheKey(sessionId),
-            JSON.stringify(refreshed),
-            "EX",
-            remainingTtlSeconds(refreshed, nowMs)
-          );
-          return { ok: true, receipt: toSessionReceipt(refreshed, nowMs) };
-        } catch (error) {
-          getAppLogger().error(
-            {
-              event: "session_store_error",
-              op: "refresh",
-              err: error instanceof Error ? error.message : String(error)
-            },
-            "Session refresh failed"
-          );
-          return { ok: false, reason: "unavailable" };
-        }
+    if (!sessionId) {
+      return this.create(nowMs);
+    }
+    const client = this.getClient();
+    if (!client) {
+      return { ok: false, reason: "unavailable" };
+    }
+    const ttlSeconds = getSessionTtlSeconds();
+    const research = getSessionResearchBudget();
+    const quotes = getSessionQuoteBudget();
+    const expiresAtMs = nowMs + ttlSeconds * 1000;
+    try {
+      const result = (await client.eval(
+        REFRESH_LUA,
+        1,
+        sessionCacheKey(sessionId),
+        String(nowMs),
+        String(expiresAtMs),
+        String(ttlSeconds),
+        String(research),
+        String(quotes)
+      )) as string[];
+      const status = result?.[0];
+      if (status === "ok" && result[1]) {
+        const record = JSON.parse(result[1]) as SessionRecord;
+        return { ok: true, receipt: toSessionReceipt(record, nowMs) };
       }
+    } catch (error) {
+      getAppLogger().error(
+        {
+          event: "session_store_error",
+          op: "refresh",
+          err: error instanceof Error ? error.message : String(error)
+        },
+        "Session refresh failed"
+      );
+      return { ok: false, reason: "unavailable" };
     }
     return this.create(nowMs);
   }
 
-  async get(sessionId: string, nowMs = this.clock.now()): Promise<SessionReceipt | null> {
-    const record = await this.readRecord(sessionId);
-    if (!record) {
-      return null;
+  async get(sessionId: string, nowMs = this.clock.now()): Promise<SessionGetResult> {
+    const client = this.getClient();
+    if (!client) {
+      return { ok: false, reason: "unavailable" };
     }
-    return toSessionReceipt(record, nowMs);
+    try {
+      const raw = await client.get(sessionCacheKey(sessionId));
+      if (!raw) {
+        return { ok: false, reason: "invalid" };
+      }
+      const record = JSON.parse(raw) as SessionRecord;
+      if (record.expiresAtMs <= nowMs) {
+        return { ok: false, reason: "expired" };
+      }
+      return { ok: true, receipt: toSessionReceipt(record, nowMs) };
+    } catch (error) {
+      getAppLogger().error(
+        {
+          event: "session_store_error",
+          op: "get",
+          err: error instanceof Error ? error.message : String(error)
+        },
+        "Session get failed"
+      );
+      return { ok: false, reason: "unavailable" };
+    }
   }
 
   async consume(
@@ -321,7 +398,7 @@ export class RedisSessionStore implements SessionStore {
     bucket: SessionBucket,
     nowMs = this.clock.now()
   ): Promise<SessionConsumeResult> {
-    const client = getOrCreateRedisClient();
+    const client = this.getClient();
     if (!client) {
       return { ok: false, reason: "unavailable" };
     }
@@ -357,30 +434,6 @@ export class RedisSessionStore implements SessionStore {
       return { ok: false, reason: "unavailable" };
     }
   }
-
-  private async readRecord(sessionId: string): Promise<SessionRecord | null> {
-    const client = getOrCreateRedisClient();
-    if (!client) {
-      return null;
-    }
-    try {
-      const raw = await client.get(sessionCacheKey(sessionId));
-      if (!raw) {
-        return null;
-      }
-      return JSON.parse(raw) as SessionRecord;
-    } catch (error) {
-      getAppLogger().error(
-        {
-          event: "session_store_error",
-          op: "get",
-          err: error instanceof Error ? error.message : String(error)
-        },
-        "Session get failed"
-      );
-      return null;
-    }
-  }
 }
 
 class UnavailableSessionStore implements SessionStore {
@@ -392,8 +445,8 @@ class UnavailableSessionStore implements SessionStore {
     return { ok: false, reason: "unavailable" };
   }
 
-  async get(): Promise<SessionReceipt | null> {
-    return null;
+  async get(): Promise<SessionGetResult> {
+    return { ok: false, reason: "unavailable" };
   }
 
   async consume(): Promise<SessionConsumeResult> {

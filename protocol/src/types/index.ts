@@ -102,6 +102,7 @@ export type {
 } from "./discovery.js";
 export type {
   SessionBudget,
+  SessionGetResult,
   SessionPolicy,
   SessionReceipt,
   SessionStatus
