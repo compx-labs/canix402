@@ -25,7 +25,7 @@
       "receiptUriTemplate": "canix://session/{sessionId}",
       "researchBudget": 50,
       "quoteBudget": 10,
-      "ttlSeconds": 86400,
+      "ttlSeconds": 14400,
       "priceUsdc": "0.25",
       "oneShotDefault": true,
       "note": "Exact-scheme one-shots remain the default. Send X-Canix-Session with a prepaid receipt to consume N research or M quotes/plans until TTL. Create/refresh are one-shot only. Fail-closed on expiry, exhausted quota, or store unavailability."

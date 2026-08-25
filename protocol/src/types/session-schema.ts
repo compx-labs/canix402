@@ -3,7 +3,7 @@ import { Static, Type } from "@sinclair/typebox";
 export const DEFAULT_SESSION_PRICE_USDC = "0.25";
 export const DEFAULT_SESSION_RESEARCH_BUDGET = 50;
 export const DEFAULT_SESSION_QUOTE_BUDGET = 10;
-export const DEFAULT_SESSION_TTL_SECONDS = 86_400;
+export const DEFAULT_SESSION_TTL_SECONDS = 14_400;
 
 export const SessionBudgetSchema = Type.Object(
   {

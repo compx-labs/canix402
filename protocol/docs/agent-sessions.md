@@ -14,7 +14,7 @@ wallet mnemonic or signs.
 | Price | `0.25` USDC (`X402_PRICE_SESSIONS_USDC`) — same compiler band as `POST /plans` |
 | Research budget N | `50` (`X402_SESSION_RESEARCH_BUDGET`) |
 | Quotes/plans budget M | `10` (`X402_SESSION_QUOTE_BUDGET`) |
-| TTL | `86400` seconds (`X402_SESSION_TTL_SECONDS`) |
+| TTL | `14400` seconds (4 hours, `X402_SESSION_TTL_SECONDS`) |
 | Receipt URI | `canix://session/{sessionId}` |
 | Header | `X-Canix-Session: {sessionId}` |
 
