@@ -25,6 +25,13 @@ function registeredResourceUris(server: McpServer): string[] {
   );
 }
 
+function registeredResourceTemplateNames(server: McpServer): string[] {
+  return Object.keys(
+    (server as unknown as { _registeredResourceTemplates: Record<string, unknown> })
+      ._registeredResourceTemplates
+  );
+}
+
 function encodePaymentRequired(amount = "10000"): string {
   return Buffer.from(
     JSON.stringify({
@@ -658,8 +665,10 @@ test("MCP resources include discovery openapi and shapes", async () => {
   assert.deepEqual(uris, [
     "canix://discovery",
     "canix://execution-shapes",
-    "canix://openapi"
+    "canix://openapi",
+    "canix://session"
   ]);
+  assert.deepEqual(registeredResourceTemplateNames(server).sort(), ["session-receipt"]);
 
   await server.close();
 });

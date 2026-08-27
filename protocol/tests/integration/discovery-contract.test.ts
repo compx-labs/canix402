@@ -59,6 +59,10 @@ test("discovery includes every endpoint in policy matrix", async () => {
   // Agent discovery metadata: advertises MCP tooling without invoking the MCP server.
   assert.ok(payload.data.capabilities.includes("mcp-server"));
   assert.ok(payload.data.capabilities.includes("haystack-swaps"));
+  assert.ok(payload.data.capabilities.includes("prepaid-sessions"));
+  assert.ok(payload.data.sessionPolicy);
+  assert.equal(payload.data.sessionPolicy.header, "X-Canix-Session");
+  assert.equal(payload.data.sessionPolicy.oneShotDefault, true);
   const quote = payload.data.endpoints.find((endpoint) => endpoint.id === "haystackSwapQuote");
   const optIn = payload.data.endpoints.find((endpoint) => endpoint.id === "haystackSwapOptIn");
   const transactions = payload.data.endpoints.find(
@@ -74,6 +78,10 @@ test("discovery includes every endpoint in policy matrix", async () => {
   assert.equal(transactions?.x402?.requirementTemplate.maxAmountRequired, "0.005");
   assert.equal(pricing?.access, "free");
   assert.deepEqual(pricing?.responseCodes, [200, 400, 502]);
+  const sessionsReceipt = payload.data.endpoints.find(
+    (endpoint) => endpoint.id === "sessionsReceipt"
+  );
+  assert.deepEqual(sessionsReceipt?.responseCodes, [200, 402]);
   assert.equal(payload.data.mcpServer?.transport, MCP_SERVER_TRANSPORT);
   assert.equal(payload.data.mcpServer?.url, MCP_SERVER_REMOTE_URL);
   assert.deepEqual(
@@ -101,7 +109,7 @@ test("well-known x402 manifest lists paid resources and indexing links", async (
   );
   const manifestPaths = manifest.resources.map((resource) => resource.path).sort();
   const paidPolicyPaths = paidPolicyEndpoints
-    .map((endpoint) => endpoint.pathPattern.replace(":protocol", "{protocol}"))
+    .map((endpoint) => endpoint.pathPattern.replace(/:([A-Za-z]+)/g, "{$1}"))
     .sort();
 
   assert.equal(manifest.service, "canix402");

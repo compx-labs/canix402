@@ -37,6 +37,11 @@ Initial protocol coverage:
   - GoPlausible x402 facilitator
   - Nodely Caddy implementation
 
+Prepaid **agent sessions** are a second money model: one compiler-priced x402
+payment mints a walletless receipt (`canix://session/{id}`) that unlocks N
+research calls and M quotes/plans for a TTL. Exact-scheme one-shots remain the
+default. See [`agent-sessions.md`](./agent-sessions.md).
+
 Gateway configuration ownership:
 
 - Each x402 integration keeps its own project-specific Caddyfile and run wiring.

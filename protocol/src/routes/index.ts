@@ -12,6 +12,7 @@ import { registerPricingRoutes } from "./pricing.js";
 import { registerProtocolRoutes } from "./protocols.js";
 import { registerPublicAgentRoutes } from "./public-agents.js";
 import { registerSwapRoutes } from "./swaps.js";
+import { registerSessionRoutes } from "./sessions.js";
 
 export function registerRoutes(app: FastifyInstance) {
   registerAssetRoutes(app);
@@ -26,4 +27,5 @@ export function registerRoutes(app: FastifyInstance) {
   registerPricingRoutes(app);
   registerProtocolRoutes(app);
   registerSwapRoutes(app);
+  registerSessionRoutes(app);
 }

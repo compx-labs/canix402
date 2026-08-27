@@ -47,6 +47,22 @@ Treat amounts without a decimal point as base units. USDC has six decimals, so
 `10000` is 0.01 USDC. Never substitute a documented price for the live
 `PAYMENT_REQUIRED` amount.
 
+## Prepaid sessions (optional second money model)
+
+Exact-scheme one-shots remain the default. Operators who would otherwise spray
+tiny USDC transfers can buy one session instead:
+
+1. Call `canix_create_session` without `paymentSignature`, then retry with it
+   (~0.25 USDC). The result is a walletless receipt (`canix://session/{id}`).
+2. Pass that id as `sessionReceipt` on research/quote tools (`X-Canix-Session`).
+3. Read remaining N/M with `canix_get_session` or resource `canix://session/{sessionId}`. `canix://session` is policy only (budget/TTL), not remaining quota.
+4. Create/refresh cannot be paid with a session. On `SESSION_EXPIRED`,
+   `SESSION_EXHAUSTED`, or `SESSION_INVALID`, **omit** `sessionReceipt` and
+   either refresh (`canix_refresh_session`) or retry with `paymentSignature`.
+   Caddy skips x402 when `X-Canix-Session` starts with `csess_`, so a stale header
+   must be dropped before a one-shot will work. If both `paymentSignature` and
+   `sessionReceipt` are passed, the payment wins and the session header is omitted.
+
 ## Remote signing model
 
 Do not assume the remote MCP exposes an npm package or has access to a wallet.

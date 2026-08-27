@@ -1,0 +1,18 @@
+{
+  "data": {
+    "uri": "canix://session/csess_demo",
+    "sessionId": "csess_demo",
+    "createdAt": "2026-08-24T12:00:00.000Z",
+    "expiresAt": "2026-08-24T16:00:00.000Z",
+    "ttlSeconds": 14400,
+    "budget": { "research": 50, "quotes": 10 },
+    "remaining": { "research": 49, "quotes": 10 },
+    "consumed": { "research": 1, "quotes": 0 },
+    "status": "active"
+  },
+  "meta": {
+    "paymentRequired": false,
+    "access": "receipt",
+    "receiptUri": "canix://session/csess_demo"
+  }
+}

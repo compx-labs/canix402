@@ -110,6 +110,32 @@ test("paid tool returns PAYMENT_REQUIRED metadata on preflight", async () => {
   assert.match(text.text, /paymentRequiredHeader/);
 });
 
+test("canix_list_opportunities omits session header when paymentSignature is set", async () => {
+  let sessionHeader = "";
+  let paymentSignature = "";
+  const server = createCanixWorkerMcpServer({
+    config: {
+      gatewayUrl: "https://gateway.example",
+      publicUrl: "https://mcp.example/mcp",
+      network: "algorand-mainnet"
+    },
+    fetchImpl: async (_input, init) => {
+      const headers = init?.headers as Record<string, string> | undefined;
+      sessionHeader = headers?.["X-Canix-Session"] ?? "";
+      paymentSignature = headers?.["PAYMENT-SIGNATURE"] ?? "";
+      return new Response("{}", { status: 200 });
+    }
+  });
+
+  await registeredTools(server).canix_list_opportunities!.handler(
+    { paymentSignature: "signed-payload", sessionReceipt: "csess_stale" },
+    {}
+  );
+
+  assert.equal(paymentSignature, "signed-payload");
+  assert.equal(sessionHeader, "");
+});
+
 test("canix_get_positions forwards address and reports 0.005 preflight price", async () => {
   let requestUrl = "";
   let paymentSignature = "";

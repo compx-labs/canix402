@@ -101,6 +101,27 @@ export type {
   DiscoveryErrorDescriptor
 } from "./discovery.js";
 export type {
+  SessionBudget,
+  SessionGetResult,
+  SessionPolicy,
+  SessionReceipt,
+  SessionStatus
+} from "./session.js";
+export {
+  DEFAULT_SESSION_PRICE_USDC,
+  DEFAULT_SESSION_QUOTE_BUDGET,
+  DEFAULT_SESSION_RESEARCH_BUDGET,
+  DEFAULT_SESSION_TTL_SECONDS,
+  SessionReceiptSchema,
+  SessionRefreshRequestSchema,
+  SessionResponseSchema
+} from "./session-schema.js";
+export type {
+  SessionReceiptDto,
+  SessionRefreshRequest,
+  SessionResponse
+} from "./session-schema.js";
+export type {
   HaystackQuote,
   SwapOptInRequest,
   SwapOptInResponse,

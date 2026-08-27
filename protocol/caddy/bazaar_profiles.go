@@ -348,6 +348,48 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 			},
 		)
 
+	case "sessions":
+		return bazaar.DeclareDiscoveryExtension(
+			bazaar.MethodPOST,
+			map[string]interface{}{},
+			bazaar.JSONSchema{
+				"type":       "object",
+				"properties": map[string]interface{}{},
+			},
+			bazaar.BodyTypeJSON,
+			&bazaar.OutputConfig{
+				Example: map[string]interface{}{
+					"data": map[string]interface{}{
+						"sessionId": "csess_example",
+						"status":    "active",
+					},
+				},
+			},
+		)
+
+	case "sessions_refresh":
+		return bazaar.DeclareDiscoveryExtension(
+			bazaar.MethodPOST,
+			map[string]interface{}{
+				"sessionId": "csess_example",
+			},
+			bazaar.JSONSchema{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"sessionId": map[string]interface{}{"type": "string"},
+				},
+			},
+			bazaar.BodyTypeJSON,
+			&bazaar.OutputConfig{
+				Example: map[string]interface{}{
+					"data": map[string]interface{}{
+						"sessionId": "csess_example",
+						"status":    "active",
+					},
+				},
+			},
+		)
+
 	default:
 		return bazaar.DiscoveryExtension{}, fmt.Errorf("unknown bazaar_profile %q", profile)
 	}
@@ -368,5 +410,7 @@ func knownBazaarProfiles() []string {
 		"plans_rebalance",
 		"execution_compose",
 		"execution_simulate",
+		"sessions",
+		"sessions_refresh",
 	}
 }
