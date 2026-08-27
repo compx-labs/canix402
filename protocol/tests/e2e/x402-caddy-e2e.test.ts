@@ -209,6 +209,8 @@ test("execution simulate endpoint advertises exactly 100000 micro-USDC", async (
     await context.teardown();
   }
 });
+
+test("positions/claimable endpoint advertises exactly 1000 micro-USDC", async () => {
   const context = await setup();
   try {
     const response = await fetch(
