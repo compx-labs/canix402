@@ -215,7 +215,7 @@ test("execution simulate endpoint advertises exactly 100000 micro-USDC", async (
   }
 });
 
-test("claimable positions endpoint advertises exactly 1000 micro-USDC", async () => {
+test("positions/claimable endpoint advertises exactly 1000 micro-USDC", async () => {
   const context = await setup();
   try {
     const response = await fetch(

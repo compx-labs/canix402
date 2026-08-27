@@ -15,14 +15,14 @@
   },
   "dependencies": {
     "@canix402/x402-client": "*",
-    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260708.1",
-    "@types/node": "^24.0.10",
-    "tsx": "^4.20.3",
+    "@cloudflare/workers-types": "^5.20260823.1",
+    "@types/node": "^24.13.3",
+    "tsx": "^4.23.12",
     "typescript": "^5.8.3",
-    "wrangler": "^4.86.0"
+    "wrangler": "^4.125.0"
   }
 }
