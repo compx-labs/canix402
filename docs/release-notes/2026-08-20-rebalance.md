@@ -1,14 +1,14 @@
 ---
 title: "Rebalance / delta quotes"
 date: "2026-08-20"
-version: "1.5.0"
+version: "1.6.0"
 ---
 
 # Rebalance / delta quotes
 
 **Date:** 20 August 2026
 
-Protocol **1.5.0**. Agents can request a **delta** plan against the current book — target weights, or harvest idle ALGO / claim and redeploy — instead of a full unwind-and-rebuild. Canix still never holds keys or submits transactions.
+Protocol **1.6.0**. Agents can request a **delta** plan against the current book — target weights, or harvest idle ALGO / claim and redeploy — instead of a full unwind-and-rebuild. Canix still never holds keys or submits transactions.
 
 ## What shipped
 
