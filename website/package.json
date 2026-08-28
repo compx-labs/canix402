@@ -16,6 +16,10 @@
     "snapshot:responses": "tsx ../protocol/scripts/export-opportunity-snapshots.ts"
   },
   "dependencies": {
+    "@txnlab/use-wallet": "^5.0.0",
+    "@txnlab/use-wallet-defly": "^5.0.0",
+    "@txnlab/use-wallet-pera": "^5.0.0",
+    "algosdk": "3.6.0",
     "astro": "^5.7.10"
   },
   "devDependencies": {

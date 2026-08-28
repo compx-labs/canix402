@@ -1827,3 +1827,64 @@ main {
   margin-left: 0.4rem;
   font-size: 0.85rem;
 }
+
+.webmcp-wallet-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.webmcp-wallet-row .button img {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.webmcp-wallet-row .button:disabled,
+.button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.webmcp-checkout-note {
+  margin: 0.75rem 0 0;
+  color: var(--color-success);
+}
+
+.webmcp-checkout-error {
+  margin-top: 1rem;
+  white-space: pre-wrap;
+  color: #ffb4b8;
+}
+
+.webmcp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.75rem 0;
+}
+
+.webmcp-field label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.webmcp-field input,
+.webmcp-field textarea,
+.webmcp-field select {
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+.webmcp-run-result {
+  margin-top: 1rem;
+  max-height: 22rem;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+

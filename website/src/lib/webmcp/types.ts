@@ -64,10 +64,40 @@ export interface WebMcpRegistrationStatus {
   failed: Array<{ name: string; error: string }>;
 }
 
+export interface SessionBudget {
+  research: number;
+  quotes: number;
+}
+
+export type SessionStatus = "active" | "expired" | "exhausted";
+
+/** 13.8 prepaid session receipt (walletless; not a key). */
+export interface SessionReceipt {
+  uri: string;
+  sessionId: string;
+  createdAt: string;
+  expiresAt: string;
+  ttlSeconds: number;
+  budget: SessionBudget;
+  remaining: SessionBudget;
+  consumed: SessionBudget;
+  status: SessionStatus;
+}
+
+/** Remaining N/M surfaced from consume headers or a receipt body. */
+export interface SessionQuota {
+  remainingResearch: number;
+  remainingQuotes: number;
+  expiresAt?: string;
+}
+
 export interface GatewayCallResult {
   status: number;
   body: unknown;
   paymentRequiredHeader: string | null;
   paymentResponseHeader: string | null;
   paymentRequired: Record<string, unknown> | null;
+  sessionRemainingResearch: string | null;
+  sessionRemainingQuotes: string | null;
+  sessionExpiresAt: string | null;
 }

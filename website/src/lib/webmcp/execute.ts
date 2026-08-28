@@ -4,7 +4,7 @@ import {
   microUsdcToUsdc,
   sessionErrorFromBody
 } from "./payment";
-import type { GatewayCallResult, WebMcpToolSpec } from "./types";
+import type { GatewayCallResult, SessionQuota, WebMcpToolSpec } from "./types";
 
 export interface ExecuteCanixToolOptions {
   gatewayBaseUrl: string;
@@ -194,7 +194,10 @@ async function callGateway(
     paymentResponseHeader: response.headers.get("payment-response"),
     paymentRequired: paymentRequiredHeader
       ? decodePaymentRequiredHeader(paymentRequiredHeader)
-      : null
+      : null,
+    sessionRemainingResearch: response.headers.get("x-canix-session-remaining-research"),
+    sessionRemainingQuotes: response.headers.get("x-canix-session-remaining-quotes"),
+    sessionExpiresAt: response.headers.get("x-canix-session-expires-at")
   };
 }
 
@@ -237,7 +240,8 @@ function mapGatewayResult(
           arg: "paymentSignature",
           header: "PAYMENT-SIGNATURE"
         },
-        gatewayResponse: result.body
+        gatewayResponse: result.body,
+        ...withSessionQuota(result, result.body)
       };
     }
     return {
@@ -262,6 +266,8 @@ function mapGatewayResult(
     };
   }
 
+  const quotaFields = withSessionQuota(result, result.body);
+
   if (tool.access === "paid") {
     const mcpPayment = {
       required: false,
@@ -274,16 +280,80 @@ function mapGatewayResult(
     if (result.body && typeof result.body === "object" && !Array.isArray(result.body)) {
       return {
         ...(result.body as Record<string, unknown>),
-        mcpPayment
+        mcpPayment,
+        ...quotaFields
       };
     }
     return {
       data: result.body,
-      mcpPayment
+      mcpPayment,
+      ...quotaFields
+    };
+  }
+
+  if (quotaFields.sessionQuota && result.body && typeof result.body === "object" && !Array.isArray(result.body)) {
+    return {
+      ...(result.body as Record<string, unknown>),
+      ...quotaFields
     };
   }
 
   return result.body;
+}
+
+export function sessionQuotaFromGateway(
+  result: Pick<
+    GatewayCallResult,
+    "sessionRemainingResearch" | "sessionRemainingQuotes" | "sessionExpiresAt" | "body"
+  >,
+  body: unknown = result.body
+): SessionQuota | undefined {
+  const researchHeader = result.sessionRemainingResearch;
+  const quotesHeader = result.sessionRemainingQuotes;
+  if (researchHeader != null && quotesHeader != null && researchHeader !== "" && quotesHeader !== "") {
+    const remainingResearch = Number(researchHeader);
+    const remainingQuotes = Number(quotesHeader);
+    if (Number.isFinite(remainingResearch) && Number.isFinite(remainingQuotes)) {
+      return {
+        remainingResearch,
+        remainingQuotes,
+        expiresAt: result.sessionExpiresAt && result.sessionExpiresAt.length > 0 ? result.sessionExpiresAt : undefined
+      };
+    }
+  }
+  return quotaFromReceiptBody(body);
+}
+
+function withSessionQuota(
+  result: GatewayCallResult,
+  body: unknown
+): { sessionQuota?: SessionQuota } {
+  const sessionQuota = sessionQuotaFromGateway(result, body);
+  return sessionQuota ? { sessionQuota } : {};
+}
+
+function quotaFromReceiptBody(body: unknown): SessionQuota | undefined {
+  if (!body || typeof body !== "object") {
+    return undefined;
+  }
+  const record = body as { data?: unknown; remaining?: unknown; expiresAt?: unknown };
+  const source =
+    record.data && typeof record.data === "object" ? (record.data as Record<string, unknown>) : record;
+  const remaining = source.remaining;
+  if (!remaining || typeof remaining !== "object") {
+    return undefined;
+  }
+  const remainingResearch = Number((remaining as { research?: unknown }).research);
+  const remainingQuotes = Number((remaining as { quotes?: unknown }).quotes);
+  if (!Number.isFinite(remainingResearch) || !Number.isFinite(remainingQuotes)) {
+    return undefined;
+  }
+  const expiresAt = source.expiresAt;
+  return {
+    remainingResearch,
+    remainingQuotes,
+    expiresAt: typeof expiresAt === "string" && expiresAt.length > 0 ? expiresAt : undefined
+  };
 }
 
 function parseBodyOrText(raw: string): unknown {

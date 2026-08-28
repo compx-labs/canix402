@@ -92,13 +92,78 @@ const paidCount = WEBMCP_TOOLS.length - freeCount;
     </div>
   </section>
 
+  <section class="panel" data-webmcp-checkout>
+    <h2>Human session checkout</h2>
+    <p>
+      People buy a prepaid 13.8 session here with a connected wallet and USDC. Connect via
+      TxnLab <strong>use-wallet</strong> (Pera or Defly), pay once, and hold a walletless
+      receipt: N research + M quotes/plans until TTL. The wallet is only for this checkout.
+      Agents stay walletless — sessions are receipts, not keys. Humans on this page do not
+      use per-request x402.
+    </p>
+    <div class="webmcp-wallet-row">
+      <button type="button" class="button" data-connect="pera">
+        <img data-connect-icon alt="" hidden width="20" height="20" />
+        <span data-connect-label>Connect Pera</span>
+      </button>
+      <button type="button" class="button" data-connect="defly">
+        <img data-connect-icon alt="" hidden width="20" height="20" />
+        <span data-connect-label>Connect Defly</span>
+      </button>
+      <button type="button" class="button button-ghost" data-disconnect hidden>Disconnect</button>
+    </div>
+    <div class="webmcp-status-grid">
+      <div class="webmcp-status-card">
+        <p class="muted">Wallet</p>
+        <p class="webmcp-status-value" data-wallet-status>Disconnected</p>
+        <p class="muted mono" data-wallet-address>Not connected</p>
+      </div>
+      <div class="webmcp-status-card">
+        <p class="muted">Remaining research N</p>
+        <p class="webmcp-status-value" data-remaining-research>—</p>
+      </div>
+      <div class="webmcp-status-card">
+        <p class="muted">Remaining quotes/plans M</p>
+        <p class="webmcp-status-value" data-remaining-quotes>—</p>
+      </div>
+      <div class="webmcp-status-card">
+        <p class="muted">Session</p>
+        <p class="webmcp-status-value" data-session-status>none</p>
+        <p class="muted mono" data-session-id>None</p>
+        <p class="muted" data-session-expires>—</p>
+      </div>
+    </div>
+    <div class="webmcp-wallet-row">
+      <button type="button" class="button button-primary" data-buy-session disabled>
+        Buy session (USDC)
+      </button>
+      <button type="button" class="button" data-refresh-session disabled>
+        Refresh session
+      </button>
+      <button type="button" class="button button-ghost" data-read-session disabled>
+        Read remaining
+      </button>
+      <button type="button" class="button button-ghost" data-apply-demo-session hidden>
+        Apply mocked session
+      </button>
+    </div>
+    <p class="muted webmcp-status-note">
+      Checkout calls the existing <code>canix_create_session</code> /
+      <code>canix_refresh_session</code> / <code>canix_get_session</code> tools. Rejected
+      payment, expiry, and exhausted quota fail closed.
+    </p>
+    <p class="webmcp-checkout-note" data-checkout-note hidden></p>
+    <pre class="code-block webmcp-checkout-error" data-checkout-error hidden></pre>
+  </section>
+
   <section class="panel">
     <h2>Execute</h2>
     <p>
-      <code>execute</code> calls the live Canix gateway from this origin. Paid tools fail closed
-      with machine-readable <code>PAYMENT_REQUIRED</code> or <code>SESSION_*</code> JSON until a
-      per-request signature or prepaid session receipt is presented. Human wallet checkout and live
-      paid runs are later tickets — this page does not take keys.
+      <code>execute</code> calls the live Canix gateway from this origin. Agents present
+      per-request <code>PAYMENT-SIGNATURE</code> or a prepaid session receipt. Humans on this
+      page buy a session above and do not spray per-request USDC. Paid tools fail closed with
+      machine-readable <code>PAYMENT_REQUIRED</code> or <code>SESSION_*</code> JSON. Canix does
+      not sign or submit.
     </p>
     <ul>
       <li>Gateway: <code>{config.gatewayBaseUrl}</code></li>
@@ -117,6 +182,7 @@ const paidCount = WEBMCP_TOOLS.length - freeCount;
 
   <script>
     import { registerCanixWebMcpTools } from "../lib/webmcp/register";
+    import { mountWebmcpPage } from "../lib/webmcp/page-app";
 
     const root = document.querySelector<HTMLElement>("#webmcp-root");
     const apiEl = document.querySelector<HTMLElement>("[data-webmcp-api]");
@@ -168,5 +234,7 @@ const paidCount = WEBMCP_TOOLS.length - freeCount;
         badge.dataset.webmcpRegistration = "failed";
       }
     });
+
+    await mountWebmcpPage({ gatewayBaseUrl: gateway });
   </script>
 </BaseLayout>
