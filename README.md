@@ -47,6 +47,15 @@ npm run preview -w website
 
 Copy `website/.env.example` to `website/.env` for local gateway/discovery URLs.
 
+## License
+
+MIT. Same text as other CompX labs public repos (`brownie-bot`, `staking-contracts`).
+Copyright (c) 2026 Neon Forge Ltd.
+
+GitHub detects the license from the root [`LICENSE`](LICENSE) file once the
+repository is **public** (challenge rule). This repo is still private until a
+human changes visibility in GitHub Settings.
+
 ## Validation
 
 ```sh

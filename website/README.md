@@ -114,22 +114,40 @@ Local Chrome: enable `chrome://flags/#enable-webmcp-testing`.
 
 ## Deployment (canix402.compx.io)
 
-Recommended static hosting: Cloudflare Pages, Vercel, or existing CompX static host.
+The live site is a **DigitalOcean App Platform** static website behind Cloudflare
+(`x-do-app-origin` on responses). It is not Cloudflare Pages, so `public/_headers`
+is copied into `dist/` as a file and does **not** automatically become HTTP headers.
 
+- **Public URL:** https://canix402.compx.io/webmcp (no login wall)
 - **Build command:** `npm run build:website` (from repo root)
 - **Publish directory:** `website/dist`
-- **Production env vars:**
-  - `PUBLIC_GATEWAY_BASE_URL=https://canix402-api.compx.io` (live Caddy gateway URL)
-  - `PUBLIC_DISCOVERY_URL=https://canix402-api.compx.io/discovery`
-  - `PUBLIC_OPENAPI_URL=https://canix402-api.compx.io/openapi.json`
-  - `PUBLIC_MCP_URL=https://canix402-mcp.compx.io/mcp` (remote MCP endpoint)
-  - `PUBLIC_MCP_WELL_KNOWN_URL=https://canix402-mcp.compx.io/.well-known/mcp`
+- **Production env vars:** keep the existing `PUBLIC_*` gateway / MCP URLs the website component already uses.
+
+`/webmcp` is in this branch. Production still 404s until the website component is
+rebuilt from a git ref that contains it. This agent cannot merge PR 95 or trigger
+App Platform.
+
+### Human steps to ship `/webmcp` (NEO-308)
+
+1. Merge [PR 95](https://github.com/compx-labs/canix402/pull/95) `webmcp` → `dev`.
+2. If the website component tracks `main`, merge `dev` → `main` as you usually promote the site.
+3. In DigitalOcean App Platform, **Force rebuild and deploy** the **website** component (same app that already serves `canix402.compx.io`; last static objects were dated 17 Aug 2026).
+4. Cloudflare already proxies TLS. Add a Configuration / Transform Rule for hostname `canix402.compx.io` and URI Path starting with `/webmcp`:
+   - `Permissions-Policy: tools=(self), document-domain=()`
+   - `Origin-Agent-Cluster: ?1`
+5. Verify (no login):
+   ```sh
+   curl -sS -o /dev/null -w "%{http_code}\n" https://canix402.compx.io/webmcp
+   ```
+   Expect `200`. Open the URL in Chrome with `chrome://flags/#enable-webmcp-testing` or ChatGPT’s in-app browser.
+6. Make `compx-labs/canix402` **public** (GitHub Settings → Change repository visibility) so judges can see the MIT `LICENSE`.
+
+Checkout and execute on `/webmcp` already call the live Caddy gateway. After the static deploy, humans and agents use that same production host.
 
 After deploy:
 
-1. Point DNS for `canix402.compx.io` (or chosen subdomain) to the static host.
-2. Add a link from the main [compx.io](https://compx.io) site navigation/footer.
-3. Verify `/`, `/quickstart`, `/endpoints`, and `/examples` render with live discovery links.
+1. Confirm `/webmcp` is linked from the site header (already in this branch).
+2. Verify `/`, `/quickstart`, `/endpoints`, `/mcp`, and `/webmcp` render.
 
 ## Brand assets
 

@@ -275,3 +275,12 @@ test("source never relaxes document.domain", () => {
   }
   assert.equal(isOriginIsolated(), true);
 });
+
+test("repo LICENSE is MIT and WebMCP ships isolation headers", () => {
+  const license = readFileSync(resolve(websiteRoot, "../LICENSE"), "utf-8");
+  assert.equal(license.startsWith("MIT License"), true);
+  assert.equal(license.includes("Neon Forge Ltd"), true);
+  const headers = readFileSync(resolve(websiteRoot, "public/_headers"), "utf-8");
+  assert.equal(headers.includes("Permissions-Policy: tools=(self), document-domain=()"), true);
+  assert.equal(headers.includes("Origin-Agent-Cluster: ?1"), true);
+});

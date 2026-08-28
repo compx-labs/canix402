@@ -1,6 +1,7 @@
 {
   "name": "canix402",
   "private": true,
+  "license": "MIT",
   "workspaces": [
     "protocol",
     "website",
