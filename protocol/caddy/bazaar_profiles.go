@@ -141,6 +141,43 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 			},
 		)
 
+	case "policy_validate":
+		return bazaar.DeclareDiscoveryExtension(
+			bazaar.MethodPOST,
+			map[string]interface{}{
+				"policy": map[string]interface{}{
+					"schemaVersion": "1.0.0",
+					"noNewBorrows":  true,
+				},
+				"quotes": []interface{}{
+					map[string]interface{}{
+						"shapeKey": "mainnet:reti:v1:stake:algo",
+						"protocol": "reti",
+					},
+				},
+			},
+			bazaar.JSONSchema{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"policy":               map[string]interface{}{"type": "object"},
+					"plan":                 map[string]interface{}{"type": "object"},
+					"quotes":               map[string]interface{}{"type": "array"},
+					"walletAlgoMicroAlgos": map[string]interface{}{"type": "string"},
+					"evaluatedAt":          map[string]interface{}{"type": "string"},
+				},
+				"required": []string{"policy"},
+			},
+			bazaar.BodyTypeJSON,
+			&bazaar.OutputConfig{
+				Example: map[string]interface{}{
+					"data": map[string]interface{}{
+						"pass":    false,
+						"reasons": []interface{}{},
+					},
+				},
+			},
+		)
+
 	case "positions":
 		return bazaar.DeclareDiscoveryExtension(
 			bazaar.MethodGET,
@@ -402,6 +439,7 @@ func knownBazaarProfiles() []string {
 		"opportunities_personalized",
 		"eligibility",
 		"plans",
+		"policy_validate",
 		"positions",
 		"positions_claimable",
 		"protocol_opportunities",
