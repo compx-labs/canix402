@@ -11,6 +11,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "typecheck": "astro check",
+    "test": "tsx --test tests/*.test.ts",
     "snapshot:discovery": "tsx ../protocol/scripts/export-discovery-snapshot.ts",
     "snapshot:responses": "tsx ../protocol/scripts/export-opportunity-snapshots.ts"
   },

@@ -80,6 +80,19 @@ import { config } from "../lib/config";
     </article>
 
     <article class="faq-item">
+      <h2>What is the WebMCP demo page?</h2>
+      <p>
+        <a href="/webmcp">/webmcp</a> registers the same Canix MCP tools in the page via
+        <code>document.modelContext.registerTool</code> (with
+        <code>navigator.modelContext</code> as a fallback). People see the tool list; agents in
+        ChatGPT’s in-app browser or Chrome with
+        <code>chrome://flags/#enable-webmcp-testing</code> discover it through WebMCP. Canix does
+        not sign or submit. Origin isolation is required — the page never relaxes
+        <code>document.domain</code>.
+      </p>
+    </article>
+
+    <article class="faq-item">
       <h2>How do I test locally?</h2>
       <p>
         Run the protocol API and Caddy gateway from the monorepo, then point website env vars to

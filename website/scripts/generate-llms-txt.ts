@@ -111,7 +111,9 @@ function needsSecretScanPragma(path: string): boolean {
     path === "/plans" ||
     path === "/plans/rebalance" ||
     path === "/execution/compose" ||
-    path === "/execution/simulate"
+    path === "/execution/simulate" ||
+    path === "/sessions" ||
+    path === "/sessions/refresh"
   );
 }
 
@@ -142,11 +144,13 @@ Use the **Caddy gateway** (\`${GATEWAY}\`) for all API calls. Discovery, executi
 - [OpenAPI](${GATEWAY}/openapi.json): schemas, query parameters, response examples
 - [x402 manifest](${GATEWAY}/.well-known/x402.json): directory indexing surface for agent tooling and x402 directories
 - [MCP server](${docs}/mcp): remote Streamable HTTP MCP at \`${MCP_URL}\` (walletless pass-through)
+- [WebMCP demo](${docs}/webmcp): same MCP tools registered in-page via the WebMCP imperative API
 
 ## Integration guides
 
 - [Quickstart](${docs}/quickstart): agent onboarding (MCP or direct HTTP)
 - [MCP setup](${docs}/mcp): connect to \`${MCP_URL}\`, paid-tool paymentSignature retry
+- [WebMCP demo](${docs}/webmcp): \`document.modelContext.registerTool\` (Chrome) / \`navigator.modelContext\` fallback; fail-closed execute
 - [x402 payment flow](${docs}/x402): preflight 402, sign USDC transfer, retry with PAYMENT-SIGNATURE
 - [Examples](${docs}/examples): copy-paste curl and sample payloads
 - [Endpoint catalog](${docs}/endpoints): human-readable route table sourced from discovery
@@ -223,6 +227,7 @@ Opportunity responses are normalized records with fields such as \`protocol\`, \
 | OpenAPI | ${GATEWAY}/openapi.json |
 | x402 manifest | ${GATEWAY}/.well-known/x402.json |
 | MCP server | ${DOCS_SITE}/mcp (remote \`${MCP_URL}\`, streamable-http) |
+| WebMCP demo | ${DOCS_SITE}/webmcp |
 | LLM index | ${DOCS_SITE}/llms.txt |
 
 Always call the **gateway**, not an internal upstream API. x402 enforcement, \`PAYMENT-REQUIRED\`, and settlement happen at the gateway edge.

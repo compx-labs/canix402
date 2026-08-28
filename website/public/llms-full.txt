@@ -22,13 +22,14 @@ Opportunity responses are normalized records with fields such as `protocol`, `op
 | OpenAPI | https://canix402-api.compx.io/openapi.json |
 | x402 manifest | https://canix402-api.compx.io/.well-known/x402.json |
 | MCP server | https://canix402.compx.io/mcp (remote `https://canix402-mcp.compx.io/mcp`, streamable-http) |
+| WebMCP demo | https://canix402.compx.io/webmcp |
 | LLM index | https://canix402.compx.io/llms.txt |
 
 Always call the **gateway**, not an internal upstream API. x402 enforcement, `PAYMENT-REQUIRED`, and settlement happen at the gateway edge.
 
 ### MCP server
 
-Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_list_execution_shapes`, `canix_get_positions`, `canix_list_claimable`, `canix_check_eligibility`, `canix_get_plan`, `canix_get_rebalance_plan`, `canix_compose_enter`, `canix_get_execution_quote`, `canix_simulate_execution`, and free discovery helpers. See https://canix402.compx.io/mcp.  # pragma: allowlist secret
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_list_execution_shapes`, `canix_get_positions`, `canix_list_claimable`, `canix_check_eligibility`, `canix_get_plan`, `canix_get_rebalance_plan`, `canix_compose_enter`, `canix_get_execution_quote`, `canix_simulate_execution`, `canix_create_session`, `canix_refresh_session`, `canix_get_session`, and free discovery helpers. Prepaid sessions: one x402 payment unlocks N research + M quotes/plans for a TTL (`sessionReceipt` / `X-Canix-Session`); one-shots remain the default. See https://canix402.compx.io/mcp.  # pragma: allowlist secret
 
 ## x402 payment flow
 
@@ -84,6 +85,9 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `POST /execution/quotes` (0.1 USDC) — Compile one or more verified transaction shapes into unsigned Algorand transaction groups.
 - `POST /execution/compose` (0.1 USDC) — Compose opt-in → Haystack swap → enter as unmerged unsigned groups.  # pragma: allowlist secret
 - `POST /execution/simulate` (0.1 USDC) — Simulate compiled unsigned groups for predicted balance and position deltas.  # pragma: allowlist secret
+- `POST /sessions` (0.25 USDC) — Buy a prepaid agent session receipt.  # pragma: allowlist secret
+- `POST /sessions/refresh` (0.25 USDC) — Refresh a prepaid agent session receipt.  # pragma: allowlist secret
+- `GET /sessions/:sessionId` (Free) — Read prepaid session remaining N/M. Params: :sessionId.
 
 ### Route notes
 
@@ -111,6 +115,10 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
 - `MISSING_PAYMENT_SIGNATURE` (HTTP 402) — The paid endpoint was called without PAYMENT-SIGNATURE.
 - `MALFORMED_PAYMENT_SIGNATURE` (HTTP 402) — PAYMENT-SIGNATURE payload is malformed.
 - `EXPIRED_PAYMENT_PROOF` (HTTP 402) — PAYMENT-SIGNATURE proof has expired.
+- `SESSION_INVALID` (HTTP 402) — X-Canix-Session is unknown. Omit the header and pay per request, or buy a new session.
+- `SESSION_EXPIRED` (HTTP 402) — Prepaid session TTL has elapsed. Fail-closed; one-shots still work without the session header.
+- `SESSION_EXHAUSTED` (HTTP 402) — Prepaid session N/M quota is exhausted. Fail-closed; refresh with POST /sessions/refresh or pay per request.
+- `SESSION_UNAVAILABLE` (HTTP 402) — Session store is unavailable. Fail-closed; omit X-Canix-Session and retry with a per-request payment.
 - `VALIDATION_ERROR` (HTTP 400) — Request validation failed.
 - `NOT_FOUND` (HTTP 404) — Requested resource was not found.
 - `INTERNAL_ERROR` (HTTP 500) — Internal server error.

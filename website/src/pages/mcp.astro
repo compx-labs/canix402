@@ -201,6 +201,10 @@ canix_get_execution_quote({
   <section class="panel">
     <h2>Available tools</h2>
     <p>Tool names match <a href={config.discoveryUrl}>discovery</a> <code>mcpServer.tools</code>.</p>
+    <p>
+      The same tools are also registered in-page on <a href="/webmcp">/webmcp</a> via the WebMCP
+      imperative API.
+    </p>
     <ul>
       {
         mcpToolNames.map((tool) => (

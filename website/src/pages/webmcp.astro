@@ -1,0 +1,172 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { config } from "../lib/config";
+import { WEBMCP_TOOLS } from "../lib/webmcp/catalog";
+
+const freeCount = WEBMCP_TOOLS.filter((tool) => tool.access === "free").length;
+const paidCount = WEBMCP_TOOLS.length - freeCount;
+---
+
+<BaseLayout
+  title="WebMCP | CANIX402"
+  description="Canix402 WebMCP demo: the same MCP tools, registered in-page for people and agents. Walletless receipts, no signing or submission."
+  keywords="Canix402 WebMCP, navigator.modelContext, document.modelContext, registerTool, MCP tools, x402"
+>
+  <meta slot="head" http-equiv="Permissions-Policy" content="tools=(self), document-domain=()" />
+
+  <h1 class="page-title">WebMCP</h1>
+  <p class="page-lead">
+    Same page for people and agents. Existing Canix MCP tools are registered with the WebMCP
+    imperative API. Canix does not sign or submit. Agents stay walletless — sessions are receipts,
+    not keys.
+  </p>
+
+  <section class="panel webmcp-status-panel" data-webmcp-status aria-live="polite">
+    <h2>Browser status</h2>
+    <div class="webmcp-status-grid">
+      <div class="webmcp-status-card">
+        <p class="muted">Publisher API</p>
+        <p class="webmcp-status-value" data-webmcp-api>Detecting…</p>
+      </div>
+      <div class="webmcp-status-card">
+        <p class="muted">Origin isolation</p>
+        <p class="webmcp-status-value" data-webmcp-origin>Detecting…</p>
+      </div>
+      <div class="webmcp-status-card">
+        <p class="muted">Registered with WebMCP</p>
+        <p class="webmcp-status-value" data-webmcp-registered-count>0 / {WEBMCP_TOOLS.length}</p>
+      </div>
+    </div>
+    <p class="muted webmcp-status-note" data-webmcp-note>
+      Chrome / ChatGPT in-app browsers expose tools via
+      <code>document.modelContext.registerTool</code> (current Chrome docs, Aug 2026), with
+      <code>navigator.modelContext</code> as a deprecated alias. Enable
+      <code>chrome://flags/#enable-webmcp-testing</code> for local Chrome.
+    </p>
+  </section>
+
+  <section class="panel" data-webmcp-tool-list id="webmcp-tool-list">
+    <h2>Registered tools</h2>
+    <p>
+      This is the same list agents discover through WebMCP. Names and input schemas match MCP.
+      {WEBMCP_TOOLS.length} tools · {paidCount} paid · {freeCount} free.
+    </p>
+    <div class="webmcp-tool-table-wrap">
+      <table class="endpoint-table webmcp-tool-table">
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Access</th>
+            <th>HTTP</th>
+            <th>WebMCP</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            WEBMCP_TOOLS.map((tool) => (
+              <tr data-webmcp-tool={tool.name} data-access={tool.access}>
+                <td>
+                  <code>{tool.name}</code>
+                  <p class="muted webmcp-tool-description">{tool.description}</p>
+                </td>
+                <td>
+                  <span class={`badge ${tool.access === "paid" ? "badge-paid" : "badge-free"}`}>
+                    {tool.access}
+                    {tool.fallbackPriceUsdc ? ` · ${tool.fallbackPriceUsdc} USDC` : ""}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge badge-method">{tool.http.method}</span>
+                  <code class="webmcp-http-path">{tool.http.path}</code>
+                </td>
+                <td>
+                  <span class="badge badge-free" data-webmcp-registration="pending">
+                    Catalog
+                  </span>
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Execute</h2>
+    <p>
+      <code>execute</code> calls the live Canix gateway from this origin. Paid tools fail closed
+      with machine-readable <code>PAYMENT_REQUIRED</code> or <code>SESSION_*</code> JSON until a
+      per-request signature or prepaid session receipt is presented. Human wallet checkout and live
+      paid runs are later tickets — this page does not take keys.
+    </p>
+    <ul>
+      <li>Gateway: <code>{config.gatewayBaseUrl}</code></li>
+      <li>Remote MCP (same tools): <a href="/mcp">{config.mcpUrl}</a></li>
+      <li>WebMCP requires the <code>tools</code> Permissions Policy and origin isolation. This page never relaxes <code>document.domain</code>.</li>
+    </ul>
+  </section>
+
+  <div
+    id="webmcp-root"
+    hidden
+    data-gateway={config.gatewayBaseUrl}
+    data-tool-count={String(WEBMCP_TOOLS.length)}
+  >
+  </div>
+
+  <script>
+    import { registerCanixWebMcpTools } from "../lib/webmcp/register";
+
+    const root = document.querySelector<HTMLElement>("#webmcp-root");
+    const apiEl = document.querySelector<HTMLElement>("[data-webmcp-api]");
+    const originEl = document.querySelector<HTMLElement>("[data-webmcp-origin]");
+    const countEl = document.querySelector<HTMLElement>("[data-webmcp-registered-count]");
+    const noteEl = document.querySelector<HTMLElement>("[data-webmcp-note]");
+    const gateway = root?.dataset.gateway ?? "";
+    const total = Number(root?.dataset.toolCount ?? "0");
+
+    const status = await registerCanixWebMcpTools({ gatewayBaseUrl: gateway });
+    const registered = new Set(status.registered);
+
+    if (apiEl) {
+      apiEl.textContent =
+        status.api === "unavailable"
+          ? "Not available in this browser"
+          : status.api;
+    }
+    if (originEl) {
+      originEl.textContent = status.originIsolated
+        ? "Intact (document.domain not relaxed)"
+        : "Relaxed — WebMCP disabled";
+    }
+    if (countEl) {
+      countEl.textContent = `${status.registered.length} / ${total}`;
+    }
+    if (noteEl && status.api === "unavailable") {
+      noteEl.textContent =
+        "This browser has no WebMCP publisher API. The tool list below is still the catalog agents would see. In Chrome, enable chrome://flags/#enable-webmcp-testing. ChatGPT’s in-app browser enables WebMCP by default.";
+    }
+
+    document.querySelectorAll<HTMLElement>("[data-webmcp-tool]").forEach((row) => {
+      const name = row.dataset.webmcpTool ?? "";
+      const badge = row.querySelector<HTMLElement>("[data-webmcp-registration]");
+      if (!badge) {
+        return;
+      }
+      if (registered.has(name)) {
+        badge.textContent = "Registered";
+        badge.className = "badge badge-free";
+        badge.dataset.webmcpRegistration = "registered";
+      } else if (status.api === "unavailable") {
+        badge.textContent = "Catalog only";
+        badge.dataset.webmcpRegistration = "catalog";
+      } else {
+        const failure = status.failed.find((item) => item.name === name);
+        badge.textContent = failure ? "Failed" : "Not registered";
+        badge.className = "badge badge-paid";
+        badge.dataset.webmcpRegistration = "failed";
+      }
+    });
+  </script>
+</BaseLayout>
