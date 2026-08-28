@@ -264,6 +264,18 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     sessionAccess: "quotes"
   },
   {
+    id: "policyValidate",
+    method: "POST",
+    pathPattern: "/policy/validate",
+    access: "paid",
+    summary: "Validate a compiled plan or quotes[] against an operator policy document",
+    description:
+      "Operators bring policy; Canix evaluates a compiled plan (or proposed quotes[]) against a versioned policy document (max protocol weight, ALGO reserve floor, TVL/freshness floors, no-new-borrows, execution-ready only). Returns { pass, reasons[] }. Reuses plan/eligibility/risk fields already on the compiled object and fails closed when a required field is missing — it does not re-quote on-chain. Canix does not sign or submit. Brownie and a second agent can share the same schema (protocol/docs/policy-schema.md).",  // pragma: allowlist secret
+    tags: ["defi", "policy", "plans", "execution", "x402", "agents", HACKATHON_TAG],
+    priceUsdc: process.env.X402_PRICE_POLICY_VALIDATE_USDC ?? "0.25",
+    sessionAccess: "quotes"
+  },
+  {
     id: "positions",
     method: "GET",
     pathPattern: "/positions",
@@ -479,6 +491,7 @@ const paidPathMatchers = [
   /^\/eligibility$/,
   /^\/plans$/,
   /^\/plans\/rebalance$/,
+  /^\/policy\/validate$/,
   /^\/positions$/,
   /^\/positions\/claimable$/,
   /^\/protocols\/[^/]+\/opportunities$/,
@@ -570,6 +583,7 @@ const researchSessionMatchers = [
 const quoteSessionMatchers = [
   /^\/plans$/,
   /^\/plans\/rebalance$/,
+  /^\/policy\/validate$/,
   /^\/execution\/quotes$/,
   /^\/execution\/compose$/,
   /^\/execution\/simulate$/,

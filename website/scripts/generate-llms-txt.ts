@@ -112,6 +112,7 @@ function needsSecretScanPragma(path: string): boolean {
     path === "/plans/rebalance" ||
     path === "/execution/compose" ||
     path === "/execution/simulate" ||
+    path === "/policy/validate" ||
     path === "/sessions" ||
     path === "/sessions/refresh"
   );
@@ -191,6 +192,7 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
     rebalance: loadSample("rebalance.sample.json"),
     compose: loadSample("compose.sample.json"),
     simulate: loadSample("simulate.sample.json"),
+    policy: loadSample("policy.sample.json"),
     protocol: loadSample("protocol-opportunities.sample.json"),
     positions: loadSample("positions.sample.json"),
     positionsClaimable: loadSample("positions-claimable.sample.json"),
@@ -234,7 +236,7 @@ Always call the **gateway**, not an internal upstream API. x402 enforcement, \`P
 
 ### MCP server
 
-Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${MCP_URL}\` (streamable-http). Metadata: \`${MCP_WELL_KNOWN}\`. Walletless: paid tool preflight returns payment requirements; retry with \`paymentSignature\`. Tools include \`canix_list_opportunities\`, \`canix_list_execution_shapes\`, \`canix_get_positions\`, \`canix_list_claimable\`, \`canix_check_eligibility\`, \`canix_get_plan\`, \`canix_get_rebalance_plan\`, \`canix_compose_enter\`, \`canix_get_execution_quote\`, \`canix_simulate_execution\`, \`canix_create_session\`, \`canix_refresh_session\`, \`canix_get_session\`, and free discovery helpers. Prepaid sessions: one x402 payment unlocks N research + M quotes/plans for a TTL (\`sessionReceipt\` / \`X-Canix-Session\`); one-shots remain the default. See ${DOCS_SITE}/mcp.${SECRET_SCAN_PRAGMA}
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${MCP_URL}\` (streamable-http). Metadata: \`${MCP_WELL_KNOWN}\`. Walletless: paid tool preflight returns payment requirements; retry with \`paymentSignature\`. Tools include \`canix_list_opportunities\`, \`canix_list_execution_shapes\`, \`canix_get_positions\`, \`canix_list_claimable\`, \`canix_check_eligibility\`, \`canix_get_plan\`, \`canix_get_rebalance_plan\`, \`canix_validate_policy\`, \`canix_compose_enter\`, \`canix_get_execution_quote\`, \`canix_simulate_execution\`, \`canix_create_session\`, \`canix_refresh_session\`, \`canix_get_session\`, and free discovery helpers. Prepaid sessions: one x402 payment unlocks N research + M quotes/plans for a TTL (\`sessionReceipt\` / \`X-Canix-Session\`); one-shots remain the default. See ${DOCS_SITE}/mcp.${SECRET_SCAN_PRAGMA}
 
 ## x402 payment flow
 
@@ -272,6 +274,7 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 - \`POST /plans/rebalance\` — requires \`address\` plus \`targetWeights\` and/or \`harvestIdle\`; 0.25 USDC; delta claims/exits/swaps/enters as unmerged unsigned groups (not a full unwind).  // pragma: allowlist secret
 - \`POST /execution/compose\` — requires \`address\`, \`opportunityId\`, \`fromAssetId\`, \`amount\`; 0.10 USDC; sequenced unsigned groups opt-in → Haystack swap → enter. Groups never merged; sign only user legs. Failure modes (stale quote, missing opt-in, slippage) on step warnings.  // pragma: allowlist secret
 - \`POST /execution/simulate\` — requires \`address\` and compiled \`groups[]\`; 0.10 USDC; predicted balance and position deltas without signing. Fail closed with machine-readable reasons (stale quote, not opted in, min balance, health factor, capacity). \`POST /plans\` attaches \`data.simulation\` when groups are compiled.  // pragma: allowlist secret
+- \`POST /policy/validate\` — requires a versioned \`policy\` document plus a compiled \`plan\` and/or proposed \`quotes[]\`; 0.25 USDC; machine-readable \`pass\` / \`reasons[]\` (protocol weight, ALGO reserve, TVL/freshness, no-new-borrows, execution-ready). Fails closed when a required field is missing. Canix does not sign.  // pragma: allowlist secret
 - \`GET /positions\` — requires \`address\` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
 - \`GET /positions/claimable\` — requires \`address\`; claim desk with USD, fee/worth-claiming hints, and \`claimAllQuotes\` for exactly 0.001 USDC. Compile via \`POST /execution/quotes\` (~0.1 USDC flat; groups never merged).
 - \`GET /execution/shapes\` — free catalog of verified shape keys and requiredInputs (metadata only). \`meta.caveatsDocsPath\` is \`protocol/docs/execution-shapes/protocol-caveats.md\` (pool discovery, opt-ins, min-balance, slippage, liquidity limits, app upgrades). Do not guess those details.
@@ -334,6 +337,12 @@ ${JSON.stringify(samples.compose, null, 2)}
 
 \`\`\`json
 ${JSON.stringify(samples.simulate, null, 2)}
+\`\`\`
+
+### POST /policy/validate
+
+\`\`\`json
+${JSON.stringify(samples.policy, null, 2)}
 \`\`\`
 
 ### GET /protocols/{protocol}/opportunities

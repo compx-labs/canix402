@@ -79,6 +79,7 @@ positions, execution, and swap routes from checked-in JSON under `src/data`:
 - `plans.sample.json` (`POST /plans`)
 - `rebalance.sample.json` (`POST /plans/rebalance`)
 - `simulate.sample.json` (`POST /execution/simulate`)
+- `policy.sample.json` (`POST /policy/validate`)
 - `compose.sample.json` (`POST /execution/compose`)
 - `protocol-opportunities.sample.json` (`GET /protocols/{protocol}/opportunities`)
 - `positions.sample.json` (`GET /positions`)

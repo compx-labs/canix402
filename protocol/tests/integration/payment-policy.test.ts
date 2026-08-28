@@ -84,6 +84,19 @@ test("plans rebalance is a dedicated paid compiler POST route", () => {
   );
 });
 
+test("policy validate is a dedicated paid compiler POST route", () => {
+  assert.equal(classifyEndpointAccess("/policy/validate", "POST"), "paid");
+  const policy = endpointPolicyMatrix.find((endpoint) => endpoint.id === "policyValidate");
+  assert.equal(policy?.method, "POST");
+  assert.equal(policy?.access, "paid");
+  assert.equal(policy?.pathPattern, "/policy/validate");
+  assert.equal(
+    policy?.priceUsdc,
+    process.env.X402_PRICE_POLICY_VALIDATE_USDC ?? "0.25"
+  );
+  assert.equal(classifySessionBucket("/policy/validate", "POST"), "quotes");
+});
+
 test("execution compose is a dedicated paid compiler POST route", () => {
   assert.equal(classifyEndpointAccess("/execution/compose", "POST"), "paid");
   const compose = endpointPolicyMatrix.find((endpoint) => endpoint.id === "executionCompose");

@@ -12,6 +12,7 @@
       "execution-quotes",
       "intent-plans",
       "rebalance-delta-plans",
+      "policy-validate",
       "swap-aware-compose",
       "execution-simulate",
       "prepaid-sessions",
@@ -605,6 +606,50 @@
           "execution",
           "eligibility",
           "wallet",
+          "x402",
+          "agents",
+          "x402-global-challenge"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          400,
+          402,
+          500,
+          502
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.25"
+          },
+          "amountUsdc": "0.25",
+          "amountMicro": "250000"
+        }
+      },
+      {
+        "id": "policyValidate",
+        "method": "POST",
+        "path": "/policy/validate",
+        "access": "paid",
+        "summary": "Validate a compiled plan or quotes[] against an operator policy document",
+        "description": "Operators bring policy; Canix evaluates a compiled plan (or proposed quotes[]) against a versioned policy document (max protocol weight, ALGO reserve floor, TVL/freshness floors, no-new-borrows, execution-ready only). Returns { pass, reasons[] }. Reuses plan/eligibility/risk fields already on the compiled object and fails closed when a required field is missing — it does not re-quote on-chain. Canix does not sign or submit. Brownie and a second agent can share the same schema (protocol/docs/policy-schema.md).",
+        "tags": [
+          "defi",
+          "policy",
+          "plans",
+          "execution",
           "x402",
           "agents",
           "x402-global-challenge"

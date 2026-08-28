@@ -5,6 +5,7 @@ import {
   personalizedPriceUsdc,
   plansPriceUsdc,
   plansRebalancePriceUsdc,
+  policyValidatePriceUsdc,
   executionComposePriceUsdc,
   executionSimulatePriceUsdc,
   positionsClaimablePriceUsdc,
@@ -99,6 +100,10 @@ function isRebalanceEndpoint(endpoint: DiscoveryEndpoint): boolean {
   return endpoint.id === "plansRebalance" || endpoint.path === "/plans/rebalance";
 }
 
+function isPolicyValidateEndpoint(endpoint: DiscoveryEndpoint): boolean {
+  return endpoint.id === "policyValidate" || endpoint.path === "/policy/validate";
+}
+
 function isComposeEndpoint(endpoint: DiscoveryEndpoint): boolean {
   return endpoint.id === "executionCompose" || endpoint.path === "/execution/compose";
 }
@@ -132,6 +137,10 @@ function resolvePaidAmount(endpoint: DiscoveryEndpoint): string {
 
   if (isRebalanceEndpoint(endpoint)) {
     return plansRebalancePriceUsdc;
+  }
+
+  if (isPolicyValidateEndpoint(endpoint)) {
+    return policyValidatePriceUsdc;
   }
 
   if (isComposeEndpoint(endpoint)) {
@@ -194,6 +203,7 @@ export function tagBadgeClass(tag: string): string {
     "eligibility",
     "plans",
     "rebalance",
+    "policy",
     "simulation",
     "discovery",
     "system",

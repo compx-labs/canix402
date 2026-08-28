@@ -204,6 +204,25 @@ test("plans rebalance route requires payment signature", async () => {
   await app.close();
 });
 
+test("policy validate route requires payment signature", async () => {
+  const app = await buildEdgeGatedApp();
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/policy/validate",
+    payload: {
+      policy: { schemaVersion: "1.0.0" },
+      quotes: [{ shapeKey: "mainnet:reti:v1:stake:algo" }]
+    }
+  });
+
+  assert.equal(response.statusCode, 402);
+  assert.equal(response.headers["payment-required"] !== undefined, true);
+  assert.equal(response.json().error.code, "MISSING_PAYMENT_SIGNATURE");
+
+  await app.close();
+});
+
 test("execution compose route requires payment signature", async () => {
   const app = await buildEdgeGatedApp();
 

@@ -118,9 +118,9 @@ Push instead of polling `/positions` and `/opportunities/personalized`. Recurrin
 
 Brownie’s deterministic caps should not stay a fork-the-bot feature.
 
-- [ ] Add `POST /policy/validate`: plan (or proposed `quotes[]`) + policy document → pass/fail with machine-readable reasons (per-protocol weight, reserves, TVL floor, freshness, no new borrows, etc.).
-- [ ] Canix still does not sign. Operators bring policy; this is the shared validator for any user agent.
-- [ ] MCP tool + a documented policy schema Brownie (and a second agent) can both use.
+- [x] Add `POST /policy/validate`: plan (or proposed `quotes[]`) + policy document → pass/fail with machine-readable reasons (per-protocol weight, reserves, TVL floor, freshness, no new borrows, etc.).
+- [x] Canix still does not sign. Operators bring policy; this is the shared validator for any user agent.
+- [x] MCP tool + a documented policy schema Brownie (and a second agent) can both use.
 
 ### 13.11 Historical series
 

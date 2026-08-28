@@ -28,6 +28,9 @@ Stateless remote MCP server for canix402, designed for Cloudflare Workers deploy
 - Exposes `canix_simulate_execution` for paid `POST /execution/simulate` (0.10 USDC);
   predicted balance/position deltas for compiled unsigned groups. Fail closed.
   `POST /plans` attaches `data.simulation` when groups are compiled.
+- Exposes `canix_validate_policy` for paid `POST /policy/validate` (0.25 USDC);
+  plan or quotes[] plus an operator policy document → `{ pass, reasons[] }`.
+  Canix does not sign. Sample: `protocol/docs/policy-brownie.sample.json`.
 - Exposes prepaid session tools (receipts, not keys; one-shots remain the default):
   - `canix_create_session` → paid `POST /sessions` (0.25 USDC)
   - `canix_refresh_session` → paid `POST /sessions/refresh` (0.25 USDC, one-shot only)
