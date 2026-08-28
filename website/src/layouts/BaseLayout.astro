@@ -75,6 +75,7 @@ const logoUrl = new URL(logoPath, Astro.site).href;
       description,
       sameAs: ["https://canix402-api.compx.io/"]
     })} />
+    <slot name="head" />
   </head>
   <body>
     <Header currentPath={Astro.url.pathname} />
@@ -87,6 +88,8 @@ const logoUrl = new URL(logoPath, Astro.site).href;
         <a href="/endpoints">Endpoints</a>
         <span aria-hidden="true">·</span>
         <a href="/mcp">MCP</a>
+        <span aria-hidden="true">·</span>
+        <a href="/webmcp">WebMCP</a>
         <span aria-hidden="true">·</span>
         <a href="/user-agents">User Agents</a>
         <span aria-hidden="true">·</span>

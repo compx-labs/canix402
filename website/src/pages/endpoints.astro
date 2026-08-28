@@ -1,11 +1,12 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import EndpointTable from "../components/EndpointTable.astro";
+import { catalogEndpoints } from "../lib/catalog-endpoints";
 import { config } from "../lib/config";
 import { loadDiscovery } from "../lib/discovery";
 
 const loaded = await loadDiscovery(config.discoveryUrl);
-const endpoints = loaded.document.endpoints;
+const endpoints = catalogEndpoints(loaded.document.endpoints);
 const paidCount = endpoints.filter((endpoint) => endpoint.access === "paid").length;
 ---
 

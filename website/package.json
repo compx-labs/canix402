@@ -11,10 +11,15 @@
     "build": "astro build",
     "preview": "astro preview",
     "typecheck": "astro check",
+    "test": "tsx --test tests/*.test.ts",
     "snapshot:discovery": "tsx ../protocol/scripts/export-discovery-snapshot.ts",
     "snapshot:responses": "tsx ../protocol/scripts/export-opportunity-snapshots.ts"
   },
   "dependencies": {
+    "@txnlab/use-wallet": "^5.0.0",
+    "@txnlab/use-wallet-defly": "^5.0.0",
+    "@txnlab/use-wallet-pera": "^5.0.0",
+    "algosdk": "3.6.0",
     "astro": "^5.7.10"
   },
   "devDependencies": {

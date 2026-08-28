@@ -118,6 +118,24 @@ Add a component routing rule:
 
 Website stays on `canix402.compx.io` → website component.
 
+### Website component (canix402.compx.io)
+
+Static Astro output from `npm run build:website` (`website/dist`). There is no
+login wall. The WebMCP demo is `/webmcp`.
+
+App Platform serves the files through Spaces (responses include
+`x-do-app-origin` and `x-rgw-object-type`). Cloudflare proxies TLS. The
+Cloudflare Pages `_headers` file in `website/public/_headers` is **not** applied
+as HTTP headers on this stack. After a website rebuild, set a Cloudflare
+Configuration Rule on `/webmcp*`:
+
+- `Permissions-Policy: tools=(self), document-domain=()`
+- `Origin-Agent-Cluster: ?1`
+
+Force-rebuild the website component from the git ref that contains `/webmcp`
+(PR 95 / `webmcp` after merge to `dev` or `main`). A stale deploy still 404s
+`/webmcp` even when `main` has moved.
+
 ## Verify after deploy
 
 ```sh

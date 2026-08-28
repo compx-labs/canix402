@@ -1,0 +1,11 @@
+# https://developers.cloudflare.com/pages/configuration/headers/
+# WebMCP requires the `tools` Permissions Policy and origin isolation.
+# Never relax document.domain on this origin.
+
+/webmcp
+  Permissions-Policy: tools=(self), document-domain=()
+  Origin-Agent-Cluster: ?1
+
+/webmcp/
+  Permissions-Policy: tools=(self), document-domain=()
+  Origin-Agent-Cluster: ?1
