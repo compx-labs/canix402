@@ -263,6 +263,7 @@ test("source never relaxes document.domain", () => {
   const files = [
     "src/lib/webmcp/model-context.ts",
     "src/lib/webmcp/register.ts",
+    "src/lib/webmcp/human-execute.ts",
     "src/lib/webmcp/page-app.ts",
     "src/lib/webmcp/checkout.ts",
     "src/layouts/BaseLayout.astro"

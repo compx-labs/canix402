@@ -1,4 +1,5 @@
 import { buyPrepaidSession, refreshSessionRemaining } from "./checkout";
+import { executeAsHuman as executeHumanTool } from "./human-execute";
 import { createSessionStore, quotaFromReceipt, type WebMcpSessionStore } from "./session-store";
 import type { SessionReceipt } from "./types";
 import {
@@ -16,6 +17,7 @@ export interface WebmcpPageHandles {
   applyReceipt: (receipt: SessionReceipt) => SessionReceipt;
   getReceipt: () => SessionReceipt | null;
   getActiveAddress: () => string | null;
+  executeAsHuman: (name: string, args: unknown) => Promise<unknown>;
 }
 
 declare global {
@@ -27,6 +29,9 @@ declare global {
 export async function mountWebmcpPage(options: { gatewayBaseUrl: string }): Promise<WebmcpPageHandles> {
   const sessionStore = createSessionStore();
   const checkoutRoot = document.querySelector<HTMLElement>("[data-webmcp-checkout]");
+  const runRoot = document.querySelector<HTMLElement>("[data-webmcp-run]");
+  const demoEnabled = new URLSearchParams(window.location.search).has("demo");
+  const fetchImpl = demoEnabled ? createDemoGatewayFetch(sessionStore) : undefined;
 
   const render = (): void => {
     if (!checkoutRoot) {
@@ -61,11 +66,11 @@ export async function mountWebmcpPage(options: { gatewayBaseUrl: string }): Prom
     if (readBtn) {
       readBtn.disabled = !receipt?.sessionId;
     }
-    setText(checkoutRoot, "[data-remaining-research]", receipt ? String(quotaFromReceipt(receipt).remainingResearch) : "—");
-    setText(checkoutRoot, "[data-remaining-quotes]", receipt ? String(quotaFromReceipt(receipt).remainingQuotes) : "—");
-    setText(checkoutRoot, "[data-session-expires]", receipt?.expiresAt ?? "—");
-    setText(checkoutRoot, "[data-session-id]", receipt?.sessionId ?? "None");
-    setText(checkoutRoot, "[data-session-status]", receipt?.status ?? "none");
+    setAllText("[data-remaining-research]", receipt ? String(quotaFromReceipt(receipt).remainingResearch) : "—");
+    setAllText("[data-remaining-quotes]", receipt ? String(quotaFromReceipt(receipt).remainingQuotes) : "—");
+    setAllText("[data-session-expires]", receipt?.expiresAt ?? "—");
+    setAllText("[data-session-id]", receipt?.sessionId ?? "None");
+    setAllText("[data-session-status]", receipt?.status ?? "none");
   };
 
   const handles: WebmcpPageHandles = {
@@ -79,6 +84,13 @@ export async function mountWebmcpPage(options: { gatewayBaseUrl: string }): Prom
     },
     getActiveAddress() {
       return getActiveWalletAddress();
+    },
+    executeAsHuman(name, args) {
+      return executeHumanTool(name, args, {
+        gatewayBaseUrl: options.gatewayBaseUrl,
+        sessionStore,
+        ...(fetchImpl ? { fetchImpl } : {})
+      });
     }
   };
   window.__canixWebmcp = handles;
@@ -90,7 +102,6 @@ export async function mountWebmcpPage(options: { gatewayBaseUrl: string }): Prom
   const errorEl = checkoutRoot.querySelector<HTMLElement>("[data-checkout-error]");
   const noteEl = checkoutRoot.querySelector<HTMLElement>("[data-checkout-note]");
   const demoBtn = checkoutRoot.querySelector<HTMLButtonElement>("[data-apply-demo-session]");
-  const demoEnabled = new URLSearchParams(window.location.search).has("demo");
   if (demoBtn) {
     demoBtn.hidden = !demoEnabled;
   }
@@ -189,6 +200,8 @@ export async function mountWebmcpPage(options: { gatewayBaseUrl: string }): Prom
     );
   });
 
+  bindRunTools(runRoot, handles, render, demoEnabled);
+
   render();
   return handles;
 }
@@ -253,11 +266,179 @@ function isToolError(result: unknown): result is { error: string; message?: stri
   return Boolean(result && typeof result === "object" && typeof (result as { error?: unknown }).error === "string");
 }
 
-function setText(root: HTMLElement, selector: string, value: string): void {
-  const el = root.querySelector<HTMLElement>(selector);
-  if (el) {
-    el.textContent = value;
+function bindRunTools(
+  runRoot: HTMLElement | null,
+  handles: WebmcpPageHandles,
+  render: () => void,
+  demoEnabled: boolean
+): void {
+  if (!runRoot) {
+    return;
   }
+  const resultEl = runRoot.querySelector<HTMLElement>("[data-run-result]");
+  const errorEl = runRoot.querySelector<HTMLElement>("[data-run-error]");
+  const noteEl = runRoot.querySelector<HTMLElement>("[data-run-note]");
+  const failBtn = runRoot.querySelector<HTMLButtonElement>("[data-demo-fail-closed]");
+  if (failBtn) {
+    failBtn.hidden = !demoEnabled;
+  }
+
+  runRoot.querySelector<HTMLFormElement>("[data-list-opportunities-form]")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget as HTMLFormElement;
+    const data = new FormData(form);
+    const limit = numberOrUndefined(data.get("limit"));
+    const protocol = String(data.get("protocol") ?? "").trim();
+    await runHumanTool(
+      handles,
+      "canix_list_opportunities",
+      {
+        ...(limit !== undefined ? { limit } : {}),
+        ...(protocol ? { protocol } : {})
+      },
+      resultEl,
+      errorEl,
+      noteEl,
+      render
+    );
+  });
+
+  runRoot.querySelector<HTMLFormElement>("[data-get-plan-form]")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget as HTMLFormElement;
+    const data = new FormData(form);
+    const address = String(data.get("address") ?? "").trim() || handles.getActiveAddress() || "";
+    const assetId = Number(data.get("assetId") ?? "0");
+    const amount = String(data.get("amount") ?? "").trim();
+    await runHumanTool(
+      handles,
+      "canix_get_plan",
+      {
+        address,
+        budget: { assetId: Number.isFinite(assetId) ? assetId : 0, amount }
+      },
+      resultEl,
+      errorEl,
+      noteEl,
+      render
+    );
+  });
+
+  failBtn?.addEventListener("click", async () => {
+    const current = handles.getReceipt() ?? demoReceipt();
+    handles.applyReceipt({
+      ...current,
+      remaining: { research: 0, quotes: current.remaining.quotes },
+      consumed: { research: current.budget.research, quotes: current.consumed.quotes },
+      status: current.remaining.quotes <= 0 ? "exhausted" : current.status
+    });
+    await runHumanTool(handles, "canix_list_opportunities", { limit: 1 }, resultEl, errorEl, noteEl, render);
+  });
+}
+
+async function runHumanTool(
+  handles: WebmcpPageHandles,
+  name: string,
+  args: Record<string, unknown>,
+  resultEl: HTMLElement | null,
+  errorEl: HTMLElement | null,
+  noteEl: HTMLElement | null,
+  render: () => void
+): Promise<void> {
+  hideBox(errorEl);
+  hideBox(noteEl);
+  hideBox(resultEl);
+  const result = await handles.executeAsHuman(name, args);
+  render();
+  const receipt = handles.getReceipt();
+  if (isToolError(result)) {
+    showJson(errorEl, result);
+    return;
+  }
+  showJson(resultEl, result);
+  showText(
+    noteEl,
+    receipt
+      ? `${name} succeeded. Remaining research ${receipt.remaining.research} / quotes ${receipt.remaining.quotes}. Canix did not sign or submit.`
+      : `${name} succeeded.`
+  );
+}
+
+function createDemoGatewayFetch(sessionStore: WebMcpSessionStore): typeof fetch {
+  return async (input, init) => {
+    const url = new URL(String(input));
+    const headers = headerRecord(init?.headers);
+    const sessionId = headers["x-canix-session"] ?? headers["X-Canix-Session"];
+    const path = url.pathname;
+    const receipt = sessionStore.get();
+    if (!sessionId) {
+      return new Response(JSON.stringify({ error: "Payment required" }), {
+        status: 402,
+        headers: { "payment-required": demoPaymentRequiredHeader() }
+      });
+    }
+    if (!receipt || receipt.sessionId !== sessionId) {
+      return new Response(JSON.stringify({ error: { code: "SESSION_INVALID", message: "Unknown session receipt." } }), {
+        status: 402
+      });
+    }
+    const research = path.includes("/opportunities") || path.includes("/positions") || path.includes("/eligibility");
+    const quotes = path.startsWith("/plans") || path.startsWith("/execution") || path === "/swaps/transactions";
+    const remainingResearch = research ? Math.max(0, receipt.remaining.research - 1) : receipt.remaining.research;
+    const remainingQuotes = quotes ? Math.max(0, receipt.remaining.quotes - 1) : receipt.remaining.quotes;
+    const body =
+      path === "/plans"
+        ? { data: { allocations: [], blocked: [] }, meta: { executionSubmitted: false, signed: false, submitted: false } }
+        : { data: [{ id: "opp-demo", protocol: "tinyman", type: "lp" }] };
+    return new Response(JSON.stringify(body), {
+      status: 200,
+      headers: {
+        "content-type": "application/json",
+        "x-canix-session-remaining-research": String(remainingResearch),
+        "x-canix-session-remaining-quotes": String(remainingQuotes),
+        "x-canix-session-expires-at": receipt.expiresAt
+      }
+    });
+  };
+}
+
+function headerRecord(headers: HeadersInit | undefined): Record<string, string> {
+  if (!headers) {
+    return {};
+  }
+  if (headers instanceof Headers) {
+    const out: Record<string, string> = {};
+    headers.forEach((value, key) => {
+      out[key] = value;
+    });
+    return out;
+  }
+  if (Array.isArray(headers)) {
+    return Object.fromEntries(headers);
+  }
+  return { ...(headers as Record<string, string>) };
+}
+
+function demoPaymentRequiredHeader(): string {
+  const json = JSON.stringify({
+    x402Version: 2,
+    accepts: [{ scheme: "exact", network: "test-network", asset: "1", payTo: "PAYTO", maxAmountRequired: "10000" }]
+  });
+  return btoa(json);
+}
+
+function numberOrUndefined(value: unknown): number | undefined {
+  if (value === undefined || value === null || String(value).trim() === "") {
+    return undefined;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function setAllText(selector: string, value: string): void {
+  document.querySelectorAll<HTMLElement>(selector).forEach((el) => {
+    el.textContent = value;
+  });
 }
 
 function showJson(el: HTMLElement | null, payload: unknown): void {

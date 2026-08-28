@@ -156,6 +156,57 @@ const paidCount = WEBMCP_TOOLS.length - freeCount;
     <pre class="code-block webmcp-checkout-error" data-checkout-error hidden></pre>
   </section>
 
+  <section class="panel" data-webmcp-run>
+    <h2>Run Canix from this page</h2>
+    <p>
+      Humans call the same <code>execute</code> path as WebMCP agents, paid only with the
+      session bought above. Agents may still send per-request USDC
+      (<code>paymentSignature</code>) or a session receipt. Canix does not sign or submit.
+    </p>
+    <p class="muted">
+      Remaining after each call: research
+      <strong data-remaining-research>—</strong>
+      / quotes
+      <strong data-remaining-quotes>—</strong>
+    </p>
+    <form data-list-opportunities-form>
+      <h3>List opportunities</h3>
+      <div class="webmcp-field">
+        <label for="webmcp-opp-limit">Limit</label>
+        <input id="webmcp-opp-limit" name="limit" type="number" min="1" max="200" value="5" />
+      </div>
+      <div class="webmcp-field">
+        <label for="webmcp-opp-protocol">Protocol (optional)</label>
+        <input id="webmcp-opp-protocol" name="protocol" type="text" placeholder="tinyman" />
+      </div>
+      <button type="submit" class="button button-primary">Run canix_list_opportunities</button>
+    </form>
+    <form data-get-plan-form>
+      <h3>Get a plan</h3>
+      <div class="webmcp-field">
+        <label for="webmcp-plan-address">Address</label>
+        <input id="webmcp-plan-address" name="address" type="text" minlength="1" placeholder="Connected wallet or any address" />
+      </div>
+      <div class="webmcp-field">
+        <label for="webmcp-plan-asset">Budget asset id (0 = ALGO)</label>
+        <input id="webmcp-plan-asset" name="assetId" type="number" min="0" value="0" />
+      </div>
+      <div class="webmcp-field">
+        <label for="webmcp-plan-amount">Budget amount (base units)</label>
+        <input id="webmcp-plan-amount" name="amount" type="text" value="1000000" required />
+      </div>
+      <button type="submit" class="button button-primary">Run canix_get_plan</button>
+    </form>
+    <div class="webmcp-wallet-row">
+      <button type="button" class="button button-ghost" data-demo-fail-closed hidden>
+        Demo fail-closed (exhausted research)
+      </button>
+    </div>
+    <p class="webmcp-checkout-note" data-run-note hidden></p>
+    <pre class="code-block webmcp-run-result" data-run-result hidden></pre>
+    <pre class="code-block webmcp-checkout-error" data-run-error hidden></pre>
+  </section>
+
   <section class="panel">
     <h2>Execute</h2>
     <p>
