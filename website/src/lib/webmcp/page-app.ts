@@ -1,3 +1,4 @@
+import { displayWalletLabel, lookupNfdName } from "../nfd";
 import { getWebMcpTool } from "./catalog";
 import { buyPrepaidSession, refreshSessionRemaining } from "./checkout";
 import { executeAsHuman as executeHumanTool } from "./human-execute";
@@ -8,7 +9,12 @@ import {
   mergeEligibility,
   type OpportunityTableRow
 } from "./opportunities";
-import { createSessionStore, quotaFromReceipt, type WebMcpSessionStore } from "./session-store";
+import {
+  createSessionStore,
+  isMockedSessionReceipt,
+  quotaFromReceipt,
+  type WebMcpSessionStore
+} from "./session-store";
 import { argsFromForm } from "./tool-forms";
 import type { SessionReceipt } from "./types";
 import {
@@ -29,29 +35,79 @@ export interface WebmcpPageHandles {
   executeAsHuman: (name: string, args: unknown) => Promise<unknown>;
 }
 
+type OpportunityBusy = false | "table" | "tool" | "checkout";
+
+interface OpportunityTableState {
+  rows: OpportunityTableRow[];
+  source: string;
+  busy: OpportunityBusy;
+}
+
 declare global {
   interface Window {
     __canixWebmcp?: WebmcpPageHandles;
   }
 }
 
-export async function mountWebmcpPage(options: { gatewayBaseUrl: string }): Promise<WebmcpPageHandles> {
+export async function mountWebmcpPage(options: {
+  gatewayBaseUrl: string;
+  nfdApiBaseUrl?: string;
+}): Promise<WebmcpPageHandles> {
   const sessionStore = createSessionStore();
   const checkoutRoot = document.querySelector<HTMLElement>("[data-webmcp-checkout]");
   const runRoot = document.querySelector<HTMLElement>("[data-webmcp-run]");
   const tableRoot = document.querySelector<HTMLElement>("[data-webmcp-opportunities]");
-  const demoEnabled = new URLSearchParams(window.location.search).has("demo");
-  const fetchImpl = demoEnabled ? createDemoGatewayFetch(sessionStore) : undefined;
-  const tableState: { rows: OpportunityTableRow[]; source: string } = { rows: [], source: "" };
+  const tableState: OpportunityTableState = { rows: [], source: "", busy: false };
+  const nfdCache = new Map<string, string | null>();
+  const nfdInflight = new Map<string, Promise<string | null>>();
+  let paintedWalletAddress: string | null = null;
+
+  const paintWalletAddress = (address: string | null, nfdName?: string | null): void => {
+    if (!checkoutRoot) {
+      return;
+    }
+    const addressEl = checkoutRoot.querySelector<HTMLElement>("[data-wallet-address]");
+    if (!addressEl) {
+      return;
+    }
+    paintedWalletAddress = address;
+    if (!address) {
+      addressEl.textContent = "Not connected";
+      addressEl.removeAttribute("title");
+      return;
+    }
+    addressEl.title = address;
+    addressEl.textContent = displayWalletLabel(address, nfdName);
+  };
+
+  const resolveWalletNfd = async (address: string): Promise<void> => {
+    if (nfdCache.has(address)) {
+      if (paintedWalletAddress === address) {
+        paintWalletAddress(address, nfdCache.get(address));
+      }
+      return;
+    }
+    let pending = nfdInflight.get(address);
+    if (!pending) {
+      pending = lookupNfdName(address, { apiBaseUrl: options.nfdApiBaseUrl });
+      nfdInflight.set(address, pending);
+    }
+    const name = await pending;
+    nfdCache.set(address, name);
+    nfdInflight.delete(address);
+    if (paintedWalletAddress === address) {
+      paintWalletAddress(address, name);
+    }
+  };
 
   const render = (): void => {
     if (checkoutRoot) {
       const address = getActiveWalletAddress();
       const receipt = sessionStore.get();
-      const addressEl = checkoutRoot.querySelector<HTMLElement>("[data-wallet-address]");
       const statusEl = checkoutRoot.querySelector<HTMLElement>("[data-wallet-status]");
-      if (addressEl) {
-        addressEl.textContent = address ?? "Not connected";
+      paintWalletAddress(address, address ? nfdCache.get(address) : null);
+      if (address) {
+        void resolveWalletNfd(address);
       }
       if (statusEl) {
         statusEl.textContent = address ? "Connected (checkout only)" : "Disconnected";
@@ -65,24 +121,21 @@ export async function mountWebmcpPage(options: { gatewayBaseUrl: string }): Prom
       }
       const buyBtn = checkoutRoot.querySelector<HTMLButtonElement>("[data-buy-session]");
       const refreshBtn = checkoutRoot.querySelector<HTMLButtonElement>("[data-refresh-session]");
-      const readBtn = checkoutRoot.querySelector<HTMLButtonElement>("[data-read-session]");
       if (buyBtn) {
         buyBtn.disabled = !address;
       }
       if (refreshBtn) {
         refreshBtn.disabled = !address;
       }
-      if (readBtn) {
-        readBtn.disabled = !receipt?.sessionId;
-      }
       setAllText("[data-remaining-research]", receipt ? String(quotaFromReceipt(receipt).remainingResearch) : "—");
       setAllText("[data-remaining-quotes]", receipt ? String(quotaFromReceipt(receipt).remainingQuotes) : "—");
-      setAllText("[data-session-expires]", receipt?.expiresAt ?? "—");
-      setAllText("[data-session-id]", receipt?.sessionId ?? "None");
-      setAllText("[data-session-status]", receipt?.status ?? "none");
+      checkoutRoot.querySelectorAll<HTMLElement>("[data-session-expires]").forEach((el) => {
+        el.textContent = receipt?.expiresAt ?? "—";
+        el.hidden = !receipt;
+      });
     }
     const activeAddress = getActiveWalletAddress();
-    if (activeAddress) {
+    if (activeAddress && !tableState.busy) {
       document.querySelectorAll<HTMLInputElement>('input[name="address"]').forEach((input) => {
         if (input.value.trim() === "") {
           input.value = activeAddress;
@@ -90,6 +143,7 @@ export async function mountWebmcpPage(options: { gatewayBaseUrl: string }): Prom
       });
     }
     renderOpportunityTable(tableRoot, tableState);
+    applyBusyControls(tableState.busy);
   };
 
   const handles: WebmcpPageHandles = {
@@ -107,8 +161,7 @@ export async function mountWebmcpPage(options: { gatewayBaseUrl: string }): Prom
     executeAsHuman(name, args) {
       return executeHumanTool(name, args, {
         gatewayBaseUrl: options.gatewayBaseUrl,
-        sessionStore,
-        ...(fetchImpl ? { fetchImpl } : {})
+        sessionStore
       });
     }
   };
@@ -117,17 +170,13 @@ export async function mountWebmcpPage(options: { gatewayBaseUrl: string }): Prom
   bindToolsDrawer();
 
   if (!checkoutRoot) {
-    bindRunTools(runRoot, tableRoot, tableState, handles, render, demoEnabled);
+    bindRunTools(runRoot, tableRoot, tableState, handles, render);
     render();
     return handles;
   }
 
   const errorEl = checkoutRoot.querySelector<HTMLElement>("[data-checkout-error]");
   const noteEl = checkoutRoot.querySelector<HTMLElement>("[data-checkout-note]");
-  const demoBtn = checkoutRoot.querySelector<HTMLButtonElement>("[data-apply-demo-session]");
-  if (demoBtn) {
-    demoBtn.hidden = !demoEnabled;
-  }
 
   try {
     const manager = await resumeWebmcpWallet();
@@ -149,6 +198,9 @@ export async function mountWebmcpPage(options: { gatewayBaseUrl: string }): Prom
         icon.hidden = false;
       }
     });
+    if (getActiveWalletAddress() && isMockedSessionReceipt(sessionStore.get())) {
+      sessionStore.clear();
+    }
     manager.subscribe(() => {
       render();
     });
@@ -169,6 +221,9 @@ export async function mountWebmcpPage(options: { gatewayBaseUrl: string }): Prom
       hideBox(noteEl);
       try {
         await connectWebmcpWallet(walletId);
+        if (isMockedSessionReceipt(sessionStore.get())) {
+          sessionStore.clear();
+        }
         showText(noteEl, `Connected with use-wallet (${walletId}). Wallet is only used to pay for this session.`);
       } catch (error) {
         showJson(errorEl, {
@@ -188,42 +243,18 @@ export async function mountWebmcpPage(options: { gatewayBaseUrl: string }): Prom
   });
 
   checkoutRoot.querySelector<HTMLButtonElement>("[data-buy-session]")?.addEventListener("click", () => {
-    void runCheckout(sessionStore, options.gatewayBaseUrl, "create", errorEl, noteEl, render);
+    void withBusy(tableState, "checkout", render, () =>
+      runCheckout(sessionStore, options.gatewayBaseUrl, "create", errorEl, noteEl, render)
+    );
   });
   checkoutRoot.querySelector<HTMLButtonElement>("[data-refresh-session]")?.addEventListener("click", () => {
-    void runCheckout(sessionStore, options.gatewayBaseUrl, "refresh", errorEl, noteEl, render);
-  });
-  checkoutRoot.querySelector<HTMLButtonElement>("[data-read-session]")?.addEventListener("click", async () => {
-    hideBox(errorEl);
-    hideBox(noteEl);
-    const result = await refreshSessionRemaining({
-      gatewayBaseUrl: options.gatewayBaseUrl,
-      sessionStore
-    });
-    if (isToolError(result)) {
-      showJson(errorEl, result);
-    } else {
-      const receipt = sessionStore.get();
-      showText(
-        noteEl,
-        receipt
-          ? `Remaining research ${receipt.remaining.research} / quotes ${receipt.remaining.quotes}.`
-          : "Session remaining updated."
-      );
-    }
-    render();
-  });
-
-  demoBtn?.addEventListener("click", () => {
-    handles.applyReceipt(demoReceipt());
-    hideBox(errorEl);
-    showText(
-      noteEl,
-      "Mocked 13.8 session applied (demo). Remaining N/M is 50 / 10. This is not a live USDC purchase."
+    void withBusy(tableState, "checkout", render, () =>
+      runCheckout(sessionStore, options.gatewayBaseUrl, "refresh", errorEl, noteEl, render)
     );
   });
 
-  bindRunTools(runRoot, tableRoot, tableState, handles, render, demoEnabled);
+  bindRunTools(runRoot, tableRoot, tableState, handles, render);
+  startRemainingPoll(sessionStore, options.gatewayBaseUrl, render);
 
   render();
   return handles;
@@ -269,20 +300,80 @@ async function runCheckout(
   render();
 }
 
-function demoReceipt(): SessionReceipt {
-  const createdAt = new Date().toISOString();
-  const expiresAt = new Date(Date.now() + 14_400 * 1000).toISOString();
-  return {
-    uri: "canix://session/csess_demo",
-    sessionId: "csess_demo",
-    createdAt,
-    expiresAt,
-    ttlSeconds: 14_400,
-    budget: { research: 50, quotes: 10 },
-    remaining: { research: 50, quotes: 10 },
-    consumed: { research: 0, quotes: 0 },
-    status: "active"
+async function withBusy(
+  tableState: OpportunityTableState,
+  busy: Exclude<OpportunityBusy, false>,
+  render: () => void,
+  task: () => Promise<void>
+): Promise<void> {
+  if (tableState.busy) {
+    return;
+  }
+  tableState.busy = busy;
+  render();
+  try {
+    await task();
+  } finally {
+    tableState.busy = false;
+    render();
+  }
+}
+
+function applyBusyControls(busy: OpportunityBusy): void {
+  const locked = Boolean(busy);
+  document.querySelectorAll<HTMLButtonElement>("[data-list-top-opportunities]").forEach((button) => {
+    button.disabled = locked;
+    if (button.dataset.listTopOpportunities !== undefined) {
+      button.textContent = busy === "table" ? "Loading…" : "Get top 25";
+    }
+  });
+  document.querySelectorAll<HTMLFormElement>("[data-tool-form]").forEach((form) => {
+    form.querySelectorAll<HTMLButtonElement>("button[type='submit']").forEach((button) => {
+      button.disabled = locked;
+    });
+    form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("input, textarea, select").forEach(
+      (field) => {
+        field.disabled = locked;
+      }
+    );
+  });
+  const buyBtn = document.querySelector<HTMLButtonElement>("[data-buy-session]");
+  const refreshBtn = document.querySelector<HTMLButtonElement>("[data-refresh-session]");
+  if (locked) {
+    if (buyBtn) {
+      buyBtn.disabled = true;
+    }
+    if (refreshBtn) {
+      refreshBtn.disabled = true;
+    }
+  }
+}
+
+const TOP_OPPORTUNITIES_LIMIT = 25;
+const REMAINING_POLL_MS = 15_000;
+
+function startRemainingPoll(
+  sessionStore: WebMcpSessionStore,
+  gatewayBaseUrl: string,
+  render: () => void
+): void {
+  let inFlight = false;
+  const tick = async (): Promise<void> => {
+    if (inFlight || !sessionStore.get()?.sessionId) {
+      return;
+    }
+    inFlight = true;
+    try {
+      await refreshSessionRemaining({ gatewayBaseUrl, sessionStore });
+      render();
+    } finally {
+      inFlight = false;
+    }
   };
+  window.setInterval(() => {
+    void tick();
+  }, REMAINING_POLL_MS);
+  void tick();
 }
 
 function isToolError(result: unknown): result is { error: string; message?: string } {
@@ -352,10 +443,9 @@ function bindToolsDrawer(): void {
 function bindRunTools(
   runRoot: HTMLElement | null,
   tableRoot: HTMLElement | null,
-  tableState: { rows: OpportunityTableRow[]; source: string },
+  tableState: OpportunityTableState,
   handles: WebmcpPageHandles,
-  render: () => void,
-  demoEnabled: boolean
+  render: () => void
 ): void {
   const resultEl =
     runRoot?.querySelector<HTMLElement>("[data-run-result]") ??
@@ -369,19 +459,12 @@ function bindRunTools(
     runRoot?.querySelector<HTMLElement>("[data-run-note]") ??
     tableRoot?.querySelector<HTMLElement>("[data-run-note]") ??
     null;
-  const failBtn = runRoot?.querySelector<HTMLButtonElement>("[data-demo-fail-closed]");
-  if (failBtn) {
-    failBtn.hidden = !demoEnabled;
-  }
 
   const run = async (name: string, args: Record<string, unknown>, fillsTable: boolean): Promise<void> => {
-    await runHumanTool(handles, tableState, name, args, fillsTable, resultEl, errorEl, noteEl, render);
-    if (fillsTable && !isMobileViewport()) {
-      return;
-    }
-    if (fillsTable && tableState.rows.length > 0) {
-      document.querySelector<HTMLElement>("[data-close-tools]")?.click();
-    }
+    closeToolsDrawer();
+    await withBusy(tableState, fillsTable ? "table" : "tool", render, async () => {
+      await runHumanTool(handles, tableState, name, args, fillsTable, resultEl, errorEl, noteEl, render);
+    });
   };
 
   document.querySelectorAll<HTMLFormElement>("[data-tool-form]").forEach((form) => {
@@ -436,21 +519,18 @@ function bindRunTools(
     });
   });
 
-  failBtn?.addEventListener("click", async () => {
-    const current = handles.getReceipt() ?? demoReceipt();
-    handles.applyReceipt({
-      ...current,
-      remaining: { research: 0, quotes: current.remaining.quotes },
-      consumed: { research: current.budget.research, quotes: current.consumed.quotes },
-      status: current.remaining.quotes <= 0 ? "exhausted" : current.status
-    });
-    await run("canix_list_opportunities", { limit: 1 }, true);
+  tableRoot?.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element) || !target.closest("[data-list-top-opportunities]")) {
+      return;
+    }
+    void run("canix_list_opportunities", { limit: TOP_OPPORTUNITIES_LIMIT }, true);
   });
 }
 
 async function runHumanTool(
   handles: WebmcpPageHandles,
-  tableState: { rows: OpportunityTableRow[]; source: string },
+  tableState: OpportunityTableState,
   name: string,
   args: Record<string, unknown>,
   fillsTable: boolean,
@@ -506,13 +586,13 @@ async function runHumanTool(
 
 function renderOpportunityTable(
   tableRoot: HTMLElement | null,
-  tableState: { rows: OpportunityTableRow[]; source: string }
+  tableState: OpportunityTableState
 ): void {
   if (!tableRoot) {
     return;
   }
   const body = tableRoot.querySelector<HTMLTableSectionElement>("[data-opportunities-body]");
-  const caption = tableRoot.querySelector<HTMLElement>("[data-opportunities-caption]");
+  const table = tableRoot.querySelector<HTMLTableElement>("[data-opportunities-table]");
   const clearBtn = tableRoot.querySelector<HTMLButtonElement>("[data-clear-opportunities]");
   const eligibilityBtn = tableRoot.querySelector<HTMLButtonElement>("[data-check-eligibility]");
   const planBtn = tableRoot.querySelector<HTMLButtonElement>("[data-get-plan]");
@@ -520,21 +600,27 @@ function renderOpportunityTable(
     return;
   }
 
+  const loadingTable = tableState.busy === "table";
+  const locked = Boolean(tableState.busy);
+  tableRoot.classList.toggle("is-loading", loadingTable);
+  if (table) {
+    table.setAttribute("aria-busy", loadingTable ? "true" : "false");
+  }
+
   const selected = selectedOpportunityIds(tableRoot);
   if (clearBtn) {
-    clearBtn.disabled = tableState.rows.length === 0;
+    clearBtn.disabled = locked || tableState.rows.length === 0;
   }
   if (eligibilityBtn) {
-    eligibilityBtn.disabled = selected.length === 0;
+    eligibilityBtn.disabled = locked || selected.length === 0;
   }
   if (planBtn) {
-    planBtn.disabled = selected.length === 0;
+    planBtn.disabled = locked || selected.length === 0;
   }
-  if (caption) {
-    caption.textContent =
-      tableState.rows.length === 0
-        ? "Table starts empty. Use Tools to load rows."
-        : `${tableState.rows.length} loaded from ${tableState.source}${selected.length ? ` · ${selected.length} selected` : ""}.`;
+
+  if (loadingTable) {
+    body.replaceChildren(...skeletonOpportunityRows());
+    return;
   }
 
   if (tableState.rows.length === 0) {
@@ -550,16 +636,12 @@ function renderOpportunityTable(
   body.querySelectorAll<HTMLInputElement>('input[type="checkbox"][data-opportunity-id]').forEach((input) => {
     input.addEventListener("change", () => {
       const nextSelected = selectedOpportunityIds(tableRoot);
+      const lockedNow = Boolean(tableState.busy);
       if (eligibilityBtn) {
-        eligibilityBtn.disabled = nextSelected.length === 0;
+        eligibilityBtn.disabled = lockedNow || nextSelected.length === 0;
       }
       if (planBtn) {
-        planBtn.disabled = nextSelected.length === 0;
-      }
-      if (caption && tableState.rows.length > 0) {
-        caption.textContent = `${tableState.rows.length} loaded from ${tableState.source}${
-          nextSelected.length ? ` · ${nextSelected.length} selected` : ""
-        }.`;
+        planBtn.disabled = lockedNow || nextSelected.length === 0;
       }
     });
   });
@@ -573,22 +655,34 @@ function emptyOpportunityRow(): HTMLTableRowElement {
   const wrap = document.createElement("div");
   wrap.className = "webmcp-empty";
   const title = document.createElement("p");
+  title.className = "muted";
   title.textContent = "No opportunities loaded";
-  const copy = document.createElement("p");
-  copy.className = "muted";
-  copy.textContent = "Open Tools to list, search, or personalize venues. Paid calls need a prepaid session.";
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "button button-primary";
-  button.dataset.openTools = "";
-  button.textContent = "Open tools";
-  button.addEventListener("click", () => {
-    document.querySelector<HTMLButtonElement>(".webmcp-tools-open")?.click();
-  });
-  wrap.append(title, copy, button);
+  wrap.append(title);
   td.append(wrap);
   tr.append(td);
   return tr;
+}
+
+const SKELETON_ROW_COUNT = 8;
+const SKELETON_BAR_WIDTHS = ["1.1rem", "4.8rem", "3.2rem", "5.5rem", "3.6rem", "4.2rem", "3.4rem", "3.8rem", "8.5rem"];
+
+function skeletonOpportunityRows(): HTMLTableRowElement[] {
+  return Array.from({ length: SKELETON_ROW_COUNT }, (_, rowIndex) => {
+    const tr = document.createElement("tr");
+    tr.className = "webmcp-skeleton-row";
+    tr.ariaHidden = "true";
+    for (let column = 0; column < 9; column += 1) {
+      const td = document.createElement("td");
+      const bar = document.createElement("span");
+      bar.className = "agent-skeleton-bar";
+      const width = SKELETON_BAR_WIDTHS[column] ?? "4rem";
+      const jitter = ((rowIndex + column) % 3) * 0.35;
+      bar.style.width = `calc(${width} + ${jitter}rem)`;
+      td.append(bar);
+      tr.append(td);
+    }
+    return tr;
+  });
 }
 
 function opportunityRow(row: OpportunityTableRow, checked: boolean): HTMLTableRowElement {
@@ -673,105 +767,12 @@ function openToolForm(name: string, values: Record<string, string>): void {
   }
 }
 
-function isMobileViewport(): boolean {
-  return window.matchMedia("(max-width: 720px)").matches;
-}
-
-function createDemoGatewayFetch(sessionStore: WebMcpSessionStore): typeof fetch {
-  return async (input, init) => {
-    const url = new URL(String(input));
-    const headers = headerRecord(init?.headers);
-    const sessionId = headers["x-canix-session"] ?? headers["X-Canix-Session"];
-    const path = url.pathname;
-    const receipt = sessionStore.get();
-    if (!sessionId) {
-      return new Response(JSON.stringify({ error: "Payment required" }), {
-        status: 402,
-        headers: { "payment-required": demoPaymentRequiredHeader() }
-      });
-    }
-    if (!receipt || receipt.sessionId !== sessionId) {
-      return new Response(JSON.stringify({ error: { code: "SESSION_INVALID", message: "Unknown session receipt." } }), {
-        status: 402
-      });
-    }
-    const research = path.includes("/opportunities") || path.includes("/positions") || path.includes("/eligibility");
-    const quotes = path.startsWith("/plans") || path.startsWith("/execution") || path === "/swaps/transactions";
-    const remainingResearch = research ? Math.max(0, receipt.remaining.research - 1) : receipt.remaining.research;
-    const remainingQuotes = quotes ? Math.max(0, receipt.remaining.quotes - 1) : receipt.remaining.quotes;
-    const body = demoGatewayBody(path);
-    return new Response(JSON.stringify(body), {
-      status: 200,
-      headers: {
-        "content-type": "application/json",
-        "x-canix-session-remaining-research": String(remainingResearch),
-        "x-canix-session-remaining-quotes": String(remainingQuotes),
-        "x-canix-session-expires-at": receipt.expiresAt
-      }
-    });
-  };
-}
-
-function demoGatewayBody(path: string): unknown {
-  if (path.startsWith("/plans")) {
-    return {
-      data: { allocations: [], blocked: [] },
-      meta: { executionSubmitted: false, signed: false, submitted: false }
-    };
+function closeToolsDrawer(): void {
+  const drawer = document.querySelector<HTMLElement>("[data-webmcp-tools-drawer]");
+  if (!drawer?.classList.contains("is-open")) {
+    return;
   }
-  if (path.includes("/eligibility")) {
-    return {
-      data: [
-        {
-          opportunityId: "tinyman:pool:1002541853",
-          protocol: "tinyman",
-          canEnter: true
-        }
-      ]
-    };
-  }
-  if (path.includes("/opportunities")) {
-    return {
-      data: [
-        {
-          protocol: "tinyman",
-          opportunityType: "lp",
-          opportunityId: "tinyman:pool:1002541853",
-          assetPair: "ALGO/USDC",
-          apy: 12.5,
-          yieldBasis: "apy",
-          tvlUsd: 2_450_000.5,
-          executionReady: true
-        }
-      ]
-    };
-  }
-  return { data: [{ id: "opp-demo", protocol: "tinyman", type: "lp" }] };
-}
-
-function headerRecord(headers: HeadersInit | undefined): Record<string, string> {
-  if (!headers) {
-    return {};
-  }
-  if (headers instanceof Headers) {
-    const out: Record<string, string> = {};
-    headers.forEach((value, key) => {
-      out[key] = value;
-    });
-    return out;
-  }
-  if (Array.isArray(headers)) {
-    return Object.fromEntries(headers);
-  }
-  return { ...(headers as Record<string, string>) };
-}
-
-function demoPaymentRequiredHeader(): string {
-  const json = JSON.stringify({
-    x402Version: 2,
-    accepts: [{ scheme: "exact", network: "test-network", asset: "1", payTo: "PAYTO", maxAmountRequired: "10000" }]
-  });
-  return btoa(json);
+  document.querySelector<HTMLElement>("[data-close-tools]")?.click();
 }
 
 function setAllText(selector: string, value: string): void {

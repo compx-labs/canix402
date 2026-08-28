@@ -75,7 +75,7 @@ export async function executeCanixWebMcpToolValue(
   }
 
   const result = await callGateway(request, {
-    fetchImpl: options.fetchImpl ?? fetch,
+    fetchImpl: options.fetchImpl ?? ((input, init) => fetch(input, init)),
     signal: options.signal
   });
 

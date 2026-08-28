@@ -4,7 +4,12 @@ import WebmcpToolField from "../components/WebmcpToolField.astro";
 import { config } from "../lib/config";
 import { WEBMCP_TOOLS } from "../lib/webmcp/catalog";
 import { fieldsForSchema } from "../lib/webmcp/tool-forms";
-import { HUMAN_CHECKOUT_TOOLS, WEBMCP_TOOL_GROUPS, toolFillsTable, toolsInGroup } from "../lib/webmcp/tool-groups";
+import {
+  HUMAN_CHECKOUT_TOOLS,
+  WEBMCP_TOOL_GROUPS,
+  toolFillsTable,
+  toolsInGroup,
+} from "../lib/webmcp/tool-groups";
 
 const freeCount = WEBMCP_TOOLS.filter((tool) => tool.access === "free").length;
 const paidCount = WEBMCP_TOOLS.length - freeCount;
@@ -15,14 +20,18 @@ const paidCount = WEBMCP_TOOLS.length - freeCount;
   description="Canix402 WebMCP: fill an opportunities table from the same MCP tools agents discover in-page. Walletless receipts, no signing or submission."
   keywords="Canix402 WebMCP, navigator.modelContext, document.modelContext, registerTool, MCP tools, x402, Algorand opportunities"
 >
-  <meta slot="head" http-equiv="Permissions-Policy" content="tools=(self), document-domain=()" />
+  <meta
+    slot="head"
+    http-equiv="Permissions-Policy"
+    content="tools=(self), document-domain=()"
+  />
 
   <div class="webmcp-page-head">
     <div>
-      <h1 class="page-title">WebMCP</h1>
+      <h1 class="page-title">Canix402 Live</h1>
       <p class="page-lead">
-        Same tools people and agents share. Fill the table from search, list, protocol, or
-        personalized endpoints. Canix does not sign or submit — sessions are receipts, not keys.
+        Search live Defi oppotunities on Algorand. Available for agents, humans
+        and agents on the web.
       </p>
     </div>
     <button
@@ -36,32 +45,11 @@ const paidCount = WEBMCP_TOOLS.length - freeCount;
     </button>
   </div>
 
-  <section class="webmcp-status-strip" data-webmcp-status aria-live="polite">
-    <p>
-      <span class="muted">Publisher API</span>
-      <strong data-webmcp-api>Detecting…</strong>
-    </p>
-    <p>
-      <span class="muted">Origin</span>
-      <strong data-webmcp-origin>Detecting…</strong>
-    </p>
-    <p>
-      <span class="muted">Registered</span>
-      <strong data-webmcp-registered-count>0 / {WEBMCP_TOOLS.length}</strong>
-    </p>
-    <p class="muted webmcp-status-note" data-webmcp-note>
-      Enable <code>chrome://flags/#enable-webmcp-testing</code> in Chrome, or use ChatGPT’s in-app
-      browser.
-    </p>
-  </section>
-
   <section class="panel webmcp-session-bar" data-webmcp-checkout>
     <div class="webmcp-session-bar-copy">
-      <h2>Prepaid session</h2>
+      <h2>Pre-paid session for humans</h2>
       <p class="muted">
-        Connect Pera or Defly, pay once in USDC, then call paid tools from the drawer. Remaining
-        research <strong data-remaining-research>—</strong>
-        / quotes <strong data-remaining-quotes>—</strong>.
+        Connect Pera or Defly, pay once, then call thepaid tools.
       </p>
     </div>
     <div class="webmcp-wallet-row">
@@ -73,18 +61,19 @@ const paidCount = WEBMCP_TOOLS.length - freeCount;
         <img data-connect-icon alt="" hidden width="20" height="20" />
         <span data-connect-label>Connect Defly</span>
       </button>
-      <button type="button" class="button button-ghost" data-disconnect hidden>Disconnect</button>
-      <button type="button" class="button button-primary" data-buy-session disabled>
-        Buy session (USDC)
+      <button type="button" class="button button-ghost" data-disconnect hidden
+        >Disconnect</button
+      >
+      <button
+        type="button"
+        class="button button-primary"
+        data-buy-session
+        disabled
+      >
+        Buy session
       </button>
       <button type="button" class="button" data-refresh-session disabled>
         Refresh
-      </button>
-      <button type="button" class="button button-ghost" data-read-session disabled>
-        Read remaining
-      </button>
-      <button type="button" class="button button-ghost" data-apply-demo-session hidden>
-        Apply mocked session
       </button>
     </div>
     <div class="webmcp-status-grid webmcp-session-meta">
@@ -93,38 +82,47 @@ const paidCount = WEBMCP_TOOLS.length - freeCount;
         <p class="webmcp-status-value" data-wallet-status>Disconnected</p>
         <p class="muted mono" data-wallet-address>Not connected</p>
       </div>
-      <div class="webmcp-status-card">
-        <p class="muted">Session</p>
-        <p class="webmcp-status-value" data-session-status>none</p>
-        <p class="muted mono" data-session-id>None</p>
-        <p class="muted" data-session-expires>—</p>
+      <div class="webmcp-status-card" aria-live="polite">
+        <p class="muted">Remaining</p>
+        <p class="webmcp-status-value">
+          <span data-remaining-research>—</span>
+          <span class="muted">research</span>
+        </p>
+        <p class="webmcp-status-value">
+          <span data-remaining-quotes>—</span>
+          <span class="muted">quotes</span>
+        </p>
+        <p class="muted" data-session-expires hidden>—</p>
       </div>
     </div>
     <p class="webmcp-checkout-note" data-checkout-note hidden></p>
-    <pre class="code-block webmcp-checkout-error" data-checkout-error hidden></pre>
+    <pre class="code-block webmcp-checkout-error" data-checkout-error hidden>
+    </pre>
   </section>
 
   <section class="panel webmcp-opportunities" data-webmcp-opportunities>
     <div class="webmcp-opportunities-toolbar">
-      <div>
-        <h2>Opportunities</h2>
-        <p class="muted" data-opportunities-caption>Table starts empty. Use Tools to load rows.</p>
-      </div>
+      <h2>Opportunities</h2>
       <div class="webmcp-opportunities-actions">
-        <button type="button" class="button" data-check-eligibility disabled>
-          Check eligibility
+        <button type="button" class="button" data-list-top-opportunities>
+          Get top 25
         </button>
-        <button type="button" class="button" data-get-plan disabled>Get plan</button>
-        <button type="button" class="button button-ghost" data-clear-opportunities disabled>
-          Clear
-        </button>
-        <button type="button" class="button button-primary webmcp-tools-open-inline" data-open-tools>
+
+        <button
+          type="button"
+          class="button button-primary webmcp-tools-open-inline"
+          data-open-tools
+        >
           Tools
         </button>
       </div>
     </div>
     <div class="webmcp-tool-table-wrap">
-      <table class="endpoint-table webmcp-opportunities-table" data-opportunities-table>
+      <table
+        class="endpoint-table webmcp-opportunities-table"
+        data-opportunities-table
+        aria-busy="false"
+      >
         <thead>
           <tr>
             <th class="webmcp-select-col">
@@ -144,12 +142,7 @@ const paidCount = WEBMCP_TOOLS.length - freeCount;
           <tr data-opportunities-empty>
             <td colspan="9">
               <div class="webmcp-empty">
-                <p>No opportunities loaded</p>
-                <p class="muted">
-                  Open Tools to list, search, or personalize venues. Paid calls need a prepaid
-                  session.
-                </p>
-                <button type="button" class="button button-primary" data-open-tools>Open tools</button>
+                <p class="muted">No opportunities loaded</p>
               </div>
             </td>
           </tr>
@@ -157,13 +150,6 @@ const paidCount = WEBMCP_TOOLS.length - freeCount;
       </table>
     </div>
   </section>
-
-  <p class="muted webmcp-execute-note">
-    Gateway <code>{config.gatewayBaseUrl}</code>
-    · Remote MCP <a href="/mcp">{config.mcpUrl}</a>
-    · {WEBMCP_TOOLS.length} tools · {paidCount} paid · {freeCount} free. Humans on this page pay
-    with a session receipt, not per-request USDC.
-  </p>
 
   <button
     type="button"
@@ -194,11 +180,18 @@ const paidCount = WEBMCP_TOOLS.length - freeCount;
           {WEBMCP_TOOLS.length} MCP tools. Opportunity tools fill the table.
         </p>
       </div>
-      <button type="button" class="button button-ghost" data-close-tools>Close</button>
+      <button type="button" class="button button-ghost" data-close-tools
+        >Close</button
+      >
     </div>
     <div class="webmcp-field webmcp-tools-filter">
       <label for="webmcp-tool-filter">Filter tools</label>
-      <input id="webmcp-tool-filter" type="search" data-tool-filter placeholder="search, plan, tinyman…" />
+      <input
+        id="webmcp-tool-filter"
+        type="search"
+        data-tool-filter
+        placeholder="search, plan, tinyman…"
+      />
     </div>
     <div class="webmcp-tools-drawer-body">
       {
@@ -208,38 +201,56 @@ const paidCount = WEBMCP_TOOLS.length - freeCount;
             <p class="muted">{group.hint}</p>
             {toolsInGroup(group).map((tool) => {
               const checkoutOnly = HUMAN_CHECKOUT_TOOLS.has(tool.name);
-              const fields = checkoutOnly ? [] : fieldsForSchema(tool.inputSchema);
+              const fields = checkoutOnly
+                ? []
+                : fieldsForSchema(tool.inputSchema);
               return (
                 <details
                   class="webmcp-tool-card"
                   data-webmcp-tool={tool.name}
                   data-access={tool.access}
-                  {...(tool.name === "canix_search_opportunities" ? { open: true } : {})}
+                  {...(tool.name === "canix_search_opportunities"
+                    ? { open: true }
+                    : {})}
                 >
                   <summary>
                     <span class="webmcp-tool-summary">
                       <code>{tool.name}</code>
-                      <span class={`badge ${tool.access === "paid" ? "badge-paid" : "badge-free"}`}>
+                      <span
+                        class={`badge ${tool.access === "paid" ? "badge-paid" : "badge-free"}`}
+                      >
                         {tool.access}
-                        {tool.fallbackPriceUsdc ? ` · ${tool.fallbackPriceUsdc} USDC` : ""}
+                        {tool.fallbackPriceUsdc
+                          ? ` · ${tool.fallbackPriceUsdc} USDC`
+                          : ""}
                       </span>
-                      <span class="badge badge-free" data-webmcp-registration="pending">
+                      <span
+                        class="badge badge-free"
+                        data-webmcp-registration="pending"
+                      >
                         Catalog
                       </span>
                     </span>
                   </summary>
-                  <p class="muted webmcp-tool-description">{tool.description}</p>
+                  <p class="muted webmcp-tool-description">
+                    {tool.description}
+                  </p>
                   <p class="muted">
                     <span class="badge badge-method">{tool.http.method}</span>
                     <code class="webmcp-http-path">{tool.http.path}</code>
                   </p>
                   {checkoutOnly ? (
                     <p class="muted">
-                      Humans buy or refresh a session in the bar on this page. Agents call this
-                      tool with per-request USDC.
+                      Humans buy or refresh a session in the bar on this page.
+                      Agents call this tool with per-request USDC.
                     </p>
                   ) : (
-                    <form data-tool-form={tool.name} data-fills-table={toolFillsTable(tool.name) ? "true" : "false"}>
+                    <form
+                      data-tool-form={tool.name}
+                      data-fills-table={
+                        toolFillsTable(tool.name) ? "true" : "false"
+                      }
+                    >
                       {fields.map((field) => (
                         <WebmcpToolField field={field} toolName={tool.name} />
                       ))}
@@ -254,11 +265,6 @@ const paidCount = WEBMCP_TOOLS.length - freeCount;
           </section>
         ))
       }
-      <div class="webmcp-wallet-row">
-        <button type="button" class="button button-ghost" data-demo-fail-closed hidden>
-          Demo fail-closed (exhausted research)
-        </button>
-      </div>
     </div>
     <div class="webmcp-tools-drawer-result">
       <p class="webmcp-checkout-note" data-run-note hidden></p>
@@ -271,7 +277,7 @@ const paidCount = WEBMCP_TOOLS.length - freeCount;
     id="webmcp-root"
     hidden
     data-gateway={config.gatewayBaseUrl}
-    data-tool-count={String(WEBMCP_TOOLS.length)}
+    data-nfd-api={config.nfdApiBaseUrl}
   >
   </div>
 
@@ -280,56 +286,37 @@ const paidCount = WEBMCP_TOOLS.length - freeCount;
     import { mountWebmcpPage } from "../lib/webmcp/page-app";
 
     const root = document.querySelector<HTMLElement>("#webmcp-root");
-    const apiEl = document.querySelector<HTMLElement>("[data-webmcp-api]");
-    const originEl = document.querySelector<HTMLElement>("[data-webmcp-origin]");
-    const countEl = document.querySelector<HTMLElement>("[data-webmcp-registered-count]");
-    const noteEl = document.querySelector<HTMLElement>("[data-webmcp-note]");
     const gateway = root?.dataset.gateway ?? "";
-    const total = Number(root?.dataset.toolCount ?? "0");
+    const nfdApiBaseUrl = root?.dataset.nfdApi ?? "";
 
     const status = await registerCanixWebMcpTools({ gatewayBaseUrl: gateway });
     const registered = new Set(status.registered);
 
-    if (apiEl) {
-      apiEl.textContent =
-        status.api === "unavailable"
-          ? "Not available in this browser"
-          : status.api;
-    }
-    if (originEl) {
-      originEl.textContent = status.originIsolated
-        ? "Intact"
-        : "Relaxed — WebMCP disabled";
-    }
-    if (countEl) {
-      countEl.textContent = `${status.registered.length} / ${total}`;
-    }
-    if (noteEl && status.api === "unavailable") {
-      noteEl.textContent =
-        "This browser has no WebMCP publisher API. The Tools panel is still the catalog agents would see. In Chrome, enable chrome://flags/#enable-webmcp-testing. ChatGPT’s in-app browser enables WebMCP by default.";
-    }
+    document
+      .querySelectorAll<HTMLElement>("[data-webmcp-tool]")
+      .forEach((row) => {
+        const name = row.dataset.webmcpTool ?? "";
+        const badge = row.querySelector<HTMLElement>(
+          "[data-webmcp-registration]",
+        );
+        if (!badge) {
+          return;
+        }
+        if (registered.has(name)) {
+          badge.textContent = "Registered";
+          badge.className = "badge badge-free";
+          badge.dataset.webmcpRegistration = "registered";
+        } else if (status.api === "unavailable") {
+          badge.textContent = "Catalog only";
+          badge.dataset.webmcpRegistration = "catalog";
+        } else {
+          const failure = status.failed.find((item) => item.name === name);
+          badge.textContent = failure ? "Failed" : "Not registered";
+          badge.className = "badge badge-paid";
+          badge.dataset.webmcpRegistration = "failed";
+        }
+      });
 
-    document.querySelectorAll<HTMLElement>("[data-webmcp-tool]").forEach((row) => {
-      const name = row.dataset.webmcpTool ?? "";
-      const badge = row.querySelector<HTMLElement>("[data-webmcp-registration]");
-      if (!badge) {
-        return;
-      }
-      if (registered.has(name)) {
-        badge.textContent = "Registered";
-        badge.className = "badge badge-free";
-        badge.dataset.webmcpRegistration = "registered";
-      } else if (status.api === "unavailable") {
-        badge.textContent = "Catalog only";
-        badge.dataset.webmcpRegistration = "catalog";
-      } else {
-        const failure = status.failed.find((item) => item.name === name);
-        badge.textContent = failure ? "Failed" : "Not registered";
-        badge.className = "badge badge-paid";
-        badge.dataset.webmcpRegistration = "failed";
-      }
-    });
-
-    await mountWebmcpPage({ gatewayBaseUrl: gateway });
+    await mountWebmcpPage({ gatewayBaseUrl: gateway, nfdApiBaseUrl });
   </script>
 </BaseLayout>

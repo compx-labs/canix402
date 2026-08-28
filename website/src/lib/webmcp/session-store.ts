@@ -1,6 +1,11 @@
 import type { SessionQuota, SessionReceipt, SessionStatus } from "./types";
 
 export const WEBMCP_SESSION_STORAGE_KEY = "canix402.webmcp.session";
+export const MOCKED_SESSION_ID = "csess_demo";
+
+export function isMockedSessionReceipt(receipt: SessionReceipt | null | undefined): boolean {
+  return Boolean(receipt && receipt.sessionId === MOCKED_SESSION_ID);
+}
 
 export interface SessionStorage {
   getItem(key: string): string | null;
@@ -29,23 +34,39 @@ export function defaultSessionStorage(): SessionStorage {
 }
 
 export function createSessionStore(storage: SessionStorage = defaultSessionStorage()) {
+  let ephemeral: SessionReceipt | null = null;
   return {
     get(): SessionReceipt | null {
+      if (ephemeral) {
+        return ephemeral;
+      }
       const raw = storage.getItem(WEBMCP_SESSION_STORAGE_KEY);
       if (!raw) {
         return null;
       }
       try {
-        return parseSessionReceipt(JSON.parse(raw));
+        const parsed = parseSessionReceipt(JSON.parse(raw));
+        if (isMockedSessionReceipt(parsed)) {
+          storage.removeItem(WEBMCP_SESSION_STORAGE_KEY);
+          return null;
+        }
+        return parsed;
       } catch {
         return null;
       }
     },
     set(receipt: SessionReceipt): SessionReceipt {
+      if (isMockedSessionReceipt(receipt)) {
+        ephemeral = receipt;
+        storage.removeItem(WEBMCP_SESSION_STORAGE_KEY);
+        return receipt;
+      }
+      ephemeral = null;
       storage.setItem(WEBMCP_SESSION_STORAGE_KEY, JSON.stringify(receipt));
       return receipt;
     },
     clear(): void {
+      ephemeral = null;
       storage.removeItem(WEBMCP_SESSION_STORAGE_KEY);
     },
     applyQuota(quota: SessionQuota): SessionReceipt | null {

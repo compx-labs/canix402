@@ -1441,7 +1441,7 @@ main {
 
 .value-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
 }
 
@@ -1722,7 +1722,8 @@ main {
 
   .landing-hero-grid,
   .compare-grid,
-  .case-study-grid {
+  .case-study-grid,
+  .value-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1804,8 +1805,9 @@ main {
   letter-spacing: -0.02em;
 }
 
-.webmcp-status-note {
-  margin-bottom: 0;
+.webmcp-status-value .muted {
+  font-weight: 500;
+  margin-left: 0.3rem;
 }
 
 .webmcp-tool-table-wrap {
@@ -1899,23 +1901,6 @@ main {
   margin-bottom: 0.35rem;
 }
 
-.webmcp-status-strip {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.5rem;
-  align-items: baseline;
-  margin: 0.75rem 0 0;
-  font-size: 0.9rem;
-}
-
-.webmcp-status-strip p {
-  margin: 0;
-}
-
-.webmcp-status-strip .webmcp-status-note {
-  flex: 1 1 100%;
-}
-
 .webmcp-session-bar h2,
 .webmcp-opportunities h2,
 .webmcp-tools-drawer h2 {
@@ -1939,7 +1924,7 @@ main {
 .webmcp-opportunities-toolbar {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 0.75rem 1rem;
   margin-bottom: 1rem;
@@ -1979,6 +1964,19 @@ main {
 
 .webmcp-empty p {
   margin: 0;
+}
+
+.webmcp-opportunities.is-loading .webmcp-tool-table-wrap {
+  pointer-events: none;
+}
+
+.webmcp-skeleton-row td {
+  border-color: transparent;
+  vertical-align: middle;
+}
+
+.webmcp-skeleton-row .agent-skeleton-bar {
+  min-width: 1rem;
 }
 
 .webmcp-execute-note {

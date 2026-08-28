@@ -32,10 +32,20 @@ test("webmcp page is an empty opportunities table with a tools drawer", () => {
   assert.match(source, /data-opportunities-table/);
   assert.match(source, /data-opportunities-empty/);
   assert.match(source, /No opportunities loaded/);
+  assert.match(source, /data-list-top-opportunities/);
+  assert.match(source, /Get top 25/);
   assert.match(source, /data-webmcp-tools-drawer/);
   assert.match(source, /data-open-tools/);
   assert.equal(source.includes("Registered tools"), false);
+  assert.equal(source.includes("webmcp-status-strip"), false);
+  assert.equal(source.includes("data-webmcp-api"), false);
   assert.equal(source.includes("data-list-opportunities-form"), false);
+  assert.equal(source.includes("Buy session (USDC)"), false);
+  assert.equal(source.includes("Apply mocked session"), false);
+  assert.equal(source.includes("Read remaining"), false);
+  assert.equal(source.includes("data-opportunities-caption"), false);
+  assert.equal(source.includes("Get top 25 to fill the table"), false);
+  assert.equal(source.includes("Paid calls need a prepaid session"), false);
 });
 
 test("tool groups cover the WebMCP catalog once", () => {
