@@ -2,6 +2,8 @@ package x402avm
 
 import (
 	"encoding/json"
+	"os"
+	"regexp"
 	"testing"
 
 	"github.com/GoPlausible/x402-avm/go/extensions/bazaar"
@@ -65,5 +67,26 @@ func TestBuildBazaarExtensionUnknown(t *testing.T) {
 	_, err := buildBazaarExtension("not-a-real-profile")
 	if err == nil {
 		t.Fatal("expected error for unknown profile")
+	}
+}
+
+func TestCaddyfileBazaarProfilesAreRegistered(t *testing.T) {
+	raw, err := os.ReadFile("Caddyfile")
+	if err != nil {
+		t.Fatalf("read Caddyfile: %v", err)
+	}
+	matches := regexp.MustCompile(`bazaar_profile\s+(\S+)`).FindAllStringSubmatch(string(raw), -1)
+	if len(matches) == 0 {
+		t.Fatal("expected bazaar_profile entries in Caddyfile")
+	}
+	known := make(map[string]struct{}, len(knownBazaarProfiles()))
+	for _, profile := range knownBazaarProfiles() {
+		known[profile] = struct{}{}
+	}
+	for _, match := range matches {
+		name := match[1]
+		if _, ok := known[name]; !ok {
+			t.Errorf("Caddyfile bazaar_profile %q is not registered", name)
+		}
 	}
 }
