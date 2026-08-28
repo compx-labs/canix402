@@ -260,6 +260,7 @@ function buildDiscoveryDocument(): DiscoveryDocument {
       "execution-quotes",
       "intent-plans",
       "rebalance-delta-plans",
+      "policy-validate",
       "swap-aware-compose",
       "execution-simulate",
       "prepaid-sessions",

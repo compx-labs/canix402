@@ -43,6 +43,14 @@ test("Caddy gives plans rebalance a dedicated compiler paid policy", () => {
   );
 });
 
+test("Caddy gives policy validate a dedicated compiler paid policy", () => {
+  assert.match(caddyfile, /@paid_policy_validate path \/policy\/validate/);
+  assert.match(
+    caddyfile,
+    /handle @paid_policy_validate \{[\s\S]*?price \{\$X402_PRICE_POLICY_VALIDATE_USDC\}[\s\S]*?reverse_proxy \{\$UPSTREAM_API\}[\s\S]*?\}/
+  );
+});
+
 test("Caddy gives execution compose a dedicated compiler paid policy", () => {
   assert.match(caddyfile, /@paid_execution_compose path \/execution\/compose/);
   assert.match(
@@ -89,7 +97,7 @@ test("Caddy skips x402 when X-Canix-Session is present on session-eligible route
   );
   assert.match(
     caddyfile,
-    /@session \{[\s\S]*?path \/opportunities \/opportunities\/search \/opportunities\/personalized \/eligibility \/plans \/plans\/rebalance \/positions \/positions\/claimable \/protocols\/\*\/opportunities \/swaps\/transactions \/execution\/quotes \/execution\/compose \/execution\/simulate/
+    /@session \{[\s\S]*?path \/opportunities \/opportunities\/search \/opportunities\/personalized \/eligibility \/plans \/plans\/rebalance \/policy\/validate \/positions \/positions\/claimable \/protocols\/\*\/opportunities \/swaps\/transactions \/execution\/quotes \/execution\/compose \/execution\/simulate/
   );
   assert.match(caddyfile, /handle @session \{[\s\S]*?reverse_proxy \{\$UPSTREAM_API\}/);
   const sessionMatcher = caddyfile.match(/@session \{[\s\S]*?\n\t\}/);

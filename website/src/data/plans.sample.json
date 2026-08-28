@@ -10,6 +10,9 @@
         "allocatedAmount": "1000000",
         "allocatedAssetId": 0,
         "weightBps": 10000,
+        "tvlUsd": 1000000,
+        "sourceTimestamp": "2026-08-16T10:00:00.000Z",
+        "executionReady": true,
         "eligibility": {
           "opportunityId": "reti-staking-12",
           "protocol": "reti",

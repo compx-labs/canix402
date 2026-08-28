@@ -161,6 +161,32 @@ test("plans rebalance endpoint advertises exactly 250000 micro-USDC", async () =
   }
 });
 
+test("policy validate endpoint advertises exactly 250000 micro-USDC", async () => {
+  const context = await setup();
+  try {
+    const response = await fetch(`${context.baseUrl}/policy/validate`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        policy: { schemaVersion: "1.0.0" },
+        quotes: [{ shapeKey: "mainnet:reti:v1:stake:algo" }]
+      })
+    });
+    assert.equal(response.status, 402);
+
+    const paymentRequired = response.headers.get("payment-required");
+    assert.ok(paymentRequired);
+    const decoded = decodePaymentRequired(paymentRequired);
+    assert.equal(
+      decoded.accepts[0]?.maxAmountRequired ?? decoded.accepts[0]?.amount,
+      "250000"
+    );
+    assert.equal(context.facilitator.calls.length, 0);
+  } finally {
+    await context.teardown();
+  }
+});
+
 test("execution compose endpoint advertises exactly 100000 micro-USDC", async () => {
   const context = await setup();
   try {
