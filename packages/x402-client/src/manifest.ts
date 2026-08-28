@@ -16,6 +16,7 @@ export const MCP_TOOL_NAMES = [
   "canix_check_eligibility",
   "canix_get_plan",
   "canix_get_rebalance_plan",
+  "canix_validate_policy",
   "canix_compose_enter",
   "canix_get_protocol_opportunities",
   "canix_get_positions",

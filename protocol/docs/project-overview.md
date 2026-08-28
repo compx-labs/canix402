@@ -258,6 +258,26 @@ Dry-run compiled unsigned groups; Canix never signs or submits.
 - MCP: `canix_simulate_execution`. See
   `docs/execution-shapes/simulate-expected-delta.md`.
 
+### Policy-as-a-service (`POST /policy/validate`)
+
+A paid compiler SKU priced at 0.25 USDC (same band as `POST /plans`). Operators
+bring policy; Canix evaluates a compiled plan or proposed `quotes[]` and never
+signs.
+
+- Body: `{ policy, plan?, quotes[]?, walletAlgoMicroAlgos?, evaluatedAt? }`.
+  `policy.schemaVersion` must be `"1.0.0"`. Provide a compiled plan and/or
+  `quotes[]`.
+- Constraints: `maxProtocolWeightBps`, `minAlgoReserveMicroAlgos`, `minTvlUsd`,
+  `maxSourceAgeSeconds`, `noNewBorrows`, `executionReadyOnly`.
+- Response: `{ pass, reasons[] }`. Reuses plan/eligibility/risk fields already on
+  the compiled object and fails closed when a required field is missing — it does
+  not re-quote on-chain. `signed` / `submitted` / `meta.executionSubmitted` are
+  always `false`.
+- Discovery and OpenAPI advertise `maxAmountRequired: "0.25"`. Caddy enforces
+  `X402_PRICE_POLICY_VALIDATE_USDC=0.25` (250000 micro-USDC).
+- MCP: `canix_validate_policy`. Schema and Brownie sample:
+  `docs/policy-schema.md`, `docs/policy-brownie.sample.json`.
+
 ### Wallet Positions (`GET /positions?address=`)
 
 A paid wallet data route priced at exactly 0.005 USDC:

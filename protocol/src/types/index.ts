@@ -95,6 +95,21 @@ export type {
   SimulationResponse,
   SimulationSummary
 } from "./simulate-schema.js";
+export {
+  DEFAULT_POLICY_VALIDATE_PRICE_USDC,
+  POLICY_MAX_QUOTES,
+  POLICY_SCHEMA_VERSION,
+  PolicyDocumentSchema,
+  PolicyValidateRequestSchema,
+  PolicyValidateResponseSchema
+} from "./policy-schema.js";
+export type {
+  PolicyDocument,
+  PolicyQuoteSubject,
+  PolicyReason,
+  PolicyValidateRequest,
+  PolicyValidateResponse
+} from "./policy-schema.js";
 export type {
   DiscoveryDocument,
   DiscoveryEndpointDescriptor,

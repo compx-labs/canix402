@@ -54,6 +54,10 @@ function resolveProductionPath(pathPattern: string): string {
     return "/plans/rebalance";
   }
 
+  if (pathPattern === "/policy/validate") {
+    return "/policy/validate";
+  }
+
   if (pathPattern === "/execution/quotes") {
     return "/execution/quotes";
   }
@@ -113,6 +117,34 @@ function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): Pro
         address: getProductionPersonalizedAddress(),
         harvestIdle: true,
         constraints: { noNewBorrows: true, executionReadyOnly: true, maxAllocations: 1 }
+      }
+    };
+  }
+
+  if (entry.pathPattern === "/policy/validate") {
+    return {
+      ...base,
+      method: "POST",
+      body: {
+        policy: {
+          schemaVersion: "1.0.0",
+          noNewBorrows: true,
+          executionReadyOnly: true
+        },
+        quotes: [
+          {
+            shapeKey: "mainnet:reti:v1:stake:algo",
+            protocol: "reti",
+            opportunityId: "reti-staking-12",
+            tvlUsd: 1_000_000,
+            sourceTimestamp: new Date().toISOString(),
+            executionReady: true,
+            weightBps: 10_000,
+            allocatedAmount: "1000000",
+            allocatedAssetId: 0
+          }
+        ],
+        walletAlgoMicroAlgos: "5000000"
       }
     };
   }

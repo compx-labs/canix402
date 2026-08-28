@@ -80,7 +80,7 @@ const protocolLogos = Object.fromEntries(
               intent rather than forking a local compiler. When the budget asset is not the unique
               required enter asset, plans compose live Haystack opt-in → swap → enter groups.
               It validates that plan against
-              deterministic policy limits, and — when signing is enabled — signs and submits
+              shared <code>POST /policy/validate</code> (not a fork-the-bot policy), and — when signing is enabled — signs and submits
               execution groups locally. Canix402 never receives the mnemonic.
             </p>
           </div>

@@ -104,6 +104,13 @@ export {
 } from "./simulate.js";
 export type { SimulateServiceDependencies } from "./simulate.js";
 export {
+  resolvePolicyValidatePriceUsdc,
+  setPolicyDependenciesForTests,
+  validatePolicy,
+  PolicyValidationError
+} from "./policy.js";
+export type { PolicyServiceDependencies } from "./policy.js";
+export {
   PRECISION_DEFAULT_DECIMALS,
   PRECISION_MAX_DECIMALS,
   formatDecimalForAgent,

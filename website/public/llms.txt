@@ -30,6 +30,7 @@ Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. D
 - [POST /eligibility](https://canix402-api.compx.io/eligibility): 0.01 USDC — Wallet eligibility and capacity for selected opportunities  # pragma: allowlist secret
 - [POST /plans](https://canix402-api.compx.io/plans): 0.25 USDC — Compile an allocation intent into an ordered unsigned plan  # pragma: allowlist secret
 - [POST /plans/rebalance](https://canix402-api.compx.io/plans/rebalance): 0.25 USDC — Compile a delta rebalance plan of unsigned groups  # pragma: allowlist secret
+- [POST /policy/validate](https://canix402-api.compx.io/policy/validate): 0.25 USDC — Validate a compiled plan or quotes[] against an operator policy document  # pragma: allowlist secret
 - [GET /positions](https://canix402-api.compx.io/positions): 0.005 USDC — Algorand DeFi positions held by a wallet
 - [GET /positions/claimable](https://canix402-api.compx.io/positions/claimable): 0.001 USDC — Claimable DeFi rewards across supported protocols
 - [POST /swaps/transactions](https://canix402-api.compx.io/swaps/transactions): 0.005 USDC — Build a walletless Haystack swap transaction group

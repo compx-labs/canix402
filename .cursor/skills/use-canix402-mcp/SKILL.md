@@ -236,6 +236,24 @@ or submits.
    `health-factor-too-low`, `capacity`), do not sign.
 4. Sign and submit locally the same way as `canix_get_execution_quote`.
 
+## Policy-as-a-service agent loop
+
+Operators bring policy; Canix evaluates it and still does not sign. Brownie and
+a second agent should share the same document (`protocol/docs/policy-schema.md`,
+sample `protocol/docs/policy-brownie.sample.json`).
+
+1. Compile with `canix_get_plan`, `canix_get_rebalance_plan`, or
+   `canix_get_execution_quote`.
+2. Call `canix_validate_policy` with `policy` plus the compiled `plan` and/or
+   proposed `quotes[]`. Paid ~0.25 USDC. Pass `walletAlgoMicroAlgos` when the
+   policy sets `minAlgoReserveMicroAlgos`.
+3. Require `pass === true` and `signed === false` / `submitted === false` /
+   `meta.executionSubmitted === false`. If `reasons[]` are present
+   (`protocol-weight`, `below-reserve`, `below-tvl-floor`, `source-not-fresh`,
+   `new-borrow`, `execution-not-ready`, or `missing-*` fail-closed codes), do
+   not sign. Canix does not re-quote on-chain when a field is missing.
+4. Optionally simulate, then sign only user legs locally.
+
 ## Signing an execution quote
 
 For `canix_get_execution_quote`:

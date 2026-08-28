@@ -122,6 +122,36 @@ canix_simulate_execution({
   paymentSignature: "<base64-json-payload>"
 })
 
+// Policy-as-a-service (plan or quotes[] + operator policy)
+canix_validate_policy({
+  policy: {
+    schemaVersion: "1.0.0",
+    maxProtocolWeightBps: 4000,
+    minAlgoReserveMicroAlgos: "1000000",
+    minTvlUsd: 25000,
+    maxSourceAgeSeconds: 86400,
+    noNewBorrows: true,
+    executionReadyOnly: true
+  },
+  quotes: [{
+    shapeKey: "mainnet:reti:v1:stake:algo",
+    protocol: "reti",
+    opportunityId: "reti-staking-12",
+    weightBps: 4000,
+    allocatedAmount: "1000000",
+    allocatedAssetId: 0,
+    tvlUsd: 1000000,
+    sourceTimestamp: "2026-08-28T11:00:00.000Z",
+    executionReady: true
+  }],
+  walletAlgoMicroAlgos: "5000000"
+})
+canix_validate_policy({
+  policy: { schemaVersion: "1.0.0", noNewBorrows: true, executionReadyOnly: true },
+  quotes: [{ shapeKey: "mainnet:reti:v1:stake:algo", protocol: "reti", executionReady: true }],
+  paymentSignature: "<base64-json-payload>"
+})
+
 // Execution quotes (batch)
 canix_get_execution_quote({
   quotes: [{
