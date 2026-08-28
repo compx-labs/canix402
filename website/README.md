@@ -104,8 +104,9 @@ npm run snapshot:responses
 
 The `/webmcp` route registers the existing Canix MCP tools with the WebMCP
 imperative API (`document.modelContext.registerTool`, with
-`navigator.modelContext` as a deprecated alias). The page shows the same tool
-list a WebMCP agent would discover. `execute` calls the live gateway and fails
+`navigator.modelContext` as a deprecated alias). People see an empty
+opportunities table and run the same tools from a slide-out (desktop) / slide-up
+(mobile) panel to fill it. `execute` calls the live gateway and fails
 closed with machine-readable `PAYMENT_REQUIRED` / `SESSION_*` JSON. Origin
 isolation is required (`Permissions-Policy: tools=(self), document-domain=()`);
 the page never assigns `document.domain`.

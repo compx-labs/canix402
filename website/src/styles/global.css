@@ -1888,3 +1888,284 @@ main {
   white-space: pre-wrap;
 }
 
+.webmcp-page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.webmcp-page-head .page-title {
+  margin-bottom: 0.35rem;
+}
+
+.webmcp-status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  align-items: baseline;
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+}
+
+.webmcp-status-strip p {
+  margin: 0;
+}
+
+.webmcp-status-strip .webmcp-status-note {
+  flex: 1 1 100%;
+}
+
+.webmcp-session-bar h2,
+.webmcp-opportunities h2,
+.webmcp-tools-drawer h2 {
+  margin: 0 0 0.35rem;
+}
+
+.webmcp-session-bar-copy p,
+.webmcp-opportunities-toolbar p,
+.webmcp-tools-drawer-head p {
+  margin: 0;
+}
+
+.webmcp-session-meta {
+  margin-top: 0;
+}
+
+.webmcp-opportunities {
+  margin-top: 1.25rem;
+}
+
+.webmcp-opportunities-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.webmcp-opportunities-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.webmcp-opportunities-table {
+  width: 100%;
+}
+
+.webmcp-opportunities-table th,
+.webmcp-opportunities-table td {
+  white-space: nowrap;
+}
+
+.webmcp-opportunities-table td:last-child {
+  white-space: normal;
+  word-break: break-all;
+}
+
+.webmcp-select-col {
+  width: 2rem;
+}
+
+.webmcp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 1.5rem 0.25rem 1.75rem;
+}
+
+.webmcp-empty p {
+  margin: 0;
+}
+
+.webmcp-execute-note {
+  margin-top: 1.25rem;
+}
+
+.webmcp-field-hint {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.webmcp-field-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-weight: 600;
+}
+
+.webmcp-field-check input {
+  margin-top: 0.2rem;
+}
+
+.webmcp-field-check small {
+  display: block;
+  font-weight: 400;
+}
+
+.webmcp-required {
+  color: var(--color-primary);
+  margin-left: 0.2rem;
+}
+
+.webmcp-tool-group {
+  margin: 0 0 1.5rem;
+}
+
+.webmcp-tool-group h3 {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+}
+
+.webmcp-tool-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.2rem 0.85rem 0.85rem;
+  margin: 0.65rem 0;
+  background: var(--color-surface);
+}
+
+.webmcp-tool-card summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 0.7rem 0;
+}
+
+.webmcp-tool-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.webmcp-tool-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.55rem;
+}
+
+.webmcp-tools-filter {
+  margin: 0 1.15rem 0.5rem;
+}
+
+.webmcp-tools-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(6, 7, 10, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+}
+
+.webmcp-tools-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.webmcp-tools-drawer[hidden],
+.webmcp-tools-overlay[hidden] {
+  display: none;
+}
+
+.webmcp-tools-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  width: min(32rem, 100%);
+  height: 100%;
+  background: var(--color-bg-elevated);
+  border-left: 1px solid var(--color-border);
+  box-shadow: -16px 0 40px rgba(0, 0, 0, 0.28);
+  transform: translateX(100%);
+  visibility: hidden;
+  transition: transform 0.28s ease, visibility 0s linear 0.28s;
+}
+
+.webmcp-tools-drawer.is-open {
+  transform: translateX(0);
+  visibility: visible;
+  transition: transform 0.28s ease, visibility 0s;
+}
+
+.webmcp-tools-drawer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem 1.15rem 0.5rem;
+}
+
+.webmcp-tools-drawer-body {
+  flex: 1;
+  overflow: auto;
+  padding: 0 1.15rem 1.5rem;
+}
+
+.webmcp-tools-drawer-result {
+  padding: 0 1.15rem 1.15rem;
+}
+
+.webmcp-tools-drawer-result .code-block {
+  max-height: 12rem;
+}
+
+.webmcp-tools-fab {
+  display: none;
+}
+
+body.webmcp-tools-open {
+  overflow: hidden;
+}
+
+@media (max-width: 720px) {
+  .webmcp-page-head {
+    flex-direction: column;
+  }
+
+  .webmcp-page-head .webmcp-tools-open,
+  .webmcp-tools-open-inline {
+    display: none;
+  }
+
+  .webmcp-tools-fab {
+    display: inline-flex;
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 50;
+    min-width: 4.5rem;
+    box-shadow: var(--glow);
+  }
+
+  body.webmcp-tools-open .webmcp-tools-fab {
+    display: none;
+  }
+
+  .webmcp-tools-drawer {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: min(88vh, 100%);
+    border-left: none;
+    border-top: 1px solid var(--color-border);
+    border-radius: 12px 12px 0 0;
+    transform: translateY(100%);
+  }
+
+  .webmcp-tools-drawer.is-open {
+    transform: translateY(0);
+  }
+
+  .webmcp-opportunities-table th,
+  .webmcp-opportunities-table td {
+    font-size: 0.85rem;
+  }
+}
+

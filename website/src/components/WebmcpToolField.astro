@@ -1,0 +1,62 @@
+---
+import type { ToolFormField } from "../lib/webmcp/tool-forms";
+
+interface Props {
+  field: ToolFormField;
+  toolName: string;
+}
+
+const { field, toolName } = Astro.props;
+const id = `webmcp-${toolName}-${field.name.replaceAll(".", "-")}`;
+---
+
+<div class="webmcp-field">
+  {
+    field.kind === "checkbox" ? (
+      <label class="webmcp-field-check" for={id}>
+        <input id={id} name={field.name} type="checkbox" />
+        <span>
+          {field.label}
+          {field.description ? <small class="muted">{field.description}</small> : null}
+        </span>
+      </label>
+    ) : (
+      <>
+        <label for={id}>
+          {field.label}
+          {field.required ? <span class="webmcp-required">*</span> : null}
+        </label>
+        {field.description ? <p class="muted webmcp-field-hint">{field.description}</p> : null}
+        {field.kind === "select" ? (
+          <select id={id} name={field.name} required={field.required}>
+            <option value="">{field.required ? "Select…" : "Any"}</option>
+            {field.options?.map((option) => (
+              <option value={option}>{option}</option>
+            ))}
+          </select>
+        ) : field.kind === "json" ? (
+          <textarea
+            id={id}
+            name={field.name}
+            rows={field.rows ?? 6}
+            required={field.required}
+            spellcheck="false"
+            placeholder={field.placeholder}
+          />
+        ) : (
+          <input
+            id={id}
+            name={field.name}
+            type={field.kind === "number" ? "number" : "text"}
+            required={field.required}
+            min={field.min}
+            max={field.max}
+            step={field.kind === "number" ? "any" : undefined}
+            placeholder={field.placeholder}
+            value={field.defaultValue}
+          />
+        )}
+      </>
+    )
+  }
+</div>

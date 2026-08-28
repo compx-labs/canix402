@@ -84,9 +84,10 @@ import { config } from "../lib/config";
       <p>
         <a href="/webmcp">/webmcp</a> registers the same Canix MCP tools in the page via
         <code>document.modelContext.registerTool</code> (with
-        <code>navigator.modelContext</code> as a fallback). People see the tool list; agents in
+        <code>navigator.modelContext</code> as a fallback). People fill an opportunities table from
+        those tools in a slide-out panel; agents in
         ChatGPT’s in-app browser or Chrome with
-        <code>chrome://flags/#enable-webmcp-testing</code> discover it through WebMCP. Canix does
+        <code>chrome://flags/#enable-webmcp-testing</code> discover the same tools through WebMCP. Canix does
         not sign or submit. Origin isolation is required — the page never relaxes
         <code>document.domain</code>.
       </p>

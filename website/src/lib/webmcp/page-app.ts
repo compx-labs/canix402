@@ -1,6 +1,15 @@
+import { getWebMcpTool } from "./catalog";
 import { buyPrepaidSession, refreshSessionRemaining } from "./checkout";
 import { executeAsHuman as executeHumanTool } from "./human-execute";
+import {
+  extractOpportunities,
+  formatApy,
+  formatTvl,
+  mergeEligibility,
+  type OpportunityTableRow
+} from "./opportunities";
 import { createSessionStore, quotaFromReceipt, type WebMcpSessionStore } from "./session-store";
+import { argsFromForm } from "./tool-forms";
 import type { SessionReceipt } from "./types";
 import {
   connectWebmcpWallet,
@@ -30,47 +39,57 @@ export async function mountWebmcpPage(options: { gatewayBaseUrl: string }): Prom
   const sessionStore = createSessionStore();
   const checkoutRoot = document.querySelector<HTMLElement>("[data-webmcp-checkout]");
   const runRoot = document.querySelector<HTMLElement>("[data-webmcp-run]");
+  const tableRoot = document.querySelector<HTMLElement>("[data-webmcp-opportunities]");
   const demoEnabled = new URLSearchParams(window.location.search).has("demo");
   const fetchImpl = demoEnabled ? createDemoGatewayFetch(sessionStore) : undefined;
+  const tableState: { rows: OpportunityTableRow[]; source: string } = { rows: [], source: "" };
 
   const render = (): void => {
-    if (!checkoutRoot) {
-      return;
+    if (checkoutRoot) {
+      const address = getActiveWalletAddress();
+      const receipt = sessionStore.get();
+      const addressEl = checkoutRoot.querySelector<HTMLElement>("[data-wallet-address]");
+      const statusEl = checkoutRoot.querySelector<HTMLElement>("[data-wallet-status]");
+      if (addressEl) {
+        addressEl.textContent = address ?? "Not connected";
+      }
+      if (statusEl) {
+        statusEl.textContent = address ? "Connected (checkout only)" : "Disconnected";
+      }
+      checkoutRoot.querySelectorAll<HTMLButtonElement>("[data-connect]").forEach((button) => {
+        button.disabled = Boolean(address);
+      });
+      const disconnectBtn = checkoutRoot.querySelector<HTMLButtonElement>("[data-disconnect]");
+      if (disconnectBtn) {
+        disconnectBtn.hidden = !address;
+      }
+      const buyBtn = checkoutRoot.querySelector<HTMLButtonElement>("[data-buy-session]");
+      const refreshBtn = checkoutRoot.querySelector<HTMLButtonElement>("[data-refresh-session]");
+      const readBtn = checkoutRoot.querySelector<HTMLButtonElement>("[data-read-session]");
+      if (buyBtn) {
+        buyBtn.disabled = !address;
+      }
+      if (refreshBtn) {
+        refreshBtn.disabled = !address;
+      }
+      if (readBtn) {
+        readBtn.disabled = !receipt?.sessionId;
+      }
+      setAllText("[data-remaining-research]", receipt ? String(quotaFromReceipt(receipt).remainingResearch) : "—");
+      setAllText("[data-remaining-quotes]", receipt ? String(quotaFromReceipt(receipt).remainingQuotes) : "—");
+      setAllText("[data-session-expires]", receipt?.expiresAt ?? "—");
+      setAllText("[data-session-id]", receipt?.sessionId ?? "None");
+      setAllText("[data-session-status]", receipt?.status ?? "none");
     }
-    const address = getActiveWalletAddress();
-    const receipt = sessionStore.get();
-    const addressEl = checkoutRoot.querySelector<HTMLElement>("[data-wallet-address]");
-    const statusEl = checkoutRoot.querySelector<HTMLElement>("[data-wallet-status]");
-    if (addressEl) {
-      addressEl.textContent = address ?? "Not connected";
+    const activeAddress = getActiveWalletAddress();
+    if (activeAddress) {
+      document.querySelectorAll<HTMLInputElement>('input[name="address"]').forEach((input) => {
+        if (input.value.trim() === "") {
+          input.value = activeAddress;
+        }
+      });
     }
-    if (statusEl) {
-      statusEl.textContent = address ? "Connected (checkout only)" : "Disconnected";
-    }
-    checkoutRoot.querySelectorAll<HTMLButtonElement>("[data-connect]").forEach((button) => {
-      button.disabled = Boolean(address);
-    });
-    const disconnectBtn = checkoutRoot.querySelector<HTMLButtonElement>("[data-disconnect]");
-    if (disconnectBtn) {
-      disconnectBtn.hidden = !address;
-    }
-    const buyBtn = checkoutRoot.querySelector<HTMLButtonElement>("[data-buy-session]");
-    const refreshBtn = checkoutRoot.querySelector<HTMLButtonElement>("[data-refresh-session]");
-    const readBtn = checkoutRoot.querySelector<HTMLButtonElement>("[data-read-session]");
-    if (buyBtn) {
-      buyBtn.disabled = !address;
-    }
-    if (refreshBtn) {
-      refreshBtn.disabled = !address;
-    }
-    if (readBtn) {
-      readBtn.disabled = !receipt?.sessionId;
-    }
-    setAllText("[data-remaining-research]", receipt ? String(quotaFromReceipt(receipt).remainingResearch) : "—");
-    setAllText("[data-remaining-quotes]", receipt ? String(quotaFromReceipt(receipt).remainingQuotes) : "—");
-    setAllText("[data-session-expires]", receipt?.expiresAt ?? "—");
-    setAllText("[data-session-id]", receipt?.sessionId ?? "None");
-    setAllText("[data-session-status]", receipt?.status ?? "none");
+    renderOpportunityTable(tableRoot, tableState);
   };
 
   const handles: WebmcpPageHandles = {
@@ -95,7 +114,11 @@ export async function mountWebmcpPage(options: { gatewayBaseUrl: string }): Prom
   };
   window.__canixWebmcp = handles;
 
+  bindToolsDrawer();
+
   if (!checkoutRoot) {
+    bindRunTools(runRoot, tableRoot, tableState, handles, render, demoEnabled);
+    render();
     return handles;
   }
 
@@ -200,7 +223,7 @@ export async function mountWebmcpPage(options: { gatewayBaseUrl: string }): Prom
     );
   });
 
-  bindRunTools(runRoot, handles, render, demoEnabled);
+  bindRunTools(runRoot, tableRoot, tableState, handles, render, demoEnabled);
 
   render();
   return handles;
@@ -266,62 +289,151 @@ function isToolError(result: unknown): result is { error: string; message?: stri
   return Boolean(result && typeof result === "object" && typeof (result as { error?: unknown }).error === "string");
 }
 
+function bindToolsDrawer(): void {
+  const drawer = document.querySelector<HTMLElement>("[data-webmcp-tools-drawer]");
+  const overlay = document.querySelector<HTMLElement>("[data-tools-overlay]");
+  if (!drawer) {
+    return;
+  }
+
+  const setOpen = (open: boolean): void => {
+    drawer.hidden = false;
+    overlay && (overlay.hidden = false);
+    requestAnimationFrame(() => {
+      drawer.classList.toggle("is-open", open);
+      overlay?.classList.toggle("is-open", open);
+      document.body.classList.toggle("webmcp-tools-open", open);
+      document.querySelectorAll<HTMLButtonElement>("[data-open-tools]").forEach((button) => {
+        button.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      if (open) {
+        drawer.querySelector<HTMLInputElement>("[data-tool-filter]")?.focus();
+      } else {
+        window.setTimeout(() => {
+          if (!drawer.classList.contains("is-open")) {
+            drawer.hidden = true;
+            if (overlay) {
+              overlay.hidden = true;
+            }
+          }
+        }, 280);
+      }
+    });
+  };
+
+  document.querySelectorAll("[data-open-tools]").forEach((button) => {
+    button.addEventListener("click", () => setOpen(true));
+  });
+  document.querySelectorAll("[data-close-tools]").forEach((button) => {
+    button.addEventListener("click", () => setOpen(false));
+  });
+  overlay?.addEventListener("click", () => setOpen(false));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && drawer.classList.contains("is-open")) {
+      setOpen(false);
+    }
+  });
+
+  const filter = drawer.querySelector<HTMLInputElement>("[data-tool-filter]");
+  filter?.addEventListener("input", () => {
+    const query = filter.value.trim().toLowerCase();
+    drawer.querySelectorAll<HTMLElement>("[data-webmcp-tool]").forEach((card) => {
+      const name = card.dataset.webmcpTool ?? "";
+      const text = card.textContent?.toLowerCase() ?? "";
+      card.hidden = query !== "" && !name.toLowerCase().includes(query) && !text.includes(query);
+    });
+    drawer.querySelectorAll<HTMLElement>("[data-tool-group]").forEach((group) => {
+      const visible = [...group.querySelectorAll<HTMLElement>("[data-webmcp-tool]")].some((card) => !card.hidden);
+      group.hidden = !visible;
+    });
+  });
+}
+
 function bindRunTools(
   runRoot: HTMLElement | null,
+  tableRoot: HTMLElement | null,
+  tableState: { rows: OpportunityTableRow[]; source: string },
   handles: WebmcpPageHandles,
   render: () => void,
   demoEnabled: boolean
 ): void {
-  if (!runRoot) {
-    return;
-  }
-  const resultEl = runRoot.querySelector<HTMLElement>("[data-run-result]");
-  const errorEl = runRoot.querySelector<HTMLElement>("[data-run-error]");
-  const noteEl = runRoot.querySelector<HTMLElement>("[data-run-note]");
-  const failBtn = runRoot.querySelector<HTMLButtonElement>("[data-demo-fail-closed]");
+  const resultEl =
+    runRoot?.querySelector<HTMLElement>("[data-run-result]") ??
+    tableRoot?.querySelector<HTMLElement>("[data-run-result]") ??
+    null;
+  const errorEl =
+    runRoot?.querySelector<HTMLElement>("[data-run-error]") ??
+    tableRoot?.querySelector<HTMLElement>("[data-run-error]") ??
+    null;
+  const noteEl =
+    runRoot?.querySelector<HTMLElement>("[data-run-note]") ??
+    tableRoot?.querySelector<HTMLElement>("[data-run-note]") ??
+    null;
+  const failBtn = runRoot?.querySelector<HTMLButtonElement>("[data-demo-fail-closed]");
   if (failBtn) {
     failBtn.hidden = !demoEnabled;
   }
 
-  runRoot.querySelector<HTMLFormElement>("[data-list-opportunities-form]")?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const form = event.currentTarget as HTMLFormElement;
-    const data = new FormData(form);
-    const limit = numberOrUndefined(data.get("limit"));
-    const protocol = String(data.get("protocol") ?? "").trim();
-    await runHumanTool(
-      handles,
-      "canix_list_opportunities",
-      {
-        ...(limit !== undefined ? { limit } : {}),
-        ...(protocol ? { protocol } : {})
-      },
-      resultEl,
-      errorEl,
-      noteEl,
-      render
-    );
+  const run = async (name: string, args: Record<string, unknown>, fillsTable: boolean): Promise<void> => {
+    await runHumanTool(handles, tableState, name, args, fillsTable, resultEl, errorEl, noteEl, render);
+    if (fillsTable && !isMobileViewport()) {
+      return;
+    }
+    if (fillsTable && tableState.rows.length > 0) {
+      document.querySelector<HTMLElement>("[data-close-tools]")?.click();
+    }
+  };
+
+  document.querySelectorAll<HTMLFormElement>("[data-tool-form]").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const name = form.dataset.toolForm ?? "";
+      const tool = getWebMcpTool(name);
+      if (!tool) {
+        showJson(errorEl, { error: "UNKNOWN_TOOL", message: `Unknown tool ${name}` });
+        return;
+      }
+      try {
+        const args = argsFromForm(form, tool.inputSchema);
+        await run(name, args, form.dataset.fillsTable === "true");
+      } catch (error) {
+        showJson(errorEl, {
+          error: "INVALID_ARGUMENT",
+          message: error instanceof Error ? error.message : "Invalid tool arguments."
+        });
+      }
+    });
   });
 
-  runRoot.querySelector<HTMLFormElement>("[data-get-plan-form]")?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const form = event.currentTarget as HTMLFormElement;
-    const data = new FormData(form);
-    const address = String(data.get("address") ?? "").trim() || handles.getActiveAddress() || "";
-    const assetId = Number(data.get("assetId") ?? "0");
-    const amount = String(data.get("amount") ?? "").trim();
-    await runHumanTool(
-      handles,
-      "canix_get_plan",
-      {
-        address,
-        budget: { assetId: Number.isFinite(assetId) ? assetId : 0, amount }
-      },
-      resultEl,
-      errorEl,
-      noteEl,
-      render
-    );
+  tableRoot?.querySelector("[data-clear-opportunities]")?.addEventListener("click", () => {
+    tableState.rows = [];
+    tableState.source = "";
+    hideBox(resultEl);
+    hideBox(errorEl);
+    hideBox(noteEl);
+    render();
+  });
+
+  tableRoot?.querySelector("[data-check-eligibility]")?.addEventListener("click", () => {
+    const ids = selectedOpportunityIds(tableRoot);
+    if (ids.length === 0) {
+      return;
+    }
+    openToolForm("canix_check_eligibility", {
+      opportunityIds: ids.join(", "),
+      address: handles.getActiveAddress() ?? ""
+    });
+  });
+
+  tableRoot?.querySelector("[data-get-plan]")?.addEventListener("click", () => {
+    const ids = selectedOpportunityIds(tableRoot);
+    if (ids.length === 0) {
+      return;
+    }
+    openToolForm("canix_get_plan", {
+      opportunityIds: ids.join(", "),
+      address: handles.getActiveAddress() ?? ""
+    });
   });
 
   failBtn?.addEventListener("click", async () => {
@@ -332,14 +444,16 @@ function bindRunTools(
       consumed: { research: current.budget.research, quotes: current.consumed.quotes },
       status: current.remaining.quotes <= 0 ? "exhausted" : current.status
     });
-    await runHumanTool(handles, "canix_list_opportunities", { limit: 1 }, resultEl, errorEl, noteEl, render);
+    await run("canix_list_opportunities", { limit: 1 }, true);
   });
 }
 
 async function runHumanTool(
   handles: WebmcpPageHandles,
+  tableState: { rows: OpportunityTableRow[]; source: string },
   name: string,
   args: Record<string, unknown>,
+  fillsTable: boolean,
   resultEl: HTMLElement | null,
   errorEl: HTMLElement | null,
   noteEl: HTMLElement | null,
@@ -349,19 +463,218 @@ async function runHumanTool(
   hideBox(noteEl);
   hideBox(resultEl);
   const result = await handles.executeAsHuman(name, args);
-  render();
   const receipt = handles.getReceipt();
   if (isToolError(result)) {
     showJson(errorEl, result);
+    render();
     return;
   }
-  showJson(resultEl, result);
-  showText(
-    noteEl,
-    receipt
-      ? `${name} succeeded. Remaining research ${receipt.remaining.research} / quotes ${receipt.remaining.quotes}. Canix did not sign or submit.`
-      : `${name} succeeded.`
+
+  if (fillsTable) {
+    const rows = extractOpportunities(result);
+    if (rows) {
+      tableState.rows = rows;
+      tableState.source = name;
+    }
+  } else if (name === "canix_check_eligibility") {
+    const merged = mergeEligibility(tableState.rows, result);
+    if (merged) {
+      tableState.rows = merged;
+    }
+  }
+
+  const loaded = fillsTable ? extractOpportunities(result) : null;
+  if (loaded) {
+    hideBox(resultEl);
+    showText(
+      noteEl,
+      loaded.length === 0
+        ? `${name} returned no opportunities.`
+        : `${name} loaded ${loaded.length} opportunit${loaded.length === 1 ? "y" : "ies"}. Remaining research ${receipt?.remaining.research ?? "—"} / quotes ${receipt?.remaining.quotes ?? "—"}.`
+    );
+  } else {
+    showJson(resultEl, result);
+    showText(
+      noteEl,
+      receipt
+        ? `${name} succeeded. Remaining research ${receipt.remaining.research} / quotes ${receipt.remaining.quotes}. Canix did not sign or submit.`
+        : `${name} succeeded.`
+    );
+  }
+  render();
+}
+
+function renderOpportunityTable(
+  tableRoot: HTMLElement | null,
+  tableState: { rows: OpportunityTableRow[]; source: string }
+): void {
+  if (!tableRoot) {
+    return;
+  }
+  const body = tableRoot.querySelector<HTMLTableSectionElement>("[data-opportunities-body]");
+  const caption = tableRoot.querySelector<HTMLElement>("[data-opportunities-caption]");
+  const clearBtn = tableRoot.querySelector<HTMLButtonElement>("[data-clear-opportunities]");
+  const eligibilityBtn = tableRoot.querySelector<HTMLButtonElement>("[data-check-eligibility]");
+  const planBtn = tableRoot.querySelector<HTMLButtonElement>("[data-get-plan]");
+  if (!body) {
+    return;
+  }
+
+  const selected = selectedOpportunityIds(tableRoot);
+  if (clearBtn) {
+    clearBtn.disabled = tableState.rows.length === 0;
+  }
+  if (eligibilityBtn) {
+    eligibilityBtn.disabled = selected.length === 0;
+  }
+  if (planBtn) {
+    planBtn.disabled = selected.length === 0;
+  }
+  if (caption) {
+    caption.textContent =
+      tableState.rows.length === 0
+        ? "Table starts empty. Use Tools to load rows."
+        : `${tableState.rows.length} loaded from ${tableState.source}${selected.length ? ` · ${selected.length} selected` : ""}.`;
+  }
+
+  if (tableState.rows.length === 0) {
+    body.replaceChildren(emptyOpportunityRow());
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  for (const row of tableState.rows) {
+    fragment.append(opportunityRow(row, selected.includes(row.opportunityId)));
+  }
+  body.replaceChildren(fragment);
+  body.querySelectorAll<HTMLInputElement>('input[type="checkbox"][data-opportunity-id]').forEach((input) => {
+    input.addEventListener("change", () => {
+      const nextSelected = selectedOpportunityIds(tableRoot);
+      if (eligibilityBtn) {
+        eligibilityBtn.disabled = nextSelected.length === 0;
+      }
+      if (planBtn) {
+        planBtn.disabled = nextSelected.length === 0;
+      }
+      if (caption && tableState.rows.length > 0) {
+        caption.textContent = `${tableState.rows.length} loaded from ${tableState.source}${
+          nextSelected.length ? ` · ${nextSelected.length} selected` : ""
+        }.`;
+      }
+    });
+  });
+}
+
+function emptyOpportunityRow(): HTMLTableRowElement {
+  const tr = document.createElement("tr");
+  tr.dataset.opportunitiesEmpty = "";
+  const td = document.createElement("td");
+  td.colSpan = 9;
+  const wrap = document.createElement("div");
+  wrap.className = "webmcp-empty";
+  const title = document.createElement("p");
+  title.textContent = "No opportunities loaded";
+  const copy = document.createElement("p");
+  copy.className = "muted";
+  copy.textContent = "Open Tools to list, search, or personalize venues. Paid calls need a prepaid session.";
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "button button-primary";
+  button.dataset.openTools = "";
+  button.textContent = "Open tools";
+  button.addEventListener("click", () => {
+    document.querySelector<HTMLButtonElement>(".webmcp-tools-open")?.click();
+  });
+  wrap.append(title, copy, button);
+  td.append(wrap);
+  tr.append(td);
+  return tr;
+}
+
+function opportunityRow(row: OpportunityTableRow, checked: boolean): HTMLTableRowElement {
+  const tr = document.createElement("tr");
+  const selectTd = document.createElement("td");
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.dataset.opportunityId = row.opportunityId;
+  checkbox.checked = checked;
+  checkbox.setAttribute("aria-label", `Select ${row.opportunityId}`);
+  selectTd.append(checkbox);
+
+  tr.append(
+    selectTd,
+    textCell(row.protocol),
+    textCell(row.opportunityType),
+    textCell(row.assetPair),
+    textCell(formatApy(row.apy, row.yieldBasis)),
+    textCell(formatTvl(row.tvlUsd)),
+    badgeCell(
+      row.executionReady === null ? "—" : row.executionReady ? "Ready" : "Not ready",
+      row.executionReady === true ? "badge-free" : row.executionReady === false ? "badge-paid" : ""
+    ),
+    badgeCell(
+      row.canEnter === null ? "—" : row.canEnter ? "Can enter" : "Gated",
+      row.canEnter === true ? "badge-free" : row.canEnter === false ? "badge-paid" : ""
+    ),
+    codeCell(row.opportunityId)
   );
+  return tr;
+}
+
+function textCell(value: string): HTMLTableCellElement {
+  const td = document.createElement("td");
+  td.textContent = value;
+  return td;
+}
+
+function codeCell(value: string): HTMLTableCellElement {
+  const td = document.createElement("td");
+  const code = document.createElement("code");
+  code.textContent = value;
+  td.append(code);
+  return td;
+}
+
+function badgeCell(label: string, className: string): HTMLTableCellElement {
+  const td = document.createElement("td");
+  const span = document.createElement("span");
+  span.className = className ? `badge ${className}` : "muted";
+  span.textContent = label;
+  td.append(span);
+  return td;
+}
+
+function selectedOpportunityIds(tableRoot: HTMLElement | null): string[] {
+  if (!tableRoot) {
+    return [];
+  }
+  return [...tableRoot.querySelectorAll<HTMLInputElement>('input[type="checkbox"][data-opportunity-id]:checked')]
+    .map((input) => input.dataset.opportunityId ?? "")
+    .filter((id) => id.length > 0);
+}
+
+function openToolForm(name: string, values: Record<string, string>): void {
+  document.querySelector<HTMLButtonElement>(".webmcp-tools-open")?.click();
+  const card = document.querySelector<HTMLDetailsElement>(`[data-webmcp-tool="${name}"]`);
+  if (card) {
+    card.open = true;
+    card.hidden = false;
+    card.scrollIntoView({ block: "nearest" });
+  }
+  const form = document.querySelector<HTMLFormElement>(`[data-tool-form="${name}"]`);
+  if (!form) {
+    return;
+  }
+  for (const [key, value] of Object.entries(values)) {
+    const field = form.elements.namedItem(key);
+    if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
+      field.value = value;
+    }
+  }
+}
+
+function isMobileViewport(): boolean {
+  return window.matchMedia("(max-width: 720px)").matches;
 }
 
 function createDemoGatewayFetch(sessionStore: WebMcpSessionStore): typeof fetch {
@@ -386,10 +699,7 @@ function createDemoGatewayFetch(sessionStore: WebMcpSessionStore): typeof fetch 
     const quotes = path.startsWith("/plans") || path.startsWith("/execution") || path === "/swaps/transactions";
     const remainingResearch = research ? Math.max(0, receipt.remaining.research - 1) : receipt.remaining.research;
     const remainingQuotes = quotes ? Math.max(0, receipt.remaining.quotes - 1) : receipt.remaining.quotes;
-    const body =
-      path === "/plans"
-        ? { data: { allocations: [], blocked: [] }, meta: { executionSubmitted: false, signed: false, submitted: false } }
-        : { data: [{ id: "opp-demo", protocol: "tinyman", type: "lp" }] };
+    const body = demoGatewayBody(path);
     return new Response(JSON.stringify(body), {
       status: 200,
       headers: {
@@ -400,6 +710,43 @@ function createDemoGatewayFetch(sessionStore: WebMcpSessionStore): typeof fetch 
       }
     });
   };
+}
+
+function demoGatewayBody(path: string): unknown {
+  if (path.startsWith("/plans")) {
+    return {
+      data: { allocations: [], blocked: [] },
+      meta: { executionSubmitted: false, signed: false, submitted: false }
+    };
+  }
+  if (path.includes("/eligibility")) {
+    return {
+      data: [
+        {
+          opportunityId: "tinyman:pool:1002541853",
+          protocol: "tinyman",
+          canEnter: true
+        }
+      ]
+    };
+  }
+  if (path.includes("/opportunities")) {
+    return {
+      data: [
+        {
+          protocol: "tinyman",
+          opportunityType: "lp",
+          opportunityId: "tinyman:pool:1002541853",
+          assetPair: "ALGO/USDC",
+          apy: 12.5,
+          yieldBasis: "apy",
+          tvlUsd: 2_450_000.5,
+          executionReady: true
+        }
+      ]
+    };
+  }
+  return { data: [{ id: "opp-demo", protocol: "tinyman", type: "lp" }] };
 }
 
 function headerRecord(headers: HeadersInit | undefined): Record<string, string> {
@@ -425,14 +772,6 @@ function demoPaymentRequiredHeader(): string {
     accepts: [{ scheme: "exact", network: "test-network", asset: "1", payTo: "PAYTO", maxAmountRequired: "10000" }]
   });
   return btoa(json);
-}
-
-function numberOrUndefined(value: unknown): number | undefined {
-  if (value === undefined || value === null || String(value).trim() === "") {
-    return undefined;
-  }
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 function setAllText(selector: string, value: string): void {
