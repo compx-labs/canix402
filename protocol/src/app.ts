@@ -19,6 +19,7 @@ import { AllPositionSourcesUnavailableError } from "./services/aggregate-positio
 import { WalletSnapshotError } from "./services/wallet-snapshot.js";
 import { ApiError } from "./types/index.js";
 import { registerRoutes } from "./routes/index.js";
+import { registerSessionGate } from "./plugins/session-gate.js";
 
 function isUpstreamAdapterError(error: unknown): boolean {
   return (
@@ -47,6 +48,7 @@ export function buildApp() {
           "req.headers.authorization",
           "req.headers.cookie",
           'req.headers["payment-signature"]',
+          'req.headers["x-canix-session"]',
           "X402_ALGOD_TOKEN",
           "REDIS_URL"
         ],
@@ -72,6 +74,7 @@ export function buildApp() {
     recordHttpRequest(request.method, route, reply.statusCode, durationSeconds);
   });
 
+  registerSessionGate(app);
   registerRoutes(app);
 
   app.setErrorHandler((error, request, reply) => {

@@ -47,6 +47,22 @@ Treat amounts without a decimal point as base units. USDC has six decimals, so
 `10000` is 0.01 USDC. Never substitute a documented price for the live
 `PAYMENT_REQUIRED` amount.
 
+## Prepaid sessions (optional second money model)
+
+Exact-scheme one-shots remain the default. Operators who would otherwise spray
+tiny USDC transfers can buy one session instead:
+
+1. Call `canix_create_session` without `paymentSignature`, then retry with it
+   (~0.25 USDC). The result is a walletless receipt (`canix://session/{id}`).
+2. Pass that id as `sessionReceipt` on research/quote tools (`X-Canix-Session`).
+3. Read remaining N/M with `canix_get_session` or resource `canix://session/{sessionId}`. `canix://session` is policy only (budget/TTL), not remaining quota.
+4. Create/refresh cannot be paid with a session. On `SESSION_EXPIRED`,
+   `SESSION_EXHAUSTED`, or `SESSION_INVALID`, **omit** `sessionReceipt` and
+   either refresh (`canix_refresh_session`) or retry with `paymentSignature`.
+   Caddy skips x402 when `X-Canix-Session` starts with `csess_`, so a stale header
+   must be dropped before a one-shot will work. If both `paymentSignature` and
+   `sessionReceipt` are passed, the payment wins and the session header is omitted.
+
 ## Remote signing model
 
 Do not assume the remote MCP exposes an npm package or has access to a wallet.
@@ -187,6 +203,38 @@ SKU rather than forking a compiler.
    execute it. Sign only `userSignIndexes` / `signer: "user"` legs; preserve
    Haystack pre-signed members. Review stale-quote, missing-opt-in, and
    slippage warnings before signing.
+
+## Rebalance / delta quotes agent loop
+
+For a delta vs the existing book (target weights, or harvest idle ALGO / claim
+and redeploy), prefer `canix_get_rebalance_plan` over assembling exits and
+enters yourself.
+
+1. Optionally call `canix_get_positions` and `canix_list_claimable`.
+2. Call `canix_get_rebalance_plan` with `address` plus `targetWeights`
+   (`{ opportunityId, weightBps }[]` summing to 10000) and/or `harvestIdle: true`.
+   Paid ~0.25 USDC. Positions not listed in `targetWeights` are left alone.
+3. Review `data.steps` in order: claims, partial exits, optional Haystack
+   compose, enters. Groups are unsigned and never merged
+   (`meta.groupsMerged === false`). Enter that depends on unconfirmed exit
+   proceeds is `compileStatus: deferred`.
+4. Sign and submit locally the same way as `canix_get_execution_quote`. Paying
+   for the plan does not execute it.
+
+## Simulate / expected delta agent loop
+
+Before signing compiled groups, simulate predicted deltas. Canix never signs
+or submits.
+
+1. Compile with `canix_get_plan`, `canix_get_rebalance_plan`, or
+   `canix_get_execution_quote`. Review `data.simulation` on plans when present.
+2. Or call `canix_simulate_execution` with `address` and `groups[]` from the
+   compiled quotes (`transactions` and/or `encodedTransactions`). Paid ~0.10 USDC.
+3. Require `wouldSucceed === true` and `signed === false` /
+   `submitted === false` / `meta.executionSubmitted === false`. If reasons are
+   present (`stale-quote`, `not-opted-in`, `min-balance`,
+   `health-factor-too-low`, `capacity`), do not sign.
+4. Sign and submit locally the same way as `canix_get_execution_quote`.
 
 ## Signing an execution quote
 

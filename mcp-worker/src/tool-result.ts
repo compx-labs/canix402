@@ -64,6 +64,20 @@ export function errorResult(error: unknown): CallToolResult {
   };
 }
 
+function sessionErrorFromBody(body: unknown): { code: string; message: string } | undefined {
+  if (!body || typeof body !== "object") {
+    return undefined;
+  }
+  const error = (body as { error?: { code?: unknown; message?: unknown } }).error;
+  if (typeof error?.code !== "string" || !error.code.startsWith("SESSION_")) {
+    return undefined;
+  }
+  return {
+    code: error.code,
+    message: typeof error.message === "string" ? error.message : error.code
+  };
+}
+
 export function paidToolResult(
   result: PaidCallResult,
   fallbackPriceUsdc: string,
@@ -83,6 +97,21 @@ export function paidToolResult(
   };
 
   if (result.status === 402) {
+    const sessionError = sessionErrorFromBody(result.body);
+    if (sessionError) {
+      return jsonResult({
+        error: sessionError.code,
+        message: sessionError.message,
+        mcpPayment: payment,
+        request,
+        retry: {
+          omitHeader: "X-Canix-Session",
+          arg: "paymentSignature",
+          header: "PAYMENT-SIGNATURE"
+        },
+        gatewayResponse: result.body
+      });
+    }
     return jsonResult({
       error: "PAYMENT_REQUIRED",
       message: "Sign PAYMENT-REQUIRED and retry this tool call with paymentSignature.",

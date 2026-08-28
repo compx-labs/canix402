@@ -1,4 +1,4 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import * as z from "zod";
 
 import type { GatewayClient } from "./client.js";
@@ -69,6 +69,28 @@ function paymentSignatureArgSchema() {
       "Optional PAYMENT-SIGNATURE base64 payload. Omit on first call to receive PAYMENT-REQUIRED metadata."
     )
     .optional();
+}
+
+function sessionReceiptArgSchema() {
+  return z
+    .string()
+    .min(1)
+    .describe(
+      "Prepaid session receipt (X-Canix-Session). Omit to pay per request with paymentSignature. If this header was sent, Caddy skipped x402; a 402 SESSION_* means drop the header and retry with paymentSignature."
+    )
+    .optional();
+}
+
+function paidAuth(args: {
+  paymentSignature?: string | undefined;
+  sessionReceipt?: string | undefined;
+}) {
+  if (args.paymentSignature) {
+    return { paymentSignature: args.paymentSignature };
+  }
+  return {
+    ...(args.sessionReceipt ? { headers: { "X-Canix-Session": args.sessionReceipt } } : {})
+  };
 }
 
 export function registerCanixTools(server: McpServer, client: GatewayClient): void {
@@ -185,7 +207,8 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         offset: z.number().int().min(0).optional(),
         includeInactive: z.boolean().optional(),
         protocol: ProtocolSchema.optional(),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -199,7 +222,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         const result = await client.fetchPaid("/opportunities", {
           method: "GET",
           query,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return paidToolResult(result, "0.01", {
           path: "/opportunities",
@@ -230,7 +253,8 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         limit: z.number().int().min(1).max(200).optional(),
         offset: z.number().int().min(0).optional(),
         includeInactive: z.boolean().optional(),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -249,7 +273,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         const result = await client.fetchPaid("/opportunities/search", {
           method: "GET",
           query,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return paidToolResult(result, "0.01", {
           path: "/opportunities/search",
@@ -272,7 +296,8 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         limit: z.number().int().min(1).max(200).optional(),
         offset: z.number().int().min(0).optional(),
         includeInactive: z.boolean().optional(),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -286,7 +311,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         const result = await client.fetchPaid("/opportunities/personalized", {
           method: "GET",
           query,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return paidToolResult(result, "0.05", {
           path: "/opportunities/personalized",
@@ -308,7 +333,8 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         address: z.string().min(1),
         opportunityIds: z.array(z.string().min(1)).min(1).max(25),
         refresh: z.boolean().optional(),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -321,7 +347,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         const result = await client.fetchPaid("/eligibility", {
           method: "POST",
           body,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return paidToolResult(result, "0.01", {
           path: "/eligibility",
@@ -338,7 +364,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_get_plan",
     {
       description:
-        "Compile an allocation intent into an ordered unsigned plan (POST /plans). Pass address and budget { assetId, amount } (base units; 0 = ALGO). Optional constraints and opportunityIds. Optional swapSlippage for Haystack compose. Returns eligibility, live Haystack opt-in/swap groups when requiredAssetIds differ from the budget asset, setup/enter quotes[] as independent unsigned groups (never merged), expected position delta, x402 + network fee totals, and expiry. Paid ~0.25 USDC. Canix does not sign or submit.",
+        "Compile an allocation intent into an ordered unsigned plan (POST /plans). Pass address and budget { assetId, amount } (base units; 0 = ALGO). Optional constraints and opportunityIds. Optional swapSlippage for Haystack compose. Returns eligibility, live Haystack opt-in/swap groups when requiredAssetIds differ from the budget asset, setup/enter quotes[] as independent unsigned groups (never merged), expected position delta, attached data.simulation when groups compiled, x402 + network fee totals, and expiry. Paid ~0.25 USDC. Canix does not sign or submit.",
       inputSchema: {
         address: z.string().min(1),
         budget: z.object({
@@ -358,7 +384,8 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         opportunityIds: z.array(z.string().min(1)).min(1).max(25).optional(),
         swapSlippage: z.number().min(0).max(100).optional(),
         refresh: z.boolean().optional(),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -376,10 +403,78 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         const result = await client.fetchPaid("/plans", {
           method: "POST",
           body,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return paidToolResult(result, "0.25", {
           path: "/plans",
+          method: "POST",
+          body
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_get_rebalance_plan",
+    {
+      description:
+        "Compile a delta rebalance plan (POST /plans/rebalance). Pass address plus targetWeights (bps summing to 10000) and/or harvestIdle to claim and redeploy idle ALGO. Ordered unsigned groups only (claims, exits, swaps, enters) — deltas, never a full unwind. Groups never merged. Attaches data.simulation when compiled groups exist. Paid ~0.25 USDC. Canix does not sign or submit.",
+      inputSchema: {
+        address: z.string().min(1),
+        targetWeights: z
+          .array(
+            z.object({
+              opportunityId: z.string().min(1),
+              weightBps: z.number().int().min(0).max(10_000)
+            })
+          )
+          .min(1)
+          .max(25)
+          .optional(),
+        harvestIdle: z.boolean().optional(),
+        includeClaims: z.boolean().optional(),
+        algoReserveMicroAlgos: z.string().min(1).optional(),
+        minDeltaBps: z.number().int().min(0).max(10_000).optional(),
+        constraints: z
+          .object({
+            maxProtocolWeightBps: z.number().int().min(1).max(10_000).optional(),
+            noNewBorrows: z.boolean().optional(),
+            executionReadyOnly: z.boolean().optional(),
+            minTvlUsd: z.number().min(0).optional(),
+            maxSourceAgeSeconds: z.number().int().min(0).optional(),
+            maxAllocations: z.number().int().min(1).max(10).optional()
+          })
+          .optional(),
+        swapSlippage: z.number().min(0).max(100).optional(),
+        refresh: z.boolean().optional(),
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const body = {
+          address: args.address,
+          ...(args.targetWeights !== undefined ? { targetWeights: args.targetWeights } : {}),
+          ...(args.harvestIdle !== undefined ? { harvestIdle: args.harvestIdle } : {}),
+          ...(args.includeClaims !== undefined ? { includeClaims: args.includeClaims } : {}),
+          ...(args.algoReserveMicroAlgos !== undefined
+            ? { algoReserveMicroAlgos: args.algoReserveMicroAlgos }
+            : {}),
+          ...(args.minDeltaBps !== undefined ? { minDeltaBps: args.minDeltaBps } : {}),
+          ...(args.constraints !== undefined ? { constraints: args.constraints } : {}),
+          ...(args.swapSlippage !== undefined ? { swapSlippage: args.swapSlippage } : {}),
+          ...(args.refresh !== undefined ? { refresh: args.refresh } : {})
+        };
+        const result = await client.fetchPaid("/plans/rebalance", {
+          method: "POST",
+          body,
+          ...paidAuth(args)
+        });
+        return paidToolResult(result, "0.25", {
+          path: "/plans/rebalance",
           method: "POST",
           body
         });
@@ -401,7 +496,8 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         amount: z.string().min(1),
         slippage: z.number().min(0).max(100).optional(),
         refresh: z.boolean().optional(),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -417,7 +513,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         const result = await client.fetchPaid("/execution/compose", {
           method: "POST",
           body,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return paidToolResult(result, "0.1", {
           path: "/execution/compose",
@@ -440,7 +536,8 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         limit: z.number().int().min(1).max(200).optional(),
         offset: z.number().int().min(0).optional(),
         includeInactive: z.boolean().optional(),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -454,7 +551,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         const result = await client.fetchPaid(path, {
           method: "GET",
           query,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return paidToolResult(result, "0.01", {
           path,
@@ -474,7 +571,8 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         "Fetch Algorand DeFi positions for a wallet via GET /positions. Paid ~0.005 USDC. First call returns PAYMENT-REQUIRED metadata; retry with paymentSignature.",
       inputSchema: {
         address: z.string().min(1),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -485,7 +583,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         const result = await client.fetchPaid("/positions", {
           method: "GET",
           query,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return paidToolResult(result, "0.005", {
           path: "/positions",
@@ -505,7 +603,8 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         "List claimable DeFi rewards for a wallet via GET /positions/claimable. Returns USD value, network-fee / worth-claiming hints, claim shapeKeys, and claimAllQuotes ready for canix_get_execution_quote. Paid ~0.001 USDC. Then compile with canix_get_execution_quote (~0.10 USDC flat); groups are never merged. Sign and submit locally.",
       inputSchema: {
         address: z.string().min(1),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -516,12 +615,59 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         const result = await client.fetchPaid("/positions/claimable", {
           method: "GET",
           query,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return paidToolResult(result, "0.001", {
           path: "/positions/claimable",
           method: "GET",
           query
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_simulate_execution",
+    {
+      description:
+        "Simulate compiled unsigned groups without signing or submitting (POST /execution/simulate). Pass address and groups[] from a plan or canix_get_execution_quote. Returns predicted balance and position deltas. Fails closed with machine-readable reasons (stale-quote, not-opted-in, min-balance, health-factor-too-low, capacity). Paid ~0.10 USDC. POST /plans attaches data.simulation when compiled groups are available. Canix does not sign or submit.",
+      inputSchema: {
+        address: z.string().min(1),
+        groups: z
+          .array(
+            z
+              .object({
+                shapeKey: z.string().min(1).optional(),
+                expiresAt: z.string().min(1).optional(),
+                opportunityId: z.string().min(1).optional(),
+                encodedTransactions: z.array(z.string().min(1)).optional(),
+                transactions: z.array(z.record(z.string(), z.unknown())).optional()
+              })
+              .catchall(z.unknown())
+          )
+          .min(1)
+          .max(25),
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const body = {
+          address: args.address,
+          groups: args.groups
+        };
+        const result = await client.fetchPaid("/execution/simulate", {
+          method: "POST",
+          body,
+          ...paidAuth(args)
+        });
+        return paidToolResult(result, "0.10", {
+          path: "/execution/simulate",
+          method: "POST",
+          body
         });
       } catch (error) {
         return errorResult(error);
@@ -554,7 +700,8 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
             })
           )
           .min(1),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -565,7 +712,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         const result = await client.fetchPaid("/execution/quotes", {
           method: "POST",
           body,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return paidToolResult(result, "0.10", {
           path: "/execution/quotes",
@@ -648,6 +795,82 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
   );
 
   server.registerTool(
+    "canix_create_session",
+    {
+      description:
+        "Buy a prepaid agent session (POST /sessions, ~0.25 USDC). One x402 payment mints a walletless receipt that unlocks N research calls and M quotes/plans until TTL. Sessions are receipts, not keys. Create/refresh cannot be paid with an existing session.",
+      inputSchema: {
+        paymentSignature: paymentSignatureArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const result = await client.fetchPaid("/sessions", {
+          method: "POST",
+          body: {},
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+        });
+        return paidToolResult(result, "0.25", {
+          path: "/sessions",
+          method: "POST",
+          body: {}
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_refresh_session",
+    {
+      description:
+        "Refresh a prepaid session (POST /sessions/refresh, ~0.25 USDC). Resets N/M and TTL in place, or mints a new receipt if the previous one is gone. One-shot only.",
+      inputSchema: {
+        sessionId: z.string().min(1).optional(),
+        paymentSignature: paymentSignatureArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const body = args.sessionId ? { sessionId: args.sessionId } : {};
+        const result = await client.fetchPaid("/sessions/refresh", {
+          method: "POST",
+          body,
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+        });
+        return paidToolResult(result, "0.25", {
+          path: "/sessions/refresh",
+          method: "POST",
+          body
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_get_session",
+    {
+      description:
+        "Read remaining N/M and expiry for a prepaid session receipt (GET /sessions/{sessionId}). Free. Prefer this over the public indexer /transactions showcase.",
+      inputSchema: {
+        sessionId: z.string().min(1)
+      }
+    },
+    async (args) => {
+      try {
+        const path = `/sessions/${encodeURIComponent(args.sessionId)}`;
+        const result = await client.fetchPaid(path, { method: "GET" });
+        return jsonResult(result.body);
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
     "canix_swap",
     {
       description:
@@ -656,7 +879,8 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         address: AlgorandAddressSchema,
         quote: QuoteSchema,
         slippage: z.number().min(0).max(100),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -669,7 +893,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         const result = await client.fetchPaid("/swaps/transactions", {
           method: "POST",
           body,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return paidToolResult(result, "0.005", {
           path: "/swaps/transactions",
@@ -742,6 +966,56 @@ export function registerCanixResources(server: McpServer, client: GatewayClient)
             uri: uri.href,
             mimeType: "application/json",
             text: JSON.stringify(body, null, 2)
+          }
+        ]
+      };
+    }
+  );
+
+  server.registerResource(
+    "session",
+    "canix://session",
+    {
+      description:
+        "Prepaid session policy (budget N/M, TTL, receipt URI template). Remaining quota is canix://session/{sessionId}, GET /sessions/{sessionId}, or canix_get_session. Sessions are receipts, not keys.",
+      mimeType: "application/json"
+    },
+    async (uri) => {
+      const body = (await client.fetchFree("/discovery")) as {
+        data?: { sessionPolicy?: unknown };
+        sessionPolicy?: unknown;
+      };
+      const sessionPolicy = body?.data?.sessionPolicy ?? body?.sessionPolicy ?? body;
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "application/json",
+            text: JSON.stringify(sessionPolicy, null, 2)
+          }
+        ]
+      };
+    }
+  );
+
+  server.registerResource(
+    "session-receipt",
+    new ResourceTemplate("canix://session/{sessionId}", { list: undefined }),
+    {
+      description:
+        "Prepaid session receipt remaining N/M (GET /sessions/{sessionId}). Unknown or expired receipts return 402 SESSION_INVALID/SESSION_EXPIRED.",
+      mimeType: "application/json"
+    },
+    async (uri, { sessionId }) => {
+      const id = Array.isArray(sessionId) ? sessionId[0] : sessionId;
+      const path = `/sessions/${encodeURIComponent(String(id ?? ""))}`;
+      const result = await client.fetchPaid(path, { method: "GET" });
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "application/json",
+            text: JSON.stringify(result.body, null, 2)
           }
         ]
       };

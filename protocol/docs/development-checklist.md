@@ -10,12 +10,12 @@ Status legend:
 
 Work through section 13 in listed order. Canix stays walletless: new routes return data or unsigned groups; the client signs and submits. Do not treat another protocol adapter as a substitute for these items.
 
-Leftover tightening from the execution chapter stays in sections 3 and 8 and can proceed in parallel. Section 3's Tinyman / Folks / Pact / CompX / Dork.fi unit-test expansion is archived; remaining adapter transforms and execution-layer golden fixtures are still open. Protocol-specific execution caveats are documented.
+Leftover tightening from the execution chapter stays in sections 3 and 8 and can proceed in parallel. Section 3 adapter unit tests (Tinyman / Folks / Pact / CompX / Dork.fi / Myth Finance / Haystack / Réti / Alpha Arcade) are done; execution-layer golden fixtures in section 8 are still open. Protocol-specific execution caveats are documented.
 
 
 ## 3) Testing and Quality Gates
 
-- [ ] Add dedicated unit tests for remaining adapter transforms (Myth Finance, Haystack, Réti, Alpha Arcade). Tinyman / Folks / Pact / CompX / Dork.fi already run in `protocol/tests/unit/` on CI.
+- [x] Add dedicated unit tests for remaining adapter transforms (Myth Finance, Haystack, Réti, Alpha Arcade). All nine adapters now run in `protocol/tests/unit/` on CI.
 
 
 ## 8) Execution Layer (tightening)
@@ -76,17 +76,17 @@ Haystack and execution shapes stay separate groups. The new product is the graph
 
 Positions are the book; opportunities are the menu. Emit only the legs that change the book.
 
-- [ ] Add a plan mode (or `POST /plans/rebalance`) that takes address + target weights or “harvest idle ALGO / claim and redeploy.”
-- [ ] Emit exits, claims, swaps, and enters as ordered unsigned groups — only deltas, not a full unwind-and-rebuild by default.
-- [ ] Reuse claim desk, eligibility, compose, and existing exit/manage `shapeKey`s on positions.
+- [x] Add a plan mode (or `POST /plans/rebalance`) that takes address + target weights or “harvest idle ALGO / claim and redeploy.”
+- [x] Emit exits, claims, swaps, and enters as ordered unsigned groups — only deltas, not a full unwind-and-rebuild by default.
+- [x] Reuse claim desk, eligibility, compose, and existing exit/manage `shapeKey`s on positions.
 
 ### 13.6 Simulate / expected delta
 
 Relocated from Execution Layer “optional follow-up.” Product, not a hidden dry-run.
 
-- [ ] Add a simulation path (dedicated endpoint or plan/quote option) that, given compiled group(s), returns predicted balance and position deltas.
-- [ ] Fail closed with machine-readable reasons when the group would not succeed (min balance, not opted in, health factor too low, capacity, stale quote).
-- [ ] Do not require signing; do not submit. Attach simulation summaries on `POST /plans` when available.
+- [x] Add a simulation path (dedicated endpoint or plan/quote option) that, given compiled group(s), returns predicted balance and position deltas.
+- [x] Fail closed with machine-readable reasons when the group would not succeed (min balance, not opted in, health factor too low, capacity, stale quote).
+- [x] Do not require signing; do not submit. Attach simulation summaries on `POST /plans` when available.
 
 ### 13.7 Risk object (opportunity schema V2)
 
@@ -101,10 +101,10 @@ Machine-readable risk so plans can be constrained. This is the deferred V1 `rewa
 
 Second money model for operators who currently spray tiny USDC transfers (e.g. Brownie’s daily loop). Keep exact-scheme one-shots.
 
-- [ ] Design a prepaid session: one x402 payment unlocks N research calls + M quotes/plans for a TTL, with a receipt resource (e.g. `canix://session`).
-- [ ] Implement session create/refresh, enforcement at gateway or app, and fail-closed expiry.
-- [ ] Publish receipts/usage to the agent (not only the public indexer `/transactions` showcase).
-- [ ] Discovery/OpenAPI/MCP + policy matrix for session vs per-request routes.
+- [x] Design a prepaid session: one x402 payment unlocks N research calls + M quotes/plans for a TTL, with a receipt resource (e.g. `canix://session`).
+- [x] Implement session create/refresh, enforcement at gateway or app, and fail-closed expiry.
+- [x] Publish receipts/usage to the agent (not only the public indexer `/transactions` showcase).
+- [x] Discovery/OpenAPI/MCP + policy matrix for session vs per-request routes.
 
 ### 13.9 Watch / webhook
 

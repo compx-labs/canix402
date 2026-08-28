@@ -1,4 +1,4 @@
-import type { McpServer } from "@modelcontextprotocol/server";
+import { ResourceTemplate, type McpServer } from "@modelcontextprotocol/server";
 
 import type { X402Client } from "./lib/x402-client.js";
 
@@ -61,6 +61,56 @@ export function registerResources(server: McpServer, client: X402Client): void {
             uri: uri.href,
             mimeType: "application/json",
             text: JSON.stringify(body, null, 2)
+          }
+        ]
+      };
+    }
+  );
+
+  server.registerResource(
+    "session",
+    "canix://session",
+    {
+      description:
+        "Prepaid session policy (budget N/M, TTL, receipt URI template). Remaining quota is canix://session/{sessionId}, GET /sessions/{sessionId}, or canix_get_session. Sessions are receipts, not keys.",
+      mimeType: "application/json"
+    },
+    async (uri) => {
+      const body = (await client.fetchFree("/discovery")) as {
+        data?: { sessionPolicy?: unknown };
+        sessionPolicy?: unknown;
+      };
+      const sessionPolicy = body?.data?.sessionPolicy ?? body?.sessionPolicy ?? body;
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "application/json",
+            text: JSON.stringify(sessionPolicy, null, 2)
+          }
+        ]
+      };
+    }
+  );
+
+  server.registerResource(
+    "session-receipt",
+    new ResourceTemplate("canix://session/{sessionId}", { list: undefined }),
+    {
+      description:
+        "Prepaid session receipt remaining N/M (GET /sessions/{sessionId}). Unknown or expired receipts return 402 SESSION_INVALID/SESSION_EXPIRED.",
+      mimeType: "application/json"
+    },
+    async (uri, { sessionId }) => {
+      const id = Array.isArray(sessionId) ? sessionId[0] : sessionId;
+      const path = `/sessions/${encodeURIComponent(String(id ?? ""))}`;
+      const result = await client.fetchPaid(path, { method: "GET" });
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "application/json",
+            text: JSON.stringify(result.body, null, 2)
           }
         ]
       };

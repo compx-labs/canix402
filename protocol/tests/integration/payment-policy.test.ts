@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   classifyEndpointAccess,
+  classifySessionBucket,
   endpointPolicyMatrix
 } from "../../src/services/payment-policy.js";
 
@@ -71,6 +72,18 @@ test("plans is a dedicated paid compiler POST route", () => {
   assert.equal(plans?.priceUsdc, process.env.X402_PRICE_PLANS_USDC ?? "0.25");
 });
 
+test("plans rebalance is a dedicated paid compiler POST route", () => {
+  assert.equal(classifyEndpointAccess("/plans/rebalance", "POST"), "paid");
+  const rebalance = endpointPolicyMatrix.find((endpoint) => endpoint.id === "plansRebalance");
+  assert.equal(rebalance?.method, "POST");
+  assert.equal(rebalance?.access, "paid");
+  assert.equal(rebalance?.pathPattern, "/plans/rebalance");
+  assert.equal(
+    rebalance?.priceUsdc,
+    process.env.X402_PRICE_PLANS_REBALANCE_USDC ?? "0.25"
+  );
+});
+
 test("execution compose is a dedicated paid compiler POST route", () => {
   assert.equal(classifyEndpointAccess("/execution/compose", "POST"), "paid");
   const compose = endpointPolicyMatrix.find((endpoint) => endpoint.id === "executionCompose");
@@ -80,6 +93,18 @@ test("execution compose is a dedicated paid compiler POST route", () => {
   assert.equal(
     compose?.priceUsdc,
     process.env.X402_PRICE_EXECUTION_COMPOSE_USDC ?? "0.1"
+  );
+});
+
+test("execution simulate is a dedicated paid compiler POST route", () => {
+  assert.equal(classifyEndpointAccess("/execution/simulate", "POST"), "paid");
+  const simulate = endpointPolicyMatrix.find((endpoint) => endpoint.id === "executionSimulate");
+  assert.equal(simulate?.method, "POST");
+  assert.equal(simulate?.access, "paid");
+  assert.equal(simulate?.pathPattern, "/execution/simulate");
+  assert.equal(
+    simulate?.priceUsdc,
+    process.env.X402_PRICE_EXECUTION_SIMULATE_USDC ?? "0.1"
   );
 });
 
@@ -106,3 +131,36 @@ test("Brownie showcase positions are free while arbitrary /positions stays paid"
     process.env.X402_PRICE_POSITIONS_CLAIMABLE_USDC ?? "0.001"
   );
 });
+
+test("prepaid sessions are paid create/refresh and a free receipt", () => {
+  assert.equal(classifyEndpointAccess("/sessions", "POST"), "paid");
+  assert.equal(classifyEndpointAccess("/sessions/refresh", "POST"), "paid");
+  assert.equal(classifyEndpointAccess("/sessions/csess_demo", "GET"), "free");
+
+  assert.equal(classifyEndpointAccess("/sessions"), "paid");
+  assert.equal(classifyEndpointAccess("/sessions/refresh"), "paid");
+  assert.equal(classifyEndpointAccess("/sessions/refresh", "GET"), "free");
+  assert.equal(classifyEndpointAccess("/sessions/csess_demo"), "free");
+
+  const create = endpointPolicyMatrix.find((endpoint) => endpoint.id === "sessionsCreate");
+  const refresh = endpointPolicyMatrix.find((endpoint) => endpoint.id === "sessionsRefresh");
+  const receipt = endpointPolicyMatrix.find((endpoint) => endpoint.id === "sessionsReceipt");
+  const opportunities = endpointPolicyMatrix.find((endpoint) => endpoint.id === "opportunities");
+  const plans = endpointPolicyMatrix.find((endpoint) => endpoint.id === "plans");
+  assert.equal(create?.method, "POST");
+  assert.equal(create?.access, "paid");
+  assert.equal(create?.priceUsdc, process.env.X402_PRICE_SESSIONS_USDC ?? "0.25");
+  assert.equal(refresh?.pathPattern, "/sessions/refresh");
+  assert.equal(refresh?.access, "paid");
+  assert.equal(create?.sessionAccess, undefined);
+  assert.equal(refresh?.sessionAccess, undefined);
+  assert.equal(receipt?.access, "free");
+  assert.equal(receipt?.pathPattern, "/sessions/:sessionId");
+  assert.equal(opportunities?.sessionAccess, "research");
+  assert.equal(plans?.sessionAccess, "quotes");
+
+  assert.equal(classifySessionBucket("/opportunities", "GET"), "research");
+  assert.equal(classifySessionBucket("/plans", "POST"), "quotes");
+  assert.equal(classifySessionBucket("/sessions", "POST"), undefined);
+});
+

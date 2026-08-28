@@ -110,6 +110,32 @@ test("paid tool returns PAYMENT_REQUIRED metadata on preflight", async () => {
   assert.match(text.text, /paymentRequiredHeader/);
 });
 
+test("canix_list_opportunities omits session header when paymentSignature is set", async () => {
+  let sessionHeader = "";
+  let paymentSignature = "";
+  const server = createCanixWorkerMcpServer({
+    config: {
+      gatewayUrl: "https://gateway.example",
+      publicUrl: "https://mcp.example/mcp",
+      network: "algorand-mainnet"
+    },
+    fetchImpl: async (_input, init) => {
+      const headers = init?.headers as Record<string, string> | undefined;
+      sessionHeader = headers?.["X-Canix-Session"] ?? "";
+      paymentSignature = headers?.["PAYMENT-SIGNATURE"] ?? "";
+      return new Response("{}", { status: 200 });
+    }
+  });
+
+  await registeredTools(server).canix_list_opportunities!.handler(
+    { paymentSignature: "signed-payload", sessionReceipt: "csess_stale" },
+    {}
+  );
+
+  assert.equal(paymentSignature, "signed-payload");
+  assert.equal(sessionHeader, "");
+});
+
 test("canix_get_positions forwards address and reports 0.005 preflight price", async () => {
   let requestUrl = "";
   let paymentSignature = "";
@@ -245,6 +271,102 @@ test("canix_get_plan posts body and reports 0.25 preflight price", async () => {
   assert.equal(payload.error, "PAYMENT_REQUIRED");
   assert.equal(payload.mcpPayment.priceUsdc, "0.25");
   assert.equal(payload.request.body.budget.amount, "1000000");
+});
+
+test("canix_get_rebalance_plan posts body and reports 0.25 preflight price", async () => {
+  let requestUrl = "";
+  let method = "";
+  let requestBody = "";
+  let paymentSignature = "";
+  const server = createCanixWorkerMcpServer({
+    config: {
+      gatewayUrl: "https://gateway.example",
+      publicUrl: "https://mcp.example/mcp",
+      network: "[REDACTED]"
+    },
+    fetchImpl: async (input, init) => {
+      requestUrl = String(input);
+      method = init?.method ?? "";
+      requestBody = String(init?.body);
+      paymentSignature =
+        (init?.headers as Record<string, string> | undefined)?.["PAYMENT-SIGNATURE"] ?? "";
+      return new Response("payment required", { status: 402 });
+    }
+  });
+
+  const result = await registeredTools(server).canix_get_rebalance_plan!.handler(
+    {
+      address: "WALLET",
+      harvestIdle: true,
+      paymentSignature: "signed-payload"
+    },
+    {}
+  );
+
+  assert.equal(new URL(requestUrl).pathname, "/plans/rebalance");
+  assert.equal(method, "POST");
+  assert.equal(paymentSignature, "signed-payload");
+  assert.deepEqual(JSON.parse(requestBody), {
+    address: "WALLET",
+    harvestIdle: true
+  });
+  const text = result.content.find((part) => part.type === "text");
+  assert.ok(text?.text);
+  const payload = JSON.parse(text.text) as {
+    error: string;
+    mcpPayment: { priceUsdc: string };
+    request: { body: { harvestIdle: boolean } };
+  };
+  assert.equal(payload.error, "PAYMENT_REQUIRED");
+  assert.equal(payload.mcpPayment.priceUsdc, "0.25");
+  assert.equal(payload.request.body.harvestIdle, true);
+});
+
+test("canix_simulate_execution posts body and reports 0.10 preflight price", async () => {
+  let requestUrl = "";
+  let method = "";
+  let requestBody = "";
+  let paymentSignature = "";
+  const server = createCanixWorkerMcpServer({
+    config: {
+      gatewayUrl: "https://gateway.example",
+      publicUrl: "https://mcp.example/mcp",
+      network: "[REDACTED]"
+    },
+    fetchImpl: async (input, init) => {
+      requestUrl = String(input);
+      method = init?.method ?? "";
+      requestBody = String(init?.body);
+      paymentSignature =
+        (init?.headers as Record<string, string> | undefined)?.["PAYMENT-SIGNATURE"] ?? "";
+      return new Response("payment required", { status: 402 });
+    }
+  });
+
+  const result = await registeredTools(server).canix_simulate_execution!.handler(
+    {
+      address: "WALLET",
+      groups: [{ encodedTransactions: ["AAAA"] }],
+      paymentSignature: "signed-payload"
+    },
+    {}
+  );
+
+  assert.equal(new URL(requestUrl).pathname, "/execution/simulate");
+  assert.equal(method, "POST");
+  assert.equal(paymentSignature, "signed-payload");
+  assert.deepEqual(JSON.parse(requestBody), {
+    address: "WALLET",
+    groups: [{ encodedTransactions: ["AAAA"] }]
+  });
+  const text = result.content.find((part) => part.type === "text");
+  assert.ok(text?.text);
+  const payload = JSON.parse(text.text) as {
+    error: string;
+    mcpPayment: { priceUsdc: string };
+  };
+  assert.equal(payload.error, "PAYMENT_REQUIRED");
+  assert.equal(payload.mcpPayment.priceUsdc, "0.10");
 });
 
 test("canix_compose_enter posts body and reports 0.1 preflight price", async () => {

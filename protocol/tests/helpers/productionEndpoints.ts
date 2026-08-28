@@ -50,12 +50,20 @@ function resolveProductionPath(pathPattern: string): string {
     return "/plans";
   }
 
+  if (pathPattern === "/plans/rebalance") {
+    return "/plans/rebalance";
+  }
+
   if (pathPattern === "/execution/quotes") {
     return "/execution/quotes";
   }
 
   if (pathPattern === "/execution/compose") {
     return "/execution/compose";
+  }
+
+  if (pathPattern === "/execution/simulate") {
+    return "/execution/simulate";
   }
 
   return pathPattern;
@@ -97,6 +105,18 @@ function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): Pro
     };
   }
 
+  if (entry.pathPattern === "/plans/rebalance") {
+    return {
+      ...base,
+      method: "POST",
+      body: {
+        address: getProductionPersonalizedAddress(),
+        harvestIdle: true,
+        constraints: { noNewBorrows: true, executionReadyOnly: true, maxAllocations: 1 }
+      }
+    };
+  }
+
   if (entry.pathPattern === "/execution/quotes") {
     return {
       ...base,
@@ -132,6 +152,22 @@ function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): Pro
     };
   }
 
+  if (entry.pathPattern === "/execution/simulate") {
+    return {
+      ...base,
+      method: "POST",
+      body: {
+        address: getProductionPersonalizedAddress(),
+        groups: [
+          {
+            shapeKey: "mainnet:reti:v1:stake:algo",
+            encodedTransactions: ["AAAA"]
+          }
+        ]
+      }
+    };
+  }
+
   if (entry.pathPattern === "/pricing") {
     return {
       ...base,
@@ -161,8 +197,9 @@ function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): Pro
 export const productionFreeEndpoints: ProductionEndpoint[] = endpointPolicyMatrix
   .filter((entry) => entry.access === "free")
   // `/metrics` is free on the protocol process but intentionally omitted from the
-  // public Caddy free list (internal scrape on :3000 only).
-  .filter((entry) => entry.id !== "metrics")
+  // public Caddy free list (internal scrape on :3000 only). Unknown session
+  // receipts fail-closed 402, so GET /sessions/:sessionId is not a smoke 200.
+  .filter((entry) => entry.id !== "metrics" && entry.id !== "sessionsReceipt")
   .map(toProductionEndpoint);
 
 export const productionPaidEndpoints: ProductionEndpoint[] = endpointPolicyMatrix

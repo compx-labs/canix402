@@ -1,0 +1,66 @@
+{
+  "data": {
+    "wouldSucceed": true,
+    "reasons": [],
+    "balanceDeltas": [
+      {
+        "address": "RS7TLLQRXKBAQDAVTSZC2ZLMVMLNSCL3FOUOESJJZ5XSKFFL56UI6X33CI",
+        "assetId": 0,
+        "before": "5000000",
+        "after": "3999000",
+        "delta": "-1001000"
+      }
+    ],
+    "expectedPositionDelta": {
+      "summary": "Enter 1000000 of asset 0 on reti-staking-12 (reti).",
+      "entries": [
+        {
+          "opportunityId": "reti-staking-12",
+          "protocol": "reti",
+          "assetId": 0,
+          "amount": "1000000",
+          "action": "enter"
+        }
+      ]
+    },
+    "groups": [
+      {
+        "index": 0,
+        "shapeKey": "mainnet:reti:v1:stake:algo",
+        "opportunityId": "reti-staking-12",
+        "wouldSucceed": true,
+        "reasons": [],
+        "balanceDeltas": [
+          {
+            "address": "RS7TLLQRXKBAQDAVTSZC2ZLMVMLNSCL3FOUOESJJZ5XSKFFL56UI6X33CI",
+            "assetId": 0,
+            "before": "5000000",
+            "after": "3999000",
+            "delta": "-1001000"
+          }
+        ],
+        "expectedPositionDelta": {
+          "summary": "Enter 1000000 of asset 0 on reti-staking-12 (reti).",
+          "entries": [
+            {
+              "opportunityId": "reti-staking-12",
+              "protocol": "reti",
+              "assetId": 0,
+              "amount": "1000000",
+              "action": "enter"
+            }
+          ]
+        }
+      }
+    ],
+    "signed": false,
+    "submitted": false
+  },
+  "meta": {
+    "address": "RS7TLLQRXKBAQDAVTSZC2ZLMVMLNSCL3FOUOESJJZ5XSKFFL56UI6X33CI",
+    "fetchedAt": "2026-08-21T12:00:00.000Z",
+    "paymentRequired": true,
+    "executionSubmitted": false,
+    "signed": false
+  }
+}

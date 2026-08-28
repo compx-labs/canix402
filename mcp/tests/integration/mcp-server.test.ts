@@ -25,6 +25,13 @@ function registeredResourceUris(server: McpServer): string[] {
   );
 }
 
+function registeredResourceTemplateNames(server: McpServer): string[] {
+  return Object.keys(
+    (server as unknown as { _registeredResourceTemplates: Record<string, unknown> })
+      ._registeredResourceTemplates
+  );
+}
+
 function encodePaymentRequired(amount = "10000"): string {
   return Buffer.from(
     JSON.stringify({
@@ -329,6 +336,105 @@ test("canix_get_plan posts body and reports 0.25 preflight price", async () => {
   await server.close();
 });
 
+test("canix_get_rebalance_plan posts body and reports 0.25 preflight price", async () => {
+  let requestUrl = "";
+  let method = "";
+  let requestBody = "";
+  let paymentSignature = "";
+  const server = createCanixMcpServer({
+    config: {
+      apiUrl: "https://example.test",
+      network: "[REDACTED]"
+    },
+    fetchImpl: async (input, init) => {
+      requestUrl = String(input);
+      method = init?.method ?? "";
+      requestBody = String(init?.body);
+      paymentSignature = String(
+        init?.headers && (init.headers as Record<string, string>)["PAYMENT-SIGNATURE"]
+      );
+      return new Response("payment required", { status: 402 });
+    }
+  });
+
+  const result = await registeredTools(server).canix_get_rebalance_plan!.handler(
+    {
+      address: "WALLET",
+      harvestIdle: true,
+      paymentSignature: "signed-payload"
+    },
+    {}
+  );
+
+  assert.equal(new URL(requestUrl).pathname, "/plans/rebalance");
+  assert.equal(method, "POST");
+  assert.equal(paymentSignature, "signed-payload");
+  assert.deepEqual(JSON.parse(requestBody), {
+    address: "WALLET",
+    harvestIdle: true
+  });
+  const text = result.content.find((part) => part.type === "text");
+  assert.ok(text?.text);
+  const payload = JSON.parse(text.text) as {
+    error: string;
+    mcpPayment: { priceUsdc: string };
+    request: { body: { harvestIdle: boolean } };
+  };
+  assert.equal(payload.error, "PAYMENT_REQUIRED");
+  assert.equal(payload.mcpPayment.priceUsdc, "0.25");
+  assert.equal(payload.request.body.harvestIdle, true);
+
+  await server.close();
+});
+
+test("canix_simulate_execution posts body and reports 0.10 preflight price", async () => {
+  let requestUrl = "";
+  let method = "";
+  let requestBody = "";
+  let paymentSignature = "";
+  const server = createCanixMcpServer({
+    config: {
+      apiUrl: "https://example.test",
+      network: "[REDACTED]"
+    },
+    fetchImpl: async (input, init) => {
+      requestUrl = String(input);
+      method = init?.method ?? "";
+      requestBody = String(init?.body);
+      paymentSignature =
+        (init?.headers as Record<string, string> | undefined)?.["PAYMENT-SIGNATURE"] ?? "";
+      return new Response("payment required", { status: 402 });
+    }
+  });
+
+  const result = await registeredTools(server).canix_simulate_execution!.handler(
+    {
+      address: "WALLET",
+      groups: [{ encodedTransactions: ["AAAA"] }],
+      paymentSignature: "signed-payload"
+    },
+    {}
+  );
+
+  assert.equal(new URL(requestUrl).pathname, "/execution/simulate");
+  assert.equal(method, "POST");
+  assert.equal(paymentSignature, "signed-payload");
+  assert.deepEqual(JSON.parse(requestBody), {
+    address: "WALLET",
+    groups: [{ encodedTransactions: ["AAAA"] }]
+  });
+  const text = result.content.find((part) => part.type === "text");
+  assert.ok(text?.text);
+  const payload = JSON.parse(text.text) as {
+    error: string;
+    mcpPayment: { priceUsdc: string };
+  };
+  assert.equal(payload.error, "PAYMENT_REQUIRED");
+  assert.equal(payload.mcpPayment.priceUsdc, "0.10");
+
+  await server.close();
+});
+
 test("canix_compose_enter posts body and reports 0.1 preflight price", async () => {
   let requestUrl = "";
   let method = "";
@@ -559,8 +665,10 @@ test("MCP resources include discovery openapi and shapes", async () => {
   assert.deepEqual(uris, [
     "canix://discovery",
     "canix://execution-shapes",
-    "canix://openapi"
+    "canix://openapi",
+    "canix://session"
   ]);
+  assert.deepEqual(registeredResourceTemplateNames(server).sort(), ["session-receipt"]);
 
   await server.close();
 });

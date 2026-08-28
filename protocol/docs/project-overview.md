@@ -37,6 +37,11 @@ Initial protocol coverage:
   - GoPlausible x402 facilitator
   - Nodely Caddy implementation
 
+Prepaid **agent sessions** are a second money model: one compiler-priced x402
+payment mints a walletless receipt (`canix://session/{id}`) that unlocks N
+research calls and M quotes/plans for a TTL. Exact-scheme one-shots remain the
+default. See [`agent-sessions.md`](./agent-sessions.md).
+
 Gateway configuration ownership:
 
 - Each x402 integration keeps its own project-specific Caddyfile and run wiring.
@@ -211,6 +216,48 @@ Use when the agent already knows the opportunity and the asset it holds.
   `X402_PRICE_EXECUTION_COMPOSE_USDC=0.1` (100000 micro-USDC).
 - MCP: `canix_compose_enter`. Prefer `canix_get_plan` for budget allocation.
 
+### Rebalance / delta quotes (`POST /plans/rebalance`)
+
+A paid compiler SKU priced at 0.25 USDC (same band as `POST /plans`). Positions
+are the book; opportunities are the menu.
+
+- Body: `{ address, targetWeights?, harvestIdle?, includeClaims?, algoReserveMicroAlgos?, minDeltaBps?, constraints?, swapSlippage?, refresh? }`.
+  Provide `targetWeights` (bps summing to 10000) and/or `harvestIdle: true`.
+- `targetWeights` apply only to listed opportunity ids. Other positions are left
+  unchanged — not a full unwind-and-rebuild. Overweight rows emit a **partial**
+  exit via `compatibleExitShapeKeys`. Underweight rows enter from idle ALGO when
+  `harvestIdle` (or other idle above reserve); otherwise enter is deferred until
+  exit groups confirm.
+- `harvestIdle` claims worth-claiming reward rows from the claim desk and
+  redeploys wallet ALGO above `algoReserveMicroAlgos` (default 1 ALGO).
+- Response: ordered unsigned steps (claim → exit → optional Haystack compose →
+  enter), `quotes[]`, expected position delta (`enter` / `exit` / `claim`),
+  x402 + network fee totals, expiry. Groups stay unmerged.
+- Discovery and OpenAPI advertise `maxAmountRequired: "0.25"`. Caddy enforces
+  `X402_PRICE_PLANS_REBALANCE_USDC=0.25` (250000 micro-USDC).
+- MCP: `canix_get_rebalance_plan`. Agent loop: positions/claimable → rebalance →
+  review warnings → local sign/submit in `order`. Quote-time on-chain checks
+  remain authoritative.
+
+### Simulate / expected delta (`POST /execution/simulate`)
+
+A paid compiler SKU priced at 0.10 USDC (same band as `POST /execution/quotes`).
+Dry-run compiled unsigned groups; Canix never signs or submits.
+
+- Body: `{ address, groups[] }` where each group is a compiled quote view
+  (`transactions` and/or `encodedTransactions`, plus optional `shapeKey`,
+  `expiresAt`, `opportunityId`, `capacity`).
+- Response: predicted `balanceDeltas` and `expectedPositionDelta`, plus
+  fail-closed `reasons[]` (`stale-quote`, `not-opted-in`, `min-balance`,
+  `health-factor-too-low`, `capacity`). `wouldSucceed` is true only when every
+  group is proven safe. `signed` and `submitted` are always `false`.
+- `POST /plans` and `POST /plans/rebalance` attach the same summary as
+  `data.simulation` when compiled groups are available.
+- Discovery and OpenAPI advertise `maxAmountRequired: "0.1"`. Caddy enforces
+  `X402_PRICE_EXECUTION_SIMULATE_USDC=0.1` (100000 micro-USDC).
+- MCP: `canix_simulate_execution`. See
+  `docs/execution-shapes/simulate-expected-delta.md`.
+
 ### Wallet Positions (`GET /positions?address=`)
 
 A paid wallet data route priced at exactly 0.005 USDC:
@@ -334,4 +381,5 @@ Use this section to record major decisions as the project evolves.
 - 2026-07-06: Restructured repo into monorepo workspaces (`protocol/`, `website/`) and implemented Astro onboarding site with CANIX402 branding.
 - 2026-07-07: Finalized `OpportunityRecordV1` contract for API `1.0.0` with required `yieldBasis`, optional `assetIds`, and a canonical schema spec in `docs/normalized-opportunity-schema.md`.
 - 2026-08-14: Added paid `POST /eligibility` (0.01 USDC) and taught `/opportunities/personalized` to use the same eligibility rules so full/gated Réti venues are not recommended as enterable. NFD/creator gates stay unresolved (`eligibilityFullyCheckable: false`).
+- 2026-08-20: Extended `protocol/tests/unit/` coverage to Myth Finance, Haystack, Réti, and Alpha Arcade adapter/normalize transforms (mocked SDK dependencies; no live chain, no x402). Checklist §3 remaining-adapter line is done.
 - 2026-08-19: Added dedicated `protocol/tests/unit/` coverage for opportunity normalization and adapter transforms (Tinyman, Folks, Pact, CompX, Dork.fi; fixture-based, CI on `dev`). Remaining adapters stay integration-only until checklist §3 is closed.

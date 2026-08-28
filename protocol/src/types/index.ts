@@ -31,6 +31,12 @@ export type {
   PlanResponse,
   PlanStep
 } from "./plan.js";
+export type {
+  RebalanceBook,
+  RebalanceData,
+  RebalanceRequest,
+  RebalanceResponse
+} from "./rebalance.js";
 export {
   PositionRecordSchema,
   PositionTypeSchema,
@@ -59,6 +65,13 @@ export {
   PlanResponseSchema
 } from "./plan-schema.js";
 export {
+  DEFAULT_REBALANCE_PRICE_USDC,
+  DEFAULT_ALGO_RESERVE_MICRO,
+  DEFAULT_MIN_DELTA_BPS,
+  RebalanceRequestSchema,
+  RebalanceResponseSchema
+} from "./rebalance-schema.js";
+export {
   DEFAULT_COMPOSE_PRICE_USDC,
   DEFAULT_COMPOSE_SLIPPAGE_PERCENT,
   ComposeRequestSchema,
@@ -69,11 +82,45 @@ export type {
   ComposeRequest,
   ComposeResponse
 } from "./compose-schema.js";
+export {
+  DEFAULT_SIMULATE_PRICE_USDC,
+  SIMULATE_MAX_GROUPS,
+  SimulationRequestSchema,
+  SimulationResponseSchema,
+  SimulationSummarySchema
+} from "./simulate-schema.js";
+export type {
+  SimulationGroupInput,
+  SimulationRequest,
+  SimulationResponse,
+  SimulationSummary
+} from "./simulate-schema.js";
 export type {
   DiscoveryDocument,
   DiscoveryEndpointDescriptor,
   DiscoveryErrorDescriptor
 } from "./discovery.js";
+export type {
+  SessionBudget,
+  SessionGetResult,
+  SessionPolicy,
+  SessionReceipt,
+  SessionStatus
+} from "./session.js";
+export {
+  DEFAULT_SESSION_PRICE_USDC,
+  DEFAULT_SESSION_QUOTE_BUDGET,
+  DEFAULT_SESSION_RESEARCH_BUDGET,
+  DEFAULT_SESSION_TTL_SECONDS,
+  SessionReceiptSchema,
+  SessionRefreshRequestSchema,
+  SessionResponseSchema
+} from "./session-schema.js";
+export type {
+  SessionReceiptDto,
+  SessionRefreshRequest,
+  SessionResponse
+} from "./session-schema.js";
 export type {
   HaystackQuote,
   SwapOptInRequest,

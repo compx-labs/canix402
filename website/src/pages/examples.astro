@@ -8,6 +8,7 @@ import personalizedSample from "../data/opportunities-personalized.sample.json";
 import eligibilitySample from "../data/eligibility.sample.json";
 import plansSample from "../data/plans.sample.json";
 import composeSample from "../data/compose.sample.json";
+import simulateSample from "../data/simulate.sample.json";
 import protocolSample from "../data/protocol-opportunities.sample.json";
 import positionsSample from "../data/positions.sample.json";
 import positionsClaimableSample from "../data/positions-claimable.sample.json";
@@ -16,11 +17,13 @@ import executionQuotesSample from "../data/execution-quotes.sample.json";
 import swapsQuoteSample from "../data/swaps-quote.sample.json";
 import swapsOptinSample from "../data/swaps-optin.sample.json";
 import swapsTransactionsSample from "../data/swaps-transactions.sample.json";
+import sessionsSample from "../data/sessions.sample.json";
 
 const format = (value: unknown): string => JSON.stringify(value, null, 2);
 const eligibilityCurl = `curl -i ${config.gatewayBaseUrl}/eligibility -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","opportunityIds":["reti-staking-12"]}'`; // pragma: allowlist secret
 const plansCurl = `curl -i ${config.gatewayBaseUrl}/plans -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","budget":{"assetId":0,"amount":"1000000"},"constraints":{"noNewBorrows":true,"executionReadyOnly":true},"opportunityIds":["reti-staking-12"]}'`; // pragma: allowlist secret
 const composeCurl = `curl -i ${config.gatewayBaseUrl}/execution/compose -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","opportunityId":"reti-staking-12","fromAssetId":1,"amount":"1000000","slippage":1}'`; // pragma: allowlist secret
+const simulateCurl = `curl -i ${config.gatewayBaseUrl}/execution/simulate -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","groups":[{"shapeKey":"mainnet:reti:v1:stake:algo","encodedTransactions":["<base64-unsigned-txn>"]}]}'`; // pragma: allowlist secret
 ---
 
 <BaseLayout
@@ -137,7 +140,8 @@ const composeCurl = `curl -i ${config.gatewayBaseUrl}/execution/compose -H 'cont
       opt-in → swap compose when <code>requiredAssetIds</code> differ from the budget asset,
       protocol setup chains, and enter quotes as independent unsigned groups (never merged).
       Reuses <code>quotes[]</code> / <code>order</code> / <code>prerequisiteShapeKeys</code>.
-      Brownie and other agents should consume this route rather than forking a compiler.
+      Attaches <code>data.simulation</code> (predicted deltas, fail-closed reasons) when groups
+      are compiled. Brownie and other agents should consume this route rather than forking a compiler.
       Canix never signs or submits.
     </p>
     <CodeBlock code={plansCurl} />
@@ -158,6 +162,22 @@ const composeCurl = `curl -i ${config.gatewayBaseUrl}/execution/compose -H 'cont
     <CodeBlock code={composeCurl} />
     <h3>Sample response (200)</h3>
     <CodeBlock code={format(composeSample)} />
+  </section>
+
+  <section class="panel">
+    <h2>Simulate / expected delta (paid)</h2>
+    <p>
+      <code>POST /execution/simulate</code> — ~0.10 USDC. Pass compiled unsigned
+      <code>groups[]</code> from a plan or quote. Returns predicted balance and position deltas
+      without signing or submitting. Fail closed with machine-readable
+      <code>reasons[].code</code> (<code>stale-quote</code>, <code>not-opted-in</code>,
+      <code>min-balance</code>, <code>health-factor-too-low</code>, <code>capacity</code>).
+      <code>POST /plans</code> already attaches <code>data.simulation</code> when groups are compiled.
+      Canix never signs or submits.
+    </p>
+    <CodeBlock code={simulateCurl} />
+    <h3>Sample response (200)</h3>
+    <CodeBlock code={format(simulateSample)} />
   </section>
 
   <section class="panel">
@@ -293,6 +313,30 @@ const composeCurl = `curl -i ${config.gatewayBaseUrl}/execution/compose -H 'cont
       Sign only <code>userSignIndexes</code>, keep Haystack pre-signed members and group order, then
       submit the complete atomic group through your own Algod client.
     </p>
+  </section>
+
+  <section class="panel">
+    <h2>Prepaid agent sessions</h2>
+    <p>
+      One <code>POST /sessions</code> (~0.25 USDC) mints a walletless receipt that unlocks N research
+      calls and M quotes/plans until TTL. Send <code>X-Canix-Session</code> on session-eligible routes
+      instead of spraying tiny one-shots. Create/refresh stay one-shot only. Fail-closed on expiry
+      or exhausted quota — omit the header to fall back to per-request payment.
+    </p>
+    <h3>1) Buy a session (expect 402, then retry with PAYMENT-SIGNATURE)</h3>
+    <CodeBlock
+      code={`curl -i ${config.gatewayBaseUrl}/sessions -X POST -H 'content-type: application/json' -d '{}'`}
+    />
+    <h3>2) Read remaining N/M (free)</h3>
+    <CodeBlock
+      code={`curl -s ${config.gatewayBaseUrl}/sessions/csess_YOUR_SESSION_ID | jq '.data.remaining'`}
+    />
+    <h3>3) Consume research with the receipt</h3>
+    <CodeBlock
+      code={`curl -i '${config.gatewayBaseUrl}/opportunities' -H 'X-Canix-Session: csess_YOUR_SESSION_ID'`}
+    />
+    <h3>Sample receipt (200)</h3>
+    <CodeBlock code={format(sessionsSample)} />
   </section>
 
   <section class="panel">

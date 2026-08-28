@@ -258,6 +258,138 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 			},
 		)
 
+	case "plans_rebalance":
+		return bazaar.DeclareDiscoveryExtension(
+			bazaar.MethodPOST,
+			map[string]interface{}{
+				"address":     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+				"harvestIdle": true,
+			},
+			bazaar.JSONSchema{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"address":     map[string]interface{}{"type": "string"},
+					"harvestIdle": map[string]interface{}{"type": "boolean"},
+					"targetWeights": map[string]interface{}{
+						"type": "array",
+					},
+				},
+				"required": []string{"address"},
+			},
+			bazaar.BodyTypeJSON,
+			&bazaar.OutputConfig{
+				Example: map[string]interface{}{
+					"data": map[string]interface{}{
+						"steps": []interface{}{},
+					},
+				},
+			},
+		)
+
+	case "execution_compose":
+		return bazaar.DeclareDiscoveryExtension(
+			bazaar.MethodPOST,
+			map[string]interface{}{
+				"address":       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+				"opportunityId": "reti-staking-12",
+				"fromAssetId":   0,
+				"amount":        "1000000",
+			},
+			bazaar.JSONSchema{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"address":       map[string]interface{}{"type": "string"},
+					"opportunityId": map[string]interface{}{"type": "string"},
+					"fromAssetId":   map[string]interface{}{"type": "number"},
+					"amount":        map[string]interface{}{"type": "string"},
+				},
+				"required": []string{"address", "opportunityId", "fromAssetId", "amount"},
+			},
+			bazaar.BodyTypeJSON,
+			&bazaar.OutputConfig{
+				Example: map[string]interface{}{
+					"data": map[string]interface{}{
+						"steps": []interface{}{},
+					},
+				},
+			},
+		)
+
+	case "execution_simulate":
+		return bazaar.DeclareDiscoveryExtension(
+			bazaar.MethodPOST,
+			map[string]interface{}{
+				"address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+				"groups": []interface{}{
+					map[string]interface{}{
+						"encodedTransactions": []interface{}{},
+					},
+				},
+			},
+			bazaar.JSONSchema{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"address": map[string]interface{}{"type": "string"},
+					"groups": map[string]interface{}{
+						"type": "array",
+					},
+				},
+				"required": []string{"address", "groups"},
+			},
+			bazaar.BodyTypeJSON,
+			&bazaar.OutputConfig{
+				Example: map[string]interface{}{
+					"data": map[string]interface{}{
+						"wouldSucceed": false,
+						"signed":       false,
+						"submitted":    false,
+					},
+				},
+			},
+		)
+
+	case "sessions":
+		return bazaar.DeclareDiscoveryExtension(
+			bazaar.MethodPOST,
+			map[string]interface{}{},
+			bazaar.JSONSchema{
+				"type":       "object",
+				"properties": map[string]interface{}{},
+			},
+			bazaar.BodyTypeJSON,
+			&bazaar.OutputConfig{
+				Example: map[string]interface{}{
+					"data": map[string]interface{}{
+						"sessionId": "csess_example",
+						"status":    "active",
+					},
+				},
+			},
+		)
+
+	case "sessions_refresh":
+		return bazaar.DeclareDiscoveryExtension(
+			bazaar.MethodPOST,
+			map[string]interface{}{
+				"sessionId": "csess_example",
+			},
+			bazaar.JSONSchema{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"sessionId": map[string]interface{}{"type": "string"},
+				},
+			},
+			bazaar.BodyTypeJSON,
+			&bazaar.OutputConfig{
+				Example: map[string]interface{}{
+					"data": map[string]interface{}{
+						"sessionId": "csess_example",
+						"status":    "active",
+					},
+				},
+			},
+		)
+
 	default:
 		return bazaar.DiscoveryExtension{}, fmt.Errorf("unknown bazaar_profile %q", profile)
 	}
@@ -275,5 +407,10 @@ func knownBazaarProfiles() []string {
 		"protocol_opportunities",
 		"execution_quotes",
 		"haystack_swap",
+		"plans_rebalance",
+		"execution_compose",
+		"execution_simulate",
+		"sessions",
+		"sessions_refresh",
 	}
 }

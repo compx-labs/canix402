@@ -82,3 +82,9 @@ Pending reward-token balances surface as `reward` positions when present.
 - Full NFD resolution for personalized eligibility (gates are published as unresolved; `POST /eligibility` and personalized matching skip NFD/creator-only validators)
 - Epoch payout / commission claim shapes for validators
 - Testnet / localnet registry targets
+
+## Tests
+
+Fixture-based normalize coverage: `tests/unit/reti-normalize.test.ts` plus
+`tests/fixtures/adapters/reti.ts` (`npm run test:unit`). Route-level coverage
+remains in `tests/integration/reti-adapter.test.ts`.

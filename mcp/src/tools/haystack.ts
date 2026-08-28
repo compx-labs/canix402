@@ -3,7 +3,7 @@ import * as z from "zod";
 
 import { errorResult, jsonResult } from "../lib/tool-result.js";
 import type { X402Client } from "../lib/x402-client.js";
-import { formatPaidToolResult, paymentSignatureArgSchema } from "./paid.js";
+import { formatPaidToolResult, paidAuth, paymentSignatureArgSchema, sessionReceiptArgSchema } from "./paid.js";
 
 const AlgorandAddressSchema = z.string().length(58);
 const AssetIdSchema = z.union([
@@ -129,7 +129,8 @@ export function registerHaystackTools(server: McpServer, client: X402Client): vo
         address: AlgorandAddressSchema,
         quote: QuoteSchema,
         slippage: z.number().min(0).max(100),
-        paymentSignature: paymentSignatureArgSchema()
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
       }
     },
     async (args) => {
@@ -142,7 +143,7 @@ export function registerHaystackTools(server: McpServer, client: X402Client): vo
         const result = await client.fetchPaid("/swaps/transactions", {
           method: "POST",
           body,
-          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+          ...paidAuth(args)
         });
         return formatPaidToolResult(result, "0.005", {
           path: "/swaps/transactions",

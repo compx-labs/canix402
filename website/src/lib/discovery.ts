@@ -4,7 +4,9 @@ import {
   eligibilityPriceUsdc,
   personalizedPriceUsdc,
   plansPriceUsdc,
+  plansRebalancePriceUsdc,
   executionComposePriceUsdc,
+  executionSimulatePriceUsdc,
   positionsClaimablePriceUsdc,
   positionsPriceUsdc
 } from "./config";
@@ -93,8 +95,16 @@ function isPlansEndpoint(endpoint: DiscoveryEndpoint): boolean {
   return endpoint.id === "plans" || endpoint.path === "/plans";
 }
 
+function isRebalanceEndpoint(endpoint: DiscoveryEndpoint): boolean {
+  return endpoint.id === "plansRebalance" || endpoint.path === "/plans/rebalance";
+}
+
 function isComposeEndpoint(endpoint: DiscoveryEndpoint): boolean {
   return endpoint.id === "executionCompose" || endpoint.path === "/execution/compose";
+}
+
+function isSimulateEndpoint(endpoint: DiscoveryEndpoint): boolean {
+  return endpoint.id === "executionSimulate" || endpoint.path === "/execution/simulate";
 }
 
 function resolvePaidAmount(endpoint: DiscoveryEndpoint): string {
@@ -120,8 +130,16 @@ function resolvePaidAmount(endpoint: DiscoveryEndpoint): string {
     return plansPriceUsdc;
   }
 
+  if (isRebalanceEndpoint(endpoint)) {
+    return plansRebalancePriceUsdc;
+  }
+
   if (isComposeEndpoint(endpoint)) {
     return executionComposePriceUsdc;
+  }
+
+  if (isSimulateEndpoint(endpoint)) {
+    return executionSimulatePriceUsdc;
   }
 
   if (isPositionsEndpoint(endpoint)) {
@@ -175,6 +193,8 @@ export function tagBadgeClass(tag: string): string {
     "personalized",
     "eligibility",
     "plans",
+    "rebalance",
+    "simulation",
     "discovery",
     "system",
     "openapi",

@@ -5,9 +5,9 @@ MCP server that exposes canix402 free and paid gateway endpoints as agent tools.
 ## What it does
 
 - Free tools: health, metadata, discovery, OpenAPI, execution shape catalog, Haystack quotes, and Haystack opt-ins
-- Paid tools: opportunities (list/search/personalized/protocol), wallet positions, claimable rewards, eligibility, intent plans, execution quotes, and Haystack swap transactions
-- Walletless x402 passthrough: paid tool preflight returns `PAYMENT-REQUIRED`, retry with `paymentSignature`
-- Resources: `canix://discovery`, `canix://openapi`, `canix://execution-shapes` (live `GET /execution/shapes`, including `meta.caveatsDocsPath`)
+- Paid tools: opportunities (list/search/personalized/protocol), wallet positions, claimable rewards, eligibility, intent plans, execution quotes, execution simulate, Haystack swap transactions, and prepaid session create/refresh
+- Walletless x402 passthrough: paid tool preflight returns `PAYMENT-REQUIRED`, retry with `paymentSignature`. Session-eligible tools also accept `sessionReceipt` (`X-Canix-Session`).
+- Resources: `canix://discovery`, `canix://openapi`, `canix://execution-shapes` (live `GET /execution/shapes`, including `meta.caveatsDocsPath`), `canix://session` (prepaid session **policy**), `canix://session/{sessionId}` (remaining N/M receipt)
 - Prompt: `analyze-opportunity`
 
 Always call the **Caddy gateway** (`CANIX402_API_URL`), never the raw Fastify upstream.
@@ -64,6 +64,22 @@ with `address`, `opportunityId`, `fromAssetId`, and `amount`. Optional `slippage
 (Haystack percent, default 1). Returns sequenced unsigned groups: opt-in → Haystack swap
 → enter. Groups stay unmerged; sign only user legs and preserve Haystack pre-signed
 members. Prefer `canix_get_plan` for budget allocation.
+
+## Rebalance / delta quotes
+
+`canix_get_rebalance_plan` calls paid `POST /plans/rebalance` (fallback price 0.25 USDC)
+with `address` plus `targetWeights` (bps summing to 10000) and/or `harvestIdle`.
+Returns ordered unsigned groups — claims, partial exits, optional Haystack compose,
+enters — only the legs that change the book. Positions not listed in `targetWeights`
+are left alone. Groups stay unmerged; sign and submit locally.
+
+## Simulate / expected delta
+
+`canix_simulate_execution` calls paid `POST /execution/simulate` (fallback price 0.10 USDC)
+with `address` and compiled `groups[]` from a plan or execution quote. Returns predicted
+balance and position deltas. Failures are machine-readable (`stale-quote`, `not-opted-in`,
+`min-balance`, `health-factor-too-low`, `capacity`). `POST /plans` attaches
+`data.simulation` when compiled groups exist. Canix does not sign or submit.
 
 ## Haystack swap tools
 

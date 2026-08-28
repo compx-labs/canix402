@@ -43,3 +43,9 @@ When TVL, ALPHA price, or trailing USDC inflows are unavailable / zero, the row 
 - Yield is a share of prediction-market trading fees routed as USDC — not a fixed rate.
 - Trailing APR can swing with volume; treat as an estimate only.
 - Prediction-market trading (orders / RFQ) is out of scope for this adapter.
+
+## Tests
+
+Fixture-based normalize coverage: `tests/unit/alpha-arcade-normalize.test.ts`
+plus `tests/fixtures/adapters/alpha-arcade.ts` (`npm run test:unit`). Route-level
+coverage remains in `tests/integration/alpha-arcade-adapter.test.ts`.

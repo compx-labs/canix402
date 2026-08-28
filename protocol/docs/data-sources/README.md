@@ -32,13 +32,11 @@ Dork.fi live next to the shape specs in
 
 ## Normalization unit tests
 
-Adapter `normalize*` transforms for Tinyman, Folks Finance, Pact, CompX, and
-Dork.fi are covered by fixture-based tests in `protocol/tests/unit/` (recorded
-SDK/API shapes; no live chain, no paid x402). Run `npm run test:unit` from repo
-root. See `docs/testing.md`.
-
-Myth Finance, Haystack, Réti, and Alpha Arcade still rely on integration-file
-coverage only (`tests/integration/*-adapter.test.ts`).
+Adapter `normalize*` transforms for Tinyman, Folks Finance, Pact, CompX,
+Dork.fi, Myth Finance, Haystack, Réti, and Alpha Arcade are covered by
+fixture-based tests in `protocol/tests/unit/` (recorded SDK/API shapes or
+mocked SDK dependencies; no live chain, no paid x402). Run `npm run test:unit`
+from repo root. See `docs/testing.md`.
 
 ## Asset ID Enrichment
 

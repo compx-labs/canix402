@@ -36,6 +36,16 @@ import {
   type ComposeRequest,
   type ComposeResponse
 } from "../types/compose-schema.js";
+import {
+  SimulationRequestSchema,
+  SimulationResponseSchema,
+  type SimulationRequest,
+  type SimulationResponse
+} from "../types/simulate-schema.js";
+import {
+  simulateCompiledGroups,
+  SimulateValidationError
+} from "../services/simulate.js";
 
 export function registerExecutionRoutes(app: FastifyInstance) {
   app.get<{
@@ -181,6 +191,45 @@ export function registerExecutionRoutes(app: FastifyInstance) {
               code: error.kind === "validation" ? "VALIDATION_ERROR" : "INTERNAL_ERROR",
               message: error.message,
               ...(error.details === undefined ? {} : { details: error.details })
+            }
+          });
+        }
+        throw error;
+      }
+    }
+  );
+
+  app.post<{
+    Body: SimulationRequest;
+    Reply: SimulationResponse | ApiError;
+  }>(
+    "/execution/simulate",
+    {
+      schema: {
+        body: SimulationRequestSchema,
+        response: {
+          200: SimulationResponseSchema
+        }
+      }
+    },
+    async (request, reply) => {
+      if (!algosdk.isValidAddress(request.body.address)) {
+        return reply.status(400).send({
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Body field 'address' is not a valid Algorand address." // pragma: allowlist secret
+          }
+        });
+      }
+
+      try {
+        return reply.send(await simulateCompiledGroups(request.body));
+      } catch (error) {
+        if (error instanceof SimulateValidationError) {
+          return reply.status(400).send({
+            error: {
+              code: "VALIDATION_ERROR",
+              message: error.message
             }
           });
         }
