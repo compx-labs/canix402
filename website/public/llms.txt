@@ -10,11 +10,13 @@ Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. D
 - [OpenAPI](https://canix402-api.compx.io/openapi.json): schemas, query parameters, response examples
 - [x402 manifest](https://canix402-api.compx.io/.well-known/x402.json): directory indexing surface for agent tooling and x402 directories
 - [MCP server](https://canix402.compx.io/mcp): remote Streamable HTTP MCP at `https://canix402-mcp.compx.io/mcp` (walletless pass-through)
+- [WebMCP demo](https://canix402.compx.io/webmcp): same MCP tools registered in-page via the WebMCP imperative API
 
 ## Integration guides
 
 - [Quickstart](https://canix402.compx.io/quickstart): agent onboarding (MCP or direct HTTP)
 - [MCP setup](https://canix402.compx.io/mcp): connect to `https://canix402-mcp.compx.io/mcp`, paid-tool paymentSignature retry
+- [WebMCP demo](https://canix402.compx.io/webmcp): `document.modelContext.registerTool` (Chrome) / `navigator.modelContext` fallback; fail-closed execute
 - [x402 payment flow](https://canix402.compx.io/x402): preflight 402, sign USDC transfer, retry with PAYMENT-SIGNATURE
 - [Examples](https://canix402.compx.io/examples): copy-paste curl and sample payloads
 - [Endpoint catalog](https://canix402.compx.io/endpoints): human-readable route table sourced from discovery
@@ -30,12 +32,15 @@ Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. D
 - [POST /eligibility](https://canix402-api.compx.io/eligibility): 0.01 USDC — Wallet eligibility and capacity for selected opportunities  # pragma: allowlist secret
 - [POST /plans](https://canix402-api.compx.io/plans): 0.25 USDC — Compile an allocation intent into an ordered unsigned plan  # pragma: allowlist secret
 - [POST /plans/rebalance](https://canix402-api.compx.io/plans/rebalance): 0.25 USDC — Compile a delta rebalance plan of unsigned groups  # pragma: allowlist secret
+- [POST /policy/validate](https://canix402-api.compx.io/policy/validate): 0.25 USDC — Validate a compiled plan or quotes[] against an operator policy document  # pragma: allowlist secret
 - [GET /positions](https://canix402-api.compx.io/positions): 0.005 USDC — Algorand DeFi positions held by a wallet
 - [GET /positions/claimable](https://canix402-api.compx.io/positions/claimable): 0.001 USDC — Claimable DeFi rewards across supported protocols
 - [POST /swaps/transactions](https://canix402-api.compx.io/swaps/transactions): 0.005 USDC — Build a walletless Haystack swap transaction group
 - [POST /execution/quotes](https://canix402-api.compx.io/execution/quotes): 0.1 USDC — Compile one or more verified transaction shapes into unsigned Algorand transaction groups
 - [POST /execution/compose](https://canix402-api.compx.io/execution/compose): 0.1 USDC — Compose opt-in → Haystack swap → enter as unmerged unsigned groups  # pragma: allowlist secret
 - [POST /execution/simulate](https://canix402-api.compx.io/execution/simulate): 0.1 USDC — Simulate compiled unsigned groups for predicted balance and position deltas  # pragma: allowlist secret
+- [POST /sessions](https://canix402-api.compx.io/sessions): 0.25 USDC — Buy a prepaid agent session receipt  # pragma: allowlist secret
+- [POST /sessions/refresh](https://canix402-api.compx.io/sessions/refresh): 0.25 USDC — Refresh a prepaid agent session receipt  # pragma: allowlist secret
 
 ## Optional
 

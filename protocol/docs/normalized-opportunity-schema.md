@@ -184,3 +184,7 @@ The following fields are intentionally out of scope for `OpportunityRecordV1`:
 
 Any addition of these fields is a future contract revision and should be reflected
 in both TypeBox and OpenAPI schema surfaces.
+
+Operator risk caps that used to live only in Brownie (protocol weight, ALGO reserve,
+TVL/freshness floors, no-new-borrows, execution-ready) are now a shared
+policy-as-a-service contract: see `docs/policy-schema.md` and `POST /policy/validate`.

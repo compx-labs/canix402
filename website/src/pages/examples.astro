@@ -9,6 +9,7 @@ import eligibilitySample from "../data/eligibility.sample.json";
 import plansSample from "../data/plans.sample.json";
 import composeSample from "../data/compose.sample.json";
 import simulateSample from "../data/simulate.sample.json";
+import policySample from "../data/policy.sample.json";
 import protocolSample from "../data/protocol-opportunities.sample.json";
 import positionsSample from "../data/positions.sample.json";
 import positionsClaimableSample from "../data/positions-claimable.sample.json";
@@ -24,6 +25,7 @@ const eligibilityCurl = `curl -i ${config.gatewayBaseUrl}/eligibility -H 'conten
 const plansCurl = `curl -i ${config.gatewayBaseUrl}/plans -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","budget":{"assetId":0,"amount":"1000000"},"constraints":{"noNewBorrows":true,"executionReadyOnly":true},"opportunityIds":["reti-staking-12"]}'`; // pragma: allowlist secret
 const composeCurl = `curl -i ${config.gatewayBaseUrl}/execution/compose -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","opportunityId":"reti-staking-12","fromAssetId":1,"amount":"1000000","slippage":1}'`; // pragma: allowlist secret
 const simulateCurl = `curl -i ${config.gatewayBaseUrl}/execution/simulate -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","groups":[{"shapeKey":"mainnet:reti:v1:stake:algo","encodedTransactions":["<base64-unsigned-txn>"]}]}'`; // pragma: allowlist secret
+const policyCurl = `curl -i ${config.gatewayBaseUrl}/policy/validate -H 'content-type: application/json' -d '{"policy":{"schemaVersion":"1.0.0","maxProtocolWeightBps":4000,"minAlgoReserveMicroAlgos":"1000000","minTvlUsd":25000,"maxSourceAgeSeconds":86400,"noNewBorrows":true,"executionReadyOnly":true},"quotes":[{"shapeKey":"mainnet:reti:v1:stake:algo","protocol":"reti","opportunityId":"reti-staking-12","weightBps":4000,"allocatedAmount":"1000000","allocatedAssetId":0,"tvlUsd":1000000,"sourceTimestamp":"2026-08-28T11:00:00.000Z","executionReady":true}],"walletAlgoMicroAlgos":"5000000"}'`; // pragma: allowlist secret
 ---
 
 <BaseLayout
@@ -178,6 +180,23 @@ const simulateCurl = `curl -i ${config.gatewayBaseUrl}/execution/simulate -H 'co
     <CodeBlock code={simulateCurl} />
     <h3>Sample response (200)</h3>
     <CodeBlock code={format(simulateSample)} />
+  </section>
+
+  <section class="panel">
+    <h2>Policy-as-a-service (paid)</h2>
+    <p>
+      <code>POST /policy/validate</code> — ~0.25 USDC compiler SKU. Pass a compiled
+      plan or proposed <code>quotes[]</code> plus an operator policy document
+      (<code>schemaVersion: "1.0.0"</code>). Returns machine-readable
+      <code>pass</code> and <code>reasons[]</code> for per-protocol weight, ALGO reserve floor,
+      TVL/freshness floors, no-new-borrows, and execution-ready only. Reuses fields
+      already on the compiled object and fails closed when a required field is missing
+      — Canix does not re-quote on-chain, sign, or submit. Copy
+      <code>protocol/docs/policy-brownie.sample.json</code>.
+    </p>
+    <CodeBlock code={policyCurl} />
+    <h3>Sample response (200)</h3>
+    <CodeBlock code={format(policySample)} />
   </section>
 
   <section class="panel">

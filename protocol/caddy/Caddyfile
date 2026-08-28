@@ -35,7 +35,7 @@
 
 	@session {
 		header X-Canix-Session csess_*
-		path /opportunities /opportunities/search /opportunities/personalized /eligibility /plans /plans/rebalance /positions /positions/claimable /protocols/*/opportunities /swaps/transactions /execution/quotes /execution/compose /execution/simulate
+		path /opportunities /opportunities/search /opportunities/personalized /eligibility /plans /plans/rebalance /policy/validate /positions /positions/claimable /protocols/*/opportunities /swaps/transactions /execution/quotes /execution/compose /execution/simulate
 	}
 	handle @session {
 		reverse_proxy {$UPSTREAM_API}
@@ -162,6 +162,28 @@
 			accept {
 				pay_to {$X402_PAY_TO}
 				price {$X402_PRICE_PLANS_USDC}
+				network {$X402_NETWORK}
+				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+		}
+
+		reverse_proxy {$UPSTREAM_API}
+	}
+
+	@paid_policy_validate path /policy/validate
+	handle @paid_policy_validate {
+		x402 {
+			description "canix402 policy-as-a-service validate endpoint"
+			mime_type application/json
+			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile policy_validate
+
+			accept {
+				pay_to {$X402_PAY_TO}
+				price {$X402_PRICE_POLICY_VALIDATE_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
 				extra {

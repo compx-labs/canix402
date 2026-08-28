@@ -5,7 +5,7 @@ MCP server that exposes canix402 free and paid gateway endpoints as agent tools.
 ## What it does
 
 - Free tools: health, metadata, discovery, OpenAPI, execution shape catalog, Haystack quotes, and Haystack opt-ins
-- Paid tools: opportunities (list/search/personalized/protocol), wallet positions, claimable rewards, eligibility, intent plans, execution quotes, execution simulate, Haystack swap transactions, and prepaid session create/refresh
+- Paid tools: opportunities (list/search/personalized/protocol), wallet positions, claimable rewards, eligibility, intent plans, policy validate, execution quotes, execution simulate, Haystack swap transactions, and prepaid session create/refresh
 - Walletless x402 passthrough: paid tool preflight returns `PAYMENT-REQUIRED`, retry with `paymentSignature`. Session-eligible tools also accept `sessionReceipt` (`X-Canix-Session`).
 - Resources: `canix://discovery`, `canix://openapi`, `canix://execution-shapes` (live `GET /execution/shapes`, including `meta.caveatsDocsPath`), `canix://session` (prepaid session **policy**), `canix://session/{sessionId}` (remaining N/M receipt)
 - Prompt: `analyze-opportunity`
@@ -80,6 +80,14 @@ with `address` and compiled `groups[]` from a plan or execution quote. Returns p
 balance and position deltas. Failures are machine-readable (`stale-quote`, `not-opted-in`,
 `min-balance`, `health-factor-too-low`, `capacity`). `POST /plans` attaches
 `data.simulation` when compiled groups exist. Canix does not sign or submit.
+
+## Policy-as-a-service
+
+`canix_validate_policy` calls paid `POST /policy/validate` (fallback price 0.25 USDC)
+with a versioned `policy` document plus a compiled `plan` and/or proposed `quotes[]`.
+Returns `{ pass, reasons[] }`. Reuses compiled fields and fails closed when a required
+field is missing — Canix does not re-quote on-chain, sign, or submit. Sample:
+`protocol/docs/policy-brownie.sample.json`.
 
 ## Haystack swap tools
 

@@ -8,9 +8,25 @@ export default defineConfig({
   site: "https://canix402.compx.io",
   trailingSlash: "never",
   vite: {
+    define: {
+      global: "globalThis"
+    },
     server: {
       fs: {
         allow: [repoRoot]
+      }
+    },
+    optimizeDeps: {
+      include: [
+        "algosdk",
+        "@txnlab/use-wallet",
+        "@txnlab/use-wallet-pera",
+        "@txnlab/use-wallet-defly"
+      ],
+      esbuildOptions: {
+        define: {
+          global: "globalThis"
+        }
       }
     }
   }

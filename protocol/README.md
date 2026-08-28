@@ -10,6 +10,8 @@ This package lives in the `protocol/` workspace of the canix402 monorepo.
 - [Development Checklist](docs/development-checklist.md)
 - [Testing Guide](docs/testing.md)
 - [Caddy Gateway Setup](caddy/README.md)
+- [Normalized opportunity schema](docs/normalized-opportunity-schema.md)
+- [Policy document schema](docs/policy-schema.md)
 - [Data Source Docs](docs/data-sources/README.md)
 - [Execution shape caveats](docs/execution-shapes/protocol-caveats.md)
 

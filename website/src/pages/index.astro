@@ -2,6 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import BrandLogo from "../components/BrandLogo.astro";
 import EndpointTable from "../components/EndpointTable.astro";
+import { catalogEndpoints } from "../lib/catalog-endpoints";
 import { config } from "../lib/config";
 import { protocols } from "../lib/protocols";
 import { loadDiscovery } from "../lib/discovery";
@@ -9,7 +10,7 @@ import { getLatestReleaseNote } from "../lib/release-notes";
 
 const loaded = await loadDiscovery(config.discoveryUrl);
 const latestRelease = await getLatestReleaseNote();
-const previewEndpoints = [...loaded.document.endpoints]
+const previewEndpoints = catalogEndpoints(loaded.document.endpoints)
   .sort((a, b) => {
     if (a.access === b.access) {
       return a.path.localeCompare(b.path);
@@ -133,7 +134,7 @@ const caseStudyResults = [
         </p>
         <div class="cta-row">
           <a class="button button-primary" href="/quickstart">Start quickstart</a>
-          <a class="button" href="/mcp">Connect MCP</a>
+          <a class="button" href="/webmcp">Try it now</a>
           <a class="button button-ghost" href="/endpoints">Explore endpoints</a>
         </div>
         <p class="hero-release">
@@ -177,6 +178,18 @@ const caseStudyResults = [
         <p class="muted">
           Answer yield questions in seconds: compare APYs, filter by platform, or personalize to a
           wallet — then pay per request and keep executing.
+        </p>
+      </article>
+      <article class="value-card">
+        <h3>For humans</h3>
+        <p class="muted">
+          Find and compare opportunities on the web, same endpoints as agents, paid by session.
+        </p>
+      </article>
+      <article class="value-card">
+        <h3>For agents on the web</h3>
+        <p class="muted">
+          Use WebMCP to work with humans in the web browser and call Canix402 endpoints.
         </p>
       </article>
     </div>
@@ -379,7 +392,7 @@ const caseStudyResults = [
       </p>
       <div class="cta-row">
         <a class="button button-primary" href="/quickstart">Start quickstart</a>
-        <a class="button" href="/mcp">Connect MCP</a>
+        <a class="button" href="/webmcp">Try it now</a>
         <a class="button" href="/endpoints">View endpoints</a>
         <a class="button" href="/examples">See examples</a>
       </div>

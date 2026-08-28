@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0.0",
+  "maxProtocolWeightBps": 4000,
+  "minAlgoReserveMicroAlgos": "1000000",
+  "minTvlUsd": 25000,
+  "maxSourceAgeSeconds": 86400,
+  "noNewBorrows": true,
+  "executionReadyOnly": true
+}

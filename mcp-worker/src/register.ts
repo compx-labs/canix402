@@ -485,6 +485,74 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
   );
 
   server.registerTool(
+    "canix_validate_policy",
+    {
+      description:
+        "Validate a compiled plan or proposed quotes[] against an operator policy document (POST /policy/validate). Pass policy { schemaVersion: \"1.0.0\" } plus plan and/or quotes[]. Returns { pass, reasons[] }. Fails closed when a required field is missing — does not re-quote on-chain. Paid ~0.25 USDC. Canix does not sign or submit.",
+      inputSchema: {
+        policy: z.object({
+          schemaVersion: z.literal("1.0.0"),
+          maxProtocolWeightBps: z.number().int().min(1).max(10_000).optional(),
+          minAlgoReserveMicroAlgos: z.string().min(1).optional(),
+          minTvlUsd: z.number().min(0).optional(),
+          maxSourceAgeSeconds: z.number().int().min(0).optional(),
+          noNewBorrows: z.boolean().optional(),
+          executionReadyOnly: z.boolean().optional()
+        }),
+        plan: z.record(z.string(), z.unknown()).optional(),
+        quotes: z
+          .array(
+            z
+              .object({
+                shapeKey: z.string().min(1).optional(),
+                opportunityId: z.string().min(1).optional(),
+                protocol: z.string().min(1).optional(),
+                weightBps: z.number().int().min(0).max(10_000).optional(),
+                allocatedAmount: z.string().min(1).optional(),
+                allocatedAssetId: z.number().int().min(0).optional(),
+                tvlUsd: z.number().optional(),
+                sourceTimestamp: z.string().min(1).optional(),
+                executionReady: z.boolean().optional()
+              })
+              .catchall(z.unknown())
+          )
+          .min(1)
+          .max(25)
+          .optional(),
+        walletAlgoMicroAlgos: z.string().min(1).optional(),
+        evaluatedAt: z.string().min(1).optional(),
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const body = {
+          policy: args.policy,
+          ...(args.plan !== undefined ? { plan: args.plan } : {}),
+          ...(args.quotes !== undefined ? { quotes: args.quotes } : {}),
+          ...(args.walletAlgoMicroAlgos !== undefined
+            ? { walletAlgoMicroAlgos: args.walletAlgoMicroAlgos }
+            : {}),
+          ...(args.evaluatedAt !== undefined ? { evaluatedAt: args.evaluatedAt } : {})
+        };
+        const result = await client.fetchPaid("/policy/validate", {
+          method: "POST",
+          body,
+          ...paidAuth(args)
+        });
+        return paidToolResult(result, "0.25", {
+          path: "/policy/validate",
+          method: "POST",
+          body
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
     "canix_compose_enter",
     {
       description:

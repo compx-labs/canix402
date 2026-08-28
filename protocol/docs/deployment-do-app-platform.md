@@ -47,6 +47,7 @@ X402_PRICE_PERSONALIZED_USDC=0.05
 X402_PRICE_ELIGIBILITY_USDC=0.01
 X402_PRICE_PLANS_USDC=0.25
 X402_PRICE_PLANS_REBALANCE_USDC=0.25
+X402_PRICE_POLICY_VALIDATE_USDC=0.25
 X402_PRICE_POSITIONS_USDC=0.005
 X402_PRICE_POSITIONS_CLAIMABLE_USDC=0.001
 X402_PRICE_PROTOCOL_USDC=0.01
@@ -63,6 +64,7 @@ The **protocol** (internal API) component should also set
 `X402_PRICE_ELIGIBILITY_USDC=0.01`,
 `X402_PRICE_PLANS_USDC=0.25`,
 `X402_PRICE_PLANS_REBALANCE_USDC=0.25`,
+`X402_PRICE_POLICY_VALIDATE_USDC=0.25`,
 and `X402_PRICE_EXECUTION_QUOTE_USDC=0.1`,
 `X402_PRICE_EXECUTION_COMPOSE_USDC=0.1`,
 `X402_PRICE_EXECUTION_SIMULATE_USDC=0.1`,
@@ -115,6 +117,24 @@ Add a component routing rule:
 - Component: Caddy
 
 Website stays on `canix402.compx.io` → website component.
+
+### Website component (canix402.compx.io)
+
+Static Astro output from `npm run build:website` (`website/dist`). There is no
+login wall. The WebMCP demo is `/webmcp`.
+
+App Platform serves the files through Spaces (responses include
+`x-do-app-origin` and `x-rgw-object-type`). Cloudflare proxies TLS. The
+Cloudflare Pages `_headers` file in `website/public/_headers` is **not** applied
+as HTTP headers on this stack. After a website rebuild, set a Cloudflare
+Configuration Rule on `/webmcp*`:
+
+- `Permissions-Policy: tools=(self), document-domain=()`
+- `Origin-Agent-Cluster: ?1`
+
+Force-rebuild the website component from the git ref that contains `/webmcp`
+(PR 95 / `webmcp` after merge to `dev` or `main`). A stale deploy still 404s
+`/webmcp` even when `main` has moved.
 
 ## Verify after deploy
 

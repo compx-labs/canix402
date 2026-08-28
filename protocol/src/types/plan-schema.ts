@@ -115,6 +115,10 @@ export const PlanAllocationSchema = Type.Object(
     allocatedAmount: Type.String({ minLength: 1, pattern: "^[0-9]+$" }),
     allocatedAssetId: Type.Integer({ minimum: 0 }),
     weightBps: Type.Integer({ minimum: 0, maximum: 10_000 }),
+    /** Copied from the opportunity so POST /policy/validate can fail closed without re-quoting. */
+    tvlUsd: Type.Optional(Type.Number()),
+    sourceTimestamp: Type.Optional(Type.String({ format: "date-time" })),
+    executionReady: Type.Optional(Type.Boolean()),
     eligibility: OpportunityEligibilitySchema,
     executionShapes: Type.Array(OpportunityExecutionShapeSchema),
     steps: Type.Array(PlanStepSchema),
