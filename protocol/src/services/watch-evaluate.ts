@@ -94,8 +94,8 @@ export async function loadWatchSnapshot(address: string): Promise<WatchSnapshot>
     fetchOpportunitiesForProtocols([...SUPPORTED_AGGREGATE_PROTOCOLS]).catch(() => [])
   ]);
   return snapshotFromSources({
-    positions: positions?.data,
-    claimable,
+    ...(positions?.data ? { positions: positions.data } : {}),
+    ...(claimable ? { claimable } : { claimable: null }),
     opportunities
   });
 }
