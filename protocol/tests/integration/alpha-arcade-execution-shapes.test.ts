@@ -6,9 +6,14 @@ import algosdk from "algosdk";
 import {
   ShapeStateError,
   TransactionShapeRegistry,
-  compileExecutableQuote
+  compileExecutableQuote,
+  createExecutionRegistry
 } from "../../src/execution/index.js";
 import type { ShapeBuildContext } from "../../src/execution/index.js";
+import {
+  assertEncodedGroupIsValid,
+  assertGoldenGroup
+} from "../helpers/golden-group.js";
 import {
   ALPHA_ARCADE_STAKING_APP_ID,
   ALPHA_ASSET_ID,
@@ -49,29 +54,6 @@ function buildContext(): ShapeBuildContext {
     now: () => Date.UTC(2026, 6, 30, 10, 0, 0),
     quoteTtlMs: 30_000
   };
-}
-
-function assertEncodedGroupIsValid(encodedTransactions: readonly string[]): void {
-  const transactions = encodedTransactions.map((encoded) =>
-    algosdk.decodeUnsignedTransaction(Buffer.from(encoded, "base64"))
-  );
-  if (transactions.length === 1) {
-    return;
-  }
-  const groupIds = transactions.map((txn) => Buffer.from(txn.group ?? []).toString("base64"));
-  assert.ok(groupIds.every((groupId) => groupId.length > 0));
-
-  const ungroupedTransactions = transactions.map((txn) =>
-    algosdk.decodeUnsignedTransaction(algosdk.encodeUnsignedTransaction(txn))
-  );
-  ungroupedTransactions.forEach((txn) => {
-    txn.group = undefined;
-  });
-
-  const computedGroupId = Buffer.from(algosdk.computeGroupID(ungroupedTransactions)).toString(
-    "base64"
-  );
-  assert.deepEqual(groupIds, new Array(groupIds.length).fill(computedGroupId));
 }
 
 function stakingState(overrides: Partial<AlphaArcadeStakingState> = {}): AlphaArcadeStakingState {
@@ -126,9 +108,36 @@ test("stake shape compiles a 3-txn group for a first-time staker", async () => {
 
   assert.equal(quote.transactions.length, 3);
   assertEncodedGroupIsValid(quote.encodedTransactions);
-  assert.equal(quote.transactions[0]?.type, "appl");
-  assert.equal(quote.transactions[1]?.type, "axfer");
-  assert.equal(quote.transactions[2]?.type, "appl");
+  assertGoldenGroup(quote.transactions, {
+    types: ["appl", "axfer", "appl"],
+    members: [
+      {
+        type: "appl",
+        fee: "1000",
+        appIndex: String(ALPHA_ARCADE_STAKING_APP_ID),
+        amount: null,
+        assetIndex: null,
+        receiver: null
+      },
+      {
+        type: "axfer",
+        fee: "1000",
+        appIndex: null,
+        amount: amount.toString(),
+        assetIndex: String(ALPHA_ASSET_ID),
+        receiver: APP_ADDRESS
+      },
+      {
+        type: "appl",
+        fee: "1000",
+        appIndex: String(ALPHA_ARCADE_STAKING_APP_ID),
+        amount: null,
+        assetIndex: null,
+        receiver: null
+      }
+    ],
+    userSignIndexes: [0, 1, 2]
+  });
 });
 
 test("stake shape compiles a 2-txn group for a returning staker", async () => {
@@ -162,6 +171,28 @@ test("stake shape compiles a 2-txn group for a returning staker", async () => {
 
   assert.equal(quote.transactions.length, 2);
   assertEncodedGroupIsValid(quote.encodedTransactions);
+  assertGoldenGroup(quote.transactions, {
+    types: ["axfer", "appl"],
+    members: [
+      {
+        type: "axfer",
+        fee: "1000",
+        appIndex: null,
+        amount: amount.toString(),
+        assetIndex: String(ALPHA_ASSET_ID),
+        receiver: APP_ADDRESS
+      },
+      {
+        type: "appl",
+        fee: "1000",
+        appIndex: String(ALPHA_ARCADE_STAKING_APP_ID),
+        amount: null,
+        assetIndex: null,
+        receiver: null
+      }
+    ],
+    userSignIndexes: [0, 1]
+  });
 });
 
 test("unstake shape rejects when not opted in", async () => {
@@ -217,6 +248,21 @@ test("unstake shape compiles a single app call", async () => {
 
   assert.equal(quote.transactions.length, 1);
   assert.equal(quote.transactions[0]?.type, "appl");
+  assertEncodedGroupIsValid(quote.encodedTransactions);
+  assertGoldenGroup(quote.transactions, {
+    types: ["appl"],
+    members: [
+      {
+        type: "appl",
+        fee: "2000",
+        appIndex: String(ALPHA_ARCADE_STAKING_APP_ID),
+        amount: null,
+        assetIndex: null,
+        receiver: null
+      }
+    ],
+    userSignIndexes: [0]
+  });
 });
 
 test("claim shape prefixes USDC opt-in when needed", async () => {
@@ -248,4 +294,76 @@ test("claim shape prefixes USDC opt-in when needed", async () => {
   assert.equal(quote.transactions[0]?.type, "axfer");
   assert.equal(quote.transactions[1]?.type, "appl");
   assertEncodedGroupIsValid(quote.encodedTransactions);
+  assertGoldenGroup(quote.transactions, {
+    types: ["axfer", "appl"],
+    members: [
+      {
+        type: "axfer",
+        fee: "1000",
+        appIndex: null,
+        amount: "0",
+        assetIndex: String(USDC_ASSET_ID),
+        receiver: USER_ADDRESS
+      },
+      {
+        type: "appl",
+        fee: "2000",
+        appIndex: String(ALPHA_ARCADE_STAKING_APP_ID),
+        amount: null,
+        assetIndex: null,
+        receiver: null
+      }
+    ],
+    userSignIndexes: [0, 1]
+  });
+});
+
+test("claim shape compiles a single app call when already opted into USDC", async () => {
+  const state = stakingState({ userOptedIntoUsdc: true });
+
+  setAlphaArcadeClaimRewardsDependenciesForTests({
+    resolveState: async () => state,
+    getSuggestedParams: async () => suggestedParams(1000),
+    buildComposerGroup: () =>
+      buildMockClaimGroup({
+        user: USER,
+        appId: ALPHA_ARCADE_STAKING_APP_ID,
+        usdcAssetId: USDC_ASSET_ID,
+        includeUsdcOptIn: false,
+        suggestedParams: suggestedParams(1000)
+      })
+  });
+
+  const registry = new TransactionShapeRegistry();
+  registry.register(alphaArcadeClaimRewardsShape);
+  const quote = await compileExecutableQuote(
+    registry,
+    alphaArcadeClaimRewardsShape.key,
+    { userAddress: USER_ADDRESS },
+    buildContext()
+  );
+
+  assert.equal(quote.transactions.length, 1);
+  assertEncodedGroupIsValid(quote.encodedTransactions);
+  assertGoldenGroup(quote.transactions, {
+    types: ["appl"],
+    members: [
+      {
+        type: "appl",
+        fee: "2000",
+        appIndex: String(ALPHA_ARCADE_STAKING_APP_ID),
+        amount: null,
+        assetIndex: null,
+        receiver: null
+      }
+    ],
+    userSignIndexes: [0]
+  });
+});
+
+test("createExecutionRegistry includes all Alpha Arcade staking shapes", () => {
+  const registry = createExecutionRegistry();
+  assert.equal(registry.has("mainnet:alpha-arcade:v1:stake:alpha"), true);
+  assert.equal(registry.has("mainnet:alpha-arcade:v1:unstake:alpha"), true);
+  assert.equal(registry.has("mainnet:alpha-arcade:v1:claimRewards:usdc"), true);
 });

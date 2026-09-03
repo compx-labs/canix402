@@ -336,3 +336,20 @@ test("rejects Tinyman tALGO mint when amount is missing", async () => {
     }
   );
 });
+
+test("Tinyman liquid-stake and restake shape keys", () => {
+  assert.equal(tinymanMintTAlgoShape.key, "mainnet:tinyman:liquid-stake-v1:mint:tAlgo");
+  assert.equal(tinymanBurnTAlgoShape.key, "mainnet:tinyman:liquid-stake-v1:burn:tAlgo");
+  assert.equal(
+    tinymanIncreaseStakeStAlgoShape.key,
+    "mainnet:tinyman:restake-v1:increaseStake:stAlgo"
+  );
+  assert.equal(
+    tinymanDecreaseStakeStAlgoShape.key,
+    "mainnet:tinyman:restake-v1:decreaseStake:stAlgo"
+  );
+  assert.equal(
+    tinymanClaimRewardsStAlgoShape.key,
+    "mainnet:tinyman:restake-v1:claimRewards:stAlgo"
+  );
+});

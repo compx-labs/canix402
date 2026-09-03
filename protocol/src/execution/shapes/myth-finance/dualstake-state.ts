@@ -318,6 +318,121 @@ export async function buildMythRedeemTransactions(input: {
   return algosdk.assignGroupID(txns);
 }
 
+/** Deterministic mint group used by CI fixtures (no DualStake SDK / network). */
+export function buildMockMythMintGroup(params: {
+  userAddress: string;
+  appId: number;
+  appAddress: string;
+  asaId: number;
+  lstId: number;
+  algoAmount: bigint;
+  asaAmount: bigint;
+  tinymanAppId: bigint;
+  lpId: string;
+  includeLstOptIn: boolean;
+  suggestedParams: algosdk.SuggestedParams;
+}): Transaction[] {
+  const txns: Transaction[] = [];
+  if (params.includeLstOptIn) {
+    txns.push(
+      algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+        sender: params.userAddress,
+        receiver: params.userAddress,
+        assetIndex: params.lstId,
+        amount: 0n,
+        suggestedParams: params.suggestedParams
+      })
+    );
+  }
+  txns.push(
+    algosdk.makeApplicationNoOpTxnFromObject({
+      sender: params.userAddress,
+      appIndex: BigInt(params.appId),
+      appArgs: [new TextEncoder().encode("mint")],
+      foreignApps: [params.tinymanAppId],
+      foreignAssets: [BigInt(params.asaId), BigInt(params.lstId)],
+      accounts: [params.lpId],
+      suggestedParams: {
+        ...params.suggestedParams,
+        fee: 2000n,
+        flatFee: true
+      }
+    })
+  );
+  txns.push(
+    algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      sender: params.userAddress,
+      receiver: params.appAddress,
+      amount: params.algoAmount,
+      suggestedParams: params.suggestedParams
+    })
+  );
+  if (params.asaAmount > 0n) {
+    txns.push(
+      algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+        sender: params.userAddress,
+        receiver: params.appAddress,
+        assetIndex: params.asaId,
+        amount: params.asaAmount,
+        suggestedParams: params.suggestedParams
+      })
+    );
+  }
+  return algosdk.assignGroupID(txns);
+}
+
+/** Deterministic redeem group used by CI fixtures (no DualStake SDK / network). */
+export function buildMockMythRedeemGroup(params: {
+  userAddress: string;
+  appId: number;
+  appAddress: string;
+  asaId: number;
+  lstId: number;
+  lstAmount: bigint;
+  tinymanAppId: bigint;
+  lpId: string;
+  includeAsaOptIn: boolean;
+  suggestedParams: algosdk.SuggestedParams;
+}): Transaction[] {
+  const txns: Transaction[] = [];
+  if (params.includeAsaOptIn) {
+    txns.push(
+      algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+        sender: params.userAddress,
+        receiver: params.userAddress,
+        assetIndex: params.asaId,
+        amount: 0n,
+        suggestedParams: params.suggestedParams
+      })
+    );
+  }
+  txns.push(
+    algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+      sender: params.userAddress,
+      receiver: params.appAddress,
+      assetIndex: params.lstId,
+      amount: params.lstAmount,
+      suggestedParams: params.suggestedParams
+    })
+  );
+  txns.push(
+    algosdk.makeApplicationNoOpTxnFromObject({
+      sender: params.userAddress,
+      appIndex: BigInt(params.appId),
+      appArgs: [new TextEncoder().encode("redeem")],
+      foreignApps: [params.tinymanAppId],
+      foreignAssets: [BigInt(params.asaId), BigInt(params.lstId)],
+      accounts: [params.lpId],
+      suggestedParams: {
+        ...params.suggestedParams,
+        fee: 3000n,
+        flatFee: true
+      }
+    })
+  );
+  return algosdk.assignGroupID(txns);
+}
+
 function readBigIntEnv(name: string, fallback: bigint): bigint {
   const raw = process.env[name];
   if (raw === undefined || raw.trim() === "") {
