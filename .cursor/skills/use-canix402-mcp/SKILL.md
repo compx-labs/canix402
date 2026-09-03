@@ -183,14 +183,16 @@ Before quoting an enter (especially Réti validators with gates or capacity):
 1. Optionally call `canix_get_personalized_opportunities` for wallet-aware ranking.
    That route already applies eligibility rules so full or gated venues are not
    recommended as enterable. Ranking is not a substitute for this check.
-2. Call `canix_check_eligibility` with `address` and `opportunityIds` (paid ~0.01
+2. Optionally call `canix_get_opportunity_history` for a bounded APY/TVL series
+   (`window=1d|7d|30d`) and the stability signal used by `/plans` ranking.
+3. Call `canix_check_eligibility` with `address` and `opportunityIds` (paid ~0.01
    USDC). Response rows include `canEnter`, `missingAssets`, `gates`, `capacity`,
    `suggestedSwap`, and `eligibilityFullyCheckable`.
-3. If `eligibilityFullyCheckable` is false (NFD/creator gates), do not treat
+4. If `eligibilityFullyCheckable` is false (NFD/creator gates), do not treat
    `canEnter` as true. Publish the unresolved gates to the user.
-4. If `suggestedSwap` is present, it is a hint only — fetch a live quote via
+5. If `suggestedSwap` is present, it is a hint only — fetch a live quote via
    `canix_get_quote` / `POST /swaps/quote`, then re-check eligibility.
-5. Quote-time on-chain checks remain authoritative. Compile with
+6. Quote-time on-chain checks remain authoritative. Compile with
    `canix_get_execution_quote` only after reviewing eligibility.
 
 ## Intent compiler agent loop

@@ -35,9 +35,31 @@
 
 	@session {
 		header X-Canix-Session csess_*
-		path /opportunities /opportunities/search /opportunities/personalized /eligibility /plans /plans/rebalance /policy/validate /positions /positions/claimable /protocols/*/opportunities /swaps/transactions /execution/quotes /execution/compose /execution/simulate
+		path /opportunities /opportunities/search /opportunities/personalized /opportunities/*/history /eligibility /plans /plans/rebalance /policy/validate /positions /positions/claimable /protocols/*/opportunities /swaps/transactions /execution/quotes /execution/compose /execution/simulate
 	}
 	handle @session {
+		reverse_proxy {$UPSTREAM_API}
+	}
+
+	@paid_history path /opportunities/*/history
+	handle @paid_history {
+		x402 {
+			description "canix402 opportunity history series endpoint"
+			mime_type application/json
+			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile opportunities_history
+
+			accept {
+				pay_to {$X402_PAY_TO}
+				price {$X402_PRICE_HISTORY_USDC}
+				network {$X402_NETWORK}
+				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+		}
+
 		reverse_proxy {$UPSTREAM_API}
 	}
 

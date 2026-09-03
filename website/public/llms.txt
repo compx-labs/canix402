@@ -29,6 +29,7 @@ Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. D
 - [GET /protocols/:protocol/opportunities](https://canix402-api.compx.io/protocols/{protocol}/opportunities): 0.01 USDC — Top 25 DeFi opportunities for a single protocol ranked by APY
 - [GET /opportunities/search](https://canix402-api.compx.io/opportunities/search): 0.01 USDC — Caller-filtered opportunities across supported platforms
 - [GET /opportunities/personalized](https://canix402-api.compx.io/opportunities/personalized): 0.05 USDC — Top opportunities tuned to a wallet's held assets
+- [GET /opportunities/:opportunityId/history](https://canix402-api.compx.io/opportunities/:opportunityId/history): 0.01 USDC — Bounded APY/TVL history for one opportunity  # pragma: allowlist secret
 - [POST /eligibility](https://canix402-api.compx.io/eligibility): 0.01 USDC — Wallet eligibility and capacity for selected opportunities  # pragma: allowlist secret
 - [POST /plans](https://canix402-api.compx.io/plans): 0.25 USDC — Compile an allocation intent into an ordered unsigned plan  # pragma: allowlist secret
 - [POST /plans/rebalance](https://canix402-api.compx.io/plans/rebalance): 0.25 USDC — Compile a delta rebalance plan of unsigned groups  # pragma: allowlist secret

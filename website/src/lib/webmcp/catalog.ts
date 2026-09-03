@@ -26,6 +26,7 @@ export const WEBMCP_TOOL_NAMES = [
   "canix_list_opportunities",
   "canix_search_opportunities",
   "canix_get_personalized_opportunities",
+  "canix_get_opportunity_history",
   "canix_check_eligibility",
   "canix_get_plan",
   "canix_get_protocol_opportunities",
@@ -193,6 +194,28 @@ export const WEBMCP_TOOLS: WebMcpToolSpec[] = [
       method: "GET",
       path: "/opportunities/personalized",
       queryParams: ["address", "limit", "offset", "includeInactive"]
+    }
+  },
+  {
+    name: "canix_get_opportunity_history",
+    description:
+      "Fetch a bounded APY/TVL history series for one opportunity (GET /opportunities/{opportunityId}/history). Window is 1d, 7d, or 30d (default 30d). Empty points until snapshots exist. Includes a stability signal so snapshot APY cannot dominate plan sizing. Paid ~0.01 USDC.",
+    inputSchema: schemas.withPaidAuth(
+      {
+        opportunityId: { type: "string", minLength: 1 },
+        window: { type: "string", enum: ["1d", "7d", "30d"] }
+      },
+      ["opportunityId"]
+    ),
+    annotations: mutating,
+    access: "paid",
+    fallbackPriceUsdc: "0.01",
+    allowSessionReceipt: true,
+    http: {
+      method: "GET",
+      path: "/opportunities/{opportunityId}/history",
+      pathParams: ["opportunityId"],
+      queryParams: ["window"]
     }
   },
   {

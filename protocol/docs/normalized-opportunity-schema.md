@@ -40,6 +40,7 @@ This document defines the stable `OpportunityRecordV1` contract published by
 - `risk.rewardRunwayRemaining`: farm/staking remaining rewards in base units when known (CompX `rewardsRemaining`)
 - `risk.healthFactor`: wallet health factor for lending venues when `address` is in context (personalized, plans, eligibility) and positions already expose it
 - `risk.sourceAgeSeconds`: seconds between `sourceTimestamp` and evaluation time
+- `risk.stability` / `risk.apyStdev` / `risk.historySampleCount`: APY stability from the bounded `GET /opportunities/:id/history` series. Omitted until history is attached. `unknown` when fewer than 3 snapshots exist.
 
 ## Risk object (`risk`)
 
@@ -60,11 +61,23 @@ only; it does not sign or submit.
 | `volatilityBucket` | LP IL / volatility bucket. Tinyman `is_stable === true` → `stable`. Otherwise `unknown` or omitted — adapters do not invent IL percentages. |
 | `ilHint` | Human-readable IL hint when a designed signal exists |
 | `rewardRunwayRemaining` | Remaining farm/staking rewards in base units (decimal string), e.g. CompX `rewardsRemaining` |
+| `stability` | APY stability bucket from the rolling ~30d snapshot series (`high` / `medium` / `low` / `unknown`). Derived from APY sample stdev vs mean. `unknown` when sample count < 3. Omitted until history is attached. |
+| `apyStdev` | Sample standard deviation of APY over the retained window. Omitted when sample count < 2. |
+| `historySampleCount` | Number of hourly snapshots used for `stability` / `apyStdev`. |
 
 Ranking applies a designed penalty (confidence, utilization ≥ 80/95%, volatility
 bucket `medium`/`high`, wallet HF below 2.0/1.5/1.0 when present, zero reward
-runway) **before** raw APY, then TVL. Equal-risk rows still sort by APY
-descending. `/plans` uses the same comparator for enterable allocations.
+runway, **APY stability** — volatile series and missing history are penalized
+before raw APY) **before** raw APY, then TVL. Equal-risk rows still sort by APY
+descending. `/plans` uses the same comparator for enterable allocations and
+attaches `snapshot-apy-unstable` on steps when `risk.stability` is `low`.
+
+## Historical series (`GET /opportunities/:id/history`)
+
+Paid research SKU (~0.01 USDC). Bounded APY/TVL points for `window=1d|7d|30d`
+(default 30d). Snapshots are hourly Redis buckets with ~30 day TTL — not a
+warehouse, and not backfilled from explorers. Empty `points` until the snapshot
+job has run. Response `stability` is the same signal attached on `risk` / plans.
 
 ## Entry requirements and capacity
 

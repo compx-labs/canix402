@@ -20,6 +20,7 @@ export const WEBMCP_TOOL_GROUPS: WebMcpToolGroup[] = [
       "canix_list_opportunities",
       "canix_search_opportunities",
       "canix_get_personalized_opportunities",
+      "canix_get_opportunity_history",
       "canix_get_protocol_opportunities"
     ]
   },

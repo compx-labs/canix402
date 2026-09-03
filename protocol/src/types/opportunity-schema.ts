@@ -4,6 +4,7 @@ import {
   ProtocolSchema,
   SupportedOpportunityTypeValues
 } from "../routes/schemas.js";
+import { OpportunityStabilityBucketSchema } from "./opportunity-history-schema.js";
 
 export const YieldBasisSchema = Type.Union([
   Type.Literal("apy"),
@@ -169,7 +170,16 @@ export const OpportunityRiskSchema = Type.Object(
     /** Confidence from snapshot freshness / cache age. */
     confidence: OpportunityRiskConfidenceSchema,
     /** Seconds between `sourceTimestamp` and evaluation time. */
-    sourceAgeSeconds: Type.Optional(Type.Integer({ minimum: 0 }))
+    sourceAgeSeconds: Type.Optional(Type.Integer({ minimum: 0 })),
+    /**
+     * APY stability from the bounded history series (stdev / sample count).
+     * `unknown` when fewer than 3 snapshots exist. Omitted until history is attached.
+     */
+    stability: Type.Optional(OpportunityStabilityBucketSchema),
+    /** Sample standard deviation of APY over the retained window. */
+    apyStdev: Type.Optional(Type.Number({ minimum: 0 })),
+    /** Number of history snapshots used for `stability` / `apyStdev`. */
+    historySampleCount: Type.Optional(Type.Integer({ minimum: 0 }))
   },
   { additionalProperties: false }
 );

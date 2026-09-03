@@ -288,6 +288,40 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
   );
 
   server.registerTool(
+    "canix_get_opportunity_history",
+    {
+      description:
+        "Fetch a bounded APY/TVL history series for one opportunity (GET /opportunities/{opportunityId}/history?window=). Window is 1d, 7d, or 30d (default 30d). Empty points until snapshots exist — not a warehouse backfill. Includes a stability signal so snapshot APY cannot dominate plan sizing. Paid: ~0.01 USDC via x402 (research SKU).",
+      inputSchema: {
+        opportunityId: z.string().min(1),
+        window: z.enum(["1d", "7d", "30d"]).optional(),
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const path = `/opportunities/${encodeURIComponent(args.opportunityId)}/history`;
+        const query = {
+          window: args.window
+        };
+        const result = await client.fetchPaid(path, {
+          method: "GET",
+          query,
+          ...paidAuth(args)
+        });
+        return formatPaidToolResult(result, "0.01", {
+          path,
+          method: "GET",
+          query
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
     "canix_check_eligibility",
     {
       description:

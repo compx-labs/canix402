@@ -23,7 +23,7 @@ export function registerPrompts(server: McpServer): void {
               text: [
                 "Analyze this Algorand DeFi opportunity from canix402.",
                 "Evaluate APY/APR quality, TVL depth, protocol risk, asset exposure, and execution readiness.",
-                "Prefer opportunity.risk over raw apy when ranking or recommending. Penalize low confidence, high utilization, high volatility, exhausted reward runway, and (when address is in context) low wallet healthFactor. Do not invent missing risk numbers.",
+                "Prefer opportunity.risk over raw apy when ranking or recommending. Penalize low confidence, high utilization, high volatility, exhausted reward runway, low APY stability (risk.stability / apyStdev from GET /opportunities/:id/history), and (when address is in context) low wallet healthFactor. Do not invent missing risk numbers.",
                 "Use opportunity.executionShapes (enter-only) and opportunity.executionReady. If executionReady is false or executionShapes is empty, treat as research-only and do not invent shapeKey values.",
                 "When present, opportunity.compatibleExitShapes lists known exits (e.g. Folks xALGO unstake, Tinyman tALGO burn). Otherwise discover exits via positions or canix_list_execution_shapes.",
                 "For claimable rewards / harvest flows, prefer canix_list_claimable (GET /positions/claimable) over scraping reward rows from canix_get_positions. Pass claimAllQuotes.quotes or selected quote objects to canix_get_execution_quote; groups are never merged. Sign and submit locally.",

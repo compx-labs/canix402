@@ -12,6 +12,7 @@ export const MCP_TOOL_NAMES = [
   "canix_list_opportunities",
   "canix_search_opportunities",
   "canix_get_personalized_opportunities",
+  "canix_get_opportunity_history",
   "canix_check_eligibility",
   "canix_get_plan",
   "canix_get_rebalance_plan",

@@ -6,6 +6,11 @@ import { SupportedProtocolValues } from "../../src/routes/schemas.js";
 import { endpointPolicyMatrix } from "../../src/services/payment-policy.js";
 import { OpportunityRecordSchema } from "../../src/types/opportunity-schema.js";
 import {
+  OpportunityHistoryDataSchema,
+  OpportunityHistoryResponseSchema,
+  OpportunityHistoryStabilitySchema
+} from "../../src/types/opportunity-history-schema.js";
+import {
   EligibilityRequestSchema,
   EligibilityResponseSchema,
   OpportunityEligibilitySchema
@@ -346,6 +351,9 @@ test("opportunity record schema stays aligned with TypeBox contract", async () =
   assert.ok(riskSchema.properties?.healthFactor);
   assert.ok(riskSchema.properties?.volatilityBucket);
   assert.ok(riskSchema.properties?.rewardRunwayRemaining);
+  assert.ok(riskSchema.properties?.stability);
+  assert.ok(riskSchema.properties?.apyStdev);
+  assert.ok(riskSchema.properties?.historySampleCount);
 
   await app.close();
 });
@@ -670,6 +678,48 @@ test("policy validate OpenAPI request and response envelopes stay aligned", asyn
       `${name} properties`
     );
   }
+
+  await app.close();
+});
+
+test("opportunity history OpenAPI envelopes stay aligned", async () => {
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "GET",
+    url: "/openapi.json"
+  });
+  assert.equal(response.statusCode, 200);
+
+  const openapi = response.json() as OpenApiDocument;
+  const pairs = [
+    ["OpportunityHistoryStability", OpportunityHistoryStabilitySchema],
+    ["OpportunityHistoryData", OpportunityHistoryDataSchema],
+    ["OpportunityHistoryResponse", OpportunityHistoryResponseSchema]
+  ] as const;
+
+  for (const [name, typeboxSchema] of pairs) {
+    const openapiSchema = openapi.components.schemas[name];
+    assert.ok(openapiSchema, name);
+    assert.deepEqual(
+      [...(openapiSchema.required ?? [])].sort(),
+      [
+        ...((typeboxSchema as unknown as { required?: string[] }).required ?? [])
+      ].sort(),
+      `${name} required fields`
+    );
+    assert.deepEqual(
+      Object.keys(openapiSchema.properties ?? {}).sort(),
+      Object.keys(
+        (typeboxSchema as unknown as { properties?: Record<string, unknown> }).properties
+          ?? {}
+      ).sort(),
+      `${name} properties`
+    );
+  }
+
+  assert.ok(openapi.paths["/opportunities/{opportunityId}/history"]?.get);
 
   await app.close();
 });

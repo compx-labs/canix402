@@ -13,6 +13,7 @@ import {
   loadWalletHealthFactors,
   resolveWalletHealthFactor
 } from "./opportunity-risk.js";
+import { attachHistoryStability } from "./opportunity-history.js";
 import {
   DEFAULT_QUOTE_TTL_MS,
   type ExecutableQuote
@@ -110,6 +111,7 @@ export async function compilePlan(request: PlanRequest): Promise<PlanResponse> {
     : (await fetchOpportunitiesResult(SUPPORTED_AGGREGATE_PROTOCOLS, {
         refresh: request.refresh === true
       })).data;
+  const marketsWithHistory = await attachHistoryStability(markets);
 
   const healthFactors = dependencyOverrides?.fetchPositions
     ? indexHealthFactorsFromPositions(
@@ -120,11 +122,11 @@ export async function compilePlan(request: PlanRequest): Promise<PlanResponse> {
   const pinned = request.opportunityIds
     ? new Set(request.opportunityIds)
     : undefined;
-  const byId = new Map(markets.map((row) => [row.opportunityId, row] as const));
+  const byId = new Map(marketsWithHistory.map((row) => [row.opportunityId, row] as const));
 
   const consideredIds = pinned
     ? request.opportunityIds ?? []
-    : markets.map((row) => row.opportunityId);
+    : marketsWithHistory.map((row) => row.opportunityId);
 
   const blocked: PlanBlockedAllocation[] = [];
   const enterable: RankedCandidate[] = [];
@@ -480,10 +482,21 @@ async function compileAllocation(args: {
       risk: opportunity.risk,
       eligibility,
       executionShapes: chain,
-      steps: composed.steps,
+      steps: composed.steps.map((step) =>
+        opportunity.risk?.stability === "low" &&
+        (step.kind === "enter" || step.kind === "eligibility")
+          ? {
+              ...step,
+              warnings: unique([...step.warnings, "snapshot-apy-unstable"])
+            }
+          : step
+      ),
       quotes: composed.quotes
     },
-    warnings: composed.warnings,
+    warnings: [
+      ...composed.warnings,
+      ...(opportunity.risk?.stability === "low" ? ["snapshot-apy-unstable"] : [])
+    ],
     enterAssetId: composed.enterAssetId,
     enterAmount: composed.enterAmount
   };

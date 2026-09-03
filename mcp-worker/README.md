@@ -15,6 +15,8 @@ Stateless remote MCP server for canix402, designed for Cloudflare Workers deploy
   wallet `address` and a 0.005 USDC fallback price
 - Exposes `canix_list_claimable` for paid `GET /positions/claimable` (0.001 USDC);
   pass `claimAllQuotes` into `canix_get_execution_quote` to compile unsigned claims
+- Exposes `canix_get_opportunity_history` for paid `GET /opportunities/{id}/history`
+  (0.01 USDC research SKU); bounded APY/TVL series plus a stability signal.
 - Exposes `canix_check_eligibility` for paid `POST /eligibility` (0.01 USDC);
   check `canEnter` / gates / capacity before quoting an enter
 - Exposes `canix_get_plan` for paid `POST /plans` (0.25 USDC); compile an

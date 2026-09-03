@@ -73,6 +73,32 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 			},
 		)
 
+	case "opportunities_history":
+		return bazaar.DeclareDiscoveryExtension(
+			bazaar.MethodGET,
+			map[string]interface{}{
+				"window": "30d",
+			},
+			bazaar.JSONSchema{
+				"properties": map[string]interface{}{
+					"window": map[string]interface{}{
+						"type": "string",
+						"enum": []interface{}{"1d", "7d", "30d"},
+					},
+				},
+			},
+			"",
+			&bazaar.OutputConfig{
+				Example: map[string]interface{}{
+					"data": map[string]interface{}{
+						"opportunityId": "tinyman:pool:1002541853",
+						"window":        "30d",
+						"points":        []interface{}{},
+					},
+				},
+			},
+		)
+
 	case "eligibility":
 		return bazaar.DeclareDiscoveryExtension(
 			bazaar.MethodPOST,
@@ -493,6 +519,7 @@ func knownBazaarProfiles() []string {
 		"opportunities",
 		"opportunities_search",
 		"opportunities_personalized",
+		"opportunities_history",
 		"eligibility",
 		"plans",
 		"policy_validate",

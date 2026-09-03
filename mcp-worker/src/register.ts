@@ -325,6 +325,40 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
   );
 
   server.registerTool(
+    "canix_get_opportunity_history",
+    {
+      description:
+        "Fetch a bounded APY/TVL history series for one opportunity (GET /opportunities/{opportunityId}/history?window=). Window is 1d, 7d, or 30d (default 30d). Empty points until snapshots exist — not a warehouse backfill. Includes a stability signal so snapshot APY cannot dominate plan sizing. Paid ~0.01 USDC.",
+      inputSchema: {
+        opportunityId: z.string().min(1),
+        window: z.enum(["1d", "7d", "30d"]).optional(),
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const path = `/opportunities/${encodeURIComponent(args.opportunityId)}/history`;
+        const query = {
+          window: args.window
+        };
+        const result = await client.fetchPaid(path, {
+          method: "GET",
+          query,
+          ...paidAuth(args)
+        });
+        return paidToolResult(result, "0.01", {
+          path,
+          method: "GET",
+          query
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
     "canix_check_eligibility",
     {
       description:
@@ -1299,7 +1333,7 @@ export function registerCanixPrompts(server: McpServer): void {
             text: [
               "Analyze this Algorand DeFi opportunity from canix402.",
               "Evaluate APY/APR quality, TVL depth, protocol risk, asset exposure, and whether an execution shape exists for acting on it.",
-              "Prefer opportunity.risk over raw apy when ranking or recommending. Penalize low confidence, high utilization, high volatility, exhausted reward runway, and (when present) low wallet healthFactor. Do not invent missing risk numbers.",
+              "Prefer opportunity.risk over raw apy when ranking or recommending. Penalize low confidence, high utilization, high volatility, exhausted reward runway, low APY stability (risk.stability / apyStdev from GET /opportunities/:id/history), and (when present) low wallet healthFactor. Do not invent missing risk numbers.",
               "Do not invent on-chain state. If data is missing, say what additional canix402 tool calls would help.",
               "",
               "Opportunity JSON:",

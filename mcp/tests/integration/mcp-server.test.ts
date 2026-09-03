@@ -283,6 +283,39 @@ test("canix_check_eligibility posts body and reports 0.01 preflight price", asyn
   await server.close();
 });
 
+test("canix_get_opportunity_history encodes id and reports 0.01 preflight price", async () => {
+  let requestUrl = "";
+  const server = createCanixMcpServer({
+    config: {
+      apiUrl: "https://example.test",
+      network: "[REDACTED]"
+    },
+    fetchImpl: async (input) => {
+      requestUrl = String(input);
+      return new Response("payment required", {
+        status: 402,
+        headers: { "payment-required": encodePaymentRequired("10000") }
+      });
+    }
+  });
+
+  const result = await registeredTools(server).canix_get_opportunity_history!.handler(
+    { opportunityId: "tinyman:pool:1002541853", window: "30d" },
+    {}
+  );
+
+  const url = new URL(requestUrl);
+  assert.equal(url.pathname, "/opportunities/tinyman%3Apool%3A1002541853/history");
+  assert.equal(url.searchParams.get("window"), "30d");
+  assert.equal(result.isError, undefined);
+  const text = result.content.find((part) => part.type === "text");
+  assert.ok(text?.text);
+  const payload = JSON.parse(text.text) as { mcpPayment?: { priceUsdc?: string } };
+  assert.equal(payload.mcpPayment?.priceUsdc, "0.01");
+
+  await server.close();
+});
+
 test("canix_get_plan posts body and reports 0.25 preflight price", async () => {
   let requestUrl = "";
   let method = "";

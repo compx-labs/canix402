@@ -126,9 +126,9 @@ Brownie’s deterministic caps should not stay a fork-the-bot feature.
 
 Only enough history to size a plan — not a human warehouse.
 
-- [ ] Add paid `GET /opportunities/:id/history?window=` (APY, TVL) for a bounded window (e.g. 30d).
-- [ ] Persist snapshots as needed (Redis/Postgres); do not resurrect a full analytics warehouse.
-- [ ] Surface a stability signal on plans/risk so snapshot APY cannot dominate sizing.
+- [x] Add paid `GET /opportunities/:id/history?window=` (APY, TVL) for a bounded window (e.g. 30d).
+- [x] Persist snapshots as needed (Redis/Postgres); do not resurrect a full analytics warehouse.
+- [x] Surface a stability signal on plans/risk so snapshot APY cannot dominate sizing.
 
 ### 13.12 Second agent / dry-run steward (GTM)
 
