@@ -7,7 +7,8 @@ import type {
 } from "../types/opportunity-history-schema.js";
 import type {
   OpportunityMarketRecord,
-  OpportunityRisk
+  OpportunityRisk,
+  OpportunityAdapterRisk
 } from "../types/opportunity.js";
 import {
   CANIX_CACHE_KEY_PREFIX,
@@ -265,11 +266,12 @@ export async function attachHistoryStability<T extends OpportunityMarketRecord>(
 }
 
 export function mergeStabilityIntoRisk(
-  risk: OpportunityRisk | undefined,
+  risk: OpportunityRisk | OpportunityAdapterRisk | undefined,
   stability: OpportunityHistoryStability
 ): OpportunityRisk {
   const next: OpportunityRisk = {
-    ...(risk ?? { confidence: "unknown" }),
+    ...risk,
+    confidence: risk?.confidence ?? "unknown",
     stability: stability.bucket,
     historySampleCount: stability.sampleCount
   };
