@@ -47,6 +47,7 @@ export async function startCaddyHarness(
         X402_PRICE_AGGREGATE_USDC: process.env.X402_PRICE_AGGREGATE_USDC || defaultPrice,
         X402_PRICE_SEARCH_USDC: process.env.X402_PRICE_SEARCH_USDC || defaultPrice,
         X402_PRICE_PERSONALIZED_USDC: process.env.X402_PRICE_PERSONALIZED_USDC || "0.05",
+        X402_PRICE_HISTORY_USDC: process.env.X402_PRICE_HISTORY_USDC || "0.01",
         X402_PRICE_ELIGIBILITY_USDC: process.env.X402_PRICE_ELIGIBILITY_USDC || "0.01",
         X402_PRICE_PLANS_USDC: process.env.X402_PRICE_PLANS_USDC || "0.25",
         X402_PRICE_PLANS_REBALANCE_USDC:

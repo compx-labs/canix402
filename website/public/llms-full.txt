@@ -12,7 +12,7 @@
 - **Terms:** https://canix402.compx.io/terms
 - **Release notes:** https://canix402.compx.io/release-notes
 
-Opportunity responses are normalized records with fields such as `protocol`, `opportunityType`, `opportunityId`, `assetPair`, `apy`, `apr`, optional `borrowApr` (borrow-side cost for lending markets), `tvlUsd`, `executionShapes`, `compatibleExitShapes`, optional `entryRequirements` / `capacity` (Réti), `sourceTimestamp`, and `fetchedAt`. Positions may include `debt` rows with repay exit shapes (CompX/Folks) or informational Dork.fi `debt-usd` aggregates. Numeric precision follows the published OpenAPI `x-precision` contract (typically 6 decimal places).
+Opportunity responses are normalized records with fields such as `protocol`, `opportunityType`, `opportunityId`, `assetPair`, `apy`, `apr`, optional `borrowApr` (borrow-side cost for lending markets), `tvlUsd`, `risk` (confidence, utilization, liquidation threshold, LP volatility/IL hint, reward runway, APY stability from the bounded history series, wallet health factor when address is in context), `executionShapes`, `compatibleExitShapes`, optional `entryRequirements` / `capacity` (Réti), `sourceTimestamp`, and `fetchedAt`. Lists and `POST /plans` rank with designed risk constraints before raw APY. Positions may include `debt` rows with repay exit shapes (CompX/Folks) or informational Dork.fi `debt-usd` aggregates. Numeric precision follows the published OpenAPI `x-precision` contract (typically 6 decimal places).
 
 ## Machine-readable contracts
 
@@ -29,7 +29,7 @@ Always call the **gateway**, not an internal upstream API. x402 enforcement, `PA
 
 ### MCP server
 
-Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_list_execution_shapes`, `canix_get_positions`, `canix_list_claimable`, `canix_check_eligibility`, `canix_get_plan`, `canix_get_rebalance_plan`, `canix_validate_policy`, `canix_compose_enter`, `canix_get_execution_quote`, `canix_simulate_execution`, `canix_create_session`, `canix_refresh_session`, `canix_get_session`, and free discovery helpers. Prepaid sessions: one x402 payment unlocks N research + M quotes/plans for a TTL (`sessionReceipt` / `X-Canix-Session`); one-shots remain the default. See https://canix402.compx.io/mcp.  # pragma: allowlist secret
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_get_opportunity_history`, `canix_list_execution_shapes`, `canix_get_positions`, `canix_list_claimable`, `canix_check_eligibility`, `canix_get_plan`, `canix_get_rebalance_plan`, `canix_validate_policy`, `canix_compose_enter`, `canix_get_execution_quote`, `canix_simulate_execution`, `canix_create_session`, `canix_refresh_session`, `canix_get_session`, and free discovery helpers. Prepaid sessions: one x402 payment unlocks N research + M quotes/plans for a TTL (`sessionReceipt` / `X-Canix-Session`); one-shots remain the default. See https://canix402.compx.io/mcp.  # pragma: allowlist secret
 
 ## x402 payment flow
 
@@ -70,10 +70,11 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `POST /swaps/quote` (Free) — Fetch a walletless Haystack swap quote.
 - `POST /swaps/optin` (Free) — Build prerequisite Haystack swap opt-ins.
 - `POST /pricing` (Free) — Fetch USD token prices for Algorand asset IDs.
-- `GET /opportunities` (0.01 USDC) — Top 10 aggregated DeFi opportunities ranked by APY. Params: protocol=, limit=, offset=, includeInactive=, refresh=.
-- `GET /protocols/:protocol/opportunities` (0.01 USDC) — Top 25 DeFi opportunities for a single protocol ranked by APY. Params: :protocol, limit=, offset=, includeInactive=, refresh=.
+- `GET /opportunities` (0.01 USDC) — Top 10 aggregated DeFi opportunities ranked by risk then APY. Params: protocol=, limit=, offset=, includeInactive=, refresh=.
+- `GET /protocols/:protocol/opportunities` (0.01 USDC) — Top 25 DeFi opportunities for a single protocol ranked by risk then APY. Params: :protocol, limit=, offset=, includeInactive=, refresh=.
 - `GET /opportunities/search` (0.01 USDC) — Caller-filtered opportunities across supported platforms. Params: platform=, type=, minApy=, maxApy=, minTvlUsd=, assetIds=, limit=, offset=, includeInactive=, refresh=.
 - `GET /opportunities/personalized` (0.05 USDC) — Top opportunities tuned to a wallet's held assets. Params: address=, limit=, offset=, includeInactive=, refresh=.
+- `GET /opportunities/:opportunityId/history` (0.01 USDC) — Bounded APY/TVL history for one opportunity. Params: :opportunityId, window=.  # pragma: allowlist secret
 - `POST /eligibility` (0.01 USDC) — Wallet eligibility and capacity for selected opportunities.  # pragma: allowlist secret
 - `POST /plans` (0.25 USDC) — Compile an allocation intent into an ordered unsigned plan.  # pragma: allowlist secret
 - `POST /plans/rebalance` (0.25 USDC) — Compile a delta rebalance plan of unsigned groups.  # pragma: allowlist secret
@@ -92,10 +93,11 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 
 ### Route notes
 
-- `GET /opportunities` — top aggregated opportunities ranked by APY (default limit 10).
+- `GET /opportunities` — top aggregated opportunities ranked by risk then APY (default limit 10).
 - `GET /protocols/:protocol/opportunities` — protocol slug e.g. `tinyman`, `pact`, `folks-finance`, `compx`, `dorkfi`, `myth-finance`, `haystack`, `reti`, `alpha-arcade`.
 - `GET /opportunities/search` — filter by `platform`, `type`, `minApy`, `maxApy`, `minTvlUsd`, `assetIds` (comma-separated ASA ids; 0 = ALGO; ANY intersection with opportunity.assetIds).
 - `GET /opportunities/personalized` — requires `address` (Algorand account); premium price; matches opportunities to wallet-held assets using eligibility rules (full/gated venues are not recommended as enterable).  // pragma: allowlist secret
+- `GET /opportunities/:id/history` — bounded APY/TVL series (`window=1d|7d|30d`, default 30d); empty until snapshots exist; includes a stability signal so snapshot APY cannot dominate plan sizing. Research SKU ~0.01 USDC.
 - `POST /eligibility` — requires `address` and `opportunityIds`; 0.01 USDC; returns `canEnter`, `missingAssets`, `gates`, `capacity`, `suggestedSwap`. NFD/creator gates stay unresolved (`eligibilityFullyCheckable: false`). Quote-time checks remain authoritative.  // pragma: allowlist secret
 - `POST /plans` — requires `address` and `budget { assetId, amount }`; 0.25 USDC compiler SKU; returns ordered eligibility/setup/enter steps with unsigned groups, live Haystack opt-in → swap compose when `requiredAssetIds` differ from the budget asset, `quotes[]`, expected position delta, and fee totals. Brownie should consume this rather than forking a compiler.  // pragma: allowlist secret
 - `POST /plans/rebalance` — requires `address` plus `targetWeights` and/or `harvestIdle`; 0.25 USDC; delta claims/exits/swaps/enters as unmerged unsigned groups (not a full unwind).  // pragma: allowlist secret
@@ -148,6 +150,11 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
       "sourceTimestamp": "2026-07-06T09:00:00.000Z",
       "fetchedAt": "2026-07-06T09:00:00.000Z",
       "notes": "sourceTimestamp reflects fetch time; upstream does not expose a per-row update time.",
+      "risk": {
+        "confidence": "low",
+        "sourceAgeSeconds": 5097600,
+        "volatilityBucket": "unknown"
+      },
       "executionReady": true,
       "executionShapes": [
         {
@@ -251,6 +258,14 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
       "sourceTimestamp": "2026-07-14T20:47:17.000Z",
       "fetchedAt": "2026-07-17T12:41:14.931Z",
       "notes": "CompX lending market 3491050310; util=4.4%; ltv=70.0%; APR-derived yields; borrowApr is the borrow cost.",
+      "risk": {
+        "utilization": 4.4,
+        "liquidationThreshold": 80,
+        "ltv": 70,
+        "borrowApr": 8.5,
+        "confidence": "low",
+        "sourceAgeSeconds": 4283377
+      },
       "executionReady": true,
       "executionShapes": [
         {
@@ -678,6 +693,46 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
     "heldAssetCount": 2,
     "eligibilityApplied": true,
     "eligibilityEndpoint": "/eligibility"
+  }
+}
+```
+
+### GET /opportunities/:id/history
+
+```json
+{
+  "data": {
+    "opportunityId": "tinyman:pool:1002541853",
+    "window": "30d",
+    "points": [
+      {
+        "ts": "2026-08-04T12:00:00.000Z",
+        "apy": 12.1,
+        "tvlUsd": 2400000
+      },
+      {
+        "ts": "2026-08-05T12:00:00.000Z",
+        "apy": 12.4,
+        "tvlUsd": 2425000
+      },
+      {
+        "ts": "2026-08-06T12:00:00.000Z",
+        "apy": 12.5,
+        "tvlUsd": 2450000.5
+      }
+    ],
+    "stability": {
+      "bucket": "high",
+      "sampleCount": 3,
+      "apyMean": 12.333333,
+      "apyStdev": 0.208167
+    }
+  },
+  "meta": {
+    "paymentRequired": true,
+    "windowSeconds": 2592000,
+    "snapshotRetentionDays": 30,
+    "snapshotCount": 3
   }
 }
 ```

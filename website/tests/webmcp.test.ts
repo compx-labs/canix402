@@ -28,6 +28,7 @@ const LOCKED_MCP_SET = [
   "canix_list_opportunities",
   "canix_search_opportunities",
   "canix_get_personalized_opportunities",
+  "canix_get_opportunity_history",
   "canix_check_eligibility",
   "canix_get_plan",
   "canix_get_protocol_opportunities",
@@ -63,7 +64,7 @@ test("WebMCP catalog is the locked MCP set plus 13.8 session tools", () => {
     WEBMCP_TOOLS.map((tool) => tool.name),
     [...WEBMCP_TOOL_NAMES]
   );
-  assert.equal(WEBMCP_TOOLS.length, 21);
+  assert.equal(WEBMCP_TOOLS.length, 22);
 });
 
 test("session tools use the shipped 13.8 names", () => {
@@ -150,6 +151,27 @@ test("paid tool without payment fails closed as PAYMENT_REQUIRED", async () => {
   assert.equal((result as { mcpPayment: { required: boolean; priceUsdc?: string } }).mcpPayment.required, true);
   assert.equal((result as { mcpPayment: { priceUsdc?: string } }).mcpPayment.priceUsdc, "0.01");
   assert.equal((result as { retry: { arg: string } }).retry.arg, "paymentSignature");
+});
+
+test("opportunity history encodes id and uses the research SKU", async () => {
+  const result = await executeCanixWebMcpToolValue(
+    "canix_get_opportunity_history",
+    { opportunityId: "tinyman:pool:1002541853", window: "30d" },
+    {
+      gatewayBaseUrl: "https://gateway.example",
+      fetchImpl: async (input) => {
+        const url = new URL(String(input));
+        assert.equal(url.pathname, "/opportunities/tinyman%3Apool%3A1002541853/history");
+        assert.equal(url.searchParams.get("window"), "30d");
+        return new Response(JSON.stringify({ error: "Payment required" }), {
+          status: 402,
+          headers: { "payment-required": encodePaymentRequired("10000") }
+        });
+      }
+    }
+  );
+  assert.equal((result as { error: string }).error, "PAYMENT_REQUIRED");
+  assert.equal((result as { mcpPayment: { priceUsdc?: string } }).mcpPayment.priceUsdc, "0.01");
 });
 
 test("stale session receipt fails closed as SESSION_*", async () => {

@@ -907,6 +907,99 @@
         }
       }
     },
+    "/opportunities/{opportunityId}/history": {
+      "get": {
+        "summary": "Bounded APY/TVL history for one opportunity",
+        "description": "Returns a rolling APY and TVL series for one opportunity over a bounded window (1d, 7d, or 30d). Snapshots are stored as cheap hourly Redis buckets for ~30 days only — not a warehouse and not backfilled from explorers. The series is empty until the snapshot job has run. Includes a stability signal (APY stdev / sample count) so snapshot APY cannot dominate plan sizing. Market data only; Canix does not sign or submit transactions.",
+        "tags": [
+          "defi",
+          "opportunities",
+          "history"
+        ],
+        "parameters": [
+          {
+            "name": "opportunityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Stable opportunity identifier from catalog rows."
+          },
+          {
+            "name": "window",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1d",
+                "7d",
+                "30d"
+              ],
+              "default": "30d"
+            },
+            "description": "Bounded lookback window. Default 30d."
+          },
+          {
+            "$ref": "#/components/parameters/CanixSessionHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bounded APY/TVL series. points is empty when no snapshots exist yet.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunityHistoryResponse"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/OpportunityHistorySample"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-payment-info": {
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ],
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.01"
+          }
+        },
+        "x-x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "[REDACTED]",
+            "asset": "[REDACTED]",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.01"
+          }
+        }
+      }
+    },
     "/eligibility": {
       "post": {
         "summary": "Wallet eligibility and capacity for selected opportunities",
@@ -2547,6 +2640,151 @@
             "type": "integer",
             "minimum": 0,
             "description": "Seconds between sourceTimestamp and evaluation time."
+          },
+          "stability": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low",
+              "unknown"
+            ],
+            "description": "APY stability from the bounded history series (coefficient of variation). unknown when fewer than 3 snapshots exist. Omitted until history is attached."
+          },
+          "apyStdev": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Sample standard deviation of APY over the retained window."
+          },
+          "historySampleCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of history snapshots used for stability / apyStdev."
+          }
+        }
+      },
+      "OpportunityHistoryPoint": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ts",
+          "apy",
+          "tvlUsd"
+        ],
+        "properties": {
+          "ts": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "apy": {
+            "type": "number"
+          },
+          "tvlUsd": {
+            "type": "number"
+          }
+        }
+      },
+      "OpportunityHistoryStability": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "bucket",
+          "sampleCount"
+        ],
+        "properties": {
+          "bucket": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low",
+              "unknown"
+            ]
+          },
+          "sampleCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "apyMean": {
+            "type": "number"
+          },
+          "apyStdev": {
+            "type": "number"
+          }
+        }
+      },
+      "OpportunityHistoryData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "opportunityId",
+          "window",
+          "points",
+          "stability"
+        ],
+        "properties": {
+          "opportunityId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "window": {
+            "type": "string",
+            "enum": [
+              "1d",
+              "7d",
+              "30d"
+            ]
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpportunityHistoryPoint"
+            }
+          },
+          "stability": {
+            "$ref": "#/components/schemas/OpportunityHistoryStability"
+          }
+        }
+      },
+      "OpportunityHistoryMeta": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "paymentRequired",
+          "windowSeconds",
+          "snapshotRetentionDays",
+          "snapshotCount"
+        ],
+        "properties": {
+          "paymentRequired": {
+            "type": "boolean",
+            "const": true
+          },
+          "windowSeconds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "snapshotRetentionDays": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "snapshotCount": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "OpportunityHistoryResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OpportunityHistoryData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/OpportunityHistoryMeta"
           }
         }
       },
@@ -7428,6 +7666,44 @@
             "fetchedAt": "2026-08-13T12:00:00.000Z",
             "algoUsd": 0.2,
             "paymentRequired": true
+          }
+        }
+      },
+      "OpportunityHistorySample": {
+        "summary": "Bounded APY/TVL series for one opportunity",
+        "value": {
+          "data": {
+            "opportunityId": "tinyman:pool:1002541853",
+            "window": "30d",
+            "points": [
+              {
+                "ts": "2026-08-04T12:00:00.000Z",
+                "apy": 12.1,
+                "tvlUsd": 2400000
+              },
+              {
+                "ts": "2026-08-05T12:00:00.000Z",
+                "apy": 12.4,
+                "tvlUsd": 2425000
+              },
+              {
+                "ts": "2026-08-06T12:00:00.000Z",
+                "apy": 12.5,
+                "tvlUsd": 2450000.5
+              }
+            ],
+            "stability": {
+              "bucket": "high",
+              "sampleCount": 3,
+              "apyMean": 12.333333,
+              "apyStdev": 0.208167
+            }
+          },
+          "meta": {
+            "paymentRequired": true,
+            "windowSeconds": 2592000,
+            "snapshotRetentionDays": 30,
+            "snapshotCount": 3
           }
         }
       },

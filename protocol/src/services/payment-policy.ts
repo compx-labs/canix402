@@ -228,6 +228,20 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     sessionAccess: "research"
   },
   {
+    id: "opportunityHistory",
+    method: "GET",
+    pathPattern: "/opportunities/:opportunityId/history",
+    access: "paid",
+    summary: "Bounded APY/TVL history for one opportunity",
+    description:
+      "Returns a rolling APY and TVL series for one opportunity over a bounded window (1d, 7d, or 30d). Snapshots are stored as cheap hourly Redis buckets — not a warehouse and not backfilled from explorers. Empty points until the snapshot job has run. Includes a stability signal (APY stdev / sample count) so snapshot APY cannot dominate plan sizing. Market data only; Canix does not sign or submit transactions.",
+    tags: ["defi", "opportunities", "history", HACKATHON_TAG],
+    pathParams: ["opportunityId"],
+    queryParams: ["window"],
+    priceUsdc: process.env.X402_PRICE_HISTORY_USDC ?? "0.01",
+    sessionAccess: "research"
+  },
+  {
     id: "eligibility",
     method: "POST",
     pathPattern: "/eligibility",
@@ -488,6 +502,7 @@ const paidPathMatchers = [
   /^\/opportunities$/,
   /^\/opportunities\/search$/,
   /^\/opportunities\/personalized$/,
+  /^\/opportunities\/[^/]+\/history$/,
   /^\/eligibility$/,
   /^\/plans$/,
   /^\/plans\/rebalance$/,
@@ -574,6 +589,7 @@ const researchSessionMatchers = [
   /^\/opportunities$/,
   /^\/opportunities\/search$/,
   /^\/opportunities\/personalized$/,
+  /^\/opportunities\/[^/]+\/history$/,
   /^\/eligibility$/,
   /^\/positions$/,
   /^\/positions\/claimable$/,

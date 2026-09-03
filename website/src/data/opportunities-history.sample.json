@@ -1,0 +1,35 @@
+{
+  "data": {
+    "opportunityId": "tinyman:pool:1002541853",
+    "window": "30d",
+    "points": [
+      {
+        "ts": "2026-08-04T12:00:00.000Z",
+        "apy": 12.1,
+        "tvlUsd": 2400000
+      },
+      {
+        "ts": "2026-08-05T12:00:00.000Z",
+        "apy": 12.4,
+        "tvlUsd": 2425000
+      },
+      {
+        "ts": "2026-08-06T12:00:00.000Z",
+        "apy": 12.5,
+        "tvlUsd": 2450000.5
+      }
+    ],
+    "stability": {
+      "bucket": "high",
+      "sampleCount": 3,
+      "apyMean": 12.333333,
+      "apyStdev": 0.208167
+    }
+  },
+  "meta": {
+    "paymentRequired": true,
+    "windowSeconds": 2592000,
+    "snapshotRetentionDays": 30,
+    "snapshotCount": 3
+  }
+}

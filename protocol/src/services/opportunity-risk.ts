@@ -7,7 +7,9 @@ import type {
   OpportunityRiskConfidence,
   OpportunityVolatilityBucket
 } from "../types/opportunity.js";
+import type { OpportunityStabilityBucket } from "../types/opportunity-history-schema.js";
 import type { PositionRecordV1 } from "../types/position.js";
+import { stabilityConstraintPenalty } from "./opportunity-history.js";
 
 /** Matches the default opportunities cache TTL (3 minutes). */
 export const RISK_CONFIDENCE_HIGH_MAX_AGE_MS = 180_000;
@@ -190,7 +192,10 @@ export function finalizeOpportunityRisk(
     ilHint: existing?.ilHint,
     rewardRunwayRemaining: existing?.rewardRunwayRemaining,
     confidence: confidenceFromAgeMs(ageForConfidence),
-    sourceAgeSeconds
+    sourceAgeSeconds,
+    stability: existing?.stability,
+    apyStdev: existing?.apyStdev,
+    historySampleCount: existing?.historySampleCount
   });
 }
 
@@ -224,7 +229,8 @@ export function riskConstraintPenalty(risk: OpportunityRisk | undefined): number
     utilizationPenalty(risk.utilization) +
     volatilityPenalty(risk.volatilityBucket) +
     healthFactorPenalty(risk.healthFactor) +
-    runwayPenalty(risk.rewardRunwayRemaining)
+    runwayPenalty(risk.rewardRunwayRemaining) +
+    stabilityConstraintPenalty(risk.stability)
   );
 }
 
@@ -342,6 +348,9 @@ function omitUndefinedRisk(risk: {
   rewardRunwayRemaining?: string | undefined;
   confidence: OpportunityRiskConfidence;
   sourceAgeSeconds?: number | undefined;
+  stability?: OpportunityStabilityBucket | undefined;
+  apyStdev?: number | undefined;
+  historySampleCount?: number | undefined;
 }): OpportunityRisk {
   const result: OpportunityRisk = { confidence: risk.confidence };
   if (risk.utilization !== undefined) {
@@ -370,6 +379,15 @@ function omitUndefinedRisk(risk: {
   }
   if (risk.sourceAgeSeconds !== undefined) {
     result.sourceAgeSeconds = risk.sourceAgeSeconds;
+  }
+  if (risk.stability !== undefined) {
+    result.stability = risk.stability;
+  }
+  if (risk.apyStdev !== undefined) {
+    result.apyStdev = risk.apyStdev;
+  }
+  if (risk.historySampleCount !== undefined) {
+    result.historySampleCount = risk.historySampleCount;
   }
   return result;
 }

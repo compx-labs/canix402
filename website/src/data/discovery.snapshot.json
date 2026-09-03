@@ -506,6 +506,51 @@
         }
       },
       {
+        "id": "opportunityHistory",
+        "method": "GET",
+        "path": "/opportunities/:opportunityId/history",
+        "access": "paid",
+        "summary": "Bounded APY/TVL history for one opportunity",
+        "description": "Returns a rolling APY and TVL series for one opportunity over a bounded window (1d, 7d, or 30d). Snapshots are stored as cheap hourly Redis buckets — not a warehouse and not backfilled from explorers. Empty points until the snapshot job has run. Includes a stability signal (APY stdev / sample count) so snapshot APY cannot dominate plan sizing. Market data only; Canix does not sign or submit transactions.",
+        "tags": [
+          "defi",
+          "opportunities",
+          "history",
+          "x402-global-challenge"
+        ],
+        "pathParams": [
+          "opportunityId"
+        ],
+        "queryParams": [
+          "window"
+        ],
+        "sessionAccess": "research",
+        "responseCodes": [
+          200,
+          400,
+          402,
+          500
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.01"
+          },
+          "amountUsdc": "0.01",
+          "amountMicro": "10000"
+        }
+      },
+      {
         "id": "eligibility",
         "method": "POST",
         "path": "/eligibility",

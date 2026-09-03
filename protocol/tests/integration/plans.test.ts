@@ -201,6 +201,36 @@ test("plan compiler prefers risk-constrained ranking over raw APY", async () => 
   assert.equal(plan.data.allocations[0]?.risk?.utilization, 10);
 });
 
+test("volatile snapshot APY adds snapshot-apy-unstable on plan steps", async () => {
+  installHappyPathStubs(
+    retiOpportunity({
+      risk: { utilization: 10, stability: "low", historySampleCount: 24, apyStdev: 8 }
+    })
+  );
+
+  const plan = await compilePlan({
+    address: VALID_ADDRESS,
+    budget: { assetId: 0, amount: "1000000" },
+    constraints: {
+      noNewBorrows: true,
+      executionReadyOnly: true,
+      maxAllocations: 1
+    },
+    opportunityIds: ["reti-staking-12"]
+  });
+
+  assert.ok(plan.data.warnings.includes("snapshot-apy-unstable"));
+  const allocation = plan.data.allocations[0]!;
+  assert.equal(allocation.risk?.stability, "low");
+  const flagged = allocation.steps.filter(
+    (step) => step.kind === "enter" || step.kind === "eligibility"
+  );
+  assert.ok(flagged.length > 0);
+  for (const step of flagged) {
+    assert.ok(step.warnings.includes("snapshot-apy-unstable"));
+  }
+});
+
 test("POST /plans returns 200 for a simple ALGO enter with unsigned groups", async () => {
   installHappyPathStubs();
   const app = buildApp();
