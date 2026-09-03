@@ -5,14 +5,24 @@ import test from "node:test";
 import { setFolksFinanceSdkDependenciesForTests } from "../../src/adapters/index.js";
 import { buildApp } from "../../src/app.js";
 import {
+  emptyWalletHealthFactorIndex,
   selectPersonalizedOpportunities,
   setAccountAssetsDependenciesForTests,
-  setAssetDecimalsDependenciesForTests
+  setAssetDecimalsDependenciesForTests,
+  setWalletHealthFactorLoaderForTests
 } from "../../src/services/index.js";
 import { OpportunityMarketRecord } from "../../src/types/opportunity.js";
 
 const VALID_ADDRESS =
   "RS7TLLQRXKBAQDAVTSZC2ZLMVMLNSCL3FOUOESJJZ5XSKFFL56UI6X33CI";
+
+test.before(() => {
+  setWalletHealthFactorLoaderForTests(async () => emptyWalletHealthFactorIndex());
+});
+
+test.after(() => {
+  setWalletHealthFactorLoaderForTests(undefined);
+});
 
 function stubFolksWithAssetIds(): void {
   setAssetDecimalsDependenciesForTests({
@@ -178,7 +188,7 @@ test("selectPersonalizedOpportunities keeps only opportunities holding a matchin
   );
 });
 
-test("GET /opportunities/personalized returns wallet-matched opportunities ranked by APY", async () => {
+test("GET /opportunities/personalized returns wallet-matched opportunities ranked by risk then APY", async () => {
   stubFolksWithAssetIds();
   setAccountAssetsDependenciesForTests({
     createAlgodClient: () => ({}) as never,
@@ -211,6 +221,7 @@ test("GET /opportunities/personalized returns wallet-matched opportunities ranke
         assetIds?: number[];
         canEnter?: boolean;
         eligibilityFullyCheckable?: boolean;
+        risk?: { confidence?: string; healthFactor?: number };
       }>;
       meta: {
         limit: number;
@@ -237,6 +248,10 @@ test("GET /opportunities/personalized returns wallet-matched opportunities ranke
       body.data.every((row) => row.eligibilityFullyCheckable === true),
       true
     );
+    assert.equal(
+      body.data.every((row) => row.risk?.confidence !== undefined),
+      true
+    );
   } finally {
     await app.close();
     await tinymanMock.close();
@@ -244,6 +259,54 @@ test("GET /opportunities/personalized returns wallet-matched opportunities ranke
     setFolksFinanceSdkDependenciesForTests(undefined);
     setAccountAssetsDependenciesForTests(undefined);
     setAssetDecimalsDependenciesForTests(undefined);
+  }
+});
+
+test("GET /opportunities/personalized attaches wallet health factor from position snapshots", async () => {
+  stubFolksWithAssetIds();
+  setWalletHealthFactorLoaderForTests(async () => ({
+    byOpportunityId: new Map([["folks-lending-43", 1.25]]),
+    byProtocol: new Map()
+  }));
+  setAccountAssetsDependenciesForTests({
+    createAlgodClient: () => ({}) as never,
+    fetchAccountInformation: async () => ({
+      amount: 1_000_000n,
+      assets: [
+        { assetId: 10n, amount: 5n },
+        { assetId: 11n, amount: 3n },
+        { assetId: 12n, amount: 0n }
+      ]
+    })
+  });
+
+  const tinymanMock = await startEmptyTinymanMock();
+  process.env.TINYMAN_API_BASE_URL = tinymanMock.baseUrl;
+
+  const app = buildApp();
+  await app.ready();
+
+  try {
+    const response = await app.inject({
+      method: "GET",
+      url: `/opportunities/personalized?address=${VALID_ADDRESS}`
+    });
+    assert.equal(response.statusCode, 200);
+    const body = response.json() as {
+      data: Array<{ opportunityId: string; risk?: { healthFactor?: number } }>;
+    };
+    const withHf = body.data.find((row) => row.opportunityId === "folks-lending-43");
+    const withoutHf = body.data.find((row) => row.opportunityId === "folks-lending-42");
+    assert.equal(withHf?.risk?.healthFactor, 1.25);
+    assert.equal(withoutHf?.risk?.healthFactor, undefined);
+  } finally {
+    await app.close();
+    await tinymanMock.close();
+    delete process.env.TINYMAN_API_BASE_URL;
+    setFolksFinanceSdkDependenciesForTests(undefined);
+    setAccountAssetsDependenciesForTests(undefined);
+    setAssetDecimalsDependenciesForTests(undefined);
+    setWalletHealthFactorLoaderForTests(async () => emptyWalletHealthFactorIndex());
   }
 });
 

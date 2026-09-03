@@ -8,9 +8,13 @@ import {
   SUPPORTED_AGGREGATE_PROTOCOLS
 } from "../services/aggregate-opportunities.js";
 import { filterOpportunitiesByActivity } from "../services/opportunity-activity.js";
-import { rankOpportunitiesByApy } from "../services/opportunity-ranking.js";
+import { rankOpportunities } from "../services/opportunity-ranking.js";
 import { formatOpportunitiesForAgent } from "../services/precision.js";
 import { selectPersonalizedOpportunities } from "../services/personalized-opportunities.js";
+import {
+  attachOpportunityRisk,
+  loadWalletHealthFactors
+} from "../services/opportunity-risk.js";
 import { evaluateOpportunityEligibility } from "../services/eligibility.js";
 import { ApiError, ApiSuccess } from "../types/index.js";
 import { OpportunityRecordV1 } from "../types/opportunity.js";
@@ -59,7 +63,7 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
         { refresh }
       );
       const data = filterOpportunitiesByActivity(fetched, includeInactive);
-      const pagedData = rankOpportunitiesByApy(data).slice(offset, offset + limit);
+      const pagedData = rankOpportunities(data).slice(offset, offset + limit);
 
       return {
         data: formatOpportunitiesForAgent(pagedData),
@@ -139,7 +143,7 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
         return true;
       });
 
-      const pagedData = rankOpportunitiesByApy(filtered).slice(offset, offset + limit);
+      const pagedData = rankOpportunities(filtered).slice(offset, offset + limit);
       return reply.send({
         data: formatOpportunitiesForAgent(pagedData),
         meta: {
@@ -191,8 +195,11 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
       );
       const data = filterOpportunitiesByActivity(fetched, includeInactive);
 
+      const healthFactors = await loadWalletHealthFactors(address);
+      const withRisk = attachOpportunityRisk(data, { healthFactors });
+
       const personalized = selectPersonalizedOpportunities(
-        data,
+        withRisk,
         holdings,
         offset + limit,
         { includeInactive }

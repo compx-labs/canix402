@@ -35,6 +35,10 @@ test("normalizeCompxLendingOpportunity maps recorded SDK APY, borrow cost, and T
   assert.equal(record.yieldBasis, "apr");
   assert.equal(record.apr, 4.25);
   assert.equal(record.borrowApr, 8.5);
+  assert.equal(record.risk?.utilization, 55.2);
+  assert.equal(record.risk?.ltv, 75);
+  assert.equal(record.risk?.liquidationThreshold, 85);
+  assert.equal(record.risk?.borrowApr, 8.5);
   assert.equal(record.tvlUsd, 1_250_000);
   assert.equal(record.sourceTimestamp, "2023-11-14T22:13:20.000Z");
   assert.equal(record.fetchedAt, COMPX_FETCHED_AT);
@@ -96,6 +100,7 @@ test("normalizeCompxStakingOpportunity maps APR and computed TVL from recorded p
   assert.equal(record.tvlUsd, 2000);
   assert.equal(record.sourceTimestamp, new Date(1_750_000_000 * 1000).toISOString());
   assert.match(record.notes ?? "", /rewardsRemaining=1000000/);
+  assert.equal(record.risk?.rewardRunwayRemaining, "1000000");
 });
 
 test("normalizeCompxStakingOpportunity uses a single symbol when stake and reward assets match", () => {

@@ -85,8 +85,11 @@ The canonical normalized schema is documented in
 
 `OpportunityRecordV1` is now the stable contract surface for opportunities
 responses and OpenAPI publication. The contract includes required
-`yieldBasis` metadata and optional `assetIds`, and explicitly defers
-`rewards`/`market`/`tvlOrLiquidity` to future schema revisions.
+`yieldBasis` metadata, optional `assetIds`, and a required designed `risk`
+block (confidence, lending utilization / LTV / liquidation threshold /
+`borrowApr`, LP volatility/IL hint, farm reward runway, wallet health factor
+when address is in context). Generic `rewards`/`market`/`tvlOrLiquidity`
+dumps remain deferred.
 
 ### Decimals and Precision
 

@@ -139,7 +139,7 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
     "canix_list_opportunities",
     {
       description:
-        "List top aggregated Algorand DeFi opportunities ranked by APY (GET /opportunities). Paid: ~0.01 USDC via x402. First call returns PAYMENT-REQUIRED metadata; retry with paymentSignature.",
+        "List top aggregated Algorand DeFi opportunities ranked by risk then APY (GET /opportunities). Paid: ~0.01 USDC via x402. First call returns PAYMENT-REQUIRED metadata; retry with paymentSignature.", // pragma: allowlist secret
       inputSchema: {
         limit: z.number().int().min(1).max(200).optional(),
         offset: z.number().int().min(0).optional(),

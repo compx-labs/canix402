@@ -28,6 +28,24 @@ import {
 } from "../fixtures/adapters/tinyman-pools.js";
 import { assertValidMarketRecord } from "./helpers/assert-market-record.js";
 
+test("normalizeTinymanPool maps is_stable into a designed volatility bucket", () => {
+  const stable = normalizeTinymanPool(
+    { ...tinymanCompxAlgoPool, is_stable: true },
+    TINYMAN_FIXTURE_FETCHED_AT
+  );
+  assertValidMarketRecord(stable);
+  assert.equal(stable.risk?.volatilityBucket, "stable");
+  assert.match(stable.risk?.ilHint ?? "", /stable/i);
+
+  const volatile = normalizeTinymanPool(
+    { ...tinymanCompxAlgoPool, is_stable: false },
+    TINYMAN_FIXTURE_FETCHED_AT
+  );
+  assertValidMarketRecord(volatile);
+  assert.equal(volatile.risk?.volatilityBucket, "unknown");
+  assert.equal(volatile.risk?.ilHint, undefined);
+});
+
 test("normalizeTinymanPool maps recorded analytics pool APY/TVL into percentage points", () => {
   const record = normalizeTinymanPool(tinymanCompxAlgoPool, TINYMAN_FIXTURE_FETCHED_AT);
   assertValidMarketRecord(record);

@@ -85,6 +85,7 @@ Additionally, the adapter may emit one liquid-staking row:
 | (adapter policy) | `yieldBasis` | Always `apy` |
 | `staking_total_annual_percentage_yield` | `apy` (`farm`) | Decimal fraction -> percentage points; farm output emitted when > 0 |
 | `liquidity_in_usd` | `tvlUsd` | Required; record dropped when invalid |
+| `is_stable` | `risk.volatilityBucket` / `risk.ilHint` | `true` → `stable` plus an IL hint; `false` → `unknown`; omitted when the field is absent. Never invents an IL percentage. |
 | `annual_percentage_rate` | `apr` (`lp`) | Decimal fraction -> percentage points; optional |
 | `staking_total_annual_percentage_rate` | `apr` (`farm`) | Decimal fraction -> percentage points; optional |
 | fetch timestamp | `sourceTimestamp` | Source currently does not expose a per-row update timestamp |

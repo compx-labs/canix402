@@ -201,7 +201,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_list_opportunities",
     {
       description:
-        "List top aggregated Algorand DeFi opportunities ranked by APY (GET /opportunities). Paid ~0.01 USDC.",
+        "List top aggregated Algorand DeFi opportunities ranked by risk then APY (GET /opportunities). Paid ~0.01 USDC.", // pragma: allowlist secret
       inputSchema: {
         limit: z.number().int().min(1).max(200).optional(),
         offset: z.number().int().min(0).optional(),
@@ -1112,6 +1112,7 @@ export function registerCanixPrompts(server: McpServer): void {
             text: [
               "Analyze this Algorand DeFi opportunity from canix402.",
               "Evaluate APY/APR quality, TVL depth, protocol risk, asset exposure, and whether an execution shape exists for acting on it.",
+              "Prefer opportunity.risk over raw apy when ranking or recommending. Penalize low confidence, high utilization, high volatility, exhausted reward runway, and (when present) low wallet healthFactor. Do not invent missing risk numbers.",
               "Do not invent on-chain state. If data is missing, say what additional canix402 tool calls would help.",
               "",
               "Opportunity JSON:",

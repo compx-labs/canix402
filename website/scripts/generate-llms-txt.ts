@@ -219,7 +219,7 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
 - **Terms:** ${DOCS_SITE}/terms
 - **Release notes:** ${DOCS_SITE}/release-notes
 
-Opportunity responses are normalized records with fields such as \`protocol\`, \`opportunityType\`, \`opportunityId\`, \`assetPair\`, \`apy\`, \`apr\`, optional \`borrowApr\` (borrow-side cost for lending markets), \`tvlUsd\`, \`executionShapes\`, \`compatibleExitShapes\`, optional \`entryRequirements\` / \`capacity\` (Réti), \`sourceTimestamp\`, and \`fetchedAt\`. Positions may include \`debt\` rows with repay exit shapes (CompX/Folks) or informational Dork.fi \`debt-usd\` aggregates. Numeric precision follows the published OpenAPI \`x-precision\` contract (typically 6 decimal places).
+Opportunity responses are normalized records with fields such as \`protocol\`, \`opportunityType\`, \`opportunityId\`, \`assetPair\`, \`apy\`, \`apr\`, optional \`borrowApr\` (borrow-side cost for lending markets), \`tvlUsd\`, \`risk\` (confidence, utilization, liquidation threshold, LP volatility/IL hint, reward runway, wallet health factor when address is in context), \`executionShapes\`, \`compatibleExitShapes\`, optional \`entryRequirements\` / \`capacity\` (Réti), \`sourceTimestamp\`, and \`fetchedAt\`. Lists and \`POST /plans\` rank with designed risk constraints before raw APY. Positions may include \`debt\` rows with repay exit shapes (CompX/Folks) or informational Dork.fi \`debt-usd\` aggregates. Numeric precision follows the published OpenAPI \`x-precision\` contract (typically 6 decimal places).
 
 ## Machine-readable contracts
 
@@ -265,7 +265,7 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 
 ### Route notes
 
-- \`GET /opportunities\` — top aggregated opportunities ranked by APY (default limit 10).
+- \`GET /opportunities\` — top aggregated opportunities ranked by risk then APY (default limit 10).
 - \`GET /protocols/:protocol/opportunities\` — protocol slug e.g. \`tinyman\`, \`pact\`, \`folks-finance\`, \`compx\`, \`dorkfi\`, \`myth-finance\`, \`haystack\`, \`reti\`, \`alpha-arcade\`.
 - \`GET /opportunities/search\` — filter by \`platform\`, \`type\`, \`minApy\`, \`maxApy\`, \`minTvlUsd\`, \`assetIds\` (comma-separated ASA ids; 0 = ALGO; ANY intersection with opportunity.assetIds).
 - \`GET /opportunities/personalized\` — requires \`address\` (Algorand account); premium price; matches opportunities to wallet-held assets using eligibility rules (full/gated venues are not recommended as enterable).  // pragma: allowlist secret

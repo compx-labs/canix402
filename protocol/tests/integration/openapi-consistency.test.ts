@@ -311,6 +311,17 @@ test("opportunity record schema stays aligned with TypeBox contract", async () =
   assert.deepEqual(opportunityTypeProperty?.enum, ["lp", "farm", "staking", "lending"]);
   assert.deepEqual(yieldBasisProperty?.enum, ["apy", "apr"]);
   assert.equal(assetIdsProperty?.type, "array");
+  assert.equal(openapiRequired.includes("risk"), true);
+  assert.ok(openapi.components.schemas.OpportunityRisk);
+  const riskSchema = openapi.components.schemas.OpportunityRisk;
+  assert.deepEqual(
+    [...(riskSchema.required ?? [])].sort(),
+    ["confidence"]
+  );
+  assert.ok(riskSchema.properties?.utilization);
+  assert.ok(riskSchema.properties?.healthFactor);
+  assert.ok(riskSchema.properties?.volatilityBucket);
+  assert.ok(riskSchema.properties?.rewardRunwayRemaining);
 
   await app.close();
 });

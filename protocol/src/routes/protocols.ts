@@ -6,7 +6,7 @@ import {
   summarizeCacheMeta
 } from "../services/aggregate-opportunities.js";
 import { filterOpportunitiesByActivity } from "../services/opportunity-activity.js";
-import { rankOpportunitiesByApy } from "../services/opportunity-ranking.js";
+import { rankOpportunities } from "../services/opportunity-ranking.js";
 import { formatOpportunitiesForAgent } from "../services/precision.js";
 import { ApiSuccess } from "../types/index.js";
 import { OpportunityRecordV1 } from "../types/opportunity.js";
@@ -46,7 +46,7 @@ export function registerProtocolRoutes(app: FastifyInstance) {
 
       const result = await fetchOpportunitiesForProtocolResult(protocol, { refresh });
       const data = filterOpportunitiesByActivity(result.data, includeInactive);
-      const pagedData = rankOpportunitiesByApy(data).slice(offset, offset + limit);
+      const pagedData = rankOpportunities(data).slice(offset, offset + limit);
       const cache = summarizeCacheMeta([result]);
 
       return {

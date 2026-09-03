@@ -1,14 +1,14 @@
-# Normalized Opportunity Schema (V1)
+# Normalized Opportunity Schema (V1.4 / risk V2)
 
 This document defines the stable `OpportunityRecordV1` contract published by
 `/opportunities*`, `/protocols/:protocol/opportunities`, and `/openapi.json`.
 
 ## Versioning
 
-- Contract version: `1.3.0`
+- Contract version: `1.4.0` (adds required `risk` block; previously `1.3.0`)
 - Canonical schema sources:
-  - `src/types/opportunity-schema.ts` (`OpportunityRecordSchema`)
-  - `openapi/openapi.json` (`#/components/schemas/OpportunityRecord`)
+  - `src/types/opportunity-schema.ts` (`OpportunityRecordSchema`, `OpportunityRiskSchema`)
+  - `openapi/openapi.json` (`#/components/schemas/OpportunityRecord`, `#/components/schemas/OpportunityRisk`)
 
 ## Field Glossary
 
@@ -26,6 +26,7 @@ This document defines the stable `OpportunityRecordV1` contract published by
 - `executionReady`: `true` when at least one enter execution shape is attached
 - `executionShapes`: enter-only shapes for opening this yield opportunity (may be empty)
 - `compatibleExitShapes`: exit shapes for closing this opportunity when known (may be empty)
+- `risk`: designed risk block (schema V2). `confidence` is always present; other fields are omitted when unknown.
 
 ### Optional fields
 
@@ -34,6 +35,36 @@ This document defines the stable `OpportunityRecordV1` contract published by
 - `notes`: caveats about timestamp provenance, fallback identifiers, or estimate basis
 - `entryRequirements`: machine-readable minimum stake / token gates (discovery metadata; quote-time recheck is authoritative)
 - `capacity`: remaining staker slots / ALGO room and whether the venue is accepting stake
+- `risk.utilization` / `risk.liquidationThreshold` / `risk.ltv` / `risk.borrowApr`: lending metrics when the adapter knows them
+- `risk.volatilityBucket` / `risk.ilHint`: LP IL signal when a designed source exists (Tinyman `is_stable`); otherwise omitted or `unknown`
+- `risk.rewardRunwayRemaining`: farm/staking remaining rewards in base units when known (CompX `rewardsRemaining`)
+- `risk.healthFactor`: wallet health factor for lending venues when `address` is in context (personalized, plans, eligibility) and positions already expose it
+- `risk.sourceAgeSeconds`: seconds between `sourceTimestamp` and evaluation time
+
+## Risk object (`risk`)
+
+Machine-readable risk so `/plans`, personalized ranking, and `analyze-opportunity`
+prefer constraints over raw `apy`. This is the deferred V1 `rewards` / `market`
+work, designed rather than dumped as protocol JSON. Canix stays walletless: data
+only; it does not sign or submit.
+
+| Field | Meaning |
+|---|---|
+| `confidence` | Snapshot freshness from `fetchedAt` (or cache age when known). `high` ≤ 3 minutes (default opportunities cache TTL), `medium` ≤ 1 hour, otherwise `low`. `unknown` when timestamps cannot be parsed. |
+| `sourceAgeSeconds` | Seconds between `sourceTimestamp` and evaluation time |
+| `utilization` | Lending utilization in percentage points when the adapter knows it (CompX `utilizationRate`; Folks borrows / deposits) |
+| `liquidationThreshold` | Liquidation threshold in percentage points (CompX `liquidationThreshold` bps / 100) |
+| `ltv` | Loan-to-value in percentage points (CompX `ltv` bps / 100) |
+| `borrowApr` | Borrow-side APR cost; mirrors top-level `borrowApr` when present |
+| `healthFactor` | Wallet HF for this lending venue when `address` is in context. Taken from existing `/positions` snapshots (matched by `opportunityId`, else protocol-level for lending). Omitted on anonymous catalog rows. Never invented. |
+| `volatilityBucket` | LP IL / volatility bucket. Tinyman `is_stable === true` → `stable`. Otherwise `unknown` or omitted — adapters do not invent IL percentages. |
+| `ilHint` | Human-readable IL hint when a designed signal exists |
+| `rewardRunwayRemaining` | Remaining farm/staking rewards in base units (decimal string), e.g. CompX `rewardsRemaining` |
+
+Ranking applies a designed penalty (confidence, utilization ≥ 80/95%, volatility
+bucket `medium`/`high`, wallet HF below 2.0/1.5/1.0 when present, zero reward
+runway) **before** raw APY, then TVL. Equal-risk rows still sort by APY
+descending. `/plans` uses the same comparator for enterable allocations.
 
 ## Entry requirements and capacity
 
@@ -174,13 +205,15 @@ a caveat in `notes`.
 
 The following fields are intentionally out of scope for `OpportunityRecordV1`:
 
-- `rewards` metadata blocks
-- generic `market` object
+- generic `rewards` metadata blocks beyond `risk.rewardRunwayRemaining`
+- generic `market` object (lending/LP fields live on `risk` instead)
 - `tvlOrLiquidity` union fields
 - manage shapes on opportunities (use positions / shape catalog)
 - exit shapes on non–liquid-staking opportunities (use positions / shape catalog)
 - full NFD resolution for personalized eligibility (publish unresolved gates on
   `POST /eligibility`; `canEnter` stays false until `eligibilityFullyCheckable`)
+- invented IL percentages or health factors when the adapter/positions snapshot
+  does not expose them
 
 Any addition of these fields is a future contract revision and should be reflected
 in both TypeBox and OpenAPI schema surfaces.

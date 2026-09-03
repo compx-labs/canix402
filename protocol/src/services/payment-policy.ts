@@ -171,9 +171,9 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     method: "GET",
     pathPattern: "/opportunities",
     access: "paid",
-    summary: "Top 10 aggregated DeFi opportunities ranked by APY",
+    summary: "Top 10 aggregated DeFi opportunities ranked by risk then APY",
     description:
-      "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, Haystack, Réti, and Alpha Arcade. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
+      "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, Haystack, Réti, and Alpha Arcade. Ranking applies designed risk constraints (confidence, utilization, volatility, reward runway, wallet health factor when address is in context) before raw APY. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, risk, and caveats before presenting yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",  // pragma: allowlist secret
     tags: ["defi", "opportunities", HACKATHON_TAG],
     queryParams: ["protocol", "limit", "offset", "includeInactive", "refresh"],
     sessionAccess: "research"
@@ -183,9 +183,9 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     method: "GET",
     pathPattern: "/protocols/:protocol/opportunities",
     access: "paid",
-    summary: "Top 25 DeFi opportunities for a single protocol ranked by APY",
+    summary: "Top 25 DeFi opportunities for a single protocol ranked by risk then APY",
     description:
-      "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, or alpha-arcade. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
+      "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, or alpha-arcade. Ranking applies designed risk constraints before raw APY. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, risk, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",  // pragma: allowlist secret
     tags: ["defi", "opportunities", "protocol", HACKATHON_TAG],
     pathParams: ["protocol"],
     queryParams: ["limit", "offset", "includeInactive", "refresh"],
@@ -221,7 +221,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     access: "paid",
     summary: "Top opportunities tuned to a wallet's held assets",
     description:
-      "Returns Algorand DeFi opportunities whose underlying assets match a supplied wallet's holdings, including opted-in ASAs with positive balance and native ALGO when held. Matching applies POST /eligibility rules (min amount, ASA gates, capacity, unresolved NFD/creator gates) so full or gated venues are not recommended as enterable. Each row includes canEnter and eligibilityFullyCheckable; quote-time on-chain checks remain authoritative. Use POST /eligibility for the diagnostic (missingAssets, gates, capacity, suggestedSwap). This endpoint provides normalized market data only; it does not build or submit transactions.",  // pragma: allowlist secret
+      "Returns Algorand DeFi opportunities whose underlying assets match a supplied wallet's holdings, including opted-in ASAs with positive balance and native ALGO when held. Matching applies POST /eligibility rules (min amount, ASA gates, capacity, unresolved NFD/creator gates) so full or gated venues are not recommended as enterable. Ranking prefers designed risk constraints (including wallet health factor from existing position snapshots) over raw APY. Each row includes canEnter, eligibilityFullyCheckable, and risk; quote-time on-chain checks remain authoritative. Use POST /eligibility for the diagnostic (missingAssets, gates, capacity, suggestedSwap). This endpoint provides normalized market data only; it does not build or submit transactions.",  // pragma: allowlist secret
     tags: ["defi", "opportunities", "personalized", "wallet", HACKATHON_TAG],
     queryParams: ["address", "limit", "offset", "includeInactive", "refresh"],
     priceUsdc: process.env.X402_PRICE_PERSONALIZED_USDC ?? "0.05",
@@ -234,7 +234,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     access: "paid",
     summary: "Wallet eligibility and capacity for selected opportunities",
     description:
-      "Checks whether a wallet can enter one or more opportunities before requesting an execution quote. Resolves Réti entryRequirements and capacity (min amount, ASA gates, staker slots, ALGO room). NFD and creator gates are published as unresolved — canEnter is never true until eligibilityFullyCheckable is true. Returns missingAssets, gates, capacity, and an optional suggestedSwap hint (not a live quote). Quote-time on-chain checks remain authoritative. Canix does not sign or submit transactions.",  // pragma: allowlist secret
+      "Checks whether a wallet can enter one or more opportunities before requesting an execution quote. Resolves Réti entryRequirements and capacity (min amount, ASA gates, staker slots, ALGO room). NFD and creator gates are published as unresolved — canEnter is never true until eligibilityFullyCheckable is true. Returns missingAssets, gates, capacity, an optional suggestedSwap hint (not a live quote), and wallet healthFactor for lending venues that already expose it on positions. Quote-time on-chain checks remain authoritative. Canix does not sign or submit transactions.",  // pragma: allowlist secret
     tags: ["defi", "opportunities", "eligibility", "wallet", HACKATHON_TAG],
     priceUsdc: process.env.X402_PRICE_ELIGIBILITY_USDC ?? "0.01",
     sessionAccess: "research"
@@ -246,7 +246,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     access: "paid",
     summary: "Compile an allocation intent into an ordered unsigned plan",
     description:
-      "Agent states an allocation intent (address, budget/asset, constraints). Canix returns ordered steps: eligibility, optional live Haystack swap compose (opt-in → swap → enter, driven by requiredAssetIds), protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, a fail-closed simulation summary when compiled groups are available, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume this SKU rather than forking a compiler.",  // pragma: allowlist secret
+      "Agent states an allocation intent (address, budget/asset, constraints). Canix ranks enterable venues with designed risk constraints before raw APY, then returns ordered steps: eligibility, optional live Haystack swap compose (opt-in → swap → enter, driven by requiredAssetIds), protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, a fail-closed simulation summary when compiled groups are available, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume this SKU rather than forking a compiler.",  // pragma: allowlist secret
     tags: ["defi", "plans", "execution", "eligibility", "wallet", "x402", "agents", HACKATHON_TAG],
     priceUsdc: process.env.X402_PRICE_PLANS_USDC ?? "0.25",
     sessionAccess: "quotes"

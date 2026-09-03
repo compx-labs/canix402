@@ -3,7 +3,7 @@ import {
   SUPPORTED_AGGREGATE_PROTOCOLS
 } from "../services/aggregate-opportunities.js";
 import { formatOpportunitiesForAgent } from "../services/precision.js";
-import { rankOpportunitiesByApy } from "../services/opportunity-ranking.js";
+import { rankOpportunities } from "../services/opportunity-ranking.js";
 import { AGGREGATE_OPPORTUNITIES_DEFAULT_LIMIT } from "../routes/schemas.js";
 import type { Protocol } from "../routes/schemas.js";
 import { OpportunityRecordV1 } from "../types/opportunity.js";
@@ -33,7 +33,7 @@ async function main() {
 
   const { data, errors } = await fetchOpportunitiesWithErrors(args.protocols);
 
-  const ranked = rankOpportunitiesByApy(data);
+  const ranked = rankOpportunities(data);
   const selected = args.all
     ? ranked.slice(args.offset)
     : ranked.slice(args.offset, args.offset + args.limit);
