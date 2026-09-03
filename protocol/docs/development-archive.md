@@ -9,7 +9,7 @@ Completed work moved out of `docs/development-checklist.md` so the checklist can
 - [x] Add dedicated unit tests for remaining adapter transforms (NEO-184).
   - Myth Finance, Haystack, Réti, and Alpha Arcade now have fixture-based `protocol/tests/unit/` coverage (mocked SDK dependencies; no live chain, no paid x402).
   - Enter-shape attachment for those four is covered via `tests/unit/adapter-execution-enrichment.test.ts`.
-  - Existing integration `*-adapter.test.ts` files kept; golden-fixture work stays on checklist §8.
+  - Existing integration `*-adapter.test.ts` files kept; golden-fixture work completed on checklist §8 (NEO-276).
 
 ## Archived 2026-08-19
 
@@ -28,7 +28,7 @@ Checklist hygiene while opening section 13 (agent execution OS). No newly comple
 
 - [x] Formal launch checklist sign-off (duplicate leftover under Testing and Quality Gates; originally completed under Go-Live Readiness on 2026-07-30).
 - Relocated, not completed: dry-run/simulation endpoint moved from Execution Layer “Validation and Safety (optional follow-up)” to checklist section 13.6 (simulate / expected delta as a product).
-- Relocated leftover tightening stays in checklist sections 3 and 8. Unit-test expansion for Tinyman / Folks / Pact / CompX / Dork.fi completed 2026-08-19; remaining adapters (Myth / Haystack / Réti / Alpha Arcade) completed 2026-08-20 (see archive above). Protocol-specific execution caveats are documented (`docs/execution-shapes/protocol-caveats.md`). Still open: golden fixtures, richer quote-time state refresh.
+- Relocated leftover tightening stays in checklist sections 3 and 8. Unit-test expansion for Tinyman / Folks / Pact / CompX / Dork.fi completed 2026-08-19; remaining adapters (Myth / Haystack / Réti / Alpha Arcade) completed 2026-08-20 (see archive above). Protocol-specific execution caveats are documented (`docs/execution-shapes/protocol-caveats.md`). Still open: richer quote-time state refresh.
 
 ## Archived 2026-07-30
 
