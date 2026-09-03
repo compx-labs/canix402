@@ -29,7 +29,7 @@ Always call the **gateway**, not an internal upstream API. x402 enforcement, `PA
 
 ### MCP server
 
-Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_get_opportunity_history`, `canix_list_execution_shapes`, `canix_get_positions`, `canix_list_claimable`, `canix_check_eligibility`, `canix_get_plan`, `canix_get_rebalance_plan`, `canix_validate_policy`, `canix_compose_enter`, `canix_get_execution_quote`, `canix_simulate_execution`, `canix_create_session`, `canix_refresh_session`, `canix_get_session`, and free discovery helpers. Prepaid sessions: one x402 payment unlocks N research + M quotes/plans for a TTL (`sessionReceipt` / `X-Canix-Session`); one-shots remain the default. See https://canix402.compx.io/mcp.  # pragma: allowlist secret
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `[REDACTED]` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_get_opportunity_history`, `canix_list_execution_shapes`, `canix_get_positions`, `canix_list_claimable`, `canix_check_eligibility`, `canix_get_plan`, `canix_get_rebalance_plan`, `canix_validate_policy`, `canix_compose_enter`, `canix_get_execution_quote`, `canix_simulate_execution`, `canix_create_session`, `canix_refresh_session`, `canix_get_session`, `canix_create_watch`, `canix_refresh_watch`, `canix_get_watch`, and free discovery helpers. Prepaid sessions: one x402 payment unlocks N research + M quotes/plans for a TTL (`sessionReceipt` / `X-Canix-Session`); one-shots remain the default. Watch retainers: `POST /watch` registers address + thresholds and delivers signed, idempotent webhooks instead of polling positions. See https://canix402.compx.io/mcp.  # pragma: allowlist secret
 
 ## x402 payment flow
 
@@ -88,6 +88,7 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `POST /execution/compose` (0.1 USDC) — Compose opt-in → Haystack swap → enter as unmerged unsigned groups.  # pragma: allowlist secret
 - `POST /execution/simulate` (0.1 USDC) — Simulate compiled unsigned groups for predicted balance and position deltas.  # pragma: allowlist secret
 - `POST /sessions` (0.25 USDC) — Buy a prepaid agent session receipt.  # pragma: allowlist secret
+- `POST /watch` — 0.25 USDC recurring retainer; address + thresholds (health factor, claimable USD, APY drop, Réti capacity) and optional HTTPS webhook. Signed, idempotent deliveries. HMAC secret shown once. No wallet keys.  // pragma: allowlist secret
 - `POST /sessions/refresh` (0.25 USDC) — Refresh a prepaid agent session receipt.  # pragma: allowlist secret
 - `GET /sessions/:sessionId` (Free) — Read prepaid session remaining N/M. Params: :sessionId.
 
@@ -123,6 +124,10 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
 - `SESSION_EXPIRED` (HTTP 402) — Prepaid session TTL has elapsed. Fail-closed; one-shots still work without the session header.
 - `SESSION_EXHAUSTED` (HTTP 402) — Prepaid session N/M quota is exhausted. Fail-closed; refresh with POST /sessions/refresh or pay per request.
 - `SESSION_UNAVAILABLE` (HTTP 402) — Session store is unavailable. Fail-closed; omit X-Canix-Session and retry with a per-request payment.
+- `WATCH_INVALID` (HTTP 402) — Watch receipt is unknown. Register a new paid watch with POST /watch.
+- `WATCH_EXPIRED` (HTTP 402) — Watch retainer TTL has elapsed. Fail-closed; pay POST /watch to register again.
+- `WATCH_UNAVAILABLE` (HTTP 402) — Watch store is unavailable. Fail-closed; retry later.
+- `WATCH_UNAUTHORIZED` (HTTP 402) — Watch HMAC secret does not match. Send the current secret in X-Canix-Watch-Secret to rotate.
 - `VALIDATION_ERROR` (HTTP 400) — Request validation failed.
 - `NOT_FOUND` (HTTP 404) — Requested resource was not found.
 - `INTERNAL_ERROR` (HTTP 500) — Internal server error.
@@ -1689,6 +1694,48 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
   "meta": {
     "paymentRequired": true,
     "executionSubmitted": false
+  }
+}
+```
+
+### GET /watch/{watchId}
+
+```json
+{
+  "data": {
+    "uri": "canix://watch/cwatch_demo",
+    "watchId": "cwatch_demo",
+    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+    "thresholds": {
+      "healthFactor": 1.25,
+      "claimableUsd": 8,
+      "apyDropBps": 100,
+      "retiCapacity": true
+    },
+    "webhookUrl": "https://hooks.example/canix",
+    "createdAt": "2026-09-03T12:00:00.000Z",
+    "expiresAt": "2026-09-04T12:00:00.000Z",
+    "ttlSeconds": 86400,
+    "status": "active",
+    "firings": [
+      {
+        "firingId": "wfire_demo",
+        "idempotencyKey": "wfire_cwatch_demo_healthFactor_wep_demo",
+        "kind": "healthFactor",
+        "firedAt": "2026-09-03T12:05:00.000Z",
+        "threshold": 1.25,
+        "previous": 1.4,
+        "current": 1.1,
+        "delivered": true,
+        "deliveryStatus": "delivered"
+      }
+    ]
+  },
+  "meta": {
+    "paymentRequired": false,
+    "access": "receipt",
+    "receiptUri": "canix://watch/cwatch_demo",
+    "secretShown": false
   }
 }
 ```

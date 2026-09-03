@@ -55,6 +55,7 @@ X402_PRICE_EXECUTION_QUOTE_USDC=0.1
 X402_PRICE_EXECUTION_COMPOSE_USDC=0.1
 X402_PRICE_EXECUTION_SIMULATE_USDC=0.1
 X402_PRICE_SESSIONS_USDC=0.25
+X402_PRICE_WATCH_USDC=0.25
 X402_NETWORK=algorand-mainnet
 X402_SCHEME=exact
 ```
@@ -68,14 +69,15 @@ The **protocol** (internal API) component should also set
 and `X402_PRICE_EXECUTION_QUOTE_USDC=0.1`,
 `X402_PRICE_EXECUTION_COMPOSE_USDC=0.1`,
 `X402_PRICE_EXECUTION_SIMULATE_USDC=0.1`,
-and `X402_PRICE_SESSIONS_USDC=0.25` so discovery/OpenAPI metadata matches
+and `X402_PRICE_SESSIONS_USDC=0.25`,
+and `X402_PRICE_WATCH_USDC=0.25` so discovery/OpenAPI metadata matches
 the Caddy gate (see [`protocol/.env.example`](../.env.example)).
 
-### Redis (opportunity cache + prepaid sessions)
+### Redis (opportunity cache + prepaid sessions + watch retainers)
 
-Opportunity cache is optional. Prepaid sessions in **production** require Redis:
-`NODE_ENV=production` without `REDIS_URL` fail-closes session create (`503`) and
-consume/get (`402 SESSION_UNAVAILABLE`).
+Opportunity cache is optional. Prepaid sessions and watch retainers in
+**production** require Redis: `NODE_ENV=production` without `REDIS_URL`
+fail-closes session/watch create (`503`) and get (`402 SESSION_*` / `WATCH_*`).
 
 When `REDIS_URL` is set on the **protocol** component, aggregated
 opportunity adapters are cached (`OPPORTUNITIES_CACHE_TTL_SEC`, default **180s /
@@ -88,6 +90,7 @@ from CompX/Orbital on a shared Redis instance:
 - Dedicated DB index in the URL (e.g. `redis://:password@host:6379/6`)
 - All keys use the `canix402:` prefix (e.g. `canix402:opportunities:protocol:mainnet:tinyman`)
 - Session receipts use `canix402:session:{id}` with a fail-closed TTL
+- Watch retainers use `canix402:watch:{id}` plus `canix402:watch:ids` with a fail-closed TTL
 - Leave `REDIS_URL` unset or set `OPPORTUNITIES_CACHE_DISABLED=1` for local/dev without cache (sessions then use in-memory storage outside production)
 
 Never `FLUSHALL` on a shared Redis instance; `FLUSHDB` only against Canix’s DB.

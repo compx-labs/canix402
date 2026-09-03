@@ -67,6 +67,7 @@ export async function startCaddyHarness(
         X402_PRICE_HAYSTACK_SWAP_USDC:
           process.env.X402_PRICE_HAYSTACK_SWAP_USDC || "0.005",
         X402_PRICE_SESSIONS_USDC: process.env.X402_PRICE_SESSIONS_USDC || "0.25",
+        X402_PRICE_WATCH_USDC: process.env.X402_PRICE_WATCH_USDC || "0.25",
         X402_NETWORK: "algorand-mainnet",
         X402_SCHEME: "exact",
         PROOF_SHARED_SECRET: "test-proof-secret"

@@ -5,7 +5,11 @@ export type ApiErrorCode =
   | "SESSION_INVALID"
   | "SESSION_EXPIRED"
   | "SESSION_EXHAUSTED"
-  | "SESSION_UNAVAILABLE";
+  | "SESSION_UNAVAILABLE"
+  | "WATCH_INVALID"
+  | "WATCH_EXPIRED"
+  | "WATCH_UNAVAILABLE"
+  | "WATCH_UNAUTHORIZED";
 
 export interface ApiError {
   error: {

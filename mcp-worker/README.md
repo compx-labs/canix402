@@ -41,6 +41,13 @@ Stateless remote MCP server for canix402, designed for Cloudflare Workers deploy
   `SESSION_*` 402, omit the header and retry with `paymentSignature`.
 - Resource `canix://session` publishes session **policy** (budget N/M, TTL).
 - Resource `canix://session/{sessionId}` publishes remaining N/M for that receipt.
+- Exposes watch retainer tools (address + callback only; no wallet keys):
+  - `canix_create_watch` → paid `POST /watch` (0.25 USDC)
+  - `canix_refresh_watch` → paid `POST /watch/refresh` (0.25 USDC, one-shot only)
+  - `canix_get_watch` → free `GET /watch/{watchId}` recent firings
+  - `canix_rotate_watch_secret` → free rotate with current HMAC secret
+- Resource `canix://watch` publishes watch **policy** (TTL, price, signature headers).
+- Resource `canix://watch/{watchId}` publishes the receipt and recent firings.
 - Exposes stateless Haystack tools:
   - `canix_get_quote` → free `POST /swaps/quote`
   - `canix_optin` → free `POST /swaps/optin`

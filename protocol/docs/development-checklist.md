@@ -110,9 +110,9 @@ Second money model for operators who currently spray tiny USDC transfers (e.g. B
 
 Push instead of polling `/positions` and `/opportunities/personalized`. Recurring x402 retainer, no SaaS login.
 
-- [ ] Add a paid watch registration: wallet + thresholds (health factor, claimable USD, APY drop, Réti capacity).
-- [ ] Deliver notifications via HTTP webhook and/or MCP resource when thresholds fire.
-- [ ] Document retainer pricing, replay/idempotency, and secret handling (no wallet keys on the server).
+- [x] Add a paid watch registration: wallet + thresholds (health factor, claimable USD, APY drop, Réti capacity).
+- [x] Deliver notifications via HTTP webhook and/or MCP resource when thresholds fire.
+- [x] Document retainer pricing, replay/idempotency, and secret handling (no wallet keys on the server).
 
 ### 13.10 Policy-as-a-service
 

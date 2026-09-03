@@ -58,11 +58,22 @@ export function microUsdcToUsdc(rawAmount: string | undefined): string | undefin
 }
 
 export function sessionErrorFromBody(body: unknown): { code: string; message: string } | undefined {
+  return typedApiErrorFromBody(body, "SESSION_");
+}
+
+export function watchErrorFromBody(body: unknown): { code: string; message: string } | undefined {
+  return typedApiErrorFromBody(body, "WATCH_");
+}
+
+export function typedApiErrorFromBody(
+  body: unknown,
+  prefix: "SESSION_" | "WATCH_"
+): { code: string; message: string } | undefined {
   if (!body || typeof body !== "object") {
     return undefined;
   }
   const error = (body as { error?: { code?: unknown; message?: unknown } }).error;
-  if (typeof error?.code !== "string" || !error.code.startsWith("SESSION_")) {
+  if (typeof error?.code !== "string" || !error.code.startsWith(prefix)) {
     return undefined;
   }
   return {

@@ -47,6 +47,23 @@ Treat amounts without a decimal point as base units. USDC has six decimals, so
 `10000` is 0.01 USDC. Never substitute a documented price for the live
 `PAYMENT_REQUIRED` amount.
 
+## Watch retainers (optional push)
+
+Exact-scheme one-shots remain the default. Operators who would otherwise poll
+`/positions` and `/opportunities/personalized` can buy a recurring retainer:
+
+1. Call `canix_create_watch` without `paymentSignature`, then retry with it
+   (~0.25 USDC). Pass `address`, `thresholds` (healthFactor, claimableUsd,
+   apyDropBps, retiCapacity), and optional `webhookUrl`. The result is a
+   walletless receipt (`canix://watch/{id}`) plus an HMAC secret shown once.
+2. Verify webhook bodies with HMAC-SHA256 of that secret
+   (`X-Canix-Signature: sha256=<hex>`). Deduplicate on `X-Canix-Idempotency-Key`.
+3. Read recent firings with `canix_get_watch` or resource `canix://watch/{watchId}`.
+   `canix://watch` is policy only (TTL/price/headers), not firings.
+4. Refresh with `canix_refresh_watch` before TTL. Rotate the secret with
+   `canix_rotate_watch_secret`. On `WATCH_EXPIRED` or `WATCH_INVALID`, register
+   again. Canix never stores wallet keys.
+
 ## Prepaid sessions (optional second money model)
 
 Exact-scheme one-shots remain the default. Operators who would otherwise spray

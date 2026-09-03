@@ -2,7 +2,8 @@ import { getWebMcpTool } from "./catalog";
 import {
   decodePaymentRequiredHeader,
   microUsdcToUsdc,
-  sessionErrorFromBody
+  sessionErrorFromBody,
+  watchErrorFromBody
 } from "./payment";
 import type { GatewayCallResult, SessionQuota, WebMcpToolSpec } from "./types";
 
@@ -12,7 +13,7 @@ export interface ExecuteCanixToolOptions {
   signal?: AbortSignal;
 }
 
-const AUTH_KEYS = new Set(["paymentSignature", "sessionReceipt"]);
+const AUTH_KEYS = new Set(["paymentSignature", "sessionReceipt", "webhookSecret"]);
 
 export function stringifyToolResult(payload: unknown): string {
   return JSON.stringify(payload, null, 2);
@@ -151,6 +152,9 @@ function buildGatewayRequest(
   } else if (tool.allowSessionReceipt && sessionReceipt) {
     headers["X-Canix-Session"] = sessionReceipt;
   }
+  if (typeof args.webhookSecret === "string" && args.webhookSecret.length > 0) {
+    headers["X-Canix-Watch-Secret"] = args.webhookSecret;
+  }
 
   const url = new URL(path.startsWith("/") ? path : `/${path}`, `${gatewayBaseUrl.replace(/\/+$/, "")}/`);
   for (const [key, value] of Object.entries(query)) {
@@ -242,6 +246,20 @@ function mapGatewayResult(
         },
         gatewayResponse: result.body,
         ...withSessionQuota(result, result.body)
+      };
+    }
+    const watchError = watchErrorFromBody(result.body);
+    if (watchError) {
+      return {
+        error: watchError.code,
+        message: watchError.message,
+        mcpPayment,
+        request: requestContext,
+        retry:
+          watchError.code === "WATCH_UNAUTHORIZED"
+            ? { arg: "webhookSecret", header: "X-Canix-Watch-Secret" }
+            : { arg: "paymentSignature", header: "PAYMENT-SIGNATURE" },
+        gatewayResponse: result.body
       };
     }
     return {

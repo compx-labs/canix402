@@ -3,6 +3,7 @@ import {
   startFeeHarvestCron,
   stopFeeHarvestCron
 } from "./jobs/fee-harvest-cron.js";
+import { startWatchCron, stopWatchCron } from "./jobs/watch-cron.js";
 import {
   startOpportunityHistoryCron,
   stopOpportunityHistoryCron
@@ -16,6 +17,7 @@ async function main() {
 
   const shutdown = async (signal: string) => {
     app.log.info({ signal }, "Shutting down");
+    stopWatchCron();
     stopFeeHarvestCron();
     stopOpportunityHistoryCron();
     try {
@@ -35,11 +37,13 @@ async function main() {
 
   await app.listen({ port, host });
   startFeeHarvestCron();
+  startWatchCron();
   startOpportunityHistoryCron();
 }
 
 main().catch(async (error) => {
   console.error(error);
+  stopWatchCron();
   stopFeeHarvestCron();
   stopOpportunityHistoryCron();
   await closeRedisCache();

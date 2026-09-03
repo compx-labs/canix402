@@ -89,6 +89,8 @@ positions, execution, and swap routes from checked-in JSON under `src/data`:
 - `swaps-quote.sample.json` (`POST /swaps/quote`)
 - `swaps-optin.sample.json` (`POST /swaps/optin`)
 - `swaps-transactions.sample.json` (`POST /swaps/transactions`)
+- `sessions.sample.json` (`GET /sessions/{sessionId}`)
+- `watch.sample.json` (`GET /watch/{watchId}`)
 
 These are illustrative snapshots of the normalized response contract, not live paid
 data. They are generated through the protocol's precision formatter so numeric values

@@ -16,6 +16,7 @@
       "swap-aware-compose",
       "execution-simulate",
       "prepaid-sessions",
+      "watch-retainers",
       "haystack-swaps",
       "token-pricing",
       "mcp-server"
@@ -1126,6 +1127,129 @@
           200,
           402
         ]
+      },
+      {
+        "id": "watchCreate",
+        "method": "POST",
+        "path": "/watch",
+        "access": "paid",
+        "summary": "Register a paid wallet watch retainer",
+        "description": "Recurring compiler-priced x402 retainer that registers a walletless watch (address + thresholds + optional HTTPS webhook). Fires signed, idempotent notifications on health-factor, claimable-USD, APY-drop, or R\u00e9ti-capacity crossings. Canix never stores wallet keys \u2014 only the address, callback, and a server-generated HMAC secret (shown once). Refresh with POST /watch/refresh before TTL. MCP resource canix://watch/{watchId} lists recent firings.",
+        "tags": [
+          "watch",
+          "x402",
+          "agents",
+          "x402-global-challenge"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          400,
+          402,
+          500,
+          503
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet", "x-pragma": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma": "pragma: allowlist secret",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.25"
+          },
+          "amountUsdc": "0.25",
+          "amountMicro": "250000"
+        }
+      },
+      {
+        "id": "watchRefresh",
+        "method": "POST",
+        "path": "/watch/refresh",
+        "access": "paid",
+        "summary": "Refresh a paid wallet watch retainer",
+        "description": "Compiler-priced x402 payment that extends TTL on an existing watch id. Optionally rotateSecret to mint a new HMAC key (returned once). Cannot be paid with a prepaid session. Unknown or expired watches fail-closed; register again with POST /watch.",
+        "tags": [
+          "watch",
+          "x402",
+          "agents",
+          "x402-global-challenge"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          400,
+          402,
+          500,
+          503
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet", "x-pragma": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma": "pragma: allowlist secret",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.25"
+          },
+          "amountUsdc": "0.25",
+          "amountMicro": "250000"
+        }
+      },
+      {
+        "id": "watchReceipt",
+        "method": "GET",
+        "path": "/watch/:watchId",
+        "access": "free",
+        "summary": "Read watch receipt and recent threshold firings",
+        "description": "Returns the walletless watch receipt including thresholds, webhook URL, expiry, and recent signed-delivery firings (idempotency keys). Does not return the HMAC secret. Unknown or expired receipts fail-closed with 402 WATCH_*.",
+        "tags": [
+          "watch",
+          "agents",
+          "discovery"
+        ],
+        "pathParams": [
+          "watchId"
+        ],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          402
+        ]
+      },
+      {
+        "id": "watchRotateSecret",
+        "method": "POST",
+        "path": "/watch/:watchId/rotate-secret",
+        "access": "free",
+        "summary": "Rotate the watch webhook HMAC secret",
+        "description": "Mints a new webhook signing secret. Requires the current secret in X-Canix-Watch-Secret. The new secret is returned once and never stored as a wallet key. Does not extend retainer TTL \u2014 pay POST /watch/refresh for that.",
+        "tags": [
+          "watch",
+          "agents"
+        ],
+        "pathParams": [
+          "watchId"
+        ],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          402
+        ]
       }
     ],
     "errorCatalog": [
@@ -1178,8 +1302,38 @@
         "code": "INTERNAL_ERROR",
         "httpStatus": 500,
         "description": "Internal server error."
+      },
+      {
+        "code": "WATCH_INVALID",
+        "httpStatus": 402,
+        "description": "Watch receipt is unknown. Register a new paid watch with POST /watch."
+      },
+      {
+        "code": "WATCH_EXPIRED",
+        "httpStatus": 402,
+        "description": "Watch retainer TTL has elapsed. Fail-closed; pay POST /watch to register again."
+      },
+      {
+        "code": "WATCH_UNAVAILABLE",
+        "httpStatus": 402,
+        "description": "Watch store is unavailable. Fail-closed; retry later."
+      },
+      {
+        "code": "WATCH_UNAUTHORIZED",
+        "httpStatus": 402,
+        "description": "Watch HMAC secret does not match. Send the current secret in X-Canix-Watch-Secret to rotate."
       }
     ],
+    "watchPolicy": {
+      "receiptUriTemplate": "canix://watch/{watchId}",
+      "ttlSeconds": 86400,
+      "priceUsdc": "0.25",
+      "pollIntervalSeconds": 300,
+      "signatureHeader": "X-Canix-Signature",
+      "idempotencyHeader": "X-Canix-Idempotency-Key",
+      "secretHeader": "X-Canix-Watch-Secret",
+      "note": "Recurring x402 retainer. POST /watch registers address + thresholds + optional HTTPS webhook and returns an HMAC secret once. Notifications fire only on threshold crossings, signed with the secret, and carry an idempotency key for replay. Rotate the secret with POST /watch/{id}/rotate-secret. Canix never stores wallet keys."
+    },
     "mcpServer": {
       "name": "canix402",
       "transport": "streamable-http",
@@ -1206,6 +1360,10 @@
         "canix_create_session",
         "canix_refresh_session",
         "canix_get_session",
+        "canix_create_watch",
+        "canix_refresh_watch",
+        "canix_get_watch",
+        "canix_rotate_watch_secret",
         "canix_get_quote",
         "canix_optin",
         "canix_swap"

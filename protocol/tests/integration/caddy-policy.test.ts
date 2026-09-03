@@ -130,3 +130,18 @@ test("Caddy gives session create and refresh dedicated paid policies", () => {
   assert.match(caddyfile, /@free \{[\s\S]*?path [^\n]*\/sessions\/\*/);
 });
 
+test("Caddy gives watch create and refresh dedicated paid policies", () => {
+  assert.match(caddyfile, /@paid_watch_refresh path \/watch\/refresh/);
+  assert.match(
+    caddyfile,
+    /handle @paid_watch_refresh \{[\s\S]*?price \{\$X402_PRICE_WATCH_USDC\}[\s\S]*?reverse_proxy \{\$UPSTREAM_API\}[\s\S]*?\}/
+  );
+  assert.match(caddyfile, /@paid_watch path \/watch/);
+  assert.match(
+    caddyfile,
+    /handle @paid_watch \{[\s\S]*?price \{\$X402_PRICE_WATCH_USDC\}[\s\S]*?reverse_proxy \{\$UPSTREAM_API\}[\s\S]*?\}/
+  );
+  assert.match(caddyfile, /@free \{[\s\S]*?path [^\n]*\/watch\/\*/);
+  assert.match(caddyfile, /@free_post \{[\s\S]*?path [^\n]*\/watch\/\*\/rotate-secret/);
+});
+

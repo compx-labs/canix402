@@ -246,6 +246,30 @@ test("paid operations expose x-x402 metadata", async () => {
   assert.ok(openapi.components.responses?.SessionError);
   assert.ok(openapi.components.parameters?.CanixSessionHeader);
 
+  const watchCreateOperation = openapi.paths["/watch"]?.post;
+  assert.equal(
+    watchCreateOperation?.["x-x402"]?.requirementTemplate?.maxAmountRequired,
+    "0.25"
+  );
+  assert.equal(watchCreateOperation?.["x-payment-info"]?.price?.amount, "0.25");
+  assert.match(watchCreateOperation?.description ?? "", /webhook/i);
+  assert.match(watchCreateOperation?.description ?? "", /wallet keys/i);
+
+  const watchRefreshOperation = openapi.paths["/watch/refresh"]?.post;
+  assert.equal(
+    watchRefreshOperation?.["x-x402"]?.requirementTemplate?.maxAmountRequired,
+    "0.25"
+  );
+
+  assert.equal(openapi.paths["/watch/{watchId}"]?.get?.["x-x402"], undefined);
+  assert.equal(
+    openapi.paths["/watch/{watchId}"]?.get?.responses?.["402"]?.$ref,
+    "#/components/responses/WatchError"
+  );
+  assert.equal(openapi.paths["/watch/{watchId}/rotate-secret"]?.post?.["x-x402"], undefined);
+  assert.ok(openapi.components.responses?.WatchError);
+  assert.ok(openapi.components.schemas?.WatchReceipt);
+
   const sessionEligible = endpointPolicyMatrix.filter((endpoint) => endpoint.sessionAccess);
   for (const endpoint of sessionEligible) {
     const openapiPath = endpoint.pathPattern.replace(/:([A-Za-z]+)/g, "{$1}");

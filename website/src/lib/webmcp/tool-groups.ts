@@ -60,6 +60,17 @@ export const WEBMCP_TOOL_GROUPS: WebMcpToolGroup[] = [
     label: "Session",
     hint: "Humans buy a session in the bar above. Agents use these tools directly.",
     names: ["canix_create_session", "canix_refresh_session", "canix_get_session"]
+  },
+  {
+    id: "watch",
+    label: "Watch",
+    hint: "Paid retainers that push threshold crossings instead of polling positions.",
+    names: [
+      "canix_create_watch",
+      "canix_refresh_watch",
+      "canix_get_watch",
+      "canix_rotate_watch_secret"
+    ]
   }
 ];
 
