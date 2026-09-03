@@ -19,6 +19,7 @@ import swapsQuoteSample from "../data/swaps-quote.sample.json";
 import swapsOptinSample from "../data/swaps-optin.sample.json";
 import swapsTransactionsSample from "../data/swaps-transactions.sample.json";
 import sessionsSample from "../data/sessions.sample.json";
+import watchSample from "../data/watch.sample.json";
 
 const format = (value: unknown): string => JSON.stringify(value, null, 2);
 const eligibilityCurl = `curl -i ${config.gatewayBaseUrl}/eligibility -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","opportunityIds":["reti-staking-12"]}'`; // pragma: allowlist secret
@@ -356,6 +357,30 @@ const policyCurl = `curl -i ${config.gatewayBaseUrl}/policy/validate -H 'content
     />
     <h3>Sample receipt (200)</h3>
     <CodeBlock code={format(sessionsSample)} />
+  </section>
+
+  <section class="panel">
+    <h2>Watch / webhook retainers</h2>
+    <p>
+      One <code>POST /watch</code> (~0.25 USDC) registers a walletless address + thresholds retainer
+      instead of polling <code>/positions</code>. Optional HTTPS webhook; firings are HMAC-signed
+      (<code>X-Canix-Signature</code>) and idempotent (<code>X-Canix-Idempotency-Key</code>). Canix
+      never stores wallet keys. No webhook means MCP-only: read firings from the free receipt.
+    </p>
+    <h3>1) Register a watch (expect 402, then retry with PAYMENT-SIGNATURE)</h3>
+    <CodeBlock
+      code={`curl -i ${config.gatewayBaseUrl}/watch -X POST -H 'content-type: application/json' -d '{"address":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ","thresholds":{"healthFactor":1.25,"claimableUsd":8},"webhookUrl":"https://hooks.example/canix"}'`}
+    />
+    <h3>2) Read recent firings (free; secret never returned)</h3>
+    <CodeBlock
+      code={`curl -s ${config.gatewayBaseUrl}/watch/cwatch_YOUR_WATCH_ID | jq '.data.firings'`}
+    />
+    <h3>3) Rotate the HMAC secret (free; send the current secret)</h3>
+    <CodeBlock
+      code={`curl -i ${config.gatewayBaseUrl}/watch/cwatch_YOUR_WATCH_ID/rotate-secret -X POST -H 'X-Canix-Watch-Secret: wsec_YOUR_CURRENT_SECRET'`}
+    />
+    <h3>Sample receipt (200)</h3>
+    <CodeBlock code={format(watchSample)} />
   </section>
 
   <section class="panel">

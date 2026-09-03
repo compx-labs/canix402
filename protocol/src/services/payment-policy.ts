@@ -1,13 +1,16 @@
 import { EXECUTION_PROTOCOL_CAVEATS_AGENT_HINT } from "../execution/shape-docs.js";
 import type { SessionBucket, SessionPolicy } from "../types/session.js";
+import type { WatchPolicy } from "../types/watch.js";
 import {
   DEFAULT_SESSION_PRICE_USDC
 } from "../types/session-schema.js";
+import { DEFAULT_WATCH_PRICE_USDC } from "../types/watch-schema.js";
 import {
   getSessionQuoteBudget,
   getSessionResearchBudget,
   getSessionTtlSeconds
 } from "./session-store.js";
+import { getWatchPollSeconds, getWatchTtlSeconds } from "./watch-store.js";
 
 export type EndpointAccess = "free" | "paid" | "unknown";
 export type SessionAccess = SessionBucket;
@@ -403,6 +406,50 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
       "Returns the session receipt including remaining research and quotes/plans quota and expiry. Agents should use this resource instead of the public indexer /transactions showcase. Fail-closed 402 when the receipt is unknown or expired.",
     tags: ["sessions", "agents", "discovery"],
     pathParams: ["sessionId"]
+  },
+  {
+    id: "watchCreate",
+    method: "POST",
+    pathPattern: "/watch",
+    access: "paid",
+    summary: "Register a paid wallet watch retainer",
+    description:
+      "Recurring compiler-priced x402 retainer that registers a walletless watch (address + thresholds + optional HTTPS webhook). Fires signed, idempotent notifications on health-factor, claimable-USD, APY-drop, or Réti-capacity crossings. Canix never stores wallet keys — only the address, callback, and a server-generated HMAC secret (shown once). Refresh with POST /watch/refresh before TTL. MCP resource canix://watch/{watchId} lists recent firings.",
+    tags: ["watch", "x402", "agents", HACKATHON_TAG],
+    priceUsdc: process.env.X402_PRICE_WATCH_USDC ?? DEFAULT_WATCH_PRICE_USDC
+  },
+  {
+    id: "watchRefresh",
+    method: "POST",
+    pathPattern: "/watch/refresh",
+    access: "paid",
+    summary: "Refresh a paid wallet watch retainer",
+    description:
+      "Compiler-priced x402 payment that extends TTL on an existing watch id. Optionally rotateSecret to mint a new HMAC key (returned once). Cannot be paid with a prepaid session. Unknown or expired watches fail-closed; register again with POST /watch.",
+    tags: ["watch", "x402", "agents", HACKATHON_TAG],
+    priceUsdc: process.env.X402_PRICE_WATCH_USDC ?? DEFAULT_WATCH_PRICE_USDC
+  },
+  {
+    id: "watchReceipt",
+    method: "GET",
+    pathPattern: "/watch/:watchId",
+    access: "free",
+    summary: "Read watch receipt and recent threshold firings",
+    description:
+      "Returns the walletless watch receipt including thresholds, webhook URL, expiry, and recent signed-delivery firings (idempotency keys). Does not return the HMAC secret. Unknown or expired receipts fail-closed with 402 WATCH_*.",
+    tags: ["watch", "agents", "discovery"],
+    pathParams: ["watchId"]
+  },
+  {
+    id: "watchRotateSecret",
+    method: "POST",
+    pathPattern: "/watch/:watchId/rotate-secret",
+    access: "free",
+    summary: "Rotate the watch webhook HMAC secret",
+    description:
+      "Mints a new webhook signing secret. Requires the current secret in X-Canix-Watch-Secret. The new secret is returned once and never stored as a wallet key. Does not extend retainer TTL — pay POST /watch/refresh for that.",
+    tags: ["watch", "agents"],
+    pathParams: ["watchId"]
   }
 ] as const;
 
@@ -500,7 +547,9 @@ const paidPathMatchers = [
   /^\/execution\/compose$/,
   /^\/execution\/simulate$/,
   /^\/sessions$/,
-  /^\/sessions\/refresh$/
+  /^\/sessions\/refresh$/,
+  /^\/watch$/,
+  /^\/watch\/refresh$/
 ];
 
 const freePathMatchers = [
@@ -533,6 +582,10 @@ const freePathMatchers = [
 const SESSION_CREATE_PATH = "/sessions";
 const SESSION_REFRESH_PATH = "/sessions/refresh";
 const SESSION_RECEIPT_PATH = /^\/sessions\/[^/]+$/;
+const WATCH_CREATE_PATH = "/watch";
+const WATCH_REFRESH_PATH = "/watch/refresh";
+const WATCH_RECEIPT_PATH = /^\/watch\/[^/]+$/;
+const WATCH_ROTATE_PATH = /^\/watch\/[^/]+\/rotate-secret$/;
 
 export function classifyEndpointAccess(
   path: string,
@@ -550,6 +603,21 @@ export function classifyEndpointAccess(
     return "paid";
   }
   if (SESSION_RECEIPT_PATH.test(pathname)) {
+    if (!methodUpper || methodUpper === "GET") {
+      return "free";
+    }
+  }
+
+  if (pathname === WATCH_CREATE_PATH) {
+    return "paid";
+  }
+  if (pathname === WATCH_REFRESH_PATH && methodUpper !== "GET") {
+    return "paid";
+  }
+  if (WATCH_ROTATE_PATH.test(pathname)) {
+    return "free";
+  }
+  if (WATCH_RECEIPT_PATH.test(pathname)) {
     if (!methodUpper || methodUpper === "GET") {
       return "free";
     }
@@ -622,5 +690,21 @@ export function getSessionPolicy(
     oneShotDefault: true,
     note:
       "Exact-scheme one-shots remain the default. Send X-Canix-Session with a prepaid receipt to consume N research or M quotes/plans until TTL. Create/refresh are one-shot only. Fail-closed on expiry, exhausted quota, or store unavailability."
+  };
+}
+
+export function getWatchPolicy(
+  env: NodeJS.ProcessEnv = process.env
+): WatchPolicy {
+  return {
+    receiptUriTemplate: "canix://watch/{watchId}",
+    ttlSeconds: getWatchTtlSeconds(env),
+    priceUsdc: env.X402_PRICE_WATCH_USDC?.trim() || DEFAULT_WATCH_PRICE_USDC,
+    pollIntervalSeconds: getWatchPollSeconds(env),
+    signatureHeader: "X-Canix-Signature",
+    idempotencyHeader: "X-Canix-Idempotency-Key",
+    secretHeader: "X-Canix-Watch-Secret",
+    note:
+      "Recurring x402 retainer. POST /watch registers address + thresholds + optional HTTPS webhook and returns an HMAC secret once. Notifications fire only on threshold crossings, signed with the secret, and carry an idempotency key for replay. Rotate the secret with POST /watch/{id}/rotate-secret. Canix never stores wallet keys."
   };
 }

@@ -6,7 +6,7 @@
 	header {
 		Access-Control-Allow-Origin *
 		Access-Control-Allow-Methods "GET, POST, OPTIONS"
-		Access-Control-Allow-Headers "Content-Type, PAYMENT-SIGNATURE, PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-Canix-Session"
+		Access-Control-Allow-Headers "Content-Type, PAYMENT-SIGNATURE, PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-Canix-Session, X-Canix-Watch-Secret"
 		Access-Control-Expose-Headers "PAYMENT-REQUIRED, PAYMENT-RESPONSE, x-canix-session-remaining-research, x-canix-session-remaining-quotes, x-canix-session-expires-at"
 	}
 
@@ -19,7 +19,7 @@
 
 	@free {
 		method GET
-		path / /health /ready /metadata /discovery /openapi.json /llms.txt /llms-full.txt /robots.txt /favicon.ico /favicon.png /logo.png /banner.png /.well-known/x402 /.well-known/x402.json /.well-known/agent-card.json /.well-known/agent.json /.well-known/ai-plugin.json /swaps/quote /swaps/optin /pricing /execution/shapes /public/agents/brownie/positions /sessions/*
+		path / /health /ready /metadata /discovery /openapi.json /llms.txt /llms-full.txt /robots.txt /favicon.ico /favicon.png /logo.png /banner.png /.well-known/x402 /.well-known/x402.json /.well-known/agent-card.json /.well-known/agent.json /.well-known/ai-plugin.json /swaps/quote /swaps/optin /pricing /execution/shapes /public/agents/brownie/positions /sessions/* /watch/*
 	}
 	handle @free {
 		reverse_proxy {$UPSTREAM_API}
@@ -27,7 +27,7 @@
 
 	@free_post {
 		method POST
-		path /swaps/quote /swaps/optin /pricing
+		path /swaps/quote /swaps/optin /pricing /watch/*/rotate-secret
 	}
 	handle @free_post {
 		reverse_proxy {$UPSTREAM_API}
@@ -382,6 +382,50 @@
 			accept {
 				pay_to {$X402_PAY_TO}
 				price {$X402_PRICE_SESSIONS_USDC}
+				network {$X402_NETWORK}
+				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+		}
+
+		reverse_proxy {$UPSTREAM_API}
+	}
+
+	@paid_watch_refresh path /watch/refresh
+	handle @paid_watch_refresh {
+		x402 {
+			description "canix402 watch retainer refresh endpoint"
+			mime_type application/json
+			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile watch_refresh
+
+			accept {
+				pay_to {$X402_PAY_TO}
+				price {$X402_PRICE_WATCH_USDC}
+				network {$X402_NETWORK}
+				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+		}
+
+		reverse_proxy {$UPSTREAM_API}
+	}
+
+	@paid_watch path /watch
+	handle @paid_watch {
+		x402 {
+			description "canix402 watch retainer registration endpoint"
+			mime_type application/json
+			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile watch
+
+			accept {
+				pay_to {$X402_PAY_TO}
+				price {$X402_PRICE_WATCH_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
 				extra {

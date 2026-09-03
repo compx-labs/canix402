@@ -85,6 +85,30 @@ const constraints = {
   }
 };
 
+const watchThresholds = {
+  type: "object",
+  additionalProperties: false,
+  minProperties: 1,
+  properties: {
+    healthFactor: { type: "number", exclusiveMinimum: 0 },
+    claimableUsd: { type: "number", minimum: 0 },
+    apyDropBps: { type: "integer", minimum: 1, maximum: 100000 },
+    retiCapacity: {
+      anyOf: [
+        { type: "boolean", const: true },
+        {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            minStakerSlotsRemaining: { type: "integer", minimum: 0 },
+            minAlgoRoomMicroAlgos: { type: "string", pattern: "^[0-9]+$" }
+          }
+        }
+      ]
+    }
+  }
+};
+
 const quote = {
   type: "object",
   required: [
@@ -182,5 +206,6 @@ export const schemas = {
   disabledProtocol,
   pagination,
   constraints,
+  watchThresholds,
   quote
 };

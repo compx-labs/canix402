@@ -39,18 +39,29 @@ function paidMeta(result: PaidCallResult, fallbackPriceUsdc: string) {
   };
 }
 
-function sessionErrorFromBody(body: unknown): { code: string; message: string } | undefined {
+function typedApiErrorFromBody(
+  body: unknown,
+  prefix: "SESSION_" | "WATCH_"
+): { code: string; message: string } | undefined {
   if (!body || typeof body !== "object") {
     return undefined;
   }
   const error = (body as { error?: { code?: unknown; message?: unknown } }).error;
-  if (typeof error?.code !== "string" || !error.code.startsWith("SESSION_")) {
+  if (typeof error?.code !== "string" || !error.code.startsWith(prefix)) {
     return undefined;
   }
   return {
     code: error.code,
     message: typeof error.message === "string" ? error.message : error.code
   };
+}
+
+function sessionErrorFromBody(body: unknown): { code: string; message: string } | undefined {
+  return typedApiErrorFromBody(body, "SESSION_");
+}
+
+function watchErrorFromBody(body: unknown): { code: string; message: string } | undefined {
+  return typedApiErrorFromBody(body, "WATCH_");
 }
 
 export function paymentSignatureArgSchema() {
@@ -105,6 +116,20 @@ export function formatPaidToolResult(
           arg: "paymentSignature",
           header: "PAYMENT-SIGNATURE"
         },
+        gatewayResponse: result.body
+      });
+    }
+    const watchError = watchErrorFromBody(result.body);
+    if (watchError) {
+      return jsonResult({
+        error: watchError.code,
+        message: watchError.message,
+        mcpPayment: payment,
+        request,
+        retry:
+          watchError.code === "WATCH_UNAUTHORIZED"
+            ? { arg: "webhookSecret", header: "X-Canix-Watch-Secret" }
+            : { arg: "paymentSignature", header: "PAYMENT-SIGNATURE" },
         gatewayResponse: result.body
       });
     }
@@ -806,6 +831,143 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
         if (result.status === 402) {
           return jsonResult(result.body);
         }
+        return jsonResult(result.body);
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  const watchThresholdsSchema = z
+    .object({
+      healthFactor: z.number().gt(0).optional(),
+      claimableUsd: z.number().min(0).optional(),
+      apyDropBps: z.number().int().min(1).max(100_000).optional(),
+      retiCapacity: z
+        .union([
+          z.literal(true),
+          z.object({
+            minStakerSlotsRemaining: z.number().int().min(0).optional(),
+            minAlgoRoomMicroAlgos: z.string().regex(/^[0-9]+$/).optional()
+          })
+        ])
+        .optional()
+    })
+    .refine(
+      (value) =>
+        value.healthFactor !== undefined ||
+        value.claimableUsd !== undefined ||
+        value.apyDropBps !== undefined ||
+        value.retiCapacity !== undefined,
+      { message: "At least one threshold is required." }
+    );
+
+  server.registerTool(
+    "canix_create_watch",
+    {
+      description:
+        "Register a paid wallet watch retainer (POST /watch, ~0.25 USDC). Pass address + thresholds (healthFactor, claimableUsd, apyDropBps, retiCapacity) and optional HTTPS webhookUrl. Returns a walletless receipt and HMAC secret once. Notifications fire on threshold crossings with X-Canix-Signature and an idempotency key. Canix never stores wallet keys. Refresh with canix_refresh_watch before TTL.",
+      inputSchema: {
+        address: z.string().min(58).max(58),
+        thresholds: watchThresholdsSchema,
+        webhookUrl: z.string().url().optional(),
+        paymentSignature: paymentSignatureArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const body = {
+          address: args.address,
+          thresholds: args.thresholds,
+          ...(args.webhookUrl ? { webhookUrl: args.webhookUrl } : {})
+        };
+        const result = await client.fetchPaid("/watch", {
+          method: "POST",
+          body,
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+        });
+        return formatPaidToolResult(result, "0.25", {
+          path: "/watch",
+          method: "POST",
+          body
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_refresh_watch",
+    {
+      description:
+        "Refresh a paid watch retainer (POST /watch/refresh, ~0.25 USDC). Extends TTL. Optionally rotateSecret to mint a new HMAC key (returned once). One-shot only — do not send sessionReceipt.",
+      inputSchema: {
+        watchId: z.string().min(1),
+        rotateSecret: z.boolean().optional(),
+        paymentSignature: paymentSignatureArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const body = {
+          watchId: args.watchId,
+          ...(args.rotateSecret !== undefined ? { rotateSecret: args.rotateSecret } : {})
+        };
+        const result = await client.fetchPaid("/watch/refresh", {
+          method: "POST",
+          body,
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+        });
+        return formatPaidToolResult(result, "0.25", {
+          path: "/watch/refresh",
+          method: "POST",
+          body
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_get_watch",
+    {
+      description:
+        "Read a watch receipt and recent threshold firings (GET /watch/{watchId}). Free. Does not return the HMAC secret. Unknown or expired receipts return 402 WATCH_INVALID/WATCH_EXPIRED.",
+      inputSchema: {
+        watchId: z.string().min(1)
+      }
+    },
+    async (args) => {
+      try {
+        const path = `/watch/${encodeURIComponent(args.watchId)}`;
+        const result = await client.fetchPaid(path, { method: "GET" });
+        return jsonResult(result.body);
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_rotate_watch_secret",
+    {
+      description:
+        "Rotate the watch webhook HMAC secret (POST /watch/{watchId}/rotate-secret). Free. Requires the current secret. The new secret is returned once. Does not extend retainer TTL.",
+      inputSchema: {
+        watchId: z.string().min(1),
+        webhookSecret: z.string().min(1)
+      }
+    },
+    async (args) => {
+      try {
+        const path = `/watch/${encodeURIComponent(args.watchId)}/rotate-secret`;
+        const result = await client.fetchPaid(path, {
+          method: "POST",
+          body: {},
+          headers: { "X-Canix-Watch-Secret": args.webhookSecret }
+        });
         return jsonResult(result.body);
       } catch (error) {
         return errorResult(error);

@@ -137,6 +137,7 @@ async function startLiveCaddyHarness(env: LiveEnv): Promise<LiveCaddyHarness> {
           process.env.X402_PRICE_EXECUTION_SIMULATE_USDC || "0.1",
         X402_PRICE_HAYSTACK_SWAP_USDC: env.priceHaystackSwapUsdc,
         X402_PRICE_SESSIONS_USDC: process.env.X402_PRICE_SESSIONS_USDC || "0.25",
+        X402_PRICE_WATCH_USDC: process.env.X402_PRICE_WATCH_USDC || "0.25",
         X402_NETWORK: env.network,
         X402_SCHEME: env.scheme
       }

@@ -64,18 +64,29 @@ export function errorResult(error: unknown): CallToolResult {
   };
 }
 
-function sessionErrorFromBody(body: unknown): { code: string; message: string } | undefined {
+function typedApiErrorFromBody(
+  body: unknown,
+  prefix: "SESSION_" | "WATCH_"
+): { code: string; message: string } | undefined {
   if (!body || typeof body !== "object") {
     return undefined;
   }
   const error = (body as { error?: { code?: unknown; message?: unknown } }).error;
-  if (typeof error?.code !== "string" || !error.code.startsWith("SESSION_")) {
+  if (typeof error?.code !== "string" || !error.code.startsWith(prefix)) {
     return undefined;
   }
   return {
     code: error.code,
     message: typeof error.message === "string" ? error.message : error.code
   };
+}
+
+function sessionErrorFromBody(body: unknown): { code: string; message: string } | undefined {
+  return typedApiErrorFromBody(body, "SESSION_");
+}
+
+function watchErrorFromBody(body: unknown): { code: string; message: string } | undefined {
+  return typedApiErrorFromBody(body, "WATCH_");
 }
 
 export function paidToolResult(
@@ -109,6 +120,20 @@ export function paidToolResult(
           arg: "paymentSignature",
           header: "PAYMENT-SIGNATURE"
         },
+        gatewayResponse: result.body
+      });
+    }
+    const watchError = watchErrorFromBody(result.body);
+    if (watchError) {
+      return jsonResult({
+        error: watchError.code,
+        message: watchError.message,
+        mcpPayment: payment,
+        request,
+        retry:
+          watchError.code === "WATCH_UNAUTHORIZED"
+            ? { arg: "webhookSecret", header: "X-Canix-Watch-Secret" }
+            : { arg: "paymentSignature", header: "PAYMENT-SIGNATURE" },
         gatewayResponse: result.body
       });
     }

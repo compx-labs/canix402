@@ -41,6 +41,8 @@ Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. D
 - [POST /execution/simulate](https://canix402-api.compx.io/execution/simulate): 0.1 USDC — Simulate compiled unsigned groups for predicted balance and position deltas  # pragma: allowlist secret
 - [POST /sessions](https://canix402-api.compx.io/sessions): 0.25 USDC — Buy a prepaid agent session receipt  # pragma: allowlist secret
 - [POST /sessions/refresh](https://canix402-api.compx.io/sessions/refresh): 0.25 USDC — Refresh a prepaid agent session receipt  # pragma: allowlist secret
+- [POST /watch](https://canix402-api.compx.io/watch): 0.25 USDC — Register a paid wallet watch retainer  # pragma: allowlist secret
+- [POST /watch/refresh](https://canix402-api.compx.io/watch/refresh): 0.25 USDC — Refresh a paid wallet watch retainer  # pragma: allowlist secret
 
 ## Optional
 

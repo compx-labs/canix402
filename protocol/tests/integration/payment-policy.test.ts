@@ -177,3 +177,28 @@ test("prepaid sessions are paid create/refresh and a free receipt", () => {
   assert.equal(classifySessionBucket("/sessions", "POST"), undefined);
 });
 
+test("watch retainers are paid create/refresh and a free receipt/rotate", () => {
+  assert.equal(classifyEndpointAccess("/watch", "POST"), "paid");
+  assert.equal(classifyEndpointAccess("/watch/refresh", "POST"), "paid");
+  assert.equal(classifyEndpointAccess("/watch/cwatch_demo", "GET"), "free");
+  assert.equal(
+    classifyEndpointAccess("/watch/cwatch_demo/rotate-secret", "POST"),
+    "free"
+  );
+
+  const create = endpointPolicyMatrix.find((endpoint) => endpoint.id === "watchCreate");
+  const refresh = endpointPolicyMatrix.find((endpoint) => endpoint.id === "watchRefresh");
+  const receipt = endpointPolicyMatrix.find((endpoint) => endpoint.id === "watchReceipt");
+  const rotate = endpointPolicyMatrix.find((endpoint) => endpoint.id === "watchRotateSecret");
+  assert.equal(create?.method, "POST");
+  assert.equal(create?.access, "paid");
+  assert.equal(create?.priceUsdc, process.env.X402_PRICE_WATCH_USDC ?? "0.25");
+  assert.equal(create?.sessionAccess, undefined);
+  assert.equal(refresh?.pathPattern, "/watch/refresh");
+  assert.equal(refresh?.access, "paid");
+  assert.equal(receipt?.access, "free");
+  assert.equal(receipt?.pathPattern, "/watch/:watchId");
+  assert.equal(rotate?.access, "free");
+  assert.equal(classifySessionBucket("/watch", "POST"), undefined);
+});
+

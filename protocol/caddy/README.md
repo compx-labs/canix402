@@ -15,6 +15,7 @@ single source directory.
   `GET /public/agents/brownie/positions` (Brownie Bot showcase wallet only)
   (`GET /metrics` is free on the protocol process only; not proxied as free on Caddy)
   `GET /sessions/:sessionId` (prepaid session receipt / remaining N/M)
+  `GET /watch/:watchId` (watch retainer receipt / recent firings)
 - Paid routes emit `accepts[].extra.tag = x402-global-challenge` for facilitator
   Global Hackathon discovery filtering.
   - Caddyfile `accept { extra { tag ... } }` is parsed into the plugin config.
@@ -38,6 +39,8 @@ single source directory.
   - `POST /swaps/transactions` (price: `X402_PRICE_HAYSTACK_SWAP_USDC`, default `0.005`)
   - `POST /sessions` (price: `X402_PRICE_SESSIONS_USDC`, default `0.25`) — prepaid receipt mint
   - `POST /sessions/refresh` (price: `X402_PRICE_SESSIONS_USDC`, default `0.25`) — quota/TTL reset; one-shot only
+  - `POST /watch` (price: `X402_PRICE_WATCH_USDC`, default `0.25`) — watch retainer registration
+  - `POST /watch/refresh` (price: `X402_PRICE_WATCH_USDC`, default `0.25`) — watch TTL refresh; one-shot only
 
 When `X-Canix-Session` is present on session-eligible paid paths, Caddy skips x402
 and the protocol process consumes the receipt (fail-closed). Create/refresh never

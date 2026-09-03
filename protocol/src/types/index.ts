@@ -137,6 +137,31 @@ export type {
   SessionResponse
 } from "./session-schema.js";
 export type {
+  WatchFiring,
+  WatchKind,
+  WatchPolicy,
+  WatchReceipt,
+  WatchStatus,
+  WatchThresholds
+} from "./watch.js";
+export {
+  DEFAULT_WATCH_POLL_SECONDS,
+  DEFAULT_WATCH_PRICE_USDC,
+  DEFAULT_WATCH_TTL_SECONDS,
+  WatchCreateRequestSchema,
+  WatchReceiptSchema,
+  WatchRefreshRequestSchema,
+  WatchResponseSchema,
+  WatchThresholdsSchema
+} from "./watch-schema.js";
+export type {
+  WatchCreateRequest,
+  WatchReceiptDto,
+  WatchRefreshRequest,
+  WatchResponse,
+  WatchThresholdsDto
+} from "./watch-schema.js";
+export type {
   HaystackQuote,
   SwapOptInRequest,
   SwapOptInResponse,

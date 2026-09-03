@@ -107,6 +107,8 @@ const SECRET_SCAN_PRAGMA = "  # pragma: allowlist secret";
 
 function needsSecretScanPragma(path: string): boolean {
   return (
+    path === "/opportunities" ||
+    path === "/protocols/:protocol/opportunities" ||
     path === "/eligibility" ||
     path === "/plans" ||
     path === "/plans/rebalance" ||
@@ -114,7 +116,9 @@ function needsSecretScanPragma(path: string): boolean {
     path === "/execution/simulate" ||
     path === "/policy/validate" ||
     path === "/sessions" ||
-    path === "/sessions/refresh"
+    path === "/sessions/refresh" ||
+    path === "/watch" ||
+    path === "/watch/refresh"
   );
 }
 
@@ -200,7 +204,8 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
     executionQuotes: loadSample("execution-quotes.sample.json"),
     swapsQuote: loadSample("swaps-quote.sample.json"),
     swapsOptin: loadSample("swaps-optin.sample.json"),
-    swapsTransactions: loadSample("swaps-transactions.sample.json")
+    swapsTransactions: loadSample("swaps-transactions.sample.json"),
+    watch: loadSample("watch.sample.json")
   };
 
   const fullGuideBlurb = `x402-gated Algorand DeFi data and walletless transaction API (version ${discovery.apiVersion}). Normalized yield data and Haystack swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.`; // pragma: allowlist secret
@@ -236,7 +241,7 @@ Always call the **gateway**, not an internal upstream API. x402 enforcement, \`P
 
 ### MCP server
 
-Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${MCP_URL}\` (streamable-http). Metadata: \`${MCP_WELL_KNOWN}\`. Walletless: paid tool preflight returns payment requirements; retry with \`paymentSignature\`. Tools include \`canix_list_opportunities\`, \`canix_list_execution_shapes\`, \`canix_get_positions\`, \`canix_list_claimable\`, \`canix_check_eligibility\`, \`canix_get_plan\`, \`canix_get_rebalance_plan\`, \`canix_validate_policy\`, \`canix_compose_enter\`, \`canix_get_execution_quote\`, \`canix_simulate_execution\`, \`canix_create_session\`, \`canix_refresh_session\`, \`canix_get_session\`, and free discovery helpers. Prepaid sessions: one x402 payment unlocks N research + M quotes/plans for a TTL (\`sessionReceipt\` / \`X-Canix-Session\`); one-shots remain the default. See ${DOCS_SITE}/mcp.${SECRET_SCAN_PRAGMA}
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${MCP_URL}\` (streamable-http). Metadata: \`${MCP_WELL_KNOWN}\`. Walletless: paid tool preflight returns payment requirements; retry with \`paymentSignature\`. Tools include \`canix_list_opportunities\`, \`canix_list_execution_shapes\`, \`canix_get_positions\`, \`canix_list_claimable\`, \`canix_check_eligibility\`, \`canix_get_plan\`, \`canix_get_rebalance_plan\`, \`canix_validate_policy\`, \`canix_compose_enter\`, \`canix_get_execution_quote\`, \`canix_simulate_execution\`, \`canix_create_session\`, \`canix_refresh_session\`, \`canix_get_session\`, \`canix_create_watch\`, \`canix_refresh_watch\`, \`canix_get_watch\`, and free discovery helpers. Prepaid sessions: one x402 payment unlocks N research + M quotes/plans for a TTL (\`sessionReceipt\` / \`X-Canix-Session\`); one-shots remain the default. Watch retainers: \`POST /watch\` registers address + thresholds and delivers signed, idempotent webhooks instead of polling positions. See ${DOCS_SITE}/mcp.${SECRET_SCAN_PRAGMA}
 
 ## x402 payment flow
 
@@ -275,6 +280,8 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 - \`POST /execution/compose\` — requires \`address\`, \`opportunityId\`, \`fromAssetId\`, \`amount\`; 0.10 USDC; sequenced unsigned groups opt-in → Haystack swap → enter. Groups never merged; sign only user legs. Failure modes (stale quote, missing opt-in, slippage) on step warnings.  // pragma: allowlist secret
 - \`POST /execution/simulate\` — requires \`address\` and compiled \`groups[]\`; 0.10 USDC; predicted balance and position deltas without signing. Fail closed with machine-readable reasons (stale quote, not opted in, min balance, health factor, capacity). \`POST /plans\` attaches \`data.simulation\` when groups are compiled.  // pragma: allowlist secret
 - \`POST /policy/validate\` — requires a versioned \`policy\` document plus a compiled \`plan\` and/or proposed \`quotes[]\`; 0.25 USDC; machine-readable \`pass\` / \`reasons[]\` (protocol weight, ALGO reserve, TVL/freshness, no-new-borrows, execution-ready). Fails closed when a required field is missing. Canix does not sign.  // pragma: allowlist secret
+- \`POST /sessions\` — 0.25 USDC; mints a walletless prepaid receipt that unlocks N research + M quotes/plans for a TTL. One-shots remain the default.  // pragma: allowlist secret
+- \`POST /watch\` — 0.25 USDC recurring retainer; address + thresholds (health factor, claimable USD, APY drop, Réti capacity) and optional HTTPS webhook. Signed, idempotent deliveries. HMAC secret shown once. No wallet keys.  // pragma: allowlist secret
 - \`GET /positions\` — requires \`address\` (Algorand account); returns normalized wallet DeFi positions for exactly 0.005 USDC.
 - \`GET /positions/claimable\` — requires \`address\`; claim desk with USD, fee/worth-claiming hints, and \`claimAllQuotes\` for exactly 0.001 USDC. Compile via \`POST /execution/quotes\` (~0.1 USDC flat; groups never merged).
 - \`GET /execution/shapes\` — free catalog of verified shape keys and requiredInputs (metadata only). \`meta.caveatsDocsPath\` is \`protocol/docs/execution-shapes/protocol-caveats.md\` (pool discovery, opt-ins, min-balance, slippage, liquidity limits, app upgrades). Do not guess those details.
@@ -391,6 +398,12 @@ ${JSON.stringify(samples.swapsOptin, null, 2)}
 
 \`\`\`json
 ${JSON.stringify(samples.swapsTransactions, null, 2)}
+\`\`\`
+
+### GET /watch/{watchId}
+
+\`\`\`json
+${JSON.stringify(samples.watch, null, 2)}
 \`\`\`
 
 ## Trust and disclaimer

@@ -18,6 +18,13 @@ const SESSION_TOOLS = [
   "canix_get_session"
 ] as const;
 
+const WATCH_TOOLS = [
+  "canix_create_watch",
+  "canix_refresh_watch",
+  "canix_get_watch",
+  "canix_rotate_watch_secret"
+] as const;
+
 const LOCKED_MCP_SET = [
   "canix_health",
   "canix_get_metadata",
@@ -57,13 +64,13 @@ function encodePaymentRequired(amount = "10000"): string {
   ).toString("base64");
 }
 
-test("WebMCP catalog is the locked MCP set plus 13.8 session tools", () => {
-  assert.deepEqual([...WEBMCP_TOOL_NAMES], [...LOCKED_MCP_SET, ...SESSION_TOOLS]);
+test("WebMCP catalog is the locked MCP set plus 13.8 session and 13.9 watch tools", () => {
+  assert.deepEqual([...WEBMCP_TOOL_NAMES], [...LOCKED_MCP_SET, ...SESSION_TOOLS, ...WATCH_TOOLS]);
   assert.deepEqual(
     WEBMCP_TOOLS.map((tool) => tool.name),
     [...WEBMCP_TOOL_NAMES]
   );
-  assert.equal(WEBMCP_TOOLS.length, 21);
+  assert.equal(WEBMCP_TOOLS.length, 25);
 });
 
 test("session tools use the shipped 13.8 names", () => {
@@ -75,6 +82,21 @@ test("session tools use the shipped 13.8 names", () => {
   assert.equal(getWebMcpTool("canix_get_session")?.http.path, "/sessions/{sessionId}");
   assert.equal(getWebMcpTool("canix_create_session")?.allowSessionReceipt, false);
   assert.equal(getWebMcpTool("canix_refresh_session")?.allowSessionReceipt, false);
+});
+
+test("watch tools use the shipped 13.9 names", () => {
+  for (const name of WATCH_TOOLS) {
+    assert.ok(getWebMcpTool(name), `missing ${name}`);
+  }
+  assert.equal(getWebMcpTool("canix_create_watch")?.http.path, "/watch");
+  assert.equal(getWebMcpTool("canix_refresh_watch")?.http.path, "/watch/refresh");
+  assert.equal(getWebMcpTool("canix_get_watch")?.http.path, "/watch/{watchId}");
+  assert.equal(
+    getWebMcpTool("canix_rotate_watch_secret")?.http.path,
+    "/watch/{watchId}/rotate-secret"
+  );
+  assert.equal(getWebMcpTool("canix_create_watch")?.allowSessionReceipt, false);
+  assert.equal(getWebMcpTool("canix_refresh_watch")?.allowSessionReceipt, false);
 });
 
 test("paid tool schemas match MCP auth args", () => {
@@ -218,6 +240,77 @@ test("create session cannot be paid with a session receipt", async () => {
   assert.equal(method, "POST");
   assert.equal(body, "{}");
   assert.equal(seenSession, "");
+});
+
+test("create watch cannot be paid with a session receipt", async () => {
+  let seenSession = "";
+  let body = "";
+  await executeCanixWebMcpToolValue(
+    "canix_create_watch",
+    {
+      address: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+      thresholds: { healthFactor: 1.2 },
+      sessionReceipt: "csess_live"
+    },
+    {
+      gatewayBaseUrl: "https://gateway.example",
+      fetchImpl: async (input, init) => {
+        assert.equal(new URL(String(input)).pathname, "/watch");
+        seenSession = (init?.headers as Record<string, string>)["X-Canix-Session"] ?? "";
+        body = String(init?.body);
+        return new Response("{}", {
+          status: 402,
+          headers: { "payment-required": encodePaymentRequired("250000") }
+        });
+      }
+    }
+  );
+  assert.equal(seenSession, "");
+  assert.equal(JSON.parse(body).sessionReceipt, undefined);
+});
+
+test("rotate watch secret sends X-Canix-Watch-Secret and omits it from the body", async () => {
+  let method = "";
+  let pathname = "";
+  let secretHeader = "";
+  let body = "";
+  await executeCanixWebMcpToolValue(
+    "canix_rotate_watch_secret",
+    { watchId: "cwatch_demo", webhookSecret: "wsec_current" },
+    {
+      gatewayBaseUrl: "https://gateway.example",
+      fetchImpl: async (input, init) => {
+        pathname = new URL(String(input)).pathname;
+        method = init?.method ?? "";
+        secretHeader = (init?.headers as Record<string, string>)["X-Canix-Watch-Secret"] ?? "";
+        body = String(init?.body);
+        return new Response(JSON.stringify({ data: { watchId: "cwatch_demo" } }), { status: 200 });
+      }
+    }
+  );
+  assert.equal(method, "POST");
+  assert.equal(pathname, "/watch/cwatch_demo/rotate-secret");
+  assert.equal(secretHeader, "wsec_current");
+  assert.equal(JSON.parse(body).webhookSecret, undefined);
+});
+
+test("expired watch receipt fails closed as WATCH_EXPIRED", async () => {
+  const result = await executeCanixWebMcpToolValue(
+    "canix_get_watch",
+    { watchId: "cwatch_stale" },
+    {
+      gatewayBaseUrl: "https://gateway.example",
+      fetchImpl: async () =>
+        new Response(
+          JSON.stringify({
+            error: { code: "WATCH_EXPIRED", message: "Watch retainer TTL has elapsed." }
+          }),
+          { status: 402 }
+        )
+    }
+  );
+  assert.equal((result as { error: string }).error, "WATCH_EXPIRED");
+  assert.equal((result as { retry: { arg: string } }).retry.arg, "paymentSignature");
 });
 
 test("gateway 500 fails closed as GATEWAY_CLIENT_ERROR", async () => {

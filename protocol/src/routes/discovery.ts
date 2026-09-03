@@ -15,6 +15,7 @@ import { resolvePublicBaseUrl } from "../constants/public-url.js";
 import {
   endpointPolicyMatrix,
   getSessionPolicy,
+  getWatchPolicy,
   getX402EndpointMetadata
 } from "../services/payment-policy.js";
 import { ApiSuccess } from "../types/api.js";
@@ -31,6 +32,7 @@ const discoveryReplySchema = Type.Object({
     capabilities: Type.Array(Type.String()),
     x402ProtocolVersion: Type.Literal(2),
     sessionPolicy: Type.Optional(Type.Any()),
+    watchPolicy: Type.Optional(Type.Any()),
     mcpServer: Type.Optional(
       Type.Object({
         name: Type.String(),
@@ -222,9 +224,13 @@ function buildDiscoveryDocument(): DiscoveryDocument {
         endpoint.id === "executionCompose" ||
         endpoint.id === "executionSimulate" ||
         endpoint.id === "sessionsCreate" ||
-        endpoint.id === "sessionsRefresh"
+        endpoint.id === "sessionsRefresh" ||
+        endpoint.id === "watchCreate" ||
+        endpoint.id === "watchRefresh"
           ? [200, 400, 402, 500, 503]
-          : endpoint.id === "sessionsReceipt"
+          : endpoint.id === "sessionsReceipt" ||
+              endpoint.id === "watchReceipt" ||
+              endpoint.id === "watchRotateSecret"
             ? [200, 402]
           : endpoint.id === "tokenPricing"
             ? [200, 400, 502]
@@ -264,11 +270,13 @@ function buildDiscoveryDocument(): DiscoveryDocument {
       "swap-aware-compose",
       "execution-simulate",
       "prepaid-sessions",
+      "watch-retainers",
       "haystack-swaps",
       "token-pricing",
       "mcp-server"
     ],
     sessionPolicy: getSessionPolicy(),
+    watchPolicy: getWatchPolicy(),
     x402ProtocolVersion: 2,
     mcpServer: {
       name: "canix402",
@@ -315,6 +323,26 @@ function buildDiscoveryDocument(): DiscoveryDocument {
         code: "SESSION_UNAVAILABLE",
         httpStatus: 402,
         description: "Session store is unavailable. Fail-closed; omit X-Canix-Session and retry with a per-request payment."
+      },
+      {
+        code: "WATCH_INVALID",
+        httpStatus: 402,
+        description: "Watch receipt is unknown. Register a new paid watch with POST /watch."
+      },
+      {
+        code: "WATCH_EXPIRED",
+        httpStatus: 402,
+        description: "Watch retainer TTL has elapsed. Fail-closed; pay POST /watch to register again."
+      },
+      {
+        code: "WATCH_UNAVAILABLE",
+        httpStatus: 402,
+        description: "Watch store is unavailable. Fail-closed; retry later."
+      },
+      {
+        code: "WATCH_UNAUTHORIZED",
+        httpStatus: 402,
+        description: "Watch HMAC secret does not match. Send the current secret in X-Canix-Watch-Secret to rotate."
       },
       {
         code: "VALIDATION_ERROR",

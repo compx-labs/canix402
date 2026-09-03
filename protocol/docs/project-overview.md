@@ -42,6 +42,11 @@ payment mints a walletless receipt (`canix://session/{id}`) that unlocks N
 research calls and M quotes/plans for a TTL. Exact-scheme one-shots remain the
 default. See [`agent-sessions.md`](./agent-sessions.md).
 
+**Watch retainers** are a third money model: a recurring compiler-priced x402
+payment registers a walletless address + threshold watch and delivers signed,
+idempotent webhooks (or MCP receipt firings) instead of polling `/positions`.
+See [`watch-retainers.md`](./watch-retainers.md).
+
 Gateway configuration ownership:
 
 - Each x402 integration keeps its own project-specific Caddyfile and run wiring.
@@ -327,6 +332,24 @@ remains the compiler SKU (`POST /execution/quotes`, ~0.10 USDC flat per request)
   `POST /execution/quotes`; groups are never merged.
 - Agent loop: optional `/positions` → `/positions/claimable` → filter →
   `/execution/quotes` → local sign/submit. Canix never holds keys.
+
+### Watch / webhook retainers (`POST /watch`)
+
+A recurring compiler-priced x402 retainer (0.25 USDC, 24h TTL) that pushes
+threshold crossings instead of polling `/positions` and
+`/opportunities/personalized`.
+
+- Body: `{ address, thresholds, webhookUrl? }`. Thresholds: `healthFactor`,
+  `claimableUsd`, `apyDropBps`, `retiCapacity` (at least one).
+- Response: walletless receipt (`canix://watch/{id}`) plus HMAC secret shown
+  once. Canix never stores wallet keys.
+- Deliveries are signed (`X-Canix-Signature`) and idempotent
+  (`X-Canix-Idempotency-Key`). No webhook means firings live on the receipt.
+- `GET /watch/:watchId` is free. Rotate with `POST /watch/:id/rotate-secret`.
+- Discovery and OpenAPI advertise `maxAmountRequired: "0.25"`. Caddy enforces
+  `X402_PRICE_WATCH_USDC=0.25` (250000 micro-USDC).
+- MCP: `canix_create_watch` / `canix_refresh_watch` / `canix_get_watch`. See
+  `docs/watch-retainers.md`.
 - Fee/worth-claiming hints compare reward USD to estimated network fees only —
   they are not a simulation (see §13.6).
 
