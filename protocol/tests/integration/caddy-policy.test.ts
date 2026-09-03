@@ -89,6 +89,17 @@ test("Caddy gives Haystack transaction generation a dedicated paid policy", () =
   );
 });
 
+test("Caddy gives opportunity history a dedicated research paid policy", () => {
+  assert.match(caddyfile, /@paid_history path \/opportunities\/\*\/history/);
+  assert.match(
+    caddyfile,
+    /handle @paid_history \{[\s\S]*?price \{\$X402_PRICE_HISTORY_USDC\}[\s\S]*?reverse_proxy \{\$UPSTREAM_API\}[\s\S]*?\}/
+  );
+  const historyIndex = caddyfile.indexOf("@paid_history path /opportunities/*/history");
+  const aggregateIndex = caddyfile.indexOf("@paid_aggregate path /opportunities");
+  assert.ok(historyIndex >= 0 && aggregateIndex > historyIndex);
+});
+
 test("Caddy skips x402 when X-Canix-Session is present on session-eligible routes", () => {
   assert.match(caddyfile, /@session \{[\s\S]*?header X-Canix-Session csess_\*/);
   assert.match(
@@ -97,7 +108,7 @@ test("Caddy skips x402 when X-Canix-Session is present on session-eligible route
   );
   assert.match(
     caddyfile,
-    /@session \{[\s\S]*?path \/opportunities \/opportunities\/search \/opportunities\/personalized \/eligibility \/plans \/plans\/rebalance \/policy\/validate \/positions \/positions\/claimable \/protocols\/\*\/opportunities \/swaps\/transactions \/execution\/quotes \/execution\/compose \/execution\/simulate/
+    /@session \{[\s\S]*?path \/opportunities \/opportunities\/search \/opportunities\/personalized \/opportunities\/\*\/history \/eligibility \/plans \/plans\/rebalance \/policy\/validate \/positions \/positions\/claimable \/protocols\/\*\/opportunities \/swaps\/transactions \/execution\/quotes \/execution\/compose \/execution\/simulate/
   );
   assert.match(caddyfile, /handle @session \{[\s\S]*?reverse_proxy \{\$UPSTREAM_API\}/);
   const sessionMatcher = caddyfile.match(/@session \{[\s\S]*?\n\t\}/);

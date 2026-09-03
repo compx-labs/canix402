@@ -81,6 +81,9 @@ function formatRiskForAgent(risk: OpportunityRisk): OpportunityRisk {
       : {}),
     ...(risk.healthFactor !== undefined && risk.healthFactor !== null
       ? { healthFactor: formatDecimalForAgent(risk.healthFactor) }
+      : {}),
+    ...(risk.apyStdev !== undefined
+      ? { apyStdev: formatDecimalForAgent(risk.apyStdev) }
       : {})
   };
 }

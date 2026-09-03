@@ -161,6 +161,17 @@ A premium paid route (0.05 USDC) that tunes results to a specific wallet:
 - Pricing is configured independently via `X402_PRICE_PERSONALIZED_USDC` in both the
   API discovery metadata and the Caddy accept policy.
 
+### Opportunity history (`GET /opportunities/:id/history`)
+
+A paid research SKU (0.01 USDC, cheaper than the compiler) that returns a bounded
+APY/TVL series for one opportunity.
+
+- Query `window=1d|7d|30d` (default 30d). Empty `points` until hourly Redis snapshots exist.
+- Do not backfill from explorers. Retention is ~30 days only — not a warehouse.
+- Response includes `stability` (APY stdev / sample count). The same signal is
+  attached on `risk` / `/plans` so snapshot APY cannot dominate sizing.
+- MCP: `canix_get_opportunity_history`.
+
 ### Eligibility (`POST /eligibility`)
 
 A paid wallet research route priced at 0.01 USDC. Compiling enters remains the

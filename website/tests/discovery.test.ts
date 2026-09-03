@@ -20,6 +20,7 @@ test("endpoint catalog hides root, favicon, and other static assets", () => {
   assert.equal(paths.includes("/logo.png"), false);
   assert.equal(paths.includes("/banner.png"), false);
   assert.ok(paths.includes("/opportunities"));
+  assert.ok(paths.includes("/opportunities/:opportunityId/history"));
   assert.ok(paths.includes("/discovery"));
   assert.ok(paths.includes("/health"));
 });

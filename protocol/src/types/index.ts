@@ -1,6 +1,18 @@
 export type { ApiSuccess, MetaValue } from "./api.js";
 export type { ApiError, ApiErrorCode } from "./errors.js";
 export type { OpportunityMarketRecord, OpportunityRecordV1, YieldBasis } from "./opportunity.js";
+export {
+  DEFAULT_OPPORTUNITY_HISTORY_WINDOW,
+  OpportunityHistoryDataSchema,
+  OpportunityHistoryQuerySchema,
+  OpportunityHistoryResponseSchema
+} from "./opportunity-history-schema.js";
+export type {
+  OpportunityHistoryData,
+  OpportunityHistoryPoint,
+  OpportunityHistoryStability,
+  OpportunityHistoryWindow
+} from "./opportunity-history-schema.js";
 export type {
   PositionRecordV1,
   PositionType,

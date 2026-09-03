@@ -177,3 +177,20 @@ test("prepaid sessions are paid create/refresh and a free receipt", () => {
   assert.equal(classifySessionBucket("/sessions", "POST"), undefined);
 });
 
+test("opportunity history is a dedicated paid research GET route", () => {
+  assert.equal(
+    classifyEndpointAccess("/opportunities/tinyman:pool:1/history", "GET"),
+    "paid"
+  );
+  const history = endpointPolicyMatrix.find((endpoint) => endpoint.id === "opportunityHistory");
+  assert.equal(history?.method, "GET");
+  assert.equal(history?.access, "paid");
+  assert.equal(history?.pathPattern, "/opportunities/:opportunityId/history");
+  assert.equal(history?.priceUsdc, process.env.X402_PRICE_HISTORY_USDC ?? "0.01");
+  assert.equal(history?.sessionAccess, "research");
+  assert.equal(
+    classifySessionBucket("/opportunities/tinyman:pool:1/history", "GET"),
+    "research"
+  );
+});
+
