@@ -9,7 +9,7 @@ import {
   ExecutableQuoteSchema,
   ExecutionQuoteInputSchema
 } from "./execution-quote-schema.js";
-import { OpportunityExecutionShapeSchema } from "./opportunity-schema.js";
+import { OpportunityExecutionShapeSchema, OpportunityRiskSchema } from "./opportunity-schema.js";
 import { SimulationSummarySchema } from "./simulate-schema.js";
 
 export const PLAN_MAX_OPPORTUNITY_IDS = 25;
@@ -119,6 +119,8 @@ export const PlanAllocationSchema = Type.Object(
     tvlUsd: Type.Optional(Type.Number()),
     sourceTimestamp: Type.Optional(Type.String({ format: "date-time" })),
     executionReady: Type.Optional(Type.Boolean()),
+    /** Copied from the opportunity so ranking/policy can prefer risk over raw APY. */
+    risk: Type.Optional(OpportunityRiskSchema),
     eligibility: OpportunityEligibilitySchema,
     executionShapes: Type.Array(OpportunityExecutionShapeSchema),
     steps: Type.Array(PlanStepSchema),

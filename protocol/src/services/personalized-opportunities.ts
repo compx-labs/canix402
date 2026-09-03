@@ -4,6 +4,7 @@ import {
   matchesPersonalizedFromEligibility,
   type EligibilityHoldings
 } from "./eligibility.js";
+import { compareOpportunitiesByRiskThenYield } from "./opportunity-risk.js";
 
 export type PersonalizedHoldings = EligibilityHoldings;
 
@@ -43,7 +44,7 @@ export function selectPersonalizedOpportunities(
     if (aSlots !== bSlots) {
       return bSlots - aSlots;
     }
-    return b.apy - a.apy;
+    return compareOpportunitiesByRiskThenYield(a, b);
   });
 
   return matched.slice(0, Math.max(0, limit));

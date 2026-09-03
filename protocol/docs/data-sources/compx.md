@@ -40,6 +40,7 @@ Other emitted fields:
 - `yieldBasis` (always `apr`; CompX yields are APR-derived)
 - `apr` (optional; supply APR, same basis as `apy` for CompX)
 - `borrowApr` (optional; borrow-side APR cost)
+- `risk` (designed V2 block: utilization, LTV, liquidation threshold, borrowApr)
 - `sourceTimestamp`
 - `fetchedAt`
 - `notes`
@@ -55,7 +56,10 @@ Other emitted fields:
 | `market.baseTokenId`, `market.lstTokenId` | `assetIds` | Used for wallet personalization |
 | `market.supplyApy` | `apy`, `apr` | Depositor yield (APR-derived) |
 | (adapter policy) | `yieldBasis` | Always `apr` |
-| `market.borrowApy` | `borrowApr` | Borrow-side APR cost |
+| `market.borrowApy` | `borrowApr` / `risk.borrowApr` | Borrow-side APR cost |
+| `market.utilizationRate` | `risk.utilization` | Percentage points |
+| `market.ltv` | `risk.ltv` | Basis points / 100 → percentage points |
+| `market.liquidationThreshold` | `risk.liquidationThreshold` | Basis points / 100 → percentage points |
 | `market.ltv` / `liquidationThreshold` / `availableToBorrowUSD` | `notes` | Surfaced for agent credit sizing |
 | `market.totalDepositsUSD` | `tvlUsd` | USD TVL from on-chain totals + oracle |
 | `market.lastUpdateTimestamp` | `sourceTimestamp` | On-chain accrual timestamp |
@@ -85,6 +89,7 @@ Execution shapes: deposit / withdraw / borrow / repay ASA (`@compx/sdk` builders
 | `getPoolApr(...)` result | `apy`, `apr` | APR estimate (not compound APY) |
 | (adapter policy) | `yieldBasis` | Always `apr` |
 | `pool.totalStaked` + on-chain decimals + SDK pricing API | `tvlUsd` | Computed in adapter |
+| `pool.rewardsRemaining` | `risk.rewardRunwayRemaining` | Base-unit decimal string |
 | `pool.lastUpdateTime` | `sourceTimestamp` | On-chain pool update timestamp |
 | (adapter policy) | `opportunityType` | Always `staking` |
 

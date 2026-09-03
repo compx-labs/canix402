@@ -92,10 +92,10 @@ Relocated from Execution Layer “optional follow-up.” Product, not a hidden d
 
 Machine-readable risk so plans can be constrained. This is the deferred V1 `rewards` / `market` work, designed rather than dumped as protocol JSON.
 
-- [ ] Add a `risk` (or equivalent) block on opportunities: lending utilization / liquidation threshold / `borrowApr` (already present where mapped); LP IL hint or volatility bucket; farm reward runway where known (e.g. CompX `rewardsRemaining`); `confidence` from freshness / cache age.
-- [ ] When `address` is in context (personalized, plans, eligibility), include wallet health factor for lending venues that already expose it on positions.
-- [ ] Revise TypeBox + OpenAPI + `docs/normalized-opportunity-schema.md` together (contract revision, not a silent field add).
-- [ ] Teach `/plans` and `analyze-opportunity` to prefer risk-constrained ranking over raw `apy`.
+- [x] Add a `risk` (or equivalent) block on opportunities: lending utilization / liquidation threshold / `borrowApr` (already present where mapped); LP IL hint or volatility bucket; farm reward runway where known (e.g. CompX `rewardsRemaining`); `confidence` from freshness / cache age.
+- [x] When `address` is in context (personalized, plans, eligibility), include wallet health factor for lending venues that already expose it on positions.
+- [x] Revise TypeBox + OpenAPI + `docs/normalized-opportunity-schema.md` together (contract revision, not a silent field add).
+- [x] Teach `/plans` and `analyze-opportunity` to prefer risk-constrained ranking over raw `apy`.
 
 ### 13.8 Agent sessions
 

@@ -113,7 +113,7 @@ export const WEBMCP_TOOLS: WebMcpToolSpec[] = [
   {
     name: "canix_list_opportunities",
     description:
-      "List top aggregated Algorand DeFi opportunities ranked by APY (GET /opportunities). Paid ~0.01 USDC.", // pragma: allowlist secret
+      "List top aggregated Algorand DeFi opportunities ranked by risk then APY (GET /opportunities). Paid ~0.01 USDC.", // pragma: allowlist secret
     inputSchema: schemas.withPaidAuth({
       limit: schemas.pagination.limit,
       offset: schemas.pagination.offset,

@@ -542,7 +542,7 @@
     },
     "/opportunities": {
       "get": {
-        "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
+        "summary": "Top 10 aggregated DeFi opportunities ranked by risk then APY",
         "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, and Haystack. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": [
           "defi",
@@ -1464,7 +1464,7 @@
     },
     "/protocols/{protocol}/opportunities": {
       "get": {
-        "summary": "Top 25 DeFi opportunities for a single protocol ranked by APY",
+        "summary": "Top 25 DeFi opportunities for a single protocol ranked by risk then APY",
         "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, or alpha-arcade. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": [
           "defi",
@@ -2476,6 +2476,80 @@
           }
         }
       },
+      "OpportunityRisk": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Designed opportunity risk block (schema V2). Optional numeric fields are omitted when unknown rather than invented. confidence is always present.",
+        "required": [
+          "confidence"
+        ],
+        "properties": {
+          "utilization": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Lending utilization in percentage points (0–100+)."
+          },
+          "liquidationThreshold": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Liquidation threshold in percentage points (0–100)."
+          },
+          "ltv": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Loan-to-value in percentage points (0–100)."
+          },
+          "borrowApr": {
+            "type": "number",
+            "description": "Borrow-side APR cost when the venue supports borrowing. Mirrors top-level borrowApr when present."
+          },
+          "healthFactor": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "Wallet health factor for this lending venue when address is in context. Omitted on anonymous catalog rows. Null when positions were loaded but this venue has no HF snapshot."
+          },
+          "volatilityBucket": {
+            "type": "string",
+            "enum": [
+              "stable",
+              "low",
+              "medium",
+              "high",
+              "unknown"
+            ],
+            "description": "LP IL / volatility bucket. unknown when the adapter has no designed signal."
+          },
+          "ilHint": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable IL hint when a designed signal exists (never a guessed percentage)."
+          },
+          "rewardRunwayRemaining": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[0-9]+$",
+            "description": "Farm/staking remaining rewards in base units (decimal string)."
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low",
+              "unknown"
+            ],
+            "description": "Snapshot freshness from fetchedAt / cache age. high ≤ 3 minutes, medium ≤ 1 hour, otherwise low. unknown when timestamps cannot be parsed."
+          },
+          "sourceAgeSeconds": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Seconds between sourceTimestamp and evaluation time."
+          }
+        }
+      },
       "OpportunityRecord": {
         "type": "object",
         "required": [
@@ -2488,6 +2562,7 @@
           "tvlUsd",
           "sourceTimestamp",
           "fetchedAt",
+          "risk",
           "executionReady",
           "executionShapes",
           "compatibleExitShapes"
@@ -2593,6 +2668,9 @@
           },
           "capacity": {
             "$ref": "#/components/schemas/OpportunityCapacity"
+          },
+          "risk": {
+            "$ref": "#/components/schemas/OpportunityRisk"
           }
         }
       },
@@ -5334,6 +5412,14 @@
             "items": {
               "$ref": "#/components/schemas/EligibilityReason"
             }
+          },
+          "healthFactor": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "Wallet health factor for this lending venue when positions already expose it. Omitted when no snapshot exists; never invented."
           }
         }
       },
@@ -6661,7 +6747,7 @@
                 "method": "GET",
                 "pathPattern": "/opportunities",
                 "access": "paid",
-                "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
+                "summary": "Top 10 aggregated DeFi opportunities ranked by risk then APY",
                 "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, and Haystack. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
                 "tags": [
                   "defi",
@@ -6700,7 +6786,7 @@
                 "method": "GET",
                 "path": "/opportunities",
                 "access": "paid",
-                "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
+                "summary": "Top 10 aggregated DeFi opportunities ranked by risk then APY",
                 "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, and Haystack. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
                 "tags": [
                   "defi",
@@ -6833,6 +6919,10 @@
               "sourceTimestamp": "2026-07-06T09:00:00.000Z",
               "fetchedAt": "2026-07-06T09:00:00.000Z",
               "notes": "sourceTimestamp reflects fetch time; upstream does not expose a per-row update time.",
+              "risk": {
+                "confidence": "low",
+                "volatilityBucket": "unknown"
+              },
               "executionReady": true,
               "executionShapes": [
                 {

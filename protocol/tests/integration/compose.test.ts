@@ -192,6 +192,7 @@ function installComposeStubs(): void {
     now: () => NOW,
     fetchHoldings: async () => usdcHoldings(),
     fetchOpportunities: async () => [retiOpportunity()],
+    fetchPositions: async () => [],
     compileQuote: async (shapeKey, input) => {
       const amount =
         typeof input === "object" &&

@@ -129,7 +129,12 @@ export const OpportunityEligibilitySchema = Type.Object(
     gates: Type.Array(EligibilityGateResultSchema),
     capacity: Type.Union([OpportunityCapacitySchema, Type.Null()]),
     suggestedSwap: Type.Union([EligibilitySuggestedSwapSchema, Type.Null()]),
-    reasons: Type.Array(EligibilityReasonSchema)
+    reasons: Type.Array(EligibilityReasonSchema),
+    /**
+     * Wallet health factor for this lending venue when positions already expose
+     * it. Omitted when no snapshot exists; never invented.
+     */
+    healthFactor: Type.Optional(Type.Union([Type.Number({ minimum: 0 }), Type.Null()]))
   },
   { additionalProperties: false }
 );

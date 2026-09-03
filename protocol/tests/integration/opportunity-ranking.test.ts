@@ -4,7 +4,7 @@ import test from "node:test";
 import { setCompXSdkDependenciesForTests } from "../../src/adapters/index.js";
 import { buildApp } from "../../src/app.js";
 import { setAssetDecimalsDependenciesForTests } from "../../src/services/asset-decimals.js";
-import { rankOpportunitiesByApy } from "../../src/services/opportunity-ranking.js";
+import { rankOpportunities } from "../../src/services/opportunity-ranking.js";
 import { OpportunityMarketRecord } from "../../src/types/opportunity.js";
 
 function mockCompXCatalog(): void {
@@ -76,8 +76,8 @@ function clearCompXCatalogMock(): void {
   setAssetDecimalsDependenciesForTests(undefined);
 }
 
-test("rankOpportunitiesByApy sorts by APY descending then TVL descending", () => {
-  const ranked = rankOpportunitiesByApy([
+test("rankOpportunities sorts equal-risk rows by APY descending then TVL descending", () => {
+  const ranked = rankOpportunities([
     opportunity("low", 2, 10_000),
     opportunity("high-low-tvl", 9, 1_000),
     opportunity("high-high-tvl", 9, 5_000),
