@@ -38,7 +38,9 @@ export {
   mythFinanceShapes,
   resolveMythDualStakeState,
   buildMythMintTransactions,
-  buildMythRedeemTransactions
+  buildMythRedeemTransactions,
+  buildMockMythMintGroup,
+  buildMockMythRedeemGroup
 } from "./shapes/myth-finance/index.js";
 export type {
   MythMintLstInput,

@@ -47,6 +47,23 @@ Treat amounts without a decimal point as base units. USDC has six decimals, so
 `10000` is 0.01 USDC. Never substitute a documented price for the live
 `PAYMENT_REQUIRED` amount.
 
+## Watch retainers (optional push)
+
+Exact-scheme one-shots remain the default. Operators who would otherwise poll
+`/positions` and `/opportunities/personalized` can buy a recurring retainer:
+
+1. Call `canix_create_watch` without `paymentSignature`, then retry with it
+   (~0.25 USDC). Pass `address`, `thresholds` (healthFactor, claimableUsd,
+   apyDropBps, retiCapacity), and optional `webhookUrl`. The result is a
+   walletless receipt (`canix://watch/{id}`) plus an HMAC secret shown once.
+2. Verify webhook bodies with HMAC-SHA256 of that secret
+   (`X-Canix-Signature: sha256=<hex>`). Deduplicate on `X-Canix-Idempotency-Key`.
+3. Read recent firings with `canix_get_watch` or resource `canix://watch/{watchId}`.
+   `canix://watch` is policy only (TTL/price/headers), not firings.
+4. Refresh with `canix_refresh_watch` before TTL. Rotate the secret with
+   `canix_rotate_watch_secret`. On `WATCH_EXPIRED` or `WATCH_INVALID`, register
+   again. Canix never stores wallet keys.
+
 ## Prepaid sessions (optional second money model)
 
 Exact-scheme one-shots remain the default. Operators who would otherwise spray
@@ -166,14 +183,16 @@ Before quoting an enter (especially Réti validators with gates or capacity):
 1. Optionally call `canix_get_personalized_opportunities` for wallet-aware ranking.
    That route already applies eligibility rules so full or gated venues are not
    recommended as enterable. Ranking is not a substitute for this check.
-2. Call `canix_check_eligibility` with `address` and `opportunityIds` (paid ~0.01
+2. Optionally call `canix_get_opportunity_history` for a bounded APY/TVL series
+   (`window=1d|7d|30d`) and the stability signal used by `/plans` ranking.
+3. Call `canix_check_eligibility` with `address` and `opportunityIds` (paid ~0.01
    USDC). Response rows include `canEnter`, `missingAssets`, `gates`, `capacity`,
    `suggestedSwap`, and `eligibilityFullyCheckable`.
-3. If `eligibilityFullyCheckable` is false (NFD/creator gates), do not treat
+4. If `eligibilityFullyCheckable` is false (NFD/creator gates), do not treat
    `canEnter` as true. Publish the unresolved gates to the user.
-4. If `suggestedSwap` is present, it is a hint only — fetch a live quote via
+5. If `suggestedSwap` is present, it is a hint only — fetch a live quote via
    `canix_get_quote` / `POST /swaps/quote`, then re-check eligibility.
-5. Quote-time on-chain checks remain authoritative. Compile with
+6. Quote-time on-chain checks remain authoritative. Compile with
    `canix_get_execution_quote` only after reviewing eligibility.
 
 ## Intent compiler agent loop

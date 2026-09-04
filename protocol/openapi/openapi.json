@@ -542,7 +542,7 @@
     },
     "/opportunities": {
       "get": {
-        "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
+        "summary": "Top 10 aggregated DeFi opportunities ranked by risk then APY",
         "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, and Haystack. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": [
           "defi",
@@ -903,6 +903,99 @@
             "asset": "31566704",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.05"
+          }
+        }
+      }
+    },
+    "/opportunities/{opportunityId}/history": {
+      "get": {
+        "summary": "Bounded APY/TVL history for one opportunity",
+        "description": "Returns a rolling APY and TVL series for one opportunity over a bounded window (1d, 7d, or 30d). Snapshots are stored as cheap hourly Redis buckets for ~30 days only — not a warehouse and not backfilled from explorers. The series is empty until the snapshot job has run. Includes a stability signal (APY stdev / sample count) so snapshot APY cannot dominate plan sizing. Market data only; Canix does not sign or submit transactions.",
+        "tags": [
+          "defi",
+          "opportunities",
+          "history"
+        ],
+        "parameters": [
+          {
+            "name": "opportunityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Stable opportunity identifier from catalog rows."
+          },
+          {
+            "name": "window",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1d",
+                "7d",
+                "30d"
+              ],
+              "default": "30d"
+            },
+            "description": "Bounded lookback window. Default 30d."
+          },
+          {
+            "$ref": "#/components/parameters/CanixSessionHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bounded APY/TVL series. points is empty when no snapshots exist yet.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunityHistoryResponse"
+                },
+                "examples": {
+                  "default": {
+                    "$ref": "#/components/examples/OpportunityHistorySample"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-payment-info": {
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ],
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.01"
+          }
+        },
+        "x-x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "[REDACTED]",
+            "asset": "[REDACTED]",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.01"
           }
         }
       }
@@ -1464,7 +1557,7 @@
     },
     "/protocols/{protocol}/opportunities": {
       "get": {
-        "summary": "Top 25 DeFi opportunities for a single protocol ranked by APY",
+        "summary": "Top 25 DeFi opportunities for a single protocol ranked by risk then APY",
         "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, or alpha-arcade. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": [
           "defi",
@@ -2313,6 +2406,235 @@
           }
         }
       }
+    },
+    "/watch": {
+      "post": {
+        "summary": "Register a paid wallet watch retainer",
+        "description": "Recurring compiler-priced x402 retainer that registers a walletless watch (address + thresholds + optional HTTPS webhook). Fires signed, idempotent notifications on health-factor, claimable-USD, APY-drop, or Réti-capacity crossings. Canix never stores wallet keys — only the address, callback, and a server-generated HMAC secret (shown once). Refresh with POST /watch/refresh before TTL. MCP resource canix://watch/{watchId} lists recent firings.",
+        "tags": [
+          "watch",
+          "x402",
+          "agents"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WatchCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Registered watch receipt with HMAC secret shown once",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-payment-info": {
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ],
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.25"
+          }
+        },
+        "x-x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "[REDACTED]",
+            "x-pragma-network": "pragma: allowlist secret",
+            "asset": "[REDACTED]",
+            "x-pragma-asset": "pragma: allowlist secret",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.25"
+          }
+        }
+      }
+    },
+    "/watch/refresh": {
+      "post": {
+        "summary": "Refresh a paid wallet watch retainer",
+        "description": "Compiler-priced x402 payment that extends TTL on an existing watch id. Optionally rotateSecret to mint a new HMAC key (returned once). Cannot be paid with a prepaid session. Unknown or expired watches fail-closed; register again with POST /watch.",
+        "tags": [
+          "watch",
+          "x402",
+          "agents"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WatchRefreshRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Refreshed watch receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "$ref": "#/components/responses/WatchError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        },
+        "x-payment-info": {
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ],
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.25"
+          }
+        },
+        "x-x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "[REDACTED]",
+            "x-pragma-network": "pragma: allowlist secret",
+            "asset": "[REDACTED]",
+            "x-pragma-asset": "pragma: allowlist secret",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.25"
+          }
+        }
+      }
+    },
+    "/watch/{watchId}": {
+      "get": {
+        "summary": "Read watch receipt and recent threshold firings",
+        "description": "Returns the walletless watch receipt including thresholds, webhook URL, expiry, and recent signed-delivery firings (idempotency keys). Does not return the HMAC secret. Unknown or expired receipts fail-closed with 402 WATCH_*.",
+        "tags": [
+          "watch",
+          "agents",
+          "discovery"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "name": "watchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Watch receipt with recent firings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "$ref": "#/components/responses/WatchError"
+          }
+        }
+      }
+    },
+    "/watch/{watchId}/rotate-secret": {
+      "post": {
+        "summary": "Rotate the watch webhook HMAC secret",
+        "description": "Mints a new webhook signing secret. Requires the current secret in X-Canix-Watch-Secret. The new secret is returned once and never stored as a wallet key. Does not extend retainer TTL — pay POST /watch/refresh for that.",
+        "tags": [
+          "watch",
+          "agents"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "name": "watchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "X-Canix-Watch-Secret",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rotated watch receipt with new HMAC secret shown once",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "$ref": "#/components/responses/WatchError"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2341,6 +2663,10 @@
                   "SESSION_EXPIRED",
                   "SESSION_EXHAUSTED",
                   "SESSION_UNAVAILABLE",
+                  "WATCH_INVALID",
+                  "WATCH_EXPIRED",
+                  "WATCH_UNAVAILABLE",
+                  "WATCH_UNAUTHORIZED",
                   "MISSING_PAYMENT_SIGNATURE",
                   "MALFORMED_PAYMENT_SIGNATURE",
                   "EXPIRED_PAYMENT_PROOF"
@@ -2476,6 +2802,388 @@
           }
         }
       },
+      "WatchThresholds": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "description": "At least one threshold is required. Health factor fires when the wallet min HF crosses below the value. Claimable USD fires when totals.claimableUsd crosses at or above the value. APY drop fires when an opportunity APY falls by at least this many basis points vs the previous snapshot. Réti capacity fires when a Réti venue becomes constrained.",
+        "properties": {
+          "healthFactor": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "claimableUsd": {
+            "type": "number",
+            "minimum": 0
+          },
+          "apyDropBps": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000
+          },
+          "retiCapacity": {
+            "oneOf": [
+              { "type": "boolean", "const": true },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "minStakerSlotsRemaining": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "minAlgoRoomMicroAlgos": {
+                    "type": "string",
+                    "pattern": "^[0-9]+$"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "WatchFiring": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "firingId",
+          "idempotencyKey",
+          "kind",
+          "firedAt",
+          "threshold",
+          "previous",
+          "current",
+          "delivered",
+          "deliveryStatus"
+        ],
+        "properties": {
+          "firingId": { "type": "string", "minLength": 1 },
+          "idempotencyKey": { "type": "string", "minLength": 1 },
+          "kind": {
+            "type": "string",
+            "enum": ["healthFactor", "claimableUsd", "apyDrop", "retiCapacity"]
+          },
+          "firedAt": { "type": "string", "format": "date-time" },
+          "threshold": {
+            "oneOf": [{ "type": "number" }, { "type": "string" }, { "type": "boolean" }]
+          },
+          "previous": {
+            "oneOf": [
+              { "type": "number" },
+              { "type": "string" },
+              { "type": "boolean" },
+              { "type": "null" }
+            ]
+          },
+          "current": {
+            "oneOf": [
+              { "type": "number" },
+              { "type": "string" },
+              { "type": "boolean" },
+              { "type": "null" }
+            ]
+          },
+          "opportunityId": { "type": "string", "minLength": 1 },
+          "delivered": { "type": "boolean" },
+          "deliveryStatus": {
+            "type": "string",
+            "enum": ["pending", "delivered", "failed", "stored"]
+          }
+        }
+      },
+      "WatchReceipt": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "uri",
+          "watchId",
+          "address",
+          "thresholds",
+          "webhookUrl",
+          "createdAt",
+          "expiresAt",
+          "ttlSeconds",
+          "status",
+          "firings"
+        ],
+        "properties": {
+          "uri": { "type": "string", "minLength": 1 },
+          "watchId": { "type": "string", "minLength": 1 },
+          "address": { "type": "string", "minLength": 58, "maxLength": 58 },
+          "thresholds": { "$ref": "#/components/schemas/WatchThresholds" },
+          "webhookUrl": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "expiresAt": { "type": "string", "format": "date-time" },
+          "ttlSeconds": { "type": "integer", "minimum": 1 },
+          "status": { "type": "string", "enum": ["active", "expired"] },
+          "firings": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WatchFiring" }
+          },
+          "webhookSecret": {
+            "type": "string",
+            "minLength": 1,
+            "description": "HMAC secret shown once on create, refresh-with-rotate, or rotate. Never a wallet key."
+          }
+        }
+      },
+      "WatchResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["data", "meta"],
+        "properties": {
+          "data": { "$ref": "#/components/schemas/WatchReceipt" },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["paymentRequired", "access", "receiptUri", "secretShown"],
+            "properties": {
+              "paymentRequired": { "type": "boolean" },
+              "access": { "type": "string", "enum": ["watch", "receipt", "rotate"] },
+              "receiptUri": { "type": "string", "minLength": 1 },
+              "secretShown": { "type": "boolean" }
+            }
+          }
+        }
+      },
+      "WatchCreateRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["address", "thresholds"],
+        "properties": {
+          "address": { "type": "string", "minLength": 58, "maxLength": 58 },
+          "thresholds": { "$ref": "#/components/schemas/WatchThresholds" },
+          "webhookUrl": { "type": "string", "minLength": 8, "maxLength": 2048 }
+        }
+      },
+      "WatchRefreshRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["watchId"],
+        "properties": {
+          "watchId": { "type": "string", "minLength": 1 },
+          "rotateSecret": { "type": "boolean" }
+        }
+      },
+      "OpportunityRisk": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Designed opportunity risk block (schema V2). Optional numeric fields are omitted when unknown rather than invented. confidence is always present.",
+        "required": [
+          "confidence"
+        ],
+        "properties": {
+          "utilization": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Lending utilization in percentage points (0–100+)."
+          },
+          "liquidationThreshold": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Liquidation threshold in percentage points (0–100)."
+          },
+          "ltv": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Loan-to-value in percentage points (0–100)."
+          },
+          "borrowApr": {
+            "type": "number",
+            "description": "Borrow-side APR cost when the venue supports borrowing. Mirrors top-level borrowApr when present."
+          },
+          "healthFactor": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "Wallet health factor for this lending venue when address is in context. Omitted on anonymous catalog rows. Null when positions were loaded but this venue has no HF snapshot."
+          },
+          "volatilityBucket": {
+            "type": "string",
+            "enum": [
+              "stable",
+              "low",
+              "medium",
+              "high",
+              "unknown"
+            ],
+            "description": "LP IL / volatility bucket. unknown when the adapter has no designed signal."
+          },
+          "ilHint": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable IL hint when a designed signal exists (never a guessed percentage)."
+          },
+          "rewardRunwayRemaining": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[0-9]+$",
+            "description": "Farm/staking remaining rewards in base units (decimal string)."
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low",
+              "unknown"
+            ],
+            "description": "Snapshot freshness from fetchedAt / cache age. high ≤ 3 minutes, medium ≤ 1 hour, otherwise low. unknown when timestamps cannot be parsed."
+          },
+          "sourceAgeSeconds": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Seconds between sourceTimestamp and evaluation time."
+          },
+          "stability": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low",
+              "unknown"
+            ],
+            "description": "APY stability from the bounded history series (coefficient of variation). unknown when fewer than 3 snapshots exist. Omitted until history is attached."
+          },
+          "apyStdev": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Sample standard deviation of APY over the retained window."
+          },
+          "historySampleCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of history snapshots used for stability / apyStdev."
+          }
+        }
+      },
+      "OpportunityHistoryPoint": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ts",
+          "apy",
+          "tvlUsd"
+        ],
+        "properties": {
+          "ts": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "apy": {
+            "type": "number"
+          },
+          "tvlUsd": {
+            "type": "number"
+          }
+        }
+      },
+      "OpportunityHistoryStability": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "bucket",
+          "sampleCount"
+        ],
+        "properties": {
+          "bucket": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low",
+              "unknown"
+            ]
+          },
+          "sampleCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "apyMean": {
+            "type": "number"
+          },
+          "apyStdev": {
+            "type": "number"
+          }
+        }
+      },
+      "OpportunityHistoryData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "opportunityId",
+          "window",
+          "points",
+          "stability"
+        ],
+        "properties": {
+          "opportunityId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "window": {
+            "type": "string",
+            "enum": [
+              "1d",
+              "7d",
+              "30d"
+            ]
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpportunityHistoryPoint"
+            }
+          },
+          "stability": {
+            "$ref": "#/components/schemas/OpportunityHistoryStability"
+          }
+        }
+      },
+      "OpportunityHistoryMeta": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "paymentRequired",
+          "windowSeconds",
+          "snapshotRetentionDays",
+          "snapshotCount"
+        ],
+        "properties": {
+          "paymentRequired": {
+            "type": "boolean",
+            "const": true
+          },
+          "windowSeconds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "snapshotRetentionDays": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "snapshotCount": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "OpportunityHistoryResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OpportunityHistoryData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/OpportunityHistoryMeta"
+          }
+        }
+      },
       "OpportunityRecord": {
         "type": "object",
         "required": [
@@ -2488,6 +3196,7 @@
           "tvlUsd",
           "sourceTimestamp",
           "fetchedAt",
+          "risk",
           "executionReady",
           "executionShapes",
           "compatibleExitShapes"
@@ -2593,6 +3302,9 @@
           },
           "capacity": {
             "$ref": "#/components/schemas/OpportunityCapacity"
+          },
+          "risk": {
+            "$ref": "#/components/schemas/OpportunityRisk"
           }
         }
       },
@@ -5334,6 +6046,14 @@
             "items": {
               "$ref": "#/components/schemas/EligibilityReason"
             }
+          },
+          "healthFactor": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "Wallet health factor for this lending venue when positions already expose it. Omitted when no snapshot exists; never invented."
           }
         }
       },
@@ -6610,6 +7330,24 @@
             }
           }
         }
+      },
+      "WatchError": {
+        "description": "Watch retainer receipt error. Not an x402 payment challenge — PAYMENT-REQUIRED is absent. Register again with POST /watch or rotate with X-Canix-Watch-Secret.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            },
+            "examples": {
+              "watchInvalid": {
+                "$ref": "#/components/examples/WatchInvalidError"
+              },
+              "watchExpired": {
+                "$ref": "#/components/examples/WatchExpiredError"
+              }
+            }
+          }
+        }
       }
     },
     "examples": {
@@ -6661,7 +7399,7 @@
                 "method": "GET",
                 "pathPattern": "/opportunities",
                 "access": "paid",
-                "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
+                "summary": "Top 10 aggregated DeFi opportunities ranked by risk then APY",
                 "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, and Haystack. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
                 "tags": [
                   "defi",
@@ -6700,7 +7438,7 @@
                 "method": "GET",
                 "path": "/opportunities",
                 "access": "paid",
-                "summary": "Top 10 aggregated DeFi opportunities ranked by APY",
+                "summary": "Top 10 aggregated DeFi opportunities ranked by risk then APY",
                 "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, and Haystack. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
                 "tags": [
                   "defi",
@@ -6833,6 +7571,10 @@
               "sourceTimestamp": "2026-07-06T09:00:00.000Z",
               "fetchedAt": "2026-07-06T09:00:00.000Z",
               "notes": "sourceTimestamp reflects fetch time; upstream does not expose a per-row update time.",
+              "risk": {
+                "confidence": "low",
+                "volatilityBucket": "unknown"
+              },
               "executionReady": true,
               "executionShapes": [
                 {
@@ -7338,6 +8080,44 @@
             "fetchedAt": "2026-08-13T12:00:00.000Z",
             "algoUsd": 0.2,
             "paymentRequired": true
+          }
+        }
+      },
+      "OpportunityHistorySample": {
+        "summary": "Bounded APY/TVL series for one opportunity",
+        "value": {
+          "data": {
+            "opportunityId": "tinyman:pool:1002541853",
+            "window": "30d",
+            "points": [
+              {
+                "ts": "2026-08-04T12:00:00.000Z",
+                "apy": 12.1,
+                "tvlUsd": 2400000
+              },
+              {
+                "ts": "2026-08-05T12:00:00.000Z",
+                "apy": 12.4,
+                "tvlUsd": 2425000
+              },
+              {
+                "ts": "2026-08-06T12:00:00.000Z",
+                "apy": 12.5,
+                "tvlUsd": 2450000.5
+              }
+            ],
+            "stability": {
+              "bucket": "high",
+              "sampleCount": 3,
+              "apyMean": 12.333333,
+              "apyStdev": 0.208167
+            }
+          },
+          "meta": {
+            "paymentRequired": true,
+            "windowSeconds": 2592000,
+            "snapshotRetentionDays": 30,
+            "snapshotCount": 3
           }
         }
       },
@@ -8468,6 +9248,24 @@
           "error": {
             "code": "SESSION_UNAVAILABLE",
             "message": "Session store is unavailable. Omit X-Canix-Session and retry with a per-request PAYMENT-SIGNATURE."
+          }
+        }
+      },
+      "WatchInvalidError": {
+        "summary": "Unknown watch receipt",
+        "value": {
+          "error": {
+            "code": "WATCH_INVALID",
+            "message": "Watch receipt is unknown. Register a new paid watch with POST /watch."
+          }
+        }
+      },
+      "WatchExpiredError": {
+        "summary": "Watch retainer TTL elapsed",
+        "value": {
+          "error": {
+            "code": "WATCH_EXPIRED",
+            "message": "Watch retainer TTL has elapsed. Pay POST /watch to register again, or POST /watch/refresh before expiry."
           }
         }
       }

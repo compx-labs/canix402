@@ -14,6 +14,7 @@ import { registerProtocolRoutes } from "./protocols.js";
 import { registerPublicAgentRoutes } from "./public-agents.js";
 import { registerSwapRoutes } from "./swaps.js";
 import { registerSessionRoutes } from "./sessions.js";
+import { registerWatchRoutes } from "./watch.js";
 
 export function registerRoutes(app: FastifyInstance) {
   registerAssetRoutes(app);
@@ -30,4 +31,5 @@ export function registerRoutes(app: FastifyInstance) {
   registerProtocolRoutes(app);
   registerSwapRoutes(app);
   registerSessionRoutes(app);
+  registerWatchRoutes(app);
 }

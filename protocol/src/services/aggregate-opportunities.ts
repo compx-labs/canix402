@@ -13,6 +13,7 @@ import { getAppLogger } from "../observability/logger.js";
 import { recordAdapterRequest } from "../observability/metrics.js";
 import { OpportunityMarketRecord } from "../types/opportunity.js";
 import type { Protocol } from "../routes/schemas.js";
+import { scheduleOpportunityHistorySnapshot } from "./opportunity-history.js";
 import {
   getOpportunitiesCacheTtlSec,
   getOrSetCacheJson,
@@ -142,6 +143,7 @@ export async function fetchOpportunitiesForProtocolResult(
 ): Promise<ProtocolFetchResult> {
   if (!isOpportunityCacheEnabled()) {
     const data = await fetchOpportunitiesForProtocolUncached(protocol);
+    scheduleHistorySnapshotFromRecords(data);
     return {
       data,
       cacheHit: false,
@@ -157,6 +159,7 @@ export async function fetchOpportunitiesForProtocolResult(
     ttl,
     { refresh: options.refresh === true }
   );
+  scheduleHistorySnapshotFromRecords(value);
   return { data: value, cacheHit, cachedAt };
 }
 
@@ -283,4 +286,16 @@ async function fetchOpportunitiesForProtocolUncachedInner(
   }
 
   return [];
+}
+
+function scheduleHistorySnapshotFromRecords(
+  records: readonly OpportunityMarketRecord[]
+): void {
+  scheduleOpportunityHistorySnapshot(
+    records.map((row) => ({
+      opportunityId: row.opportunityId,
+      apy: row.apy,
+      tvlUsd: row.tvlUsd
+    }))
+  );
 }

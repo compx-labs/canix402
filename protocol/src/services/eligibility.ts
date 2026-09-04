@@ -18,6 +18,10 @@ import type {
   OpportunityEntryGate,
   OpportunityMarketRecord
 } from "../types/opportunity.js";
+import {
+  loadWalletHealthFactors,
+  resolveWalletHealthFactor
+} from "./opportunity-risk.js";
 
 export interface EligibilityHoldings {
   heldAssetIds: ReadonlySet<number>;
@@ -501,11 +505,21 @@ export async function fetchEligibility(
   const byId = new Map(
     data.map((row) => [row.opportunityId, row] as const)
   );
+  const healthFactors = await loadWalletHealthFactors(request.address);
 
   return {
-    data: request.opportunityIds.map((opportunityId) =>
-      evaluateOpportunityEligibility(byId.get(opportunityId), opportunityId, holdings)
-    ),
+    data: request.opportunityIds.map((opportunityId) => {
+      const row = evaluateOpportunityEligibility(
+        byId.get(opportunityId),
+        opportunityId,
+        holdings
+      );
+      const healthFactor = resolveWalletHealthFactor(
+        byId.get(opportunityId),
+        healthFactors
+      );
+      return healthFactor === undefined ? row : { ...row, healthFactor };
+    }),
     meta: {
       address: request.address,
       fetchedAt: new Date().toISOString(),

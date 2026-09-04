@@ -48,7 +48,8 @@ Other emitted fields:
 | `poolManagerInfo.pools[appId].depositInterestYield` | `apy` | 16-decimal fixed-point decimal fraction -> percentage points |
 | (adapter policy) | `yieldBasis` | Always `apy` |
 | `poolManagerInfo.pools[appId].depositInterestRate` | `apr` | 16-decimal fixed-point decimal fraction -> percentage points |
-| `poolManagerInfo.pools[appId].variableBorrowInterestYield` | `borrowApr` | Variable borrow cost as percentage points |
+| `poolManagerInfo.pools[appId].variableBorrowInterestYield` | `borrowApr` / `risk.borrowApr` | Variable borrow cost as percentage points |
+| `poolInfo.variableBorrow.totalVariableBorrowAmount` + `stableBorrow.totalStableBorrowAmount` / `interest.totalDeposits` | `risk.utilization` | Percentage points; omitted when deposits are zero |
 | `poolInfo.interest.totalDeposits` + oracle price | `tvlUsd` | Computed via on-chain asset decimals and 14-decimal oracle price |
 | (adapter policy) | `opportunityType` | `lending` |
 

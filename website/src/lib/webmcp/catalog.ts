@@ -13,8 +13,8 @@ const mutating = {
 
 /**
  * WebMCP tool names for NEO-304: locked live MCP set plus 13.8 session tools
- * as shipped in this repo (`canix_create_session`, `canix_refresh_session`,
- * `canix_get_session`). Do not invent a second session model.
+ * and 13.9 watch retainer tools as shipped in this repo. Do not invent a
+ * second session or watch model.
  */
 export const WEBMCP_TOOL_NAMES = [
   "canix_health",
@@ -26,6 +26,7 @@ export const WEBMCP_TOOL_NAMES = [
   "canix_list_opportunities",
   "canix_search_opportunities",
   "canix_get_personalized_opportunities",
+  "canix_get_opportunity_history",
   "canix_check_eligibility",
   "canix_get_plan",
   "canix_get_protocol_opportunities",
@@ -37,7 +38,11 @@ export const WEBMCP_TOOL_NAMES = [
   "canix_swap",
   "canix_create_session",
   "canix_refresh_session",
-  "canix_get_session"
+  "canix_get_session",
+  "canix_create_watch",
+  "canix_refresh_watch",
+  "canix_get_watch",
+  "canix_rotate_watch_secret"
 ] as const;
 
 export type WebMcpToolName = (typeof WEBMCP_TOOL_NAMES)[number];
@@ -113,7 +118,7 @@ export const WEBMCP_TOOLS: WebMcpToolSpec[] = [
   {
     name: "canix_list_opportunities",
     description:
-      "List top aggregated Algorand DeFi opportunities ranked by APY (GET /opportunities). Paid ~0.01 USDC.", // pragma: allowlist secret
+      "List top aggregated Algorand DeFi opportunities ranked by risk then APY (GET /opportunities). Paid ~0.01 USDC.", // pragma: allowlist secret
     inputSchema: schemas.withPaidAuth({
       limit: schemas.pagination.limit,
       offset: schemas.pagination.offset,
@@ -189,6 +194,28 @@ export const WEBMCP_TOOLS: WebMcpToolSpec[] = [
       method: "GET",
       path: "/opportunities/personalized",
       queryParams: ["address", "limit", "offset", "includeInactive"]
+    }
+  },
+  {
+    name: "canix_get_opportunity_history",
+    description:
+      "Fetch a bounded APY/TVL history series for one opportunity (GET /opportunities/{opportunityId}/history). Window is 1d, 7d, or 30d (default 30d). Empty points until snapshots exist. Includes a stability signal so snapshot APY cannot dominate plan sizing. Paid ~0.01 USDC.",
+    inputSchema: schemas.withPaidAuth(
+      {
+        opportunityId: { type: "string", minLength: 1 },
+        window: { type: "string", enum: ["1d", "7d", "30d"] }
+      },
+      ["opportunityId"]
+    ),
+    annotations: mutating,
+    access: "paid",
+    fallbackPriceUsdc: "0.01",
+    allowSessionReceipt: true,
+    http: {
+      method: "GET",
+      path: "/opportunities/{opportunityId}/history",
+      pathParams: ["opportunityId"],
+      queryParams: ["window"]
     }
   },
   {
@@ -446,6 +473,82 @@ export const WEBMCP_TOOLS: WebMcpToolSpec[] = [
       method: "GET",
       path: "/sessions/{sessionId}",
       pathParams: ["sessionId"]
+    }
+  },
+  {
+    name: "canix_create_watch",
+    description:
+      "Register a paid wallet watch retainer (POST /watch, ~0.25 USDC). Address + thresholds + optional HTTPS webhook. HMAC secret shown once. Canix never stores wallet keys.",
+    inputSchema: schemas.withPaidAuth(
+      {
+        address: schemas.algoAddress,
+        thresholds: schemas.watchThresholds,
+        webhookUrl: { type: "string", minLength: 8, maxLength: 2048 }
+      },
+      ["address", "thresholds"],
+      false
+    ),
+    annotations: mutating,
+    access: "paid",
+    fallbackPriceUsdc: "0.25",
+    allowSessionReceipt: false,
+    http: { method: "POST", path: "/watch" }
+  },
+  {
+    name: "canix_refresh_watch",
+    description:
+      "Refresh a paid watch retainer (POST /watch/refresh, ~0.25 USDC). Extends TTL. Optionally rotateSecret. One-shot only.",
+    inputSchema: schemas.withPaidAuth(
+      {
+        watchId: { type: "string", minLength: 1 },
+        rotateSecret: { type: "boolean" }
+      },
+      ["watchId"],
+      false
+    ),
+    annotations: mutating,
+    access: "paid",
+    fallbackPriceUsdc: "0.25",
+    allowSessionReceipt: false,
+    http: { method: "POST", path: "/watch/refresh" }
+  },
+  {
+    name: "canix_get_watch",
+    description:
+      "Read a watch receipt and recent threshold firings (GET /watch/{watchId}). Free. Does not return the HMAC secret.",
+    inputSchema: schemas.objectSchema(
+      {
+        watchId: { type: "string", minLength: 1 }
+      },
+      ["watchId"]
+    ),
+    annotations: readOnly,
+    access: "free",
+    allowSessionReceipt: false,
+    http: {
+      method: "GET",
+      path: "/watch/{watchId}",
+      pathParams: ["watchId"]
+    }
+  },
+  {
+    name: "canix_rotate_watch_secret",
+    description:
+      "Rotate the watch webhook HMAC secret (POST /watch/{watchId}/rotate-secret). Free. Requires the current secret.",
+    inputSchema: schemas.objectSchema(
+      {
+        watchId: { type: "string", minLength: 1 },
+        webhookSecret: { type: "string", minLength: 1 }
+      },
+      ["watchId", "webhookSecret"]
+    ),
+    annotations: mutating,
+    access: "free",
+    allowSessionReceipt: false,
+    http: {
+      method: "POST",
+      path: "/watch/{watchId}/rotate-secret",
+      pathParams: ["watchId"]
     }
   }
 ];

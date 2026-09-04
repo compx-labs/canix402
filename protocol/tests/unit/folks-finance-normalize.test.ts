@@ -31,11 +31,22 @@ test("normalizeFolksLendingOpportunity maps recorded SDK yields and oracle TVL",
   assert.equal(record.yieldBasis, "apy");
   assert.equal(record.apr, 4.5);
   assert.equal(record.borrowApr, 9);
+  assert.equal(record.risk?.borrowApr, 9);
+  assert.equal(record.risk?.utilization, 0);
   assert.equal(record.tvlUsd, 275);
   assert.equal(record.fetchedAt, FOLKS_FETCHED_AT);
   assert.equal(record.sourceTimestamp, record.fetchedAt);
   assert.match(record.notes ?? "", new RegExp(SOURCE_TIMESTAMP_FETCH_PROXY_NOTE));
   assert.match(record.notes ?? "", /Folks mainnet lending pool 42/);
+});
+
+test("normalizeFolksLendingOpportunity maps borrow/deposit balances into utilization", () => {
+  const fixture = folksAlgoLendingFixture();
+  fixture.poolInfo = folksPoolInfo(1_000_000n);
+  fixture.poolInfo.variableBorrow.totalVariableBorrowAmount = 250_000n;
+  const record = normalizeFolksLendingOpportunity(fixture);
+  assertValidMarketRecord(record);
+  assert.equal(record.risk?.utilization, 25);
 });
 
 test("normalizeFolksLendingOpportunity uses upstream latestUpdate when present", () => {

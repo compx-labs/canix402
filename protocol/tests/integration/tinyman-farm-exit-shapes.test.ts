@@ -232,3 +232,8 @@ test.after(() => {
   setTinymanFarmUncommitDependenciesForTests();
   setTinymanFarmClaimRewardsDependenciesForTests();
 });
+
+test("Tinyman farm exit shape keys", () => {
+  assert.equal(tinymanFarmUncommitShape.key, "mainnet:tinyman:staking-v1:farm:uncommit");
+  assert.equal(tinymanFarmClaimRewardsShape.key, "mainnet:tinyman:staking-v1:farm:claimRewards");
+});

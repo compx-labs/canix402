@@ -10,8 +10,8 @@ Quotes expire after 30 seconds (`DEFAULT_QUOTE_TTL_MS`). Recompile before
 signing. Groups from a batch request are never merged.
 
 This page covers the protocols whose golden/integration fixtures exist today:
-Tinyman, Folks Finance, Pact, CompX, and Dork.fi. Per-shape group layouts stay
-in the sibling markdown files.
+Tinyman, Folks Finance, Pact, CompX, Dork.fi, Myth Finance, Haystack, Réti, and
+Alpha Arcade. Per-shape group layouts stay in the sibling markdown files.
 
 ## Tinyman
 

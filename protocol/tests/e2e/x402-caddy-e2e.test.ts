@@ -306,6 +306,53 @@ test("sessions refresh advertises exactly 250000 micro-USDC", async () => {
   }
 });
 
+test("watch create advertises exactly 250000 micro-USDC", async () => {
+  const context = await setup();
+  try {
+    const response = await fetch(`${context.baseUrl}/watch`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        address: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+        thresholds: { healthFactor: 1.2 }
+      })
+    });
+    assert.equal(response.status, 402);
+    const paymentRequired = response.headers.get("payment-required");
+    assert.ok(paymentRequired);
+    const decoded = decodePaymentRequired(paymentRequired);
+    assert.equal(
+      decoded.accepts[0]?.maxAmountRequired ?? decoded.accepts[0]?.amount,
+      "250000"
+    );
+    assert.equal(context.facilitator.calls.length, 0);
+  } finally {
+    await context.teardown();
+  }
+});
+
+test("watch refresh advertises exactly 250000 micro-USDC", async () => {
+  const context = await setup();
+  try {
+    const response = await fetch(`${context.baseUrl}/watch/refresh`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ watchId: "cwatch_example" })
+    });
+    assert.equal(response.status, 402);
+    const paymentRequired = response.headers.get("payment-required");
+    assert.ok(paymentRequired);
+    const decoded = decodePaymentRequired(paymentRequired);
+    assert.equal(
+      decoded.accepts[0]?.maxAmountRequired ?? decoded.accepts[0]?.amount,
+      "250000"
+    );
+    assert.equal(context.facilitator.calls.length, 0);
+  } finally {
+    await context.teardown();
+  }
+});
+
 test("session header skips facilitator and fail-closes at the app", async () => {
   const context = await setup();
   try {

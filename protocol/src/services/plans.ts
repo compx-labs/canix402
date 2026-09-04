@@ -7,6 +7,14 @@ import {
 import { evaluateOpportunityEligibility } from "./eligibility.js";
 import { attachExecutionShapesToOpportunity } from "./opportunity-execution-shapes.js";
 import {
+  compareOpportunitiesByRiskThenYield,
+  finalizeOpportunityRisk,
+  indexHealthFactorsFromPositions,
+  loadWalletHealthFactors,
+  resolveWalletHealthFactor
+} from "./opportunity-risk.js";
+import { attachHistoryStability } from "./opportunity-history.js";
+import {
   DEFAULT_QUOTE_TTL_MS,
   type ExecutableQuote
 } from "../execution/index.js";
@@ -23,6 +31,7 @@ import type {
   PlanRequest,
   PlanResponse
 } from "../types/plan.js";
+import type { PositionRecordV1 } from "../types/position.js";
 import { DEFAULT_PLAN_PRICE_USDC } from "../types/plan-schema.js";
 import {
   composeCanUnblockEligibility,
@@ -50,6 +59,7 @@ const SWAP_COMPOSE_NOTE =
 export interface PlanCompilerDependencies {
   fetchHoldings?: (address: string) => Promise<AccountHoldings>;
   fetchOpportunities?: (refresh: boolean) => Promise<OpportunityMarketRecord[]>;
+  fetchPositions?: (address: string) => Promise<readonly PositionRecordV1[]>;
   compileQuote?: (shapeKey: string, input: unknown) => Promise<ExecutableQuote>;
   haystack?: HaystackService;
   now?: () => Date;
@@ -101,15 +111,22 @@ export async function compilePlan(request: PlanRequest): Promise<PlanResponse> {
     : (await fetchOpportunitiesResult(SUPPORTED_AGGREGATE_PROTOCOLS, {
         refresh: request.refresh === true
       })).data;
+  const marketsWithHistory = await attachHistoryStability(markets);
+
+  const healthFactors = dependencyOverrides?.fetchPositions
+    ? indexHealthFactorsFromPositions(
+        await dependencyOverrides.fetchPositions(request.address)
+      )
+    : await loadWalletHealthFactors(request.address);
 
   const pinned = request.opportunityIds
     ? new Set(request.opportunityIds)
     : undefined;
-  const byId = new Map(markets.map((row) => [row.opportunityId, row] as const));
+  const byId = new Map(marketsWithHistory.map((row) => [row.opportunityId, row] as const));
 
   const consideredIds = pinned
     ? request.opportunityIds ?? []
-    : markets.map((row) => row.opportunityId);
+    : marketsWithHistory.map((row) => row.opportunityId);
 
   const blocked: PlanBlockedAllocation[] = [];
   const enterable: RankedCandidate[] = [];
@@ -128,18 +145,26 @@ export async function compilePlan(request: PlanRequest): Promise<PlanResponse> {
     }
 
     const opportunity = attachExecutionShapesToOpportunity(market);
+    const healthFactor = resolveWalletHealthFactor(opportunity, healthFactors);
+    const withRisk: OpportunityRecordV1 = {
+      ...opportunity,
+      risk: finalizeOpportunityRisk(opportunity, {
+        now,
+        ...(healthFactor !== undefined ? { healthFactor } : {})
+      })
+    };
     const eligibility = evaluateOpportunityEligibility(
       market,
-      opportunity.opportunityId,
+      withRisk.opportunityId,
       holdings
     );
-    const chain = selectEnterChain(opportunity, constraints.noNewBorrows);
+    const chain = selectEnterChain(withRisk, constraints.noNewBorrows);
     const swapTarget = selectComposeTargetAsset(chain, request.budget.assetId);
     const canCompose =
       swapTarget !== undefined &&
       composeCanUnblockEligibility(eligibility, swapTarget);
     const rejectReasons = constraintRejectReasons(
-      opportunity,
+      withRisk,
       chain,
       request.budget.assetId,
       constraints,
@@ -154,23 +179,20 @@ export async function compilePlan(request: PlanRequest): Promise<PlanResponse> {
         ...(eligibility.canEnter || canCompose ? [] : (["eligibility-gate"] as const))
       ];
       blocked.push({
-        opportunityId: opportunity.opportunityId,
-        protocol: opportunity.protocol,
+        opportunityId: withRisk.opportunityId,
+        protocol: withRisk.protocol,
         eligibility,
         reasons: unique(reasons)
       });
       continue;
     }
 
-    enterable.push({ opportunity, eligibility, chain });
+    enterable.push({ opportunity: withRisk, eligibility, chain });
   }
 
-  enterable.sort((left, right) => {
-    if (left.opportunity.apy !== right.opportunity.apy) {
-      return right.opportunity.apy - left.opportunity.apy;
-    }
-    return left.opportunity.opportunityId.localeCompare(right.opportunity.opportunityId);
-  });
+  enterable.sort((left, right) =>
+    compareOpportunitiesByRiskThenYield(left.opportunity, right.opportunity, now)
+  );
 
   const slices = allocateBudget(
     enterable,
@@ -457,12 +479,24 @@ async function compileAllocation(args: {
       tvlUsd: opportunity.tvlUsd,
       sourceTimestamp: opportunity.sourceTimestamp,
       executionReady: opportunity.executionReady,
+      risk: opportunity.risk,
       eligibility,
       executionShapes: chain,
-      steps: composed.steps,
+      steps: composed.steps.map((step) =>
+        opportunity.risk?.stability === "low" &&
+        (step.kind === "enter" || step.kind === "eligibility")
+          ? {
+              ...step,
+              warnings: unique([...step.warnings, "snapshot-apy-unstable"])
+            }
+          : step
+      ),
       quotes: composed.quotes
     },
-    warnings: composed.warnings,
+    warnings: [
+      ...composed.warnings,
+      ...(opportunity.risk?.stability === "low" ? ["snapshot-apy-unstable"] : [])
+    ],
     enterAssetId: composed.enterAssetId,
     enterAmount: composed.enterAmount
   };

@@ -8,9 +8,20 @@ import {
   SUPPORTED_AGGREGATE_PROTOCOLS
 } from "../services/aggregate-opportunities.js";
 import { filterOpportunitiesByActivity } from "../services/opportunity-activity.js";
-import { rankOpportunitiesByApy } from "../services/opportunity-ranking.js";
-import { formatOpportunitiesForAgent } from "../services/precision.js";
+import { rankOpportunities } from "../services/opportunity-ranking.js";
+import { formatDecimalForAgent, formatOpportunitiesForAgent } from "../services/precision.js";
 import { selectPersonalizedOpportunities } from "../services/personalized-opportunities.js";
+import {
+  attachOpportunityRisk,
+  loadWalletHealthFactors
+} from "../services/opportunity-risk.js";
+import {
+  attachHistoryStability,
+  loadOpportunityHistory,
+  OPPORTUNITY_HISTORY_RETENTION_DAYS,
+  parseHistoryWindow,
+  windowSeconds
+} from "../services/opportunity-history.js";
 import { evaluateOpportunityEligibility } from "../services/eligibility.js";
 import { ApiError, ApiSuccess } from "../types/index.js";
 import { OpportunityRecordV1 } from "../types/opportunity.js";
@@ -19,6 +30,14 @@ import {
   PersonalizedOpportunitiesListResponseSchema,
   type PersonalizedOpportunityRecord
 } from "../types/opportunity-schema.js";
+import {
+  OpportunityHistoryParamsSchema,
+  OpportunityHistoryQuerySchema,
+  OpportunityHistoryResponseSchema,
+  type OpportunityHistoryData,
+  type OpportunityHistoryParams,
+  type OpportunityHistoryQuery
+} from "../types/opportunity-history-schema.js";
 import {
   AGGREGATE_OPPORTUNITIES_DEFAULT_LIMIT,
   FilteredOpportunitiesDefaultLimit,
@@ -59,10 +78,13 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
         { refresh }
       );
       const data = filterOpportunitiesByActivity(fetched, includeInactive);
-      const pagedData = rankOpportunitiesByApy(data).slice(offset, offset + limit);
+      const ranked = rankOpportunities(await attachHistoryStability(data)).slice(
+        offset,
+        offset + limit
+      );
 
       return {
-        data: formatOpportunitiesForAgent(pagedData),
+        data: formatOpportunitiesForAgent(ranked),
         meta: {
           limit,
           offset,
@@ -139,9 +161,12 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
         return true;
       });
 
-      const pagedData = rankOpportunitiesByApy(filtered).slice(offset, offset + limit);
+      const ranked = rankOpportunities(await attachHistoryStability(filtered)).slice(
+        offset,
+        offset + limit
+      );
       return reply.send({
-        data: formatOpportunitiesForAgent(pagedData),
+        data: formatOpportunitiesForAgent(ranked),
         meta: {
           limit,
           offset,
@@ -191,8 +216,13 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
       );
       const data = filterOpportunitiesByActivity(fetched, includeInactive);
 
+      const healthFactors = await loadWalletHealthFactors(address);
+      const withRisk = attachOpportunityRisk(await attachHistoryStability(data), {
+        healthFactors
+      });
+
       const personalized = selectPersonalizedOpportunities(
-        data,
+        withRisk,
         holdings,
         offset + limit,
         { includeInactive }
@@ -223,6 +253,74 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
           eligibilityApplied: true,
           eligibilityEndpoint: "/eligibility",
           ...cacheMetaForResponse(cache)
+        }
+      });
+    }
+  );
+
+  app.get<{
+    Params: OpportunityHistoryParams;
+    Querystring: OpportunityHistoryQuery;
+    Reply: ApiSuccess<OpportunityHistoryData> | ApiError;
+  }>(
+    "/opportunities/:opportunityId/history",
+    {
+      schema: {
+        params: OpportunityHistoryParamsSchema,
+        querystring: OpportunityHistoryQuerySchema,
+        response: {
+          200: OpportunityHistoryResponseSchema
+        }
+      }
+    },
+    async (request, reply) => {
+      const opportunityId = request.params.opportunityId.trim();
+      if (opportunityId.length === 0) {
+        return reply.status(400).send({
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Path parameter 'opportunityId' is required."
+          }
+        });
+      }
+
+      const window = parseHistoryWindow(request.query.window);
+      if (window === undefined) {
+        return reply.status(400).send({
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Query parameter 'window' must be one of: 1d, 7d, 30d."
+          }
+        });
+      }
+      const { points, stability } = await loadOpportunityHistory(opportunityId, window);
+      const formattedPoints = points.map((point) => ({
+        ts: point.ts,
+        apy: formatDecimalForAgent(point.apy),
+        tvlUsd: formatDecimalForAgent(point.tvlUsd)
+      }));
+      const formattedStability = {
+        ...stability,
+        ...(stability.apyMean !== undefined
+          ? { apyMean: formatDecimalForAgent(stability.apyMean) }
+          : {}),
+        ...(stability.apyStdev !== undefined
+          ? { apyStdev: formatDecimalForAgent(stability.apyStdev) }
+          : {})
+      };
+
+      return reply.send({
+        data: {
+          opportunityId,
+          window,
+          points: formattedPoints,
+          stability: formattedStability
+        },
+        meta: {
+          paymentRequired: true,
+          windowSeconds: windowSeconds(window),
+          snapshotRetentionDays: OPPORTUNITY_HISTORY_RETENTION_DAYS,
+          snapshotCount: formattedPoints.length
         }
       });
     }

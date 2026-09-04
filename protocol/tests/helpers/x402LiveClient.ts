@@ -24,6 +24,7 @@ export interface LiveEnv {
   priceAggregateUsdc: string;
   priceSearchUsdc: string;
   pricePersonalizedUsdc: string;
+  priceHistoryUsdc: string;
   priceProtocolUsdc: string;
   priceExecutionQuoteUsdc: string;
   priceHaystackSwapUsdc: string;
@@ -56,6 +57,7 @@ export function getLiveEnv(): LiveEnv {
     priceAggregateUsdc: process.env.X402_PRICE_AGGREGATE_USDC ?? defaultPrice,
     priceSearchUsdc: process.env.X402_PRICE_SEARCH_USDC ?? defaultPrice,
     pricePersonalizedUsdc: process.env.X402_PRICE_PERSONALIZED_USDC ?? "0.05",
+    priceHistoryUsdc: process.env.X402_PRICE_HISTORY_USDC ?? "0.01",
     priceProtocolUsdc: process.env.X402_PRICE_PROTOCOL_USDC ?? defaultPrice,
     priceExecutionQuoteUsdc: process.env.X402_PRICE_EXECUTION_QUOTE_USDC ?? "0.1",
     priceHaystackSwapUsdc: process.env.X402_PRICE_HAYSTACK_SWAP_USDC ?? "0.005",

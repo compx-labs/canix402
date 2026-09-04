@@ -201,7 +201,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_list_opportunities",
     {
       description:
-        "List top aggregated Algorand DeFi opportunities ranked by APY (GET /opportunities). Paid ~0.01 USDC.",
+        "List top aggregated Algorand DeFi opportunities ranked by risk then APY (GET /opportunities). Paid ~0.01 USDC.", // pragma: allowlist secret
       inputSchema: {
         limit: z.number().int().min(1).max(200).optional(),
         offset: z.number().int().min(0).optional(),
@@ -315,6 +315,40 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
         });
         return paidToolResult(result, "0.05", {
           path: "/opportunities/personalized",
+          method: "GET",
+          query
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_get_opportunity_history",
+    {
+      description:
+        "Fetch a bounded APY/TVL history series for one opportunity (GET /opportunities/{opportunityId}/history?window=). Window is 1d, 7d, or 30d (default 30d). Empty points until snapshots exist — not a warehouse backfill. Includes a stability signal so snapshot APY cannot dominate plan sizing. Paid ~0.01 USDC.",
+      inputSchema: {
+        opportunityId: z.string().min(1),
+        window: z.enum(["1d", "7d", "30d"]).optional(),
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const path = `/opportunities/${encodeURIComponent(args.opportunityId)}/history`;
+        const query = {
+          window: args.window
+        };
+        const result = await client.fetchPaid(path, {
+          method: "GET",
+          query,
+          ...paidAuth(args)
+        });
+        return paidToolResult(result, "0.01", {
+          path,
           method: "GET",
           query
         });
@@ -938,6 +972,143 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     }
   );
 
+  const watchThresholdsSchema = z
+    .object({
+      healthFactor: z.number().gt(0).optional(),
+      claimableUsd: z.number().min(0).optional(),
+      apyDropBps: z.number().int().min(1).max(100_000).optional(),
+      retiCapacity: z
+        .union([
+          z.literal(true),
+          z.object({
+            minStakerSlotsRemaining: z.number().int().min(0).optional(),
+            minAlgoRoomMicroAlgos: z.string().regex(/^[0-9]+$/).optional()
+          })
+        ])
+        .optional()
+    })
+    .refine(
+      (value) =>
+        value.healthFactor !== undefined ||
+        value.claimableUsd !== undefined ||
+        value.apyDropBps !== undefined ||
+        value.retiCapacity !== undefined,
+      { message: "At least one threshold is required." }
+    );
+
+  server.registerTool(
+    "canix_create_watch",
+    {
+      description:
+        "Register a paid wallet watch retainer (POST /watch, ~0.25 USDC). Pass address + thresholds (healthFactor, claimableUsd, apyDropBps, retiCapacity) and optional HTTPS webhookUrl. Returns a walletless receipt and HMAC secret once. Notifications fire on threshold crossings with X-Canix-Signature and an idempotency key. Canix never stores wallet keys.",
+      inputSchema: {
+        address: AlgorandAddressSchema, // pragma: allowlist secret
+        thresholds: watchThresholdsSchema,
+        webhookUrl: z.string().url().optional(),
+        paymentSignature: paymentSignatureArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const body = {
+          address: args.address,
+          thresholds: args.thresholds,
+          ...(args.webhookUrl ? { webhookUrl: args.webhookUrl } : {})
+        };
+        const result = await client.fetchPaid("/watch", {
+          method: "POST",
+          body,
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+        });
+        return paidToolResult(result, "0.25", {
+          path: "/watch",
+          method: "POST",
+          body
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_refresh_watch",
+    {
+      description:
+        "Refresh a paid watch retainer (POST /watch/refresh, ~0.25 USDC). Extends TTL. Optionally rotateSecret to mint a new HMAC key (returned once). One-shot only.",
+      inputSchema: {
+        watchId: z.string().min(1),
+        rotateSecret: z.boolean().optional(),
+        paymentSignature: paymentSignatureArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const body = {
+          watchId: args.watchId,
+          ...(args.rotateSecret !== undefined ? { rotateSecret: args.rotateSecret } : {})
+        };
+        const result = await client.fetchPaid("/watch/refresh", {
+          method: "POST",
+          body,
+          ...(args.paymentSignature ? { paymentSignature: args.paymentSignature } : {})
+        });
+        return paidToolResult(result, "0.25", {
+          path: "/watch/refresh",
+          method: "POST",
+          body
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_get_watch",
+    {
+      description:
+        "Read a watch receipt and recent threshold firings (GET /watch/{watchId}). Free. Does not return the HMAC secret.",
+      inputSchema: {
+        watchId: z.string().min(1)
+      }
+    },
+    async (args) => {
+      try {
+        const path = `/watch/${encodeURIComponent(args.watchId)}`;
+        const result = await client.fetchPaid(path, { method: "GET" });
+        return jsonResult(result.body);
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_rotate_watch_secret",
+    {
+      description:
+        "Rotate the watch webhook HMAC secret (POST /watch/{watchId}/rotate-secret). Free. Requires the current secret. The new secret is returned once.",
+      inputSchema: {
+        watchId: z.string().min(1),
+        webhookSecret: z.string().min(1)
+      }
+    },
+    async (args) => {
+      try {
+        const path = `/watch/${encodeURIComponent(args.watchId)}/rotate-secret`;
+        const result = await client.fetchPaid(path, {
+          method: "POST",
+          body: {},
+          headers: { "X-Canix-Watch-Secret": args.webhookSecret }
+        });
+        return jsonResult(result.body);
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
   server.registerTool(
     "canix_swap",
     {
@@ -1089,6 +1260,56 @@ export function registerCanixResources(server: McpServer, client: GatewayClient)
       };
     }
   );
+
+  server.registerResource(
+    "watch",
+    "canix://watch",
+    {
+      description:
+        "Watch retainer policy (TTL, price, signature/idempotency headers). Receipts and recent firings are canix://watch/{watchId}, GET /watch/{watchId}, or canix_get_watch. Watchers are address + callback only — no wallet keys.",
+      mimeType: "application/json"
+    },
+    async (uri) => {
+      const body = (await client.fetchFree("/discovery")) as {
+        data?: { watchPolicy?: unknown };
+        watchPolicy?: unknown;
+      };
+      const watchPolicy = body?.data?.watchPolicy ?? body?.watchPolicy ?? body;
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "application/json",
+            text: JSON.stringify(watchPolicy, null, 2)
+          }
+        ]
+      };
+    }
+  );
+
+  server.registerResource(
+    "watch-receipt",
+    new ResourceTemplate("canix://watch/{watchId}", { list: undefined }),
+    {
+      description:
+        "Watch retainer receipt and recent threshold firings (GET /watch/{watchId}). Unknown or expired receipts return 402 WATCH_INVALID/WATCH_EXPIRED.",
+      mimeType: "application/json"
+    },
+    async (uri, { watchId }) => {
+      const id = Array.isArray(watchId) ? watchId[0] : watchId;
+      const path = `/watch/${encodeURIComponent(String(id ?? ""))}`;
+      const result = await client.fetchPaid(path, { method: "GET" });
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "application/json",
+            text: JSON.stringify(result.body, null, 2)
+          }
+        ]
+      };
+    }
+  );
 }
 
 export function registerCanixPrompts(server: McpServer): void {
@@ -1112,6 +1333,7 @@ export function registerCanixPrompts(server: McpServer): void {
             text: [
               "Analyze this Algorand DeFi opportunity from canix402.",
               "Evaluate APY/APR quality, TVL depth, protocol risk, asset exposure, and whether an execution shape exists for acting on it.",
+              "Prefer opportunity.risk over raw apy when ranking or recommending. Penalize low confidence, high utilization, high volatility, exhausted reward runway, low APY stability (risk.stability / apyStdev from GET /opportunities/:id/history), and (when present) low wallet healthFactor. Do not invent missing risk numbers.",
               "Do not invent on-chain state. If data is missing, say what additional canix402 tool calls would help.",
               "",
               "Opportunity JSON:",

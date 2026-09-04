@@ -73,6 +73,32 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 			},
 		)
 
+	case "opportunities_history":
+		return bazaar.DeclareDiscoveryExtension(
+			bazaar.MethodGET,
+			map[string]interface{}{
+				"window": "30d",
+			},
+			bazaar.JSONSchema{
+				"properties": map[string]interface{}{
+					"window": map[string]interface{}{
+						"type": "string",
+						"enum": []interface{}{"1d", "7d", "30d"},
+					},
+				},
+			},
+			"",
+			&bazaar.OutputConfig{
+				Example: map[string]interface{}{
+					"data": map[string]interface{}{
+						"opportunityId": "tinyman:pool:1002541853",
+						"window":        "30d",
+						"points":        []interface{}{},
+					},
+				},
+			},
+		)
+
 	case "eligibility":
 		return bazaar.DeclareDiscoveryExtension(
 			bazaar.MethodPOST,
@@ -427,6 +453,62 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 			},
 		)
 
+	case "watch":
+		return bazaar.DeclareDiscoveryExtension(
+			bazaar.MethodPOST,
+			map[string]interface{}{
+				"address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+				"thresholds": map[string]interface{}{
+					"healthFactor": 1.2,
+				},
+			},
+			bazaar.JSONSchema{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"address": map[string]interface{}{"type": "string"},
+					"thresholds": map[string]interface{}{
+						"type": "object",
+					},
+					"webhookUrl": map[string]interface{}{"type": "string"},
+				},
+				"required": []string{"address", "thresholds"},
+			},
+			bazaar.BodyTypeJSON,
+			&bazaar.OutputConfig{
+				Example: map[string]interface{}{
+					"data": map[string]interface{}{
+						"watchId": "cwatch_example",
+						"status":  "active",
+					},
+				},
+			},
+		)
+
+	case "watch_refresh":
+		return bazaar.DeclareDiscoveryExtension(
+			bazaar.MethodPOST,
+			map[string]interface{}{
+				"watchId": "cwatch_example",
+			},
+			bazaar.JSONSchema{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"watchId":      map[string]interface{}{"type": "string"},
+					"rotateSecret": map[string]interface{}{"type": "boolean"},
+				},
+				"required": []string{"watchId"},
+			},
+			bazaar.BodyTypeJSON,
+			&bazaar.OutputConfig{
+				Example: map[string]interface{}{
+					"data": map[string]interface{}{
+						"watchId": "cwatch_example",
+						"status":  "active",
+					},
+				},
+			},
+		)
+
 	default:
 		return bazaar.DiscoveryExtension{}, fmt.Errorf("unknown bazaar_profile %q", profile)
 	}
@@ -437,6 +519,7 @@ func knownBazaarProfiles() []string {
 		"opportunities",
 		"opportunities_search",
 		"opportunities_personalized",
+		"opportunities_history",
 		"eligibility",
 		"plans",
 		"policy_validate",
@@ -450,5 +533,7 @@ func knownBazaarProfiles() []string {
 		"execution_simulate",
 		"sessions",
 		"sessions_refresh",
+		"watch",
+		"watch_refresh",
 	}
 }

@@ -1,4 +1,5 @@
 export type {
+  OpportunityAdapterRisk,
   OpportunityCapacity,
   OpportunityEntryGate,
   OpportunityEntryRequirements,
@@ -6,6 +7,9 @@ export type {
   OpportunityExecutionShape,
   OpportunityMarketRecord,
   OpportunityRecordV1,
+  OpportunityRisk,
+  OpportunityRiskConfidence,
+  OpportunityVolatilityBucket,
   PersonalizedOpportunityRecord,
   YieldBasis
 } from "./opportunity-schema.js";

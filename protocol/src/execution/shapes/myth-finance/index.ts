@@ -20,6 +20,8 @@ export {
   resolveMythDualStakeState,
   buildMythMintTransactions,
   buildMythRedeemTransactions,
+  buildMockMythMintGroup,
+  buildMockMythRedeemGroup,
   expectedAsaForMint,
   MYTH_RATE_PRECISION
 } from "./dualstake-state.js";

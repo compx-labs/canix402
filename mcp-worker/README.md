@@ -15,6 +15,8 @@ Stateless remote MCP server for canix402, designed for Cloudflare Workers deploy
   wallet `address` and a 0.005 USDC fallback price
 - Exposes `canix_list_claimable` for paid `GET /positions/claimable` (0.001 USDC);
   pass `claimAllQuotes` into `canix_get_execution_quote` to compile unsigned claims
+- Exposes `canix_get_opportunity_history` for paid `GET /opportunities/{id}/history`
+  (0.01 USDC research SKU); bounded APY/TVL series plus a stability signal.
 - Exposes `canix_check_eligibility` for paid `POST /eligibility` (0.01 USDC);
   check `canEnter` / gates / capacity before quoting an enter
 - Exposes `canix_get_plan` for paid `POST /plans` (0.25 USDC); compile an
@@ -39,6 +41,13 @@ Stateless remote MCP server for canix402, designed for Cloudflare Workers deploy
   `SESSION_*` 402, omit the header and retry with `paymentSignature`.
 - Resource `canix://session` publishes session **policy** (budget N/M, TTL).
 - Resource `canix://session/{sessionId}` publishes remaining N/M for that receipt.
+- Exposes watch retainer tools (address + callback only; no wallet keys):
+  - `canix_create_watch` → paid `POST /watch` (0.25 USDC)
+  - `canix_refresh_watch` → paid `POST /watch/refresh` (0.25 USDC, one-shot only)
+  - `canix_get_watch` → free `GET /watch/{watchId}` recent firings
+  - `canix_rotate_watch_secret` → free rotate with current HMAC secret
+- Resource `canix://watch` publishes watch **policy** (TTL, price, signature headers).
+- Resource `canix://watch/{watchId}` publishes the receipt and recent firings.
 - Exposes stateless Haystack tools:
   - `canix_get_quote` → free `POST /swaps/quote`
   - `canix_optin` → free `POST /swaps/optin`

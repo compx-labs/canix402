@@ -6,6 +6,7 @@ import {
   estimateConsensusStakingApr,
   type ConsensusStakingAprEstimate
 } from "../services/consensus-staking-apr.js";
+import { tinymanVolatilityRisk } from "../services/opportunity-risk.js";
 import { buildSourceMetadata } from "../services/source-metadata.js";
 import { OpportunityMarketRecord } from "../types/opportunity.js";
 import {
@@ -549,6 +550,7 @@ export function normalizeTinymanPool(
   const pairName = buildPairName(record);
   const assetIds = buildAssetIds(record);
   const usedFallbackIdentifiers = id.length === 0 || pairName.length === 0;
+  const risk = tinymanVolatilityRisk(record.is_stable);
 
   return {
     protocol: "tinyman",
@@ -560,6 +562,7 @@ export function normalizeTinymanPool(
     yieldBasis: "apy",
     tvlUsd,
     ...(apr !== null ? { apr } : {}),
+    ...(risk ? { risk } : {}),
     ...buildSourceMetadata({
       fetchedAtIso,
       usedFallbackIdentifiers
@@ -611,6 +614,7 @@ export function normalizeTinymanFarm(
   const pairName = buildPairName(record);
   const assetIds = buildAssetIds(record);
   const usedFallbackIdentifiers = id.length === 0 || pairName.length === 0;
+  const risk = tinymanVolatilityRisk(record.is_stable);
 
   return {
     protocol: "tinyman",
@@ -622,6 +626,7 @@ export function normalizeTinymanFarm(
     yieldBasis: "apy",
     tvlUsd,
     ...(stakingApr !== null ? { apr: stakingApr } : {}),
+    ...(risk ? { risk } : {}),
     ...buildSourceMetadata({
       fetchedAtIso,
       usedFallbackIdentifiers

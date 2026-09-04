@@ -21,6 +21,7 @@ import {
   estimateConsensusStakingApr,
   type ConsensusStakingAprEstimate
 } from "../services/consensus-staking-apr.js";
+import { utilizationFromBalances } from "../services/opportunity-risk.js";
 import { buildSourceMetadata } from "../services/source-metadata.js";
 
 export const FOLKS_XALGO_STAKING_OPPORTUNITY_ID = "folks-staking-xalgo";
@@ -189,6 +190,11 @@ export function normalizeFolksLendingOpportunity(
   // Folks oracle prices are already scaled as USD * 10^(14 - assetDecimals), so
   // USD = baseUnits * price / 1e14. Do not also divide deposits by asset decimals.
   const tvlUsd = calcTvlUsd(poolInfo.interest.totalDeposits, oraclePrice);
+  const utilization = utilizationFromBalances(
+    poolInfo.variableBorrow.totalVariableBorrowAmount +
+      poolInfo.stableBorrow.totalStableBorrowAmount,
+    poolInfo.interest.totalDeposits
+  );
 
   if (!Number.isFinite(apy) || !Number.isFinite(tvlUsd)) {
     return null;
@@ -205,6 +211,10 @@ export function normalizeFolksLendingOpportunity(
     tvlUsd,
     ...(apr !== null ? { apr } : {}),
     ...(borrowApr !== null ? { borrowApr } : {}),
+    risk: {
+      ...(utilization !== undefined ? { utilization } : {}),
+      ...(borrowApr !== null ? { borrowApr } : {})
+    },
     ...buildSourceMetadata({
       fetchedAtIso,
       upstreamUnixSeconds: poolInfo.interest.latestUpdate,

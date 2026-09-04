@@ -18,15 +18,6 @@ if (!FormatRegistry.Has("date-time")) {
   FormatRegistry.Set("date-time", (value) => ISO_DATE_TIME.test(value));
 }
 
-import type {
-  OpportunityMarketRecord,
-  OpportunityRecordV1
-} from "../../../src/types/opportunity.js";
-import {
-  OpportunityMarketRecordSchema,
-  OpportunityRecordSchema
-} from "../../../src/types/opportunity-schema.js";
-
 function formatErrors(errors: Iterable<{ path: string; message: string }>): string {
   return [...errors]
     .map((error) => `${error.path || "/"}: ${error.message}`)
@@ -55,4 +46,11 @@ export function assertValidPublicOpportunity(
   assert.ok(Array.isArray(record.executionShapes));
   assert.ok(Array.isArray(record.compatibleExitShapes));
   assert.equal("poolAppId" in record, false);
+  assert.ok(record.risk);
+  assert.ok(
+    record.risk.confidence === "high" ||
+      record.risk.confidence === "medium" ||
+      record.risk.confidence === "low" ||
+      record.risk.confidence === "unknown"
+  );
 }
