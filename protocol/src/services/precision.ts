@@ -1,8 +1,10 @@
 import type {
   OpportunityMarketRecord,
-  OpportunityRecordV1
+  OpportunityRecordV1,
+  OpportunityRisk
 } from "../types/opportunity.js";
 import { attachExecutionShapesToOpportunity } from "./opportunity-execution-shapes.js";
+import { finalizeOpportunityRisk } from "./opportunity-risk.js";
 
 // Agents receive a bounded-precision view of yield/USD figures. The standard is
 // 6 decimal places (the common Algorand ASA decimal count), but we allow up to
@@ -47,7 +49,8 @@ export function formatOpportunityForAgent(
       : {}),
     ...(withShapes.borrowApr !== undefined
       ? { borrowApr: formatDecimalForAgent(withShapes.borrowApr) }
-      : {})
+      : {}),
+    risk: formatRiskForAgent(finalizeOpportunityRisk(withShapes))
   };
 }
 
@@ -61,4 +64,26 @@ function roundTo(value: number, decimals: number): number {
   // toFixed operates on the decimal string form, avoiding the precision loss of
   // multiply/divide rounding for large magnitudes (e.g. multi-million USD TVL).
   return Number(value.toFixed(decimals));
+}
+
+function formatRiskForAgent(risk: OpportunityRisk): OpportunityRisk {
+  return {
+    ...risk,
+    ...(risk.utilization !== undefined
+      ? { utilization: formatDecimalForAgent(risk.utilization) }
+      : {}),
+    ...(risk.liquidationThreshold !== undefined
+      ? { liquidationThreshold: formatDecimalForAgent(risk.liquidationThreshold) }
+      : {}),
+    ...(risk.ltv !== undefined ? { ltv: formatDecimalForAgent(risk.ltv) } : {}),
+    ...(risk.borrowApr !== undefined
+      ? { borrowApr: formatDecimalForAgent(risk.borrowApr) }
+      : {}),
+    ...(risk.healthFactor !== undefined && risk.healthFactor !== null
+      ? { healthFactor: formatDecimalForAgent(risk.healthFactor) }
+      : {}),
+    ...(risk.apyStdev !== undefined
+      ? { apyStdev: formatDecimalForAgent(risk.apyStdev) }
+      : {})
+  };
 }

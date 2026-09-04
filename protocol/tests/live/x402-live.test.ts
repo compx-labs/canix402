@@ -120,6 +120,7 @@ async function startLiveCaddyHarness(env: LiveEnv): Promise<LiveCaddyHarness> {
         X402_PRICE_AGGREGATE_USDC: env.priceAggregateUsdc,
         X402_PRICE_SEARCH_USDC: env.priceSearchUsdc,
         X402_PRICE_PERSONALIZED_USDC: env.pricePersonalizedUsdc,
+        X402_PRICE_HISTORY_USDC: env.priceHistoryUsdc,
         X402_PRICE_ELIGIBILITY_USDC: process.env.X402_PRICE_ELIGIBILITY_USDC || "0.01",
         X402_PRICE_PLANS_USDC: process.env.X402_PRICE_PLANS_USDC || "0.25",
         X402_PRICE_PLANS_REBALANCE_USDC:
@@ -137,6 +138,7 @@ async function startLiveCaddyHarness(env: LiveEnv): Promise<LiveCaddyHarness> {
           process.env.X402_PRICE_EXECUTION_SIMULATE_USDC || "0.1",
         X402_PRICE_HAYSTACK_SWAP_USDC: env.priceHaystackSwapUsdc,
         X402_PRICE_SESSIONS_USDC: process.env.X402_PRICE_SESSIONS_USDC || "0.25",
+        X402_PRICE_WATCH_USDC: process.env.X402_PRICE_WATCH_USDC || "0.25",
         X402_NETWORK: env.network,
         X402_SCHEME: env.scheme
       }

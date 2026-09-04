@@ -13,6 +13,10 @@ import {
 } from "../../src/execution/index.js";
 import type { ShapeBuildContext } from "../../src/execution/index.js";
 import {
+  assertEncodedGroupIsValid,
+  assertGoldenGroup
+} from "../helpers/golden-group.js";
+import {
   HAYSTACK_STAKING_APP_ID,
   HAY_ASSET_ID,
   STAKER_BOX_MBR_MICROALGOS,
@@ -55,26 +59,6 @@ function buildContext(): ShapeBuildContext {
     now: () => Date.UTC(2026, 6, 16, 10, 0, 0),
     quoteTtlMs: 30_000
   };
-}
-
-function assertEncodedGroupIsValid(encodedTransactions: readonly string[]): void {
-  const transactions = encodedTransactions.map((encoded) =>
-    algosdk.decodeUnsignedTransaction(Buffer.from(encoded, "base64"))
-  );
-  const groupIds = transactions.map((txn) => Buffer.from(txn.group ?? []).toString("base64"));
-  assert.ok(groupIds.every((groupId) => groupId.length > 0));
-
-  const ungroupedTransactions = transactions.map((txn) =>
-    algosdk.decodeUnsignedTransaction(algosdk.encodeUnsignedTransaction(txn))
-  );
-  ungroupedTransactions.forEach((txn) => {
-    txn.group = undefined;
-  });
-
-  const computedGroupId = Buffer.from(algosdk.computeGroupID(ungroupedTransactions)).toString(
-    "base64"
-  );
-  assert.deepEqual(groupIds, new Array(groupIds.length).fill(computedGroupId));
 }
 
 function stakingState(overrides: Partial<HaystackStakingState> = {}): HaystackStakingState {
@@ -130,6 +114,36 @@ test("stake shape compiles a 3-txn group for a first-time staker", async () => {
 
   assert.equal(quote.transactions.length, 3);
   assertEncodedGroupIsValid(quote.encodedTransactions);
+  assertGoldenGroup(quote.transactions, {
+    types: ["pay", "axfer", "appl"],
+    members: [
+      {
+        type: "pay",
+        fee: "1000",
+        appIndex: null,
+        amount: STAKER_BOX_MBR_MICROALGOS.toString(),
+        assetIndex: null,
+        receiver: APP_ADDRESS
+      },
+      {
+        type: "axfer",
+        fee: "1000",
+        appIndex: null,
+        amount: amount.toString(),
+        assetIndex: String(HAY_ASSET_ID),
+        receiver: APP_ADDRESS
+      },
+      {
+        type: "appl",
+        fee: "5000",
+        appIndex: String(HAYSTACK_STAKING_APP_ID),
+        amount: null,
+        assetIndex: null,
+        receiver: null
+      }
+    ],
+    userSignIndexes: [0, 1, 2]
+  });
 
   setHaystackStakeHayDependenciesForTests(undefined);
 });
@@ -167,6 +181,28 @@ test("stake shape compiles a 2-txn group (no MBR) for a returning staker", async
 
   assert.equal(quote.transactions.length, 2);
   assertEncodedGroupIsValid(quote.encodedTransactions);
+  assertGoldenGroup(quote.transactions, {
+    types: ["axfer", "appl"],
+    members: [
+      {
+        type: "axfer",
+        fee: "1000",
+        appIndex: null,
+        amount: amount.toString(),
+        assetIndex: String(HAY_ASSET_ID),
+        receiver: APP_ADDRESS
+      },
+      {
+        type: "appl",
+        fee: "5000",
+        appIndex: String(HAYSTACK_STAKING_APP_ID),
+        amount: null,
+        assetIndex: null,
+        receiver: null
+      }
+    ],
+    userSignIndexes: [0, 1]
+  });
 
   setHaystackStakeHayDependenciesForTests(undefined);
 });
@@ -341,6 +377,58 @@ test("claim shape validates optional USDC opt-in placement", () => {
   assert.equal(haystackClaimRewardsShape.validate(claimGroup, input, optedInState).valid, true);
 });
 
+test("unstake shape compiles a single app call for an opted-in staker", async () => {
+  const state = stakingState({
+    staker: { hasBox: true, stake: 5_000_000n, pendingRewardsUsdc: 0n, pendingRewardsHay: 0n },
+    userOptedIntoUsdc: true
+  });
+  const amount = 100_000n;
+
+  setHaystackUnstakeHayDependenciesForTests({
+    resolveState: async () => state,
+    getSuggestedParams: async () => suggestedParams(1000),
+    finalizeComposerGroup: async () =>
+      buildMockUnstakeGroup({
+        user: USER,
+        appId: HAYSTACK_STAKING_APP_ID,
+        hayAssetId: HAY_ASSET_ID,
+        usdcAssetId: USDC_ASSET_ID,
+        amount,
+        stakerBoxName: createStakerBoxName(USER_ADDRESS),
+        suggestedParams: suggestedParams(1000)
+      })
+  });
+
+  const registry = new TransactionShapeRegistry();
+  registry.register(haystackUnstakeHayShape);
+
+  const quote = await compileExecutableQuote(
+    registry,
+    haystackUnstakeHayShape.key,
+    { userAddress: USER_ADDRESS, amount: amount.toString() },
+    buildContext()
+  );
+
+  assert.equal(quote.transactions.length, 1);
+  assertEncodedGroupIsValid(quote.encodedTransactions);
+  assertGoldenGroup(quote.transactions, {
+    types: ["appl"],
+    members: [
+      {
+        type: "appl",
+        fee: "5000",
+        appIndex: String(HAYSTACK_STAKING_APP_ID),
+        amount: null,
+        assetIndex: null,
+        receiver: null
+      }
+    ],
+    userSignIndexes: [0]
+  });
+
+  setHaystackUnstakeHayDependenciesForTests(undefined);
+});
+
 test("claim shape compiles via mocked finalize (opted-in user)", async () => {
   const state = stakingState({ userOptedIntoUsdc: true });
 
@@ -371,6 +459,20 @@ test("claim shape compiles via mocked finalize (opted-in user)", async () => {
 
   assert.equal(quote.transactions.length, 1);
   assertEncodedGroupIsValid(quote.encodedTransactions);
+  assertGoldenGroup(quote.transactions, {
+    types: ["appl"],
+    members: [
+      {
+        type: "appl",
+        fee: "5000",
+        appIndex: String(HAYSTACK_STAKING_APP_ID),
+        amount: null,
+        assetIndex: null,
+        receiver: null
+      }
+    ],
+    userSignIndexes: [0]
+  });
 
   setHaystackClaimRewardsDependenciesForTests(undefined);
 });

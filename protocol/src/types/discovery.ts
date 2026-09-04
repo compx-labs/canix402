@@ -28,6 +28,7 @@ export interface DiscoveryDocument {
   capabilities: string[];
   x402ProtocolVersion: 2;
   sessionPolicy?: import("../types/session.js").SessionPolicy;
+  watchPolicy?: import("../types/watch.js").WatchPolicy;
   mcpServer?: {
     name: string;
     transport: "stdio" | "streamable-http";

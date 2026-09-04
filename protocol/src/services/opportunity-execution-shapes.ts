@@ -10,6 +10,7 @@ import type {
   OpportunityMarketRecord,
   OpportunityRecordV1
 } from "../types/opportunity.js";
+import { finalizeOpportunityRisk } from "./opportunity-risk.js";
 
 const FOLKS_SETUP_DEPOSIT_ESCROW =
   "mainnet:folks-finance:v2:setup:depositEscrow";
@@ -187,7 +188,13 @@ export function attachExecutionShapesToOpportunity(
     ...publicRecord,
     executionReady: executionShapes.length > 0,
     executionShapes,
-    compatibleExitShapes
+    compatibleExitShapes,
+    risk: finalizeOpportunityRisk({
+      ...publicRecord,
+      executionReady: executionShapes.length > 0,
+      executionShapes,
+      compatibleExitShapes
+    })
   };
 }
 

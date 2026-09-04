@@ -16,6 +16,11 @@
       "sourceTimestamp": "2026-07-06T09:00:00.000Z",
       "fetchedAt": "2026-07-06T09:00:00.000Z",
       "notes": "sourceTimestamp reflects fetch time; upstream does not expose a per-row update time.",
+      "risk": {
+        "confidence": "low",
+        "sourceAgeSeconds": 5097600,
+        "volatilityBucket": "unknown"
+      },
       "executionReady": true,
       "executionShapes": [
         {
@@ -119,6 +124,14 @@
       "sourceTimestamp": "2026-07-14T20:47:17.000Z",
       "fetchedAt": "2026-07-17T12:41:14.931Z",
       "notes": "CompX lending market 3491050310; util=4.4%; ltv=70.0%; APR-derived yields; borrowApr is the borrow cost.",
+      "risk": {
+        "utilization": 4.4,
+        "liquidationThreshold": 80,
+        "ltv": 70,
+        "borrowApr": 8.5,
+        "confidence": "low",
+        "sourceAgeSeconds": 4283377
+      },
       "executionReady": true,
       "executionShapes": [
         {

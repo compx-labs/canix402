@@ -49,6 +49,7 @@ export function buildApp() {
           "req.headers.cookie",
           'req.headers["payment-signature"]',
           'req.headers["x-canix-session"]',
+          'req.headers["x-canix-watch-secret"]',
           "X402_ALGOD_TOKEN",
           "REDIS_URL"
         ],

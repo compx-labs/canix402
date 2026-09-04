@@ -258,6 +258,14 @@ export function normalizeCompxLendingOpportunity(
     tvlUsd,
     apr: apy,
     ...(Number.isFinite(market.borrowApy) ? { borrowApr: market.borrowApy } : {}),
+    risk: {
+      ...(Number.isFinite(market.utilizationRate)
+        ? { utilization: market.utilizationRate }
+        : {}),
+      ...(liqPct !== null ? { liquidationThreshold: liqPct } : {}),
+      ...(ltvPct !== null ? { ltv: ltvPct } : {}),
+      ...(Number.isFinite(market.borrowApy) ? { borrowApr: market.borrowApy } : {})
+    },
     ...buildSourceMetadata({
       fetchedAtIso,
       upstreamUnixSeconds: market.lastUpdateTimestamp,
@@ -336,6 +344,9 @@ export function normalizeCompxStakingOpportunity(
     yieldBasis: "apr",
     apr,
     tvlUsd,
+    risk: {
+      rewardRunwayRemaining: pool.rewardsRemaining.toString()
+    },
     ...buildSourceMetadata({
       fetchedAtIso,
       upstreamUnixSeconds: pool.lastUpdateTime,

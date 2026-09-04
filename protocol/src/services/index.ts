@@ -122,6 +122,36 @@ export {
   attachExecutionShapesToOpportunity
 } from "./opportunity-execution-shapes.js";
 export {
+  attachHistoryStability,
+  computeHistoryStability,
+  loadOpportunityHistory,
+  recordOpportunitySnapshots,
+  resetOpportunityHistoryForTests,
+  setOpportunityHistoryPointsForTests,
+  setOpportunityHistoryStoreForTests,
+  stabilityConstraintPenalty,
+  useMemoryOpportunityHistoryForTests
+} from "./opportunity-history.js";
+export type { HistorySnapshotInput, OpportunityHistoryStore } from "./opportunity-history.js";
+export {
+  attachOpportunityRisk,
+  compareOpportunitiesByRiskThenYield,
+  confidenceFromAgeMs,
+  emptyWalletHealthFactorIndex,
+  finalizeOpportunityRisk,
+  indexHealthFactorsFromPositions,
+  loadWalletHealthFactors,
+  resolveWalletHealthFactor,
+  riskConstraintPenalty,
+  setWalletHealthFactorLoaderForTests,
+  tinymanVolatilityRisk,
+  utilizationFromBalances
+} from "./opportunity-risk.js";
+export {
+  rankOpportunities,
+  rankOpportunitiesByApy
+} from "./opportunity-ranking.js";
+export {
   attachExecutionShapesToPositions,
   attachExecutionShapesToPosition
 } from "./position-execution-shapes.js";

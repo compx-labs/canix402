@@ -127,7 +127,7 @@ Coverage:
 - Simulate / expected delta (`POST /execution/simulate`)
 - Policy-as-a-service (`POST /policy/validate`)
 - Swap-aware enter compose (`POST /execution/compose`)
-- Transaction-shape registry and Tinyman / Pact / Folks / CompX / Dork.fi execution shape fixtures
+- Transaction-shape registry and mock-SDK execution shape fixtures for Tinyman, Pact, Folks, CompX, Dork.fi, Myth Finance, Haystack, Réti, and Alpha Arcade
 
 Files:
 
@@ -145,6 +145,7 @@ Files:
 - `tests/integration/compose.test.ts`
 - `tests/integration/execution-quotes-route.test.ts`
 - `tests/integration/execution-registry.test.ts`
+- `tests/integration/golden-fixtures-coverage.test.ts`
 - `tests/integration/folks-finance-escrow-shapes.test.ts`
 - `tests/integration/tinyman-remove-liquidity-shape.test.ts`
 - `tests/integration/tinyman-adapter.test.ts`
@@ -152,6 +153,12 @@ Files:
 - `tests/integration/pact-adapter.test.ts`
 - `tests/integration/compx-execution-shapes.test.ts`
 - `tests/integration/dorkfi-execution-shapes.test.ts`
+- `tests/integration/myth-finance-shapes.test.ts`
+- `tests/integration/haystack-execution-shapes.test.ts`
+- `tests/integration/reti-execution-shapes.test.ts`
+- `tests/integration/alpha-arcade-execution-shapes.test.ts`
+- `tests/integration/tinyman-farm-commit-shapes.test.ts`
+- `tests/integration/tinyman-add-liquidity-and-farm-shapes.test.ts`
 - `tests/integration/folks-finance-adapter.test.ts`
 
 ### Gateway tests through Caddy (`protocol/tests/e2e`)
@@ -422,7 +429,7 @@ npm run test:production-smoke -w protocol
 Coverage on every production test run:
 
 - **Free (expect 200):** `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/favicon.ico`, `/favicon.png`, `/.well-known/x402`, `/.well-known/x402.json`
-- **Paid preflight (expect 402 + `PAYMENT-REQUIRED`):** `/opportunities`, `/opportunities/search`, `/opportunities/personalized`, `/eligibility`, `/positions?address=...`, `/positions/claimable?address=...`, `/protocols/tinyman/opportunities`, `/execution/quotes`
+- **Paid preflight (expect 402 + `PAYMENT-REQUIRED`):** `/opportunities`, `/opportunities/search`, `/opportunities/personalized`, `/opportunities/:id/history`, `/eligibility`, `/positions?address=...`, `/positions/claimable?address=...`, `/protocols/tinyman/opportunities`, `/execution/quotes`
 
 Behavior:
 

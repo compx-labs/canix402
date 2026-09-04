@@ -4,6 +4,7 @@ import {
   ProtocolSchema,
   SupportedOpportunityTypeValues
 } from "../routes/schemas.js";
+import { OpportunityStabilityBucketSchema } from "./opportunity-history-schema.js";
 
 export const YieldBasisSchema = Type.Union([
   Type.Literal("apy"),
@@ -112,6 +113,80 @@ export const OpportunityCapacitySchema = Type.Object(
   { additionalProperties: false }
 );
 
+/**
+ * Snapshot freshness derived from `fetchedAt` (and cache age when known).
+ * Unknown when timestamps cannot be parsed. Adapters must not invent this.
+ */
+export const OpportunityRiskConfidenceSchema = Type.Union([
+  Type.Literal("high"),
+  Type.Literal("medium"),
+  Type.Literal("low"),
+  Type.Literal("unknown")
+]);
+
+/**
+ * LP / farm volatility bucket. `unknown` when the adapter has no designed
+ * signal (do not invent IL percentages).
+ */
+export const OpportunityVolatilityBucketSchema = Type.Union([
+  Type.Literal("stable"),
+  Type.Literal("low"),
+  Type.Literal("medium"),
+  Type.Literal("high"),
+  Type.Literal("unknown")
+]);
+
+/**
+ * Designed risk block for opportunity schema V2. Optional numeric fields are
+ * omitted when the adapter does not know them — never guessed.
+ */
+export const OpportunityRiskSchema = Type.Object(
+  {
+    /** Lending utilization in percentage points (0–100+). */
+    utilization: Type.Optional(Type.Number({ minimum: 0 })),
+    /** Liquidation threshold in percentage points (0–100). */
+    liquidationThreshold: Type.Optional(Type.Number({ minimum: 0 })),
+    /** Loan-to-value in percentage points (0–100). */
+    ltv: Type.Optional(Type.Number({ minimum: 0 })),
+    /**
+     * Borrow-side APR cost when the venue supports borrowing. Mirrors
+     * top-level `borrowApr` when present so the risk block is self-contained.
+     */
+    borrowApr: Type.Optional(Type.Number()),
+    /**
+     * Wallet health factor for this lending venue when `address` is in
+     * context. Omitted on anonymous catalog rows. Null when positions were
+     * loaded but this venue has no HF snapshot.
+     */
+    healthFactor: Type.Optional(Type.Union([Type.Number({ minimum: 0 }), Type.Null()])),
+    /** LP IL / volatility bucket. Omit or `unknown` when there is no signal. */
+    volatilityBucket: Type.Optional(OpportunityVolatilityBucketSchema),
+    /** Human-readable IL hint when a designed signal exists (never a guessed %). */
+    ilHint: Type.Optional(Type.String({ minLength: 1 })),
+    /** Farm/staking remaining rewards in base units (decimal string). */
+    rewardRunwayRemaining: Type.Optional(
+      Type.String({ minLength: 1, pattern: "^[0-9]+$" })
+    ),
+    /** Confidence from snapshot freshness / cache age. */
+    confidence: OpportunityRiskConfidenceSchema,
+    /** Seconds between `sourceTimestamp` and evaluation time. */
+    sourceAgeSeconds: Type.Optional(Type.Integer({ minimum: 0 })),
+    /**
+     * APY stability from the bounded history series (stdev / sample count).
+     * `unknown` when fewer than 3 snapshots exist. Omitted until history is attached.
+     */
+    stability: Type.Optional(OpportunityStabilityBucketSchema),
+    /** Sample standard deviation of APY over the retained window. */
+    apyStdev: Type.Optional(Type.Number({ minimum: 0 })),
+    /** Number of history snapshots used for `stability` / `apyStdev`. */
+    historySampleCount: Type.Optional(Type.Integer({ minimum: 0 }))
+  },
+  { additionalProperties: false }
+);
+
+/** Adapter-supplied risk fields; `confidence` is filled at the response boundary. */
+export const OpportunityAdapterRiskSchema = Type.Partial(OpportunityRiskSchema);
+
 export const OpportunityExecutionShapeSchema = Type.Object({
   shapeKey: Type.String({ minLength: 1 }),
   protocol: Type.String({ minLength: 1 }),
@@ -150,7 +225,9 @@ export const OpportunityMarketRecordSchema = Type.Object({
   fetchedAt: Type.String({ format: "date-time" }),
   notes: Type.Optional(Type.String()),
   entryRequirements: Type.Optional(OpportunityEntryRequirementsSchema),
-  capacity: Type.Optional(OpportunityCapacitySchema)
+  capacity: Type.Optional(OpportunityCapacitySchema),
+  /** Adapter-known risk fields. Confidence is finalized at the public boundary. */
+  risk: Type.Optional(OpportunityAdapterRiskSchema)
 });
 
 export const OpportunityRecordSchema = Type.Object({
@@ -170,6 +247,11 @@ export const OpportunityRecordSchema = Type.Object({
   notes: Type.Optional(Type.String()),
   entryRequirements: Type.Optional(OpportunityEntryRequirementsSchema),
   capacity: Type.Optional(OpportunityCapacitySchema),
+  /**
+   * Designed risk block (schema V2). Always present on public rows; optional
+   * numeric fields are omitted when unknown rather than invented.
+   */
+  risk: OpportunityRiskSchema,
   executionReady: Type.Boolean(),
   executionShapes: Type.Array(OpportunityExecutionShapeSchema),
   compatibleExitShapes: Type.Array(OpportunityExecutionShapeSchema)
@@ -228,6 +310,12 @@ export type OpportunityEntryRequirements = Static<
   typeof OpportunityEntryRequirementsSchema
 >;
 export type OpportunityCapacity = Static<typeof OpportunityCapacitySchema>;
+export type OpportunityRiskConfidence = Static<typeof OpportunityRiskConfidenceSchema>;
+export type OpportunityVolatilityBucket = Static<
+  typeof OpportunityVolatilityBucketSchema
+>;
+export type OpportunityRisk = Static<typeof OpportunityRiskSchema>;
+export type OpportunityAdapterRisk = Static<typeof OpportunityAdapterRiskSchema>;
 export type PersonalizedOpportunityRecord = Static<
   typeof PersonalizedOpportunityRecordSchema
 >;

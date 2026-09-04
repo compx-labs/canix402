@@ -60,8 +60,11 @@ test("discovery includes every endpoint in policy matrix", async () => {
   assert.ok(payload.data.capabilities.includes("mcp-server"));
   assert.ok(payload.data.capabilities.includes("haystack-swaps"));
   assert.ok(payload.data.capabilities.includes("prepaid-sessions"));
+  assert.ok(payload.data.capabilities.includes("watch-retainers"));
   assert.ok(payload.data.sessionPolicy);
+  assert.ok(payload.data.watchPolicy);
   assert.equal(payload.data.sessionPolicy.header, "X-Canix-Session");
+  assert.equal(payload.data.watchPolicy.signatureHeader, "X-Canix-Signature");
   assert.equal(payload.data.sessionPolicy.oneShotDefault, true);
   const quote = payload.data.endpoints.find((endpoint) => endpoint.id === "haystackSwapQuote");
   const optIn = payload.data.endpoints.find((endpoint) => endpoint.id === "haystackSwapOptIn");

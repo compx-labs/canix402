@@ -13,6 +13,7 @@ export const MCP_TOOL_NAMES = [
   "canix_list_opportunities",
   "canix_search_opportunities",
   "canix_get_personalized_opportunities",
+  "canix_get_opportunity_history",
   "canix_check_eligibility",
   "canix_get_plan",
   "canix_get_rebalance_plan",
@@ -26,6 +27,10 @@ export const MCP_TOOL_NAMES = [
   "canix_create_session",
   "canix_refresh_session",
   "canix_get_session",
+  "canix_create_watch",
+  "canix_refresh_watch",
+  "canix_get_watch",
+  "canix_rotate_watch_secret",
   "canix_get_quote",
   "canix_optin",
   "canix_swap"

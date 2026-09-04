@@ -10,7 +10,7 @@ Status legend:
 
 Work through section 13 in listed order. Canix stays walletless: new routes return data or unsigned groups; the client signs and submits. Do not treat another protocol adapter as a substitute for these items.
 
-Leftover tightening from the execution chapter stays in sections 3 and 8 and can proceed in parallel. Section 3 adapter unit tests (Tinyman / Folks / Pact / CompX / Dork.fi / Myth Finance / Haystack / Réti / Alpha Arcade) are done; execution-layer golden fixtures in section 8 are still open. Protocol-specific execution caveats are documented.
+Leftover tightening from the execution chapter stays in section 8 and can proceed in parallel with section 13. Section 3 adapter unit tests (Tinyman / Folks / Pact / CompX / Dork.fi / Myth Finance / Haystack / Réti / Alpha Arcade) are done; execution-layer golden fixtures in section 8 are done. Protocol-specific execution caveats are documented.
 
 
 ## 3) Testing and Quality Gates
@@ -22,7 +22,7 @@ Leftover tightening from the execution chapter stays in sections 3 and 8 and can
 
 ### Protocol Transaction Shape Mapping
 
-- [~] Build golden fixtures for each supported protocol/action so generated groups can be compared deterministically. Tinyman + Folks + Pact + CompX + Dork.fi integration fixtures in CI (mock-SDK deterministic groups; not separate committed golden JSON blobs).
+- [x] Build golden fixtures for each supported protocol/action so generated groups can be compared deterministically. Tinyman + Folks + Pact + CompX + Dork.fi + Myth Finance + Haystack + Réti + Alpha Arcade integration fixtures in CI (mock-SDK deterministic groups; not separate committed golden JSON blobs). `tests/integration/golden-fixtures-coverage.test.ts` asserts every registered shape key has a group fixture.
 - [x] Document protocol-specific caveats that can affect transaction construction (pool discovery, opt-ins, minimum balance, slippage math, liquidity limits, app upgrades). See `docs/execution-shapes/protocol-caveats.md` (also `GET /execution/shapes` `meta.caveatsDocsPath`).
 
 ### Execution Compiler
@@ -92,10 +92,10 @@ Relocated from Execution Layer “optional follow-up.” Product, not a hidden d
 
 Machine-readable risk so plans can be constrained. This is the deferred V1 `rewards` / `market` work, designed rather than dumped as protocol JSON.
 
-- [ ] Add a `risk` (or equivalent) block on opportunities: lending utilization / liquidation threshold / `borrowApr` (already present where mapped); LP IL hint or volatility bucket; farm reward runway where known (e.g. CompX `rewardsRemaining`); `confidence` from freshness / cache age.
-- [ ] When `address` is in context (personalized, plans, eligibility), include wallet health factor for lending venues that already expose it on positions.
-- [ ] Revise TypeBox + OpenAPI + `docs/normalized-opportunity-schema.md` together (contract revision, not a silent field add).
-- [ ] Teach `/plans` and `analyze-opportunity` to prefer risk-constrained ranking over raw `apy`.
+- [x] Add a `risk` (or equivalent) block on opportunities: lending utilization / liquidation threshold / `borrowApr` (already present where mapped); LP IL hint or volatility bucket; farm reward runway where known (e.g. CompX `rewardsRemaining`); `confidence` from freshness / cache age.
+- [x] When `address` is in context (personalized, plans, eligibility), include wallet health factor for lending venues that already expose it on positions.
+- [x] Revise TypeBox + OpenAPI + `docs/normalized-opportunity-schema.md` together (contract revision, not a silent field add).
+- [x] Teach `/plans` and `analyze-opportunity` to prefer risk-constrained ranking over raw `apy`.
 
 ### 13.8 Agent sessions
 
@@ -110,9 +110,9 @@ Second money model for operators who currently spray tiny USDC transfers (e.g. B
 
 Push instead of polling `/positions` and `/opportunities/personalized`. Recurring x402 retainer, no SaaS login.
 
-- [ ] Add a paid watch registration: wallet + thresholds (health factor, claimable USD, APY drop, Réti capacity).
-- [ ] Deliver notifications via HTTP webhook and/or MCP resource when thresholds fire.
-- [ ] Document retainer pricing, replay/idempotency, and secret handling (no wallet keys on the server).
+- [x] Add a paid watch registration: wallet + thresholds (health factor, claimable USD, APY drop, Réti capacity).
+- [x] Deliver notifications via HTTP webhook and/or MCP resource when thresholds fire.
+- [x] Document retainer pricing, replay/idempotency, and secret handling (no wallet keys on the server).
 
 ### 13.10 Policy-as-a-service
 
@@ -126,9 +126,9 @@ Brownie’s deterministic caps should not stay a fork-the-bot feature.
 
 Only enough history to size a plan — not a human warehouse.
 
-- [ ] Add paid `GET /opportunities/:id/history?window=` (APY, TVL) for a bounded window (e.g. 30d).
-- [ ] Persist snapshots as needed (Redis/Postgres); do not resurrect a full analytics warehouse.
-- [ ] Surface a stability signal on plans/risk so snapshot APY cannot dominate sizing.
+- [x] Add paid `GET /opportunities/:id/history?window=` (APY, TVL) for a bounded window (e.g. 30d).
+- [x] Persist snapshots as needed (Redis/Postgres); do not resurrect a full analytics warehouse.
+- [x] Surface a stability signal on plans/risk so snapshot APY cannot dominate sizing.
 
 ### 13.12 Second agent / dry-run steward (GTM)
 

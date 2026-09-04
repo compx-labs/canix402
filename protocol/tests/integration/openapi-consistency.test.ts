@@ -6,6 +6,11 @@ import { SupportedProtocolValues } from "../../src/routes/schemas.js";
 import { endpointPolicyMatrix } from "../../src/services/payment-policy.js";
 import { OpportunityRecordSchema } from "../../src/types/opportunity-schema.js";
 import {
+  OpportunityHistoryDataSchema,
+  OpportunityHistoryResponseSchema,
+  OpportunityHistoryStabilitySchema
+} from "../../src/types/opportunity-history-schema.js";
+import {
   EligibilityRequestSchema,
   EligibilityResponseSchema,
   OpportunityEligibilitySchema
@@ -241,6 +246,30 @@ test("paid operations expose x-x402 metadata", async () => {
   assert.ok(openapi.components.responses?.SessionError);
   assert.ok(openapi.components.parameters?.CanixSessionHeader);
 
+  const watchCreateOperation = openapi.paths["/watch"]?.post;
+  assert.equal(
+    watchCreateOperation?.["x-x402"]?.requirementTemplate?.maxAmountRequired,
+    "0.25"
+  );
+  assert.equal(watchCreateOperation?.["x-payment-info"]?.price?.amount, "0.25");
+  assert.match(watchCreateOperation?.description ?? "", /webhook/i);
+  assert.match(watchCreateOperation?.description ?? "", /wallet keys/i);
+
+  const watchRefreshOperation = openapi.paths["/watch/refresh"]?.post;
+  assert.equal(
+    watchRefreshOperation?.["x-x402"]?.requirementTemplate?.maxAmountRequired,
+    "0.25"
+  );
+
+  assert.equal(openapi.paths["/watch/{watchId}"]?.get?.["x-x402"], undefined);
+  assert.equal(
+    openapi.paths["/watch/{watchId}"]?.get?.responses?.["402"]?.$ref,
+    "#/components/responses/WatchError"
+  );
+  assert.equal(openapi.paths["/watch/{watchId}/rotate-secret"]?.post?.["x-x402"], undefined);
+  assert.ok(openapi.components.responses?.WatchError);
+  assert.ok(openapi.components.schemas?.WatchReceipt);
+
   const sessionEligible = endpointPolicyMatrix.filter((endpoint) => endpoint.sessionAccess);
   for (const endpoint of sessionEligible) {
     const openapiPath = endpoint.pathPattern.replace(/:([A-Za-z]+)/g, "{$1}");
@@ -311,6 +340,20 @@ test("opportunity record schema stays aligned with TypeBox contract", async () =
   assert.deepEqual(opportunityTypeProperty?.enum, ["lp", "farm", "staking", "lending"]);
   assert.deepEqual(yieldBasisProperty?.enum, ["apy", "apr"]);
   assert.equal(assetIdsProperty?.type, "array");
+  assert.equal(openapiRequired.includes("risk"), true);
+  assert.ok(openapi.components.schemas.OpportunityRisk);
+  const riskSchema = openapi.components.schemas.OpportunityRisk;
+  assert.deepEqual(
+    [...(riskSchema.required ?? [])].sort(),
+    ["confidence"]
+  );
+  assert.ok(riskSchema.properties?.utilization);
+  assert.ok(riskSchema.properties?.healthFactor);
+  assert.ok(riskSchema.properties?.volatilityBucket);
+  assert.ok(riskSchema.properties?.rewardRunwayRemaining);
+  assert.ok(riskSchema.properties?.stability);
+  assert.ok(riskSchema.properties?.apyStdev);
+  assert.ok(riskSchema.properties?.historySampleCount);
 
   await app.close();
 });
@@ -635,6 +678,48 @@ test("policy validate OpenAPI request and response envelopes stay aligned", asyn
       `${name} properties`
     );
   }
+
+  await app.close();
+});
+
+test("opportunity history OpenAPI envelopes stay aligned", async () => {
+  const app = buildApp();
+  await app.ready();
+
+  const response = await app.inject({
+    method: "GET",
+    url: "/openapi.json"
+  });
+  assert.equal(response.statusCode, 200);
+
+  const openapi = response.json() as OpenApiDocument;
+  const pairs = [
+    ["OpportunityHistoryStability", OpportunityHistoryStabilitySchema],
+    ["OpportunityHistoryData", OpportunityHistoryDataSchema],
+    ["OpportunityHistoryResponse", OpportunityHistoryResponseSchema]
+  ] as const;
+
+  for (const [name, typeboxSchema] of pairs) {
+    const openapiSchema = openapi.components.schemas[name];
+    assert.ok(openapiSchema, name);
+    assert.deepEqual(
+      [...(openapiSchema.required ?? [])].sort(),
+      [
+        ...((typeboxSchema as unknown as { required?: string[] }).required ?? [])
+      ].sort(),
+      `${name} required fields`
+    );
+    assert.deepEqual(
+      Object.keys(openapiSchema.properties ?? {}).sort(),
+      Object.keys(
+        (typeboxSchema as unknown as { properties?: Record<string, unknown> }).properties
+          ?? {}
+      ).sort(),
+      `${name} properties`
+    );
+  }
+
+  assert.ok(openapi.paths["/opportunities/{opportunityId}/history"]?.get);
 
   await app.close();
 });

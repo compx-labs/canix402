@@ -5,16 +5,26 @@ import test from "node:test";
 import { setFolksFinanceSdkDependenciesForTests } from "../../src/adapters/index.js";
 import { buildApp } from "../../src/app.js";
 import {
+  emptyWalletHealthFactorIndex,
   evaluateOpportunityEligibility,
   matchesPersonalizedOpportunity,
   setAccountAssetsDependenciesForTests,
-  setAssetDecimalsDependenciesForTests
+  setAssetDecimalsDependenciesForTests,
+  setWalletHealthFactorLoaderForTests
 } from "../../src/services/index.js";
 import type { OpportunityMarketRecord } from "../../src/types/opportunity.js";
 
 const VALID_ADDRESS =
   "RS7TLLQRXKBAQDAVTSZC2ZLMVMLNSCL3FOUOESJJZ5XSKFFL56UI6X33CI";
 const GATE_ASA = 12345678;
+
+test.before(() => {
+  setWalletHealthFactorLoaderForTests(async () => emptyWalletHealthFactorIndex());
+});
+
+test.after(() => {
+  setWalletHealthFactorLoaderForTests(undefined);
+});
 
 function retiBase(
   overrides: Partial<OpportunityMarketRecord> = {}
@@ -356,6 +366,51 @@ test("POST /eligibility returns 200 for a valid wallet and known opportunity", a
     setFolksFinanceSdkDependenciesForTests(undefined);
     setAccountAssetsDependenciesForTests(undefined);
     setAssetDecimalsDependenciesForTests(undefined);
+  }
+});
+
+test("POST /eligibility includes wallet health factor from position snapshots", async () => {
+  stubFolksWithAssetIds();
+  setWalletHealthFactorLoaderForTests(async () => ({
+    byOpportunityId: new Map([["folks-lending-42", 1.9]]),
+    byProtocol: new Map()
+  }));
+  setAccountAssetsDependenciesForTests({
+    createAlgodClient: () => ({}) as never,
+    fetchAccountInformation: async () => ({
+      amount: 1_000_000n,
+      assets: [{ assetId: 10n, amount: 5n }]
+    })
+  });
+
+  const tinymanMock = await startEmptyTinymanMock();
+  process.env.TINYMAN_API_BASE_URL = tinymanMock.baseUrl;
+
+  const app = buildApp();
+  await app.ready();
+
+  try {
+    const response = await app.inject({
+      method: "POST",
+      url: "/eligibility",
+      payload: {
+        address: VALID_ADDRESS,
+        opportunityIds: ["folks-lending-42"]
+      }
+    });
+    assert.equal(response.statusCode, 200);
+    const body = response.json() as {
+      data: Array<{ opportunityId: string; healthFactor?: number }>;
+    };
+    assert.equal(body.data[0]?.healthFactor, 1.9);
+  } finally {
+    await app.close();
+    await tinymanMock.close();
+    delete process.env.TINYMAN_API_BASE_URL;
+    setFolksFinanceSdkDependenciesForTests(undefined);
+    setAccountAssetsDependenciesForTests(undefined);
+    setAssetDecimalsDependenciesForTests(undefined);
+    setWalletHealthFactorLoaderForTests(async () => emptyWalletHealthFactorIndex());
   }
 });
 

@@ -1,0 +1,37 @@
+{
+  "data": {
+    "uri": "canix://watch/cwatch_demo",
+    "watchId": "cwatch_demo",
+    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+    "thresholds": {
+      "healthFactor": 1.25,
+      "claimableUsd": 8,
+      "apyDropBps": 100,
+      "retiCapacity": true
+    },
+    "webhookUrl": "https://hooks.example/canix",
+    "createdAt": "2026-09-03T12:00:00.000Z",
+    "expiresAt": "2026-09-04T12:00:00.000Z",
+    "ttlSeconds": 86400,
+    "status": "active",
+    "firings": [
+      {
+        "firingId": "wfire_demo",
+        "idempotencyKey": "wfire_cwatch_demo_healthFactor_wep_demo",
+        "kind": "healthFactor",
+        "firedAt": "2026-09-03T12:05:00.000Z",
+        "threshold": 1.25,
+        "previous": 1.4,
+        "current": 1.1,
+        "delivered": true,
+        "deliveryStatus": "delivered"
+      }
+    ]
+  },
+  "meta": {
+    "paymentRequired": false,
+    "access": "receipt",
+    "receiptUri": "canix://watch/cwatch_demo",
+    "secretShown": false
+  }
+}

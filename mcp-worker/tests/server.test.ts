@@ -606,3 +606,35 @@ test("canix_swap forwards paymentSignature and reports 0.005 fallback price", as
   assert.equal(payload.error, "PAYMENT_REQUIRED");
   assert.equal(payload.mcpPayment.priceUsdc, "0.005");
 });
+
+test("canix_rotate_watch_secret forwards X-Canix-Watch-Secret", async () => {
+  let method = "";
+  let pathname = "";
+  let secretHeader = "";
+  const server = createCanixWorkerMcpServer({
+    config: {
+      gatewayUrl: "https://gateway.example",
+      publicUrl: "https://mcp.example/mcp",
+      network: "[REDACTED]"
+    },
+    fetchImpl: async (input, init) => {
+      pathname = new URL(String(input)).pathname;
+      method = init?.method ?? "";
+      secretHeader =
+        (init?.headers as Record<string, string> | undefined)?.["X-Canix-Watch-Secret"] ?? "";
+      return new Response(JSON.stringify({ data: { watchId: "cwatch_demo" } }), { status: 200 });
+    }
+  });
+
+  const result = await registeredTools(server).canix_rotate_watch_secret!.handler(
+    { watchId: "cwatch_demo", webhookSecret: "wsec_current" },
+    {}
+  );
+
+  assert.equal(method, "POST");
+  assert.equal(pathname, "/watch/cwatch_demo/rotate-secret");
+  assert.equal(secretHeader, "wsec_current");
+  assert.deepEqual(JSON.parse(result.content[0]!.text ?? ""), {
+    data: { watchId: "cwatch_demo" }
+  });
+});

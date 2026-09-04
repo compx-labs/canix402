@@ -283,6 +283,39 @@ test("canix_check_eligibility posts body and reports 0.01 preflight price", asyn
   await server.close();
 });
 
+test("canix_get_opportunity_history encodes id and reports 0.01 preflight price", async () => {
+  let requestUrl = "";
+  const server = createCanixMcpServer({
+    config: {
+      apiUrl: "https://example.test",
+      network: "[REDACTED]"
+    },
+    fetchImpl: async (input) => {
+      requestUrl = String(input);
+      return new Response("payment required", {
+        status: 402,
+        headers: { "payment-required": encodePaymentRequired("10000") }
+      });
+    }
+  });
+
+  const result = await registeredTools(server).canix_get_opportunity_history!.handler(
+    { opportunityId: "tinyman:pool:1002541853", window: "30d" },
+    {}
+  );
+
+  const url = new URL(requestUrl);
+  assert.equal(url.pathname, "/opportunities/tinyman%3Apool%3A1002541853/history");
+  assert.equal(url.searchParams.get("window"), "30d");
+  assert.equal(result.isError, undefined);
+  const text = result.content.find((part) => part.type === "text");
+  assert.ok(text?.text);
+  const payload = JSON.parse(text.text) as { mcpPayment?: { priceUsdc?: string } };
+  assert.equal(payload.mcpPayment?.priceUsdc, "0.01");
+
+  await server.close();
+});
+
 test("canix_get_plan posts body and reports 0.25 preflight price", async () => {
   let requestUrl = "";
   let method = "";
@@ -697,6 +730,79 @@ test("canix_swap posts the quote and forwards paymentSignature with 0.005 fallba
   await server.close();
 });
 
+test("canix_create_watch posts a paid watch retainer", async () => {
+  let method = "";
+  let requestBody: unknown;
+  const server = createCanixMcpServer({
+    config: {
+      apiUrl: "https://example.test",
+      network: "[REDACTED]"
+    },
+    fetchImpl: async (input, init) => {
+      assert.equal(new URL(String(input)).pathname, "/watch");
+      method = init?.method ?? "";
+      requestBody = JSON.parse(String(init?.body ?? "{}"));
+      return new Response(
+        JSON.stringify({
+          error: { code: "WATCH_INVALID", message: "Watch receipt is unknown." }
+        }),
+        { status: 402, headers: { "content-type": "application/json" } }
+      );
+    }
+  });
+
+  const result = await registeredTools(server).canix_create_watch!.handler(
+    {
+      address: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+      thresholds: { healthFactor: 1.2 }
+    },
+    {}
+  );
+  assert.equal(method, "POST");
+  assert.deepEqual(requestBody, {
+    address: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+    thresholds: { healthFactor: 1.2 }
+  });
+  const payload = JSON.parse(result.content[0]!.text ?? "") as { error: string };
+  assert.equal(payload.error, "WATCH_INVALID");
+
+  await server.close();
+});
+
+test("canix_rotate_watch_secret forwards X-Canix-Watch-Secret", async () => {
+  let method = "";
+  let pathname = "";
+  let secretHeader = "";
+  const server = createCanixMcpServer({
+    config: {
+      apiUrl: "https://example.test",
+      network: "[REDACTED]"
+    },
+    fetchImpl: async (input, init) => {
+      pathname = new URL(String(input)).pathname;
+      method = init?.method ?? "";
+      secretHeader =
+        (init?.headers as Record<string, string> | undefined)?.["X-Canix-Watch-Secret"] ?? "";
+      return new Response(JSON.stringify({ data: { watchId: "cwatch_demo" } }), {
+        status: 200,
+        headers: { "content-type": "application/json" }
+      });
+    }
+  });
+
+  const result = await registeredTools(server).canix_rotate_watch_secret!.handler(
+    { watchId: "cwatch_demo", webhookSecret: "wsec_current" },
+    {}
+  );
+  assert.equal(method, "POST");
+  assert.equal(pathname, "/watch/cwatch_demo/rotate-secret");
+  assert.equal(secretHeader, "wsec_current");
+  const payload = JSON.parse(result.content[0]!.text ?? "") as { data: { watchId: string } };
+  assert.equal(payload.data.watchId, "cwatch_demo");
+
+  await server.close();
+});
+
 test("MCP resources include discovery openapi and shapes", async () => {
   const server = createCanixMcpServer({
     config: {
@@ -715,9 +821,13 @@ test("MCP resources include discovery openapi and shapes", async () => {
     "canix://discovery",
     "canix://execution-shapes",
     "canix://openapi",
-    "canix://session"
+    "canix://session",
+    "canix://watch"
   ]);
-  assert.deepEqual(registeredResourceTemplateNames(server).sort(), ["session-receipt"]);
+  assert.deepEqual(registeredResourceTemplateNames(server).sort(), [
+    "session-receipt",
+    "watch-receipt"
+  ]);
 
   await server.close();
 });

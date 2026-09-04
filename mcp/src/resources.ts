@@ -116,4 +116,54 @@ export function registerResources(server: McpServer, client: X402Client): void {
       };
     }
   );
+
+  server.registerResource(
+    "watch",
+    "canix://watch",
+    {
+      description:
+        "Watch retainer policy (TTL, price, signature/idempotency headers). Receipts and recent firings are canix://watch/{watchId}, GET /watch/{watchId}, or canix_get_watch. Watchers are address + callback only — no wallet keys.",
+      mimeType: "application/json"
+    },
+    async (uri) => {
+      const body = (await client.fetchFree("/discovery")) as {
+        data?: { watchPolicy?: unknown };
+        watchPolicy?: unknown;
+      };
+      const watchPolicy = body?.data?.watchPolicy ?? body?.watchPolicy ?? body;
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "application/json",
+            text: JSON.stringify(watchPolicy, null, 2)
+          }
+        ]
+      };
+    }
+  );
+
+  server.registerResource(
+    "watch-receipt",
+    new ResourceTemplate("canix://watch/{watchId}", { list: undefined }),
+    {
+      description:
+        "Watch retainer receipt and recent threshold firings (GET /watch/{watchId}). Unknown or expired receipts return 402 WATCH_INVALID/WATCH_EXPIRED.",
+      mimeType: "application/json"
+    },
+    async (uri, { watchId }) => {
+      const id = Array.isArray(watchId) ? watchId[0] : watchId;
+      const path = `/watch/${encodeURIComponent(String(id ?? ""))}`;
+      const result = await client.fetchPaid(path, { method: "GET" });
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "application/json",
+            text: JSON.stringify(result.body, null, 2)
+          }
+        ]
+      };
+    }
+  );
 }

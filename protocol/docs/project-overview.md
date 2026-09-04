@@ -42,6 +42,11 @@ payment mints a walletless receipt (`canix://session/{id}`) that unlocks N
 research calls and M quotes/plans for a TTL. Exact-scheme one-shots remain the
 default. See [`agent-sessions.md`](./agent-sessions.md).
 
+**Watch retainers** are a third money model: a recurring compiler-priced x402
+payment registers a walletless address + threshold watch and delivers signed,
+idempotent webhooks (or MCP receipt firings) instead of polling `/positions`.
+See [`watch-retainers.md`](./watch-retainers.md).
+
 Gateway configuration ownership:
 
 - Each x402 integration keeps its own project-specific Caddyfile and run wiring.
@@ -85,8 +90,11 @@ The canonical normalized schema is documented in
 
 `OpportunityRecordV1` is now the stable contract surface for opportunities
 responses and OpenAPI publication. The contract includes required
-`yieldBasis` metadata and optional `assetIds`, and explicitly defers
-`rewards`/`market`/`tvlOrLiquidity` to future schema revisions.
+`yieldBasis` metadata, optional `assetIds`, and a required designed `risk`
+block (confidence, lending utilization / LTV / liquidation threshold /
+`borrowApr`, LP volatility/IL hint, farm reward runway, wallet health factor
+when address is in context). Generic `rewards`/`market`/`tvlOrLiquidity`
+dumps remain deferred.
 
 ### Decimals and Precision
 
@@ -157,6 +165,17 @@ A premium paid route (0.05 USDC) that tunes results to a specific wallet:
   authoritative.
 - Pricing is configured independently via `X402_PRICE_PERSONALIZED_USDC` in both the
   API discovery metadata and the Caddy accept policy.
+
+### Opportunity history (`GET /opportunities/:id/history`)
+
+A paid research SKU (0.01 USDC, cheaper than the compiler) that returns a bounded
+APY/TVL series for one opportunity.
+
+- Query `window=1d|7d|30d` (default 30d). Empty `points` until hourly Redis snapshots exist.
+- Do not backfill from explorers. Retention is ~30 days only — not a warehouse.
+- Response includes `stability` (APY stdev / sample count). The same signal is
+  attached on `risk` / `/plans` so snapshot APY cannot dominate sizing.
+- MCP: `canix_get_opportunity_history`.
 
 ### Eligibility (`POST /eligibility`)
 
@@ -324,6 +343,24 @@ remains the compiler SKU (`POST /execution/quotes`, ~0.10 USDC flat per request)
   `POST /execution/quotes`; groups are never merged.
 - Agent loop: optional `/positions` → `/positions/claimable` → filter →
   `/execution/quotes` → local sign/submit. Canix never holds keys.
+
+### Watch / webhook retainers (`POST /watch`)
+
+A recurring compiler-priced x402 retainer (0.25 USDC, 24h TTL) that pushes
+threshold crossings instead of polling `/positions` and
+`/opportunities/personalized`.
+
+- Body: `{ address, thresholds, webhookUrl? }`. Thresholds: `healthFactor`,
+  `claimableUsd`, `apyDropBps`, `retiCapacity` (at least one).
+- Response: walletless receipt (`canix://watch/{id}`) plus HMAC secret shown
+  once. Canix never stores wallet keys.
+- Deliveries are signed (`X-Canix-Signature`) and idempotent
+  (`X-Canix-Idempotency-Key`). No webhook means firings live on the receipt.
+- `GET /watch/:watchId` is free. Rotate with `POST /watch/:id/rotate-secret`.
+- Discovery and OpenAPI advertise `maxAmountRequired: "0.25"`. Caddy enforces
+  `X402_PRICE_WATCH_USDC=0.25` (250000 micro-USDC).
+- MCP: `canix_create_watch` / `canix_refresh_watch` / `canix_get_watch`. See
+  `docs/watch-retainers.md`.
 - Fee/worth-claiming hints compare reward USD to estimated network fees only —
   they are not a simulation (see §13.6).
 
