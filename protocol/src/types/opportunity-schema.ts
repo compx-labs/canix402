@@ -217,6 +217,11 @@ export const OpportunityMarketRecordSchema = Type.Object({
    * execution inputHints; omitted from the public OpportunityRecord surface.
    */
   poolAppId: Type.Optional(Type.Integer({ minimum: 1 })),
+  /**
+   * LP ASA id when distinct from `assetIds` underlyings (STAMM tier token).
+   * Adapter-only; omitted from the public OpportunityRecord surface.
+   */
+  liquidityAssetId: Type.Optional(Type.Integer({ minimum: 0 })),
   apy: Type.Number(),
   yieldBasis: YieldBasisSchema,
   tvlUsd: Type.Number(),

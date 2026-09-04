@@ -5,8 +5,8 @@ per-protocol collector. Canix stays walletless: address in, position rows out;
 it does not sign or submit.
 
 This is the portfolio-side HOGSWAP integration. STAMM opportunity discovery and
-unsigned mint/redeem shapes are a sibling 1.7.0 ticket — they are not added
-here.
+unsigned mint/redeem shapes live in [stamm.md](stamm.md)
+(`mainnet:stamm:v1:mint:lp` / `mainnet:stamm:v1:redeem:lp`).
 
 ## Source Strategy
 
@@ -76,8 +76,9 @@ instead of adding per-protocol collectors.
 - `GET /analytics/prices` is available on the client for leftover ids that are
   already part of the same positions payload. It is not used to dump the rest
   of the wallet as a portfolio.
-- Execution shapes for STAMM mint/redeem are out of scope here;
-  `compatibleExitShapeKeys` stay empty until those shapes land.
+- Execution shapes for STAMM mint/redeem are `mainnet:stamm:v1:mint:lp` and
+  `mainnet:stamm:v1:redeem:lp`. Position `compatibleExitShapeKeys` include
+  redeem once those shapes are registered.
 
 ## Tests
 

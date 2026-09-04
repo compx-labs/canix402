@@ -78,13 +78,39 @@ export interface HogswapAnalyticsPrices {
 
 export class HogswapClientError extends Error {
   public readonly status: number | undefined;
+  public readonly body: unknown;
 
-  public constructor(message: string, status?: number) {
+  public constructor(message: string, status?: number, body?: unknown) {
     super(message);
     this.name = "HogswapClientError";
     this.status = status;
+    this.body = body;
   }
 }
+
+/** Quote id expired (~30s) or was never issued. Callers should re-quote. */
+export class HogswapQuoteExpiredError extends HogswapClientError {
+  public constructor(message: string, status?: number, body?: unknown) {
+    super(message, status, body);
+    this.name = "HogswapQuoteExpiredError";
+  }
+}
+
+/** Signer is missing an output / LP ASA opt-in required by /execute. */
+export class HogswapMissingOptInError extends HogswapClientError {
+  public readonly assetIds: number[];
+
+  public constructor(message: string, assetIds: number[] = [], status?: number, body?: unknown) {
+    super(message, status, body);
+    this.name = "HogswapMissingOptInError";
+    this.assetIds = assetIds;
+  }
+}
+
+/** HOGSWAP quote lifetime used by STAMM mint/redeem shapes (matches Haystack compose). */
+export const HOGSWAP_QUOTE_TTL_MS = 30_000;
+
+export const HOGSWAP_LP_DEFAULT_SLIPPAGE_BPS = 100;
 
 interface HogswapClientDependencies {
   fetch: typeof fetch;
@@ -150,27 +176,44 @@ function sharedHogswapGate(): RequestGate {
 }
 
 async function hogswapGetJson(path: string): Promise<unknown> {
+  return hogswapRequestJson("GET", path);
+}
+
+async function hogswapPostJson(path: string, body: unknown): Promise<unknown> {
+  return hogswapRequestJson("POST", path, body);
+}
+
+async function hogswapRequestJson(
+  method: "GET" | "POST",
+  path: string,
+  body?: unknown
+): Promise<unknown> {
   const { fetch: fetchImpl } = resolveDependencies();
   const url = `${hogswapBaseUrl()}${path}`;
   return sharedHogswapGate().run(() =>
     retryRateLimited(
       async () => {
-        const response = await fetchImpl(url, { headers: hogswapHeaders() });
+        const headers: Record<string, string> = {
+          ...(hogswapHeaders() as Record<string, string>)
+        };
+        const init: RequestInit = { method, headers };
+        if (method === "POST") {
+          headers["content-type"] = "application/json";
+          init.body = JSON.stringify(body ?? {});
+        }
+        const response = await fetchImpl(url, init);
+        const payload = await readJsonBody(response);
         if (response.status === 429) {
-          const error = new HogswapClientError(
+          throw new HogswapClientError(
             `HOGSWAP returned HTTP 429 for ${path}.`,
-            429
+            429,
+            payload
           );
-          (error as HogswapClientError & { status: number }).status = 429;
-          throw error;
         }
         if (!response.ok) {
-          throw new HogswapClientError(
-            `HOGSWAP ${path} returned HTTP ${response.status}.`,
-            response.status
-          );
+          throw mapHogswapHttpError(path, response.status, payload);
         }
-        return (await response.json()) as unknown;
+        return payload;
       },
       {
         maxRetries: readNonNegativeInteger(process.env.HOGSWAP_429_MAX_RETRIES, 2),
@@ -183,6 +226,91 @@ async function hogswapGetJson(path: string): Promise<unknown> {
       }
     )
   );
+}
+
+async function readJsonBody(response: Response): Promise<unknown> {
+  const text = await response.text();
+  if (text.length === 0) {
+    return null;
+  }
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return text;
+  }
+}
+
+function mapHogswapHttpError(
+  path: string,
+  status: number,
+  payload: unknown
+): HogswapClientError {
+  const detail = hogswapErrorDetail(payload);
+  const message =
+    detail.length > 0
+      ? `HOGSWAP ${path} returned HTTP ${status}: ${detail}`
+      : `HOGSWAP ${path} returned HTTP ${status}.`;
+  if (status === 404 && (path === "/execute" || path.startsWith("/execute"))) {
+    return new HogswapQuoteExpiredError(message, status, payload);
+  }
+  if (status === 422 && isMissingOptInMessage(detail)) {
+    return new HogswapMissingOptInError(
+      message,
+      parseMissingOptInAssetIds(payload),
+      status,
+      payload
+    );
+  }
+  return new HogswapClientError(message, status, payload);
+}
+
+function hogswapErrorDetail(payload: unknown): string {
+  if (typeof payload === "string") {
+    return payload;
+  }
+  const record = asRecord(payload);
+  if (record === null) {
+    return "";
+  }
+  if (typeof record.detail === "string") {
+    return record.detail;
+  }
+  if (Array.isArray(record.detail)) {
+    return record.detail
+      .map((entry) => {
+        if (typeof entry === "string") {
+          return entry;
+        }
+        const row = asRecord(entry);
+        return typeof row?.msg === "string" ? row.msg : JSON.stringify(entry);
+      })
+      .join("; ");
+  }
+  if (typeof record.message === "string") {
+    return record.message;
+  }
+  return "";
+}
+
+function isMissingOptInMessage(detail: string): boolean {
+  return /opt[-\s]?in/i.test(detail);
+}
+
+function parseMissingOptInAssetIds(payload: unknown): number[] {
+  const record = asRecord(payload);
+  if (record === null) {
+    return [];
+  }
+  const candidates = [record.assets, record.asset_ids, asRecord(record.detail)?.assets];
+  for (const candidate of candidates) {
+    if (!Array.isArray(candidate)) {
+      continue;
+    }
+    return candidate
+      .map((value) => parseSafeNonNegativeInteger(value))
+      .filter((value): value is number => value !== null);
+  }
+  return [];
 }
 
 /**
@@ -409,6 +537,287 @@ export async function fetchHogswapAnalyticsPrices(
     asOfTs: parseNullableNonNegativeNumber(payload?.as_of_ts),
     prices
   };
+}
+
+export interface HogswapStammAssetMeta {
+  assetId: number;
+  unitName: string | null;
+  name: string | null;
+  decimals: number | null;
+}
+
+export interface HogswapLpExternalInput {
+  assetId: number;
+  amount: bigint;
+}
+
+export interface HogswapLpMintQuoteRequest {
+  poolAppId: number;
+  tierIndex: number;
+  amountA?: bigint;
+  amountB?: bigint;
+  externalInputs?: readonly HogswapLpExternalInput[];
+  slippageBps?: number;
+  maxLegs?: number;
+  sender?: string;
+}
+
+export interface HogswapLpRedeemQuoteRequest {
+  poolAppId: number;
+  tierIndex: number;
+  lpAmount: bigint;
+  targetAsset: number;
+  slippageBps?: number;
+  maxLegs?: number;
+  sender?: string;
+}
+
+export interface HogswapLpQuoteExtras {
+  mode: string;
+  poolAppId: number;
+  tierIndex: number;
+  lpAssetId: number;
+  requiresMultiDeposit: boolean;
+  expectedLpOut: number;
+  usedPoolRatio: boolean;
+  targetAsset: number;
+  expectedAOut: number;
+  expectedBOut: number;
+}
+
+export interface HogswapQuote {
+  quoteId: string;
+  mode: string;
+  assetIn: number;
+  assetOut: number;
+  amountIn: number;
+  expectedOut: number;
+  expectedOutRobust: number;
+  minOutAtSlippage: number;
+  slippageBps: number;
+  networkFeeMicroalgo: number;
+  deposits: Array<{ assetId: number; amount: number }>;
+  lp: HogswapLpQuoteExtras | null;
+  quotedAtMs: number;
+  raw: Record<string, unknown>;
+}
+
+export interface HogswapExecuteResult {
+  quoteId: string;
+  unsignedGroup: Array<{ txnB64: string; description: string }>;
+  routerAppId: number;
+  groupIdB64: string;
+  assetIn: number | null;
+  assetOut: number | null;
+  amountIn: number | null;
+  minOutAtSlippage: number | null;
+  networkFeeMicroalgo: number | null;
+  notes: string[];
+  raw: Record<string, unknown>;
+}
+
+/**
+ * STAMM pool catalog from `GET /stamm/pools`. Market-data is edge-cached ~5s
+ * upstream; Canix does not add a second long-lived cache here (opportunity
+ * Redis cache covers list routes).
+ */
+export async function fetchStammPools(): Promise<Record<string, unknown>[]> {
+  const payload = asRecord(await hogswapGetJson("/stamm/pools?active_only=true&sort=tvl"));
+  return asObjectArray(payload?.pools);
+}
+
+/**
+ * Chain metadata for STAMM-referenced assets (`GET /stamm/assets`).
+ * Decimals/names are static; fetch once per process via the shared HTTP gate.
+ */
+export async function fetchStammAssets(): Promise<Map<number, HogswapStammAssetMeta>> {
+  const payload = asRecord(await hogswapGetJson("/stamm/assets"));
+  const assets = new Map<number, HogswapStammAssetMeta>();
+  if (payload === null) {
+    return assets;
+  }
+  for (const [key, value] of Object.entries(payload)) {
+    const assetId = parseSafeNonNegativeInteger(key);
+    if (assetId === null) {
+      continue;
+    }
+    const row = asRecord(value);
+    assets.set(assetId, {
+      assetId,
+      unitName:
+        typeof row?.unit_name === "string" && row.unit_name.trim().length > 0
+          ? row.unit_name.trim()
+          : null,
+      name: typeof row?.name === "string" && row.name.trim().length > 0 ? row.name.trim() : null,
+      decimals: parseNonNegativeInteger(row?.decimals)
+    });
+  }
+  return assets;
+}
+
+export async function quoteHogswapLpMint(
+  request: HogswapLpMintQuoteRequest
+): Promise<HogswapQuote> {
+  const body: Record<string, unknown> = {
+    mode: "LP_MINT",
+    pool_app_id: request.poolAppId,
+    tier_index: request.tierIndex,
+    slippage_bps: request.slippageBps ?? HOGSWAP_LP_DEFAULT_SLIPPAGE_BPS
+  };
+  if (request.amountA !== undefined) {
+    body.amount_a = numberFromBigInt(request.amountA, "amountA");
+  }
+  if (request.amountB !== undefined) {
+    body.amount_b = numberFromBigInt(request.amountB, "amountB");
+  }
+  if (request.externalInputs !== undefined && request.externalInputs.length > 0) {
+    body.external_inputs = request.externalInputs.map((entry) => ({
+      asset_id: entry.assetId,
+      amount: numberFromBigInt(entry.amount, "externalInputs.amount")
+    }));
+  }
+  if (request.maxLegs !== undefined) {
+    body.max_legs = request.maxLegs;
+  }
+  if (request.sender !== undefined && request.sender.length > 0) {
+    body.sender = request.sender;
+  }
+  return parseHogswapQuote(await hogswapPostJson("/quote", body));
+}
+
+export async function quoteHogswapLpRedeem(
+  request: HogswapLpRedeemQuoteRequest
+): Promise<HogswapQuote> {
+  const body: Record<string, unknown> = {
+    mode: "LP_REDEEM",
+    pool_app_id: request.poolAppId,
+    tier_index: request.tierIndex,
+    lp_amount: numberFromBigInt(request.lpAmount, "lpAmount"),
+    target_asset: request.targetAsset,
+    slippage_bps: request.slippageBps ?? HOGSWAP_LP_DEFAULT_SLIPPAGE_BPS
+  };
+  if (request.maxLegs !== undefined) {
+    body.max_legs = request.maxLegs;
+  }
+  if (request.sender !== undefined && request.sender.length > 0) {
+    body.sender = request.sender;
+  }
+  return parseHogswapQuote(await hogswapPostJson("/quote", body));
+}
+
+export async function executeHogswapQuote(
+  quoteId: string,
+  userAddress: string
+): Promise<HogswapExecuteResult> {
+  return parseHogswapExecute(
+    await hogswapPostJson("/execute", {
+      quote_id: quoteId,
+      user_address: userAddress
+    })
+  );
+}
+
+export function parseHogswapQuote(payload: unknown): HogswapQuote {
+  const record = asRecord(payload);
+  if (record === null) {
+    throw new HogswapClientError("HOGSWAP quote response is not an object.");
+  }
+  const quoteId = typeof record.quote_id === "string" ? record.quote_id.trim() : "";
+  if (quoteId.length === 0) {
+    throw new HogswapClientError("HOGSWAP quote is missing quote_id.");
+  }
+  const lpRecord = asRecord(record.lp);
+  return {
+    quoteId,
+    mode: typeof record.mode === "string" ? record.mode : "SWAP",
+    assetIn: parseSafeNonNegativeInteger(record.asset_in) ?? 0,
+    assetOut: parseSafeNonNegativeInteger(record.asset_out) ?? 0,
+    amountIn: parseNullableNonNegativeNumber(record.amount_in) ?? 0,
+    expectedOut: parseNullableNonNegativeNumber(record.expected_out) ?? 0,
+    expectedOutRobust: parseNullableNonNegativeNumber(record.expected_out_robust) ?? 0,
+    minOutAtSlippage: parseNullableNonNegativeNumber(record.min_out_at_slippage) ?? 0,
+    slippageBps: parseNullableNonNegativeNumber(record.slippage_bps) ?? HOGSWAP_LP_DEFAULT_SLIPPAGE_BPS,
+    networkFeeMicroalgo: parseNullableNonNegativeNumber(record.network_fee_microalgo) ?? 0,
+    deposits: asObjectArray(record.deposits).flatMap((deposit) => {
+      const assetId = parseSafeNonNegativeInteger(deposit.asset_id);
+      const amount = parseNullableNonNegativeNumber(deposit.amount);
+      if (assetId === null || amount === null) {
+        return [];
+      }
+      return [{ assetId, amount }];
+    }),
+    lp: lpRecord === null ? null : parseLpQuoteExtras(lpRecord),
+    quotedAtMs: resolveDependencies().now(),
+    raw: record
+  };
+}
+
+function parseLpQuoteExtras(record: Record<string, unknown>): HogswapLpQuoteExtras {
+  return {
+    mode: typeof record.mode === "string" ? record.mode : "LP_MINT",
+    poolAppId: parseSafePositiveInteger(record.pool_app_id) ?? 0,
+    tierIndex: parseNonNegativeInteger(record.tier_index) ?? 0,
+    lpAssetId: parseSafePositiveInteger(record.lp_asset_id) ?? 0,
+    requiresMultiDeposit: record.requires_multi_deposit === true,
+    expectedLpOut: parseNullableNonNegativeNumber(record.expected_lp_out) ?? 0,
+    usedPoolRatio: record.used_pool_ratio === true,
+    targetAsset: parseSafeNonNegativeInteger(record.target_asset) ?? 0,
+    expectedAOut: parseNullableNonNegativeNumber(record.expected_a_out) ?? 0,
+    expectedBOut: parseNullableNonNegativeNumber(record.expected_b_out) ?? 0
+  };
+}
+
+export function parseHogswapExecute(payload: unknown): HogswapExecuteResult {
+  const record = asRecord(payload);
+  if (record === null) {
+    throw new HogswapClientError("HOGSWAP execute response is not an object.");
+  }
+  const quoteId = typeof record.quote_id === "string" ? record.quote_id.trim() : "";
+  if (quoteId.length === 0) {
+    throw new HogswapClientError("HOGSWAP execute is missing quote_id.");
+  }
+  const unsignedGroup = asObjectArray(record.unsigned_group).map((entry, index) => {
+    const txnB64 = typeof entry.txn_b64 === "string" ? entry.txn_b64 : "";
+    if (txnB64.length === 0) {
+      throw new HogswapClientError(
+        `HOGSWAP execute unsigned_group[${index}] is missing txn_b64.`
+      );
+    }
+    return {
+      txnB64,
+      description: typeof entry.description === "string" ? entry.description : ""
+    };
+  });
+  if (unsignedGroup.length === 0) {
+    throw new HogswapClientError("HOGSWAP execute returned an empty unsigned_group.");
+  }
+  const routerAppId = parseSafePositiveInteger(record.router_app_id);
+  if (routerAppId === null) {
+    throw new HogswapClientError("HOGSWAP execute is missing router_app_id.");
+  }
+  const groupIdB64 = typeof record.group_id_b64 === "string" ? record.group_id_b64 : "";
+  return {
+    quoteId,
+    unsignedGroup,
+    routerAppId,
+    groupIdB64,
+    assetIn: parseSafeNonNegativeInteger(record.asset_in),
+    assetOut: parseSafeNonNegativeInteger(record.asset_out),
+    amountIn: parseNullableNonNegativeNumber(record.amount_in),
+    minOutAtSlippage: parseNullableNonNegativeNumber(record.min_out_at_slippage),
+    networkFeeMicroalgo: parseNullableNonNegativeNumber(record.network_fee_microalgo),
+    notes: Array.isArray(record.notes)
+      ? record.notes.filter((note): note is string => typeof note === "string")
+      : [],
+    raw: record
+  };
+}
+
+function numberFromBigInt(value: bigint, field: string): number {
+  if (value < 0n || value > BigInt(Number.MAX_SAFE_INTEGER)) {
+    throw new HogswapClientError(`${field} exceeds JSON-safe integer range.`);
+  }
+  return Number(value);
 }
 
 export async function mapHogswapRequests<T>(

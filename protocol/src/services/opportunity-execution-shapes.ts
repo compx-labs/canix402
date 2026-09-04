@@ -44,6 +44,8 @@ const HAYSTACK_UNSTAKE_HAY = "mainnet:haystack:v1:unstake:hay";
 const ALPHA_ARCADE_STAKING_OPPORTUNITY_ID = "alpha-arcade-staking-alpha";
 const ALPHA_ARCADE_UNSTAKE_ALPHA = "mainnet:alpha-arcade:v1:unstake:alpha";
 const ALPHA_ARCADE_CLAIM_REWARDS = "mainnet:alpha-arcade:v1:claimRewards:usdc";
+const STAMM_MINT_LP = "mainnet:stamm:v1:mint:lp";
+const STAMM_REDEEM_LP = "mainnet:stamm:v1:redeem:lp";
 
 type ShapeStep = {
   shapeKey: string;
@@ -156,6 +158,16 @@ const ALPHA_ARCADE_STAKING_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
   { shapeKey: ALPHA_ARCADE_CLAIM_REWARDS, order: 0 }
 ];
 
+/** Exclusive enter path for STAMM LP mint. */
+const STAMM_LP_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: STAMM_MINT_LP, order: 0 }
+];
+
+/** Exit path for STAMM LP redeem (single HOGSWAP group). */
+const STAMM_LP_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: STAMM_REDEEM_LP, order: 0 }
+];
+
 export function attachExecutionShapesToOpportunity(
   record: OpportunityMarketRecord,
   registry: TransactionShapeRegistry = executionRegistry
@@ -180,9 +192,13 @@ export function attachExecutionShapesToOpportunity(
       toOpportunityExecutionShape(entry, exitRequiredAssetIds, exitInputHints)
   );
 
-  // poolAppId on market records is adapter-only metadata for hint building
-  // (e.g. Pact farm → AMM pool). Keep it out of the public opportunity surface.
-  const { poolAppId: _poolAppId, ...publicRecord } = record;
+  // poolAppId / liquidityAssetId on market records are adapter-only metadata
+  // for hint building. Keep them out of the public opportunity surface.
+  const {
+    poolAppId: _poolAppId,
+    liquidityAssetId: _liquidityAssetId,
+    ...publicRecord
+  } = record;
 
   return {
     ...publicRecord,
@@ -295,6 +311,12 @@ function orderEnterShapes(
     });
   }
 
+  if (isStammLpOpportunity(record)) {
+    return orderBySteps(shapes, STAMM_LP_ENTER_STEPS, {
+      exclusive: true
+    });
+  }
+
   return shapes.map((shape) => ({ shape, order: 0 }));
 }
 
@@ -362,6 +384,9 @@ function resolveExitSteps(
   }
   if (isAlphaArcadeStakingOpportunity(record)) {
     return ALPHA_ARCADE_STAKING_EXIT_STEPS;
+  }
+  if (isStammLpOpportunity(record)) {
+    return STAMM_LP_EXIT_STEPS;
   }
   return [];
 }
@@ -509,6 +534,10 @@ function buildInputHints(
     return hints;
   }
 
+  if (record.protocol === "stamm") {
+    return buildStammLpInputHints(record);
+  }
+
   if (record.protocol === "tinyman" || record.protocol === "pact") {
     if (
       record.protocol === "tinyman" &&
@@ -569,7 +598,9 @@ function buildRequiredAssetIds(record: OpportunityMarketRecord): number[] {
   const assetIds = record.assetIds ?? [];
 
   if (
-    (record.protocol === "tinyman" || record.protocol === "pact") &&
+    (record.protocol === "tinyman" ||
+      record.protocol === "pact" ||
+      record.protocol === "stamm") &&
     record.opportunityType === "lp" &&
     assetIds.length >= 2
   ) {
@@ -632,6 +663,9 @@ function buildExitRequiredAssetIds(record: OpportunityMarketRecord): number[] {
     const primary = record.assetIds?.[0];
     return primary !== undefined ? [primary] : [];
   }
+  if (isStammLpOpportunity(record) && record.liquidityAssetId !== undefined) {
+    return [record.liquidityAssetId];
+  }
   return [];
 }
 
@@ -689,6 +723,9 @@ function buildExitInputHints(
     }
     return hints;
   }
+  if (isStammLpOpportunity(record)) {
+    return buildStammLpInputHints(record);
+  }
   return {};
 }
 
@@ -725,6 +762,57 @@ function isMythDualStakeOpportunity(record: OpportunityMarketRecord): boolean {
     (record.opportunityId.startsWith("myth-staking-") ||
       record.opportunityId.startsWith("myth-farm-"))
   );
+}
+
+function isStammLpOpportunity(record: OpportunityMarketRecord): boolean {
+  return record.protocol === "stamm" && record.opportunityType === "lp";
+}
+
+function buildStammLpInputHints(
+  record: OpportunityMarketRecord
+): OpportunityExecutionInputHints {
+  const hints: OpportunityExecutionInputHints = {};
+  const parsed = parseStammLpOpportunityId(record.opportunityId);
+  const poolAppId = record.poolAppId ?? parsed?.poolAppId;
+  const tierIndex = parsed?.tierIndex;
+  const assetIds = record.assetIds ?? [];
+  if (poolAppId !== undefined) {
+    hints.poolAppId = poolAppId;
+    hints.poolId = String(poolAppId);
+  }
+  if (tierIndex !== undefined) {
+    hints.tierIndex = tierIndex;
+  }
+  if (record.liquidityAssetId !== undefined) {
+    hints.liquidityAssetId = record.liquidityAssetId;
+  }
+  if (assetIds[0] !== undefined) {
+    hints.assetAId = assetIds[0];
+  }
+  if (assetIds[1] !== undefined) {
+    hints.assetBId = assetIds[1];
+  }
+  return hints;
+}
+
+function parseStammLpOpportunityId(
+  opportunityId: string
+): { poolAppId: number; tierIndex: number } | null {
+  const match = /^(\d+):lp:(\d+)$/.exec(opportunityId);
+  if (match === null) {
+    return null;
+  }
+  const poolAppId = Number(match[1]);
+  const tierIndex = Number(match[2]);
+  if (
+    !Number.isInteger(poolAppId) ||
+    poolAppId < 1 ||
+    !Number.isInteger(tierIndex) ||
+    tierIndex < 0
+  ) {
+    return null;
+  }
+  return { poolAppId, tierIndex };
 }
 
 function isRetiStakingOpportunity(record: OpportunityMarketRecord): boolean {

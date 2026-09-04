@@ -7,6 +7,7 @@ import {
   fetchMythFinanceOpportunities,
   fetchPactOpportunities,
   fetchRetiOpportunities,
+  fetchStammOpportunities,
   fetchTinymanOpportunities
 } from "../adapters/index.js";
 import { getAppLogger } from "../observability/logger.js";
@@ -34,7 +35,8 @@ export const SUPPORTED_AGGREGATE_PROTOCOLS = [
   "myth-finance",
   "haystack",
   "reti",
-  "alpha-arcade"
+  "alpha-arcade",
+  "stamm"
 ] as const;
 
 const OPPORTUNITY_CACHE_NETWORK = "mainnet";
@@ -283,6 +285,9 @@ async function fetchOpportunitiesForProtocolUncachedInner(
   }
   if (protocol === "alpha-arcade") {
     return await fetchAlphaArcadeOpportunities();
+  }
+  if (protocol === "stamm") {
+    return await fetchStammOpportunities();
   }
 
   return [];

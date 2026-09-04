@@ -113,3 +113,14 @@ export {
   AlphaArcadeAdapterError
 } from "./alpha-arcade.js";
 export type { AlphaArcadePoolSnapshot } from "./alpha-arcade.js";
+export {
+  fetchStammOpportunities,
+  normalizeStammLpOpportunity,
+  normalizeStammPoolTiers,
+  allocateTierTvlUsd,
+  setStammAdapterDependenciesForTests,
+  stammLpOpportunityId,
+  STAMM_UNKNOWN_APY_NOTE,
+  StammAdapterError
+} from "./stamm.js";
+export type { StammTierSnapshot } from "./stamm.js";

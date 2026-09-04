@@ -619,3 +619,47 @@ test("Réti staking attaches stake enter with validatorId hint", () => {
   });
   assert.deepEqual(position.compatibleExitShapeKeys, ["mainnet:reti:v1:unstake:algo"]);
 });
+
+test("STAMM LP opportunity attaches exclusive mint enter and redeem exit", () => {
+  const record: OpportunityMarketRecord = {
+    protocol: "stamm",
+    opportunityType: "lp",
+    opportunityId: "3544790053:lp:1",
+    assetPair: "ALGO/HOG",
+    assetIds: [0, 3178895177],
+    poolAppId: 3544790053,
+    liquidityAssetId: 3544790059,
+    apy: 0,
+    yieldBasis: "apr",
+    tvlUsd: 9_684,
+    sourceTimestamp: "2026-09-04T13:00:00.000Z",
+    fetchedAt: "2026-09-04T13:00:00.000Z"
+  };
+
+  const enriched = attachExecutionShapesToOpportunity(record, executionRegistry);
+  assert.equal(enriched.executionReady, true);
+  assert.equal(enriched.executionShapes.length, 1);
+  assert.equal(enriched.executionShapes[0]?.shapeKey, "mainnet:stamm:v1:mint:lp");
+  assert.equal(enriched.executionShapes[0]?.inputHints?.poolAppId, 3544790053);
+  assert.equal(enriched.executionShapes[0]?.inputHints?.tierIndex, 1);
+  assert.equal(enriched.executionShapes[0]?.inputHints?.liquidityAssetId, 3544790059);
+  assert.deepEqual(enriched.executionShapes[0]?.requiredAssetIds, [0, 3178895177]);
+  assert.equal("poolAppId" in enriched, false);
+  assert.equal("liquidityAssetId" in enriched, false);
+  assert.equal(enriched.compatibleExitShapes.length, 1);
+  assert.equal(enriched.compatibleExitShapes[0]?.shapeKey, "mainnet:stamm:v1:redeem:lp");
+  assert.deepEqual(enriched.compatibleExitShapes[0]?.requiredAssetIds, [3544790059]);
+
+  const position = attachExecutionShapesToPosition({
+    protocol: "stamm",
+    positionType: "lp",
+    positionId: "stamm:lp:3544790059",
+    opportunityId: "3544790053:lp:1",
+    assetId: 3544790059,
+    assetSymbol: "ALGO/HOG LP",
+    amountRaw: "1000000",
+    amount: "1",
+    usdValue: 0.3
+  });
+  assert.deepEqual(position.compatibleExitShapeKeys, ["mainnet:stamm:v1:redeem:lp"]);
+});

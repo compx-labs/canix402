@@ -14,6 +14,7 @@ import {
   normalizePactFarm,
   normalizePactPool,
   normalizeRetiStakingOpportunity,
+  normalizeStammLpOpportunity,
   normalizeTinymanFarm,
   normalizeTinymanPool
 } from "../../src/adapters/index.js";
@@ -59,6 +60,12 @@ import {
   RETI_FIXTURE_FETCHED_AT,
   retiValidatorSnapshot
 } from "../fixtures/adapters/reti.js";
+import {
+  STAMM_FIXTURE_FETCHED_AT,
+  STAMM_FIXTURE_HOG_ASSET_ID,
+  STAMM_FIXTURE_POOL_APP_ID,
+  STAMM_FIXTURE_TIER1_LP_ASSET_ID
+} from "../fixtures/adapters/stamm.js";
 import {
   TINYMAN_FIXTURE_FETCHED_AT,
   tinymanAlgoUsdcWithFarm,
@@ -260,4 +267,39 @@ test("normalized Alpha Arcade staking rows attach stake enter and unstake/claim 
       (shape) => shape.shapeKey === "mainnet:alpha-arcade:v1:claimRewards:usdc"
     )
   );
+});
+
+test("normalized STAMM LP rows attach mint enter and redeem exit and strip adapter-only ids", () => {
+  const record = normalizeStammLpOpportunity(
+    {
+      poolId: STAMM_FIXTURE_POOL_APP_ID,
+      assetA: 0,
+      assetB: STAMM_FIXTURE_HOG_ASSET_ID,
+      lpAssetId: STAMM_FIXTURE_TIER1_LP_ASSET_ID,
+      tierIndex: 1,
+      feeBps: 10,
+      tvlUsd: 9_684.12,
+      assetPair: "ALGO/HOG"
+    },
+    STAMM_FIXTURE_FETCHED_AT
+  );
+  assertValidMarketRecord(record);
+  const publicRecord = attachExecutionShapesToOpportunity(record);
+  assertValidPublicOpportunity(publicRecord);
+  assert.equal(publicRecord.executionReady, true);
+  assert.equal(publicRecord.executionShapes[0]?.shapeKey, "mainnet:stamm:v1:mint:lp");
+  assert.equal(publicRecord.executionShapes[0]?.inputHints?.poolAppId, STAMM_FIXTURE_POOL_APP_ID);
+  assert.equal(publicRecord.executionShapes[0]?.inputHints?.tierIndex, 1);
+  assert.equal(
+    publicRecord.executionShapes[0]?.inputHints?.liquidityAssetId,
+    STAMM_FIXTURE_TIER1_LP_ASSET_ID
+  );
+  assert.deepEqual(publicRecord.executionShapes[0]?.requiredAssetIds, [
+    0,
+    STAMM_FIXTURE_HOG_ASSET_ID
+  ]);
+  assert.equal(publicRecord.compatibleExitShapes[0]?.shapeKey, "mainnet:stamm:v1:redeem:lp");
+  assert.deepEqual(publicRecord.compatibleExitShapes[0]?.requiredAssetIds, [
+    STAMM_FIXTURE_TIER1_LP_ASSET_ID
+  ]);
 });

@@ -196,6 +196,7 @@ Per-protocol policy:
 | Myth Finance dualSTAKE | `apr` | Consensus APR net of fees (+ farm APR when present) |
 | Réti staking | `apr` | Consensus APR net of validator commission |
 | Alpha Arcade staking | `apr` | Trailing ~7d USDC fee inflows annualized vs ALPHA TVL |
+| STAMM `lp` | `apr` | Placeholder only — `apy` is `0` (unknown). Listings expose TVL and fee bps; fee-APR is not inferred |
 
 ## Identifier Patterns
 
@@ -210,6 +211,7 @@ Per-protocol policy:
 - Myth: `myth-staking-<appId>`, `myth-farm-<appId>`
 - Réti: `reti-staking-<validatorId>` (one row per validator; pools allocate under that validator)
 - Alpha Arcade: `alpha-arcade-staking-alpha`
+- STAMM: `<poolAppId>:lp:<tierIndex>` (one row per active fee tier; matches HOGSWAP LP position `opportunityId`)
 
 Fallback identifiers are allowed when source fields are missing; such rows include
 a caveat in `notes`.
