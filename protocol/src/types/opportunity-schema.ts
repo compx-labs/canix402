@@ -34,7 +34,9 @@ export const OpportunityExecutionInputHintsSchema = Type.Object(
     escrowAppId: Type.Optional(Type.Integer({ minimum: 1 })),
     validatorId: Type.Optional(Type.Integer({ minimum: 1 })),
     /** Folks Finance loan application id (distinct from pool app id). */
-    loanAppId: Type.Optional(Type.Integer({ minimum: 1 }))
+    loanAppId: Type.Optional(Type.Integer({ minimum: 1 })),
+    /** STAMM fee-tier index (0–5) when the LP ASA is a STAMM tier token. */
+    tierIndex: Type.Optional(Type.Integer({ minimum: 0 }))
   },
   { additionalProperties: false }
 );

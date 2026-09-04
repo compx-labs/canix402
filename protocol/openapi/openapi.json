@@ -1368,7 +1368,7 @@
     "/positions": {
       "get": {
         "summary": "Algorand DeFi positions held by a wallet",
-        "description": "Returns normalized DeFi positions associated with a supplied Algorand wallet address across supported protocols. Use when an agent needs a wallet-level view of deposited, supplied, staked, or liquidity positions and their current values. This endpoint provides position data only; it does not build or submit transactions.",
+        "description": "Returns normalized DeFi positions associated with a supplied Algorand wallet address across supported protocols. LP tokens indexed by HOGSWAP (STAMM, AlgoFi, Humble) are valued via GET /lp/{asset_id}?amount= — proportional NAV, null rather than guessed. Tinyman and Pact LP collectors remain canonical for those venues (no double-count by LP ASA). This endpoint provides position data only; it does not build or submit transactions.", "x-pragma": "pragma: allowlist secret",
         "tags": [
           "defi",
           "positions",
@@ -1558,7 +1558,7 @@
     "/protocols/{protocol}/opportunities": {
       "get": {
         "summary": "Top 25 DeFi opportunities for a single protocol ranked by risk then APY",
-        "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, or alpha-arcade. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
+        "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, alpha-arcade, stamm, algofi, or humble. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.", "x-pragma": "pragma: allowlist secret",
         "tags": [
           "defi",
           "opportunities",
@@ -1580,7 +1580,10 @@
                 "myth-finance",
                 "haystack",
                 "reti",
-                "alpha-arcade"
+                "alpha-arcade",
+              "stamm",
+              "algofi",
+              "humble"
               ]
             }
           },
@@ -3214,7 +3217,10 @@
               "myth-finance",
               "haystack",
               "reti",
-              "alpha-arcade"
+              "alpha-arcade",
+            "stamm",
+            "algofi",
+            "humble"
             ]
           },
           "opportunityType": {
@@ -3491,7 +3497,10 @@
               "myth-finance",
               "haystack",
               "reti",
-              "alpha-arcade"
+              "alpha-arcade",
+            "stamm",
+            "algofi",
+            "humble"
             ]
           },
           "positionType": {
@@ -3541,6 +3550,14 @@
               "null"
             ],
             "minimum": 0
+          },
+          "assetIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Underlying ASA ids for the position (LP asset A/B). Omitted when unknown."
           },
           "healthFactor": {
             "type": [
@@ -3605,7 +3622,10 @@
               "myth-finance",
               "haystack",
               "reti",
-              "alpha-arcade"
+              "alpha-arcade",
+            "stamm",
+            "algofi",
+            "humble"
             ]
           },
           "status": {
@@ -3778,7 +3798,10 @@
               "myth-finance",
               "haystack",
               "reti",
-              "alpha-arcade"
+              "alpha-arcade",
+            "stamm",
+            "algofi",
+            "humble"
             ]
           },
           "positionId": {
@@ -5408,6 +5431,11 @@
             "type": "integer",
             "minimum": 1,
             "description": "Folks Finance loan application id (distinct from pool app id)."
+          },
+          "tierIndex": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "STAMM fee-tier index (0–5) when the LP ASA is a STAMM tier token."
           }
         }
       },
@@ -5992,7 +6020,10 @@
                   "myth-finance",
                   "haystack",
                   "reti",
-                  "alpha-arcade"
+                  "alpha-arcade",
+                "stamm",
+                "algofi",
+                "humble"
                 ]
               },
               {
@@ -6635,7 +6666,10 @@
               "myth-finance",
               "haystack",
               "reti",
-              "alpha-arcade"
+              "alpha-arcade",
+            "stamm",
+            "algofi",
+            "humble"
             ]
           },
           "opportunityType": {
@@ -6944,7 +6978,10 @@
               "myth-finance",
               "haystack",
               "reti",
-              "alpha-arcade"
+              "alpha-arcade",
+            "stamm",
+            "algofi",
+            "humble"
             ]
           },
           "opportunityType": {

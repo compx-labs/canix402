@@ -72,6 +72,7 @@ Protocols covered:
 - Haystack (HAY staking EMA APR; mocked pool snapshot)
 - Réti (per-validator consensus APR, gates, capacity; mocked registry snapshots)
 - Alpha Arcade (trailing USDC fee-share APR; mocked pool + indexer inflows)
+- HOGSWAP LP valuation (`normalizeHogswapLpPosition`, catalog merge; recorded `/lp/{id}` and `/stamm/pools`)
 
 `adapter-execution-enrichment.test.ts` chains those transforms into
 `attachExecutionShapesToOpportunity` so enter-shape attachment is also asserted
@@ -88,7 +89,8 @@ Files:
 - `tests/unit/haystack-normalize.test.ts`
 - `tests/unit/reti-normalize.test.ts`
 - `tests/unit/alpha-arcade-normalize.test.ts`
-- `tests/unit/adapter-execution-enrichment.test.ts`
+- `tests/unit/hogswap-lp-normalize.test.ts`
+- `tests/unit/adapter-execution-enrichment.test.ts
 
 Fixtures:
 
@@ -101,6 +103,7 @@ Fixtures:
 - `tests/fixtures/adapters/haystack.ts`
 - `tests/fixtures/adapters/reti.ts`
 - `tests/fixtures/adapters/alpha-arcade.ts`
+- `tests/fixtures/hogswap/lp-valuation.ts`
 
 ### API tests (`protocol/tests/integration`)
 
@@ -135,6 +138,7 @@ Files:
 - `tests/integration/openapi-consistency.test.ts`
 - `tests/integration/x402-gating.test.ts`
 - `tests/integration/positions-claimable-route.test.ts`
+- `tests/integration/hogswap-lp-positions.test.ts`
 - `tests/integration/eligibility.test.ts`
 - `tests/integration/plans.test.ts`
 - `tests/integration/rebalance.test.ts`

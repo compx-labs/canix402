@@ -344,6 +344,21 @@ test("GET /positions/claimable returns 200 for empty mocked wallet", async () =>
       suppliedUsdComplete: true,
       borrowedUsdComplete: true,
       rewardsUsdComplete: true
+    } }),
+    stamm: async () => ({ positions: [], warnings: [], coverage: {
+      suppliedUsdComplete: true,
+      borrowedUsdComplete: true,
+      rewardsUsdComplete: true
+    } }),
+    algofi: async () => ({ positions: [], warnings: [], coverage: {
+      suppliedUsdComplete: true,
+      borrowedUsdComplete: true,
+      rewardsUsdComplete: true
+    } }),
+    humble: async () => ({ positions: [], warnings: [], coverage: {
+      suppliedUsdComplete: true,
+      borrowedUsdComplete: true,
+      rewardsUsdComplete: true
     } })
   });
 

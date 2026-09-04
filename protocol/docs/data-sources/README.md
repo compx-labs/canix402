@@ -13,6 +13,7 @@ This section tracks protocol-specific source contracts and normalization rules.
 - [Haystack](haystack.md)
 - [Réti](reti.md)
 - [Alpha Arcade](alpha-arcade.md)
+- [HOGSWAP LP valuation](hogswap-lp.md) (STAMM, AlgoFi, Humble positions; Tinyman/Pact overlap)
 
 ## Planned Protocols
 

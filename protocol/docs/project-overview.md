@@ -307,8 +307,12 @@ A paid wallet data route priced at exactly 0.005 USDC:
 - Collectors run sequentially. Tinyman queries only liquidity-token ids held by
   the wallet; Pact maps held LP tokens and wallet-local farm app ids against a
   short-lived protocol metadata cache before making any on-chain farm calls.
+  HOGSWAP values STAMM / AlgoFi / Humble LP ASAs via `GET /lp/{id}?amount=`
+  (proportional NAV; null rather than guessed) and skips Tinyman/Pact LP ids so
+  those venues are not double-counted.
 - The response normalizes supplied, LP, staked, reward, and debt positions found
-  across Tinyman, Pact, Folks Finance, CompX, Dork.fi, and Myth Finance.
+  across Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, Haystack,
+  Réti, Alpha Arcade, STAMM, AlgoFi, and Humble.
   CompX, Folks, and Dork.fi emit executable borrow/debt rows when present.
   Base-unit and decimal token amounts are strings to preserve precision.
 - Every protocol reports `ok`, `partial`, or `unavailable`. Partial upstream
