@@ -13,7 +13,10 @@ const ProtocolSchema = z.enum([
   "myth-finance",
   "haystack",
   "reti",
-  "alpha-arcade"
+  "alpha-arcade",
+  "stamm",
+  "algofi",
+  "humble"
 ]);
 const AlgorandAddressSchema = z.string().length(58);
 const AssetIdSchema = z.union([

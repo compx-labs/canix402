@@ -52,7 +52,10 @@ const protocol = {
     "myth-finance",
     "haystack",
     "reti",
-    "alpha-arcade"
+    "alpha-arcade",
+    "stamm",
+    "algofi",
+    "humble"
   ]
 };
 

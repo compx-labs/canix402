@@ -188,7 +188,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     access: "paid",
     summary: "Top 25 DeFi opportunities for a single protocol ranked by risk then APY",
     description:
-      "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, or alpha-arcade. Ranking applies designed risk constraints before raw APY. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, risk, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",  // pragma: allowlist secret
+      "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, alpha-arcade, stamm, algofi, or humble. Ranking applies designed risk constraints before raw APY. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, risk, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",  // pragma: allowlist secret
     tags: ["defi", "opportunities", "protocol", HACKATHON_TAG],
     pathParams: ["protocol"],
     queryParams: ["limit", "offset", "includeInactive", "refresh"],
@@ -299,7 +299,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     access: "paid",
     summary: "Algorand DeFi positions held by a wallet",
     description:
-      "Returns normalized DeFi positions associated with a supplied Algorand wallet address across supported protocols. Use when an agent needs a wallet-level view of deposited, supplied, staked, or liquidity positions and their current values. This endpoint provides position data only; it does not build or submit transactions.",
+      "Returns normalized DeFi positions associated with a supplied Algorand wallet address across supported protocols. LP tokens indexed by HOGSWAP (STAMM, AlgoFi, Humble) are valued via GET /lp/{asset_id}?amount= — proportional NAV, null rather than guessed. Tinyman and Pact LP collectors remain canonical for those venues (no double-count by LP ASA). This endpoint provides position data only; it does not build or submit transactions.",  // pragma: allowlist secret
     tags: ["defi", "positions", "wallet", HACKATHON_TAG],
     queryParams: ["address"],
     priceUsdc: process.env.X402_PRICE_POSITIONS_USDC ?? "0.005",

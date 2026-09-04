@@ -148,6 +148,10 @@ recent block headers (`bonus`, `feesCollected`). See `src/services/consensus-sta
 - `tvlUsd` and `apy` for LP/farm are trusted from source; tALGO/stALGO staking are derived.
 - Transaction construction (on-chain pool discovery, LP-token opt-in, slippage
   fraction, validator app id): [execution-shapes/protocol-caveats.md](../execution-shapes/protocol-caveats.md#tinyman).
+- **HOGSWAP overlap:** the unified HOGSWAP LP valuator also sees Tinyman LP ASAs
+  via `GET /pools`. Tinyman rows stay on this collector; HOGSWAP skips DEX names
+  that start with `tinyman` so the same LP ASA is not double-counted. See
+  [hogswap-lp.md](hogswap-lp.md).
 
 ## Tests
 

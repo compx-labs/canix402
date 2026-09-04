@@ -17,6 +17,21 @@ export {
   collectTinymanPositions,
   normalizeDorkFiHealthRecords
 } from "./protocol-positions.js";
+export {
+  collectAlgofiPositions,
+  collectHumblePositions,
+  collectStammPositions,
+  normalizeHogswapLpPosition
+} from "./hogswap-lp-positions.js";
+export {
+  fetchHogswapAnalyticsPrices,
+  fetchHogswapLpCatalog,
+  fetchHogswapLpValuation,
+  mapHogswapDexToProtocol,
+  resetHogswapClientCacheForTests,
+  setHogswapClientDependenciesForTests,
+  HOGSWAP_LP_POSITION_PROTOCOLS
+} from "./hogswap-client.js";
 export type {
   PositionCollector,
   ProtocolPositionsCollection

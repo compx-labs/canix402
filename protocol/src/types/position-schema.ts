@@ -18,6 +18,7 @@ export const PositionRecordSchema = Type.Object({
   amountRaw: Type.String({ pattern: "^[0-9]+$" }),
   amount: Type.String({ pattern: "^[0-9]+(?:\\.[0-9]+)?$" }),
   usdValue: Type.Union([Type.Number({ minimum: 0 }), Type.Null()]),
+  assetIds: Type.Optional(Type.Array(Type.Integer({ minimum: 0 }))),
   healthFactor: Type.Optional(
     Type.Union([Type.Number({ minimum: 0 }), Type.Null()])
   ),

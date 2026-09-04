@@ -117,7 +117,10 @@ test("aggregate returns every protocol status and preserves safe amounts", async
       { protocol: "myth-finance", status: "ok" },
       { protocol: "haystack", status: "ok" },
       { protocol: "reti", status: "ok" },
-      { protocol: "alpha-arcade", status: "ok" }
+      { protocol: "alpha-arcade", status: "ok" },
+      { protocol: "stamm", status: "ok" },
+      { protocol: "algofi", status: "ok" },
+      { protocol: "humble", status: "ok" }
     ]
   );
 });
@@ -573,15 +576,9 @@ function setAllCollectors(
     };
   }>
 ): void {
-  setPositionCollectorsForTests({
-    tinyman: collector,
-    pact: collector,
-    "folks-finance": collector,
-    compx: collector,
-    dorkfi: collector,
-    "myth-finance": collector,
-    haystack: collector,
-    reti: collector,
-    "alpha-arcade": collector
-  });
+  setPositionCollectorsForTests(
+    Object.fromEntries(
+      SUPPORTED_POSITION_PROTOCOLS.map((protocol) => [protocol, collector])
+    ) as Parameters<typeof setPositionCollectorsForTests>[0]
+  );
 }
