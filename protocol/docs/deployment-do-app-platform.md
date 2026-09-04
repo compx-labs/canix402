@@ -44,6 +44,7 @@ X402_PAY_TO=<your-address>
 X402_PRICE_AGGREGATE_USDC=0.01
 X402_PRICE_SEARCH_USDC=0.01
 X402_PRICE_PERSONALIZED_USDC=0.05
+X402_PRICE_HISTORY_USDC=0.01
 X402_PRICE_ELIGIBILITY_USDC=0.01
 X402_PRICE_PLANS_USDC=0.25
 X402_PRICE_PLANS_REBALANCE_USDC=0.25
@@ -70,14 +71,17 @@ and `X402_PRICE_EXECUTION_QUOTE_USDC=0.1`,
 `X402_PRICE_EXECUTION_COMPOSE_USDC=0.1`,
 `X402_PRICE_EXECUTION_SIMULATE_USDC=0.1`,
 and `X402_PRICE_SESSIONS_USDC=0.25`,
-and `X402_PRICE_WATCH_USDC=0.25` so discovery/OpenAPI metadata matches
+and `X402_PRICE_WATCH_USDC=0.25`,
+and `X402_PRICE_HISTORY_USDC=0.01` so discovery/OpenAPI metadata matches
 the Caddy gate (see [`protocol/.env.example`](../.env.example)).
 
-### Redis (opportunity cache + prepaid sessions + watch retainers)
+### Redis (opportunity cache + prepaid sessions + watch retainers + history)
 
 Opportunity cache is optional. Prepaid sessions and watch retainers in
 **production** require Redis: `NODE_ENV=production` without `REDIS_URL`
 fail-closes session/watch create (`503`) and get (`402 SESSION_*` / `WATCH_*`).
+Opportunity history snapshots also need Redis; the hourly cron does not start
+without `REDIS_URL` (set `OPPORTUNITY_HISTORY_DISABLED=1` to skip).
 
 When `REDIS_URL` is set on the **protocol** component, aggregated
 opportunity adapters are cached (`OPPORTUNITIES_CACHE_TTL_SEC`, default **180s /
@@ -91,6 +95,7 @@ from CompX/Orbital on a shared Redis instance:
 - All keys use the `canix402:` prefix (e.g. `canix402:opportunities:protocol:mainnet:tinyman`)
 - Session receipts use `canix402:session:{id}` with a fail-closed TTL
 - Watch retainers use `canix402:watch:{id}` plus `canix402:watch:ids` with a fail-closed TTL
+- History series use `canix402:history:series:{opportunityId}` and `canix402:history:stability:{opportunityId}` (31-day TTL); cron lock is `canix402:history:lock`
 - Leave `REDIS_URL` unset or set `OPPORTUNITIES_CACHE_DISABLED=1` for local/dev without cache (sessions then use in-memory storage outside production)
 
 Never `FLUSHALL` on a shared Redis instance; `FLUSHDB` only against Canix’s DB.

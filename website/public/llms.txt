@@ -25,8 +25,8 @@ Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. D
 
 ## Paid data routes
 
-- [GET /opportunities](https://canix402-api.compx.io/opportunities): 0.01 USDC — Top 10 aggregated DeFi opportunities ranked by APY
-- [GET /protocols/:protocol/opportunities](https://canix402-api.compx.io/protocols/{protocol}/opportunities): 0.01 USDC — Top 25 DeFi opportunities for a single protocol ranked by APY
+- [GET /opportunities](https://canix402-api.compx.io/opportunities): 0.01 USDC — Top 10 aggregated DeFi opportunities ranked by risk then APY  # pragma: allowlist secret
+- [GET /protocols/:protocol/opportunities](https://canix402-api.compx.io/protocols/{protocol}/opportunities): 0.01 USDC — Top 25 DeFi opportunities for a single protocol ranked by risk then APY  # pragma: allowlist secret
 - [GET /opportunities/search](https://canix402-api.compx.io/opportunities/search): 0.01 USDC — Caller-filtered opportunities across supported platforms
 - [GET /opportunities/personalized](https://canix402-api.compx.io/opportunities/personalized): 0.05 USDC — Top opportunities tuned to a wallet's held assets
 - [GET /opportunities/:opportunityId/history](https://canix402-api.compx.io/opportunities/:opportunityId/history): 0.01 USDC — Bounded APY/TVL history for one opportunity  # pragma: allowlist secret
