@@ -76,8 +76,8 @@ function resolveDependencies(): StammRedeemLpDependencies {
         lpAmount: request.lpAmount,
         targetAsset: request.targetAsset,
         slippageBps: request.slippageBps,
-        maxLegs: request.maxLegs,
-        sender: request.sender
+        sender: request.sender,
+        ...(request.maxLegs === undefined ? {} : { maxLegs: request.maxLegs })
       }),
     ...dependencyOverrides
   };
@@ -145,8 +145,8 @@ export const stammRedeemLpShape: TransactionShapeSpec<
         lpAmount: input.lpAmount,
         targetAsset: input.targetAsset,
         slippageBps: input.maxSlippageBps,
-        maxLegs: input.maxLegs,
-        sender: input.userAddress
+        sender: input.userAddress,
+        ...(input.maxLegs === undefined ? {} : { maxLegs: input.maxLegs })
       });
     } catch (error) {
       throw mapHogswapQuoteError(error);

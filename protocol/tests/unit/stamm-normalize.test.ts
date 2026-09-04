@@ -90,7 +90,7 @@ test("normalizeStammPoolTiers emits one LP row per active tier with TVL and no i
     assert.equal(record.poolAppId, STAMM_FIXTURE_POOL_APP_ID);
     assert.ok((record.tvlUsd ?? 0) > 0);
     assert.match(record.notes ?? "", new RegExp(SOURCE_TIMESTAMP_FETCH_PROXY_NOTE));
-    assert.match(record.notes ?? "", new RegExp(STAMM_UNKNOWN_APY_NOTE));
+    assert.ok((record.notes ?? "").includes(STAMM_UNKNOWN_APY_NOTE));
   }
 
   const tier1 = records.find((row) => row.opportunityId === `${STAMM_FIXTURE_POOL_APP_ID}:lp:1`);

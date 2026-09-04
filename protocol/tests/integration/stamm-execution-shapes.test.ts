@@ -76,19 +76,28 @@ function buildUnsignedLpGroup(input: {
 }): { transactions: algosdk.Transaction[]; execute: HogswapExecuteResult } {
   const routerAppId = input.routerAppId ?? FIXTURE_ROUTER_APP_ID;
   const params = suggestedParams(1000);
-  const axfer = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-    sender: USER_ADDRESS,
-    receiver: algosdk.getApplicationAddress(routerAppId).toString(),
-    amount: input.amount,
-    assetIndex: input.assetIndex,
-    suggestedParams: params
-  });
+  const receiver = algosdk.getApplicationAddress(routerAppId).toString();
+  const transfer =
+    input.assetIndex === 0
+      ? algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+          sender: USER_ADDRESS,
+          receiver,
+          amount: input.amount,
+          suggestedParams: params
+        })
+      : algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+          sender: USER_ADDRESS,
+          receiver,
+          amount: input.amount,
+          assetIndex: input.assetIndex,
+          suggestedParams: params
+        });
   const appl = algosdk.makeApplicationNoOpTxnFromObject({
     sender: USER_ADDRESS,
     appIndex: BigInt(routerAppId),
     suggestedParams: { ...params, fee: 5000n, flatFee: true }
   });
-  const transactions = [axfer, appl];
+  const transactions = [transfer, appl];
   algosdk.assignGroupID(transactions);
   return {
     transactions,
@@ -204,14 +213,14 @@ test("mint LP shape compiles an unsigned HOGSWAP group from pool assets", async 
   assert.match(quote.warnings.join(" "), /opted into the STAMM LP ASA/);
   assertEncodedGroupIsValid(quote.encodedTransactions);
   assertGoldenGroup(quote.transactions, {
-    types: ["axfer", "appl"],
+    types: ["pay", "appl"],
     members: [
       {
-        type: "axfer",
+        type: "pay",
         fee: "1000",
         appIndex: null,
         amount: "1000000",
-        assetIndex: "0",
+        assetIndex: null,
         receiver: algosdk.getApplicationAddress(FIXTURE_ROUTER_APP_ID).toString()
       },
       {

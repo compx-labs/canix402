@@ -81,6 +81,10 @@ test("STAMM LP positions attach redeem via listForPosition", () => {
 });
 
 test("GET /protocols/stamm/opportunities emits per-tier LP rows from recorded pools", async () => {
+  const previousRedis = process.env.REDIS_URL;
+  const previousHistory = process.env.OPPORTUNITY_HISTORY_DISABLED;
+  delete process.env.REDIS_URL;
+  process.env.OPPORTUNITY_HISTORY_DISABLED = "1";
   setStammAdapterDependenciesForTests({
     fetchPools: async () => [stammAlgoHogPool],
     fetchAssets: async () => stammAssetsFixture
@@ -122,5 +126,15 @@ test("GET /protocols/stamm/opportunities emits per-tier LP rows from recorded po
     );
   } finally {
     await app.close();
+    if (previousRedis === undefined) {
+      delete process.env.REDIS_URL;
+    } else {
+      process.env.REDIS_URL = previousRedis;
+    }
+    if (previousHistory === undefined) {
+      delete process.env.OPPORTUNITY_HISTORY_DISABLED;
+    } else {
+      process.env.OPPORTUNITY_HISTORY_DISABLED = previousHistory;
+    }
   }
 });

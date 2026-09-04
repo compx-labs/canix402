@@ -76,12 +76,14 @@ function resolveDependencies(): StammMintLpDependencies {
       quoteHogswapLpMint({
         poolAppId: request.poolAppId,
         tierIndex: request.tierIndex,
-        amountA: request.amountA,
-        amountB: request.amountB,
-        externalInputs: request.externalInputs,
         slippageBps: request.slippageBps,
-        maxLegs: request.maxLegs,
-        sender: request.sender
+        sender: request.sender,
+        ...(request.amountA === undefined ? {} : { amountA: request.amountA }),
+        ...(request.amountB === undefined ? {} : { amountB: request.amountB }),
+        ...(request.externalInputs === undefined
+          ? {}
+          : { externalInputs: request.externalInputs }),
+        ...(request.maxLegs === undefined ? {} : { maxLegs: request.maxLegs })
       }),
     ...dependencyOverrides
   };
@@ -172,12 +174,14 @@ export const stammMintLpShape: TransactionShapeSpec<StammMintLpInput, StammHogsw
       quote = await dependencies.quoteMint({
         poolAppId: input.poolAppId,
         tierIndex: input.tierIndex,
-        amountA: input.amountA,
-        amountB: input.amountB,
-        externalInputs: input.externalInputs,
         slippageBps: input.maxSlippageBps,
-        maxLegs: input.maxLegs,
-        sender: input.userAddress
+        sender: input.userAddress,
+        ...(input.amountA === undefined ? {} : { amountA: input.amountA }),
+        ...(input.amountB === undefined ? {} : { amountB: input.amountB }),
+        ...(input.externalInputs === undefined
+          ? {}
+          : { externalInputs: input.externalInputs }),
+        ...(input.maxLegs === undefined ? {} : { maxLegs: input.maxLegs })
       });
     } catch (error) {
       throw mapHogswapQuoteError(error);
