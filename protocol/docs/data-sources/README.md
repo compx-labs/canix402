@@ -13,6 +13,7 @@ This section tracks protocol-specific source contracts and normalization rules.
 - [Haystack](haystack.md)
 - [Réti](reti.md)
 - [Alpha Arcade](alpha-arcade.md)
+- [STAMM](stamm.md) (LiquiHog multi-tier AMM; HOGSWAP discovery + unsigned mint/redeem)
 - [HOGSWAP LP valuation](hogswap-lp.md) (STAMM, AlgoFi, Humble positions; Tinyman/Pact overlap)
 
 ## Planned Protocols
@@ -34,7 +35,7 @@ Dork.fi live next to the shape specs in
 ## Normalization unit tests
 
 Adapter `normalize*` transforms for Tinyman, Folks Finance, Pact, CompX,
-Dork.fi, Myth Finance, Haystack, Réti, and Alpha Arcade are covered by
+Dork.fi, Myth Finance, Haystack, Réti, Alpha Arcade, and STAMM are covered by
 fixture-based tests in `protocol/tests/unit/` (recorded SDK/API shapes or
 mocked SDK dependencies; no live chain, no paid x402). Run `npm run test:unit`
 from repo root. See `docs/testing.md`.
@@ -70,6 +71,7 @@ Current adapter policy:
 - Dork.fi: `apy`
 - Myth Finance: staking `apy`; farm `apr`
 - Haystack: `apr`
+- STAMM: listings expose TVL and fees, not APY (`apy` is `0` unknown; do not invent fee-APR)
 
 ## Asset Decimals and Precision
 

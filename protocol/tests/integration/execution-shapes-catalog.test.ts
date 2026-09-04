@@ -81,6 +81,7 @@ test("protocol execution caveats doc covers construction topics for fixture prot
     "Haystack",
     "Réti",
     "Alpha Arcade",
+    "STAMM",
     "Pool discovery",
     "Opt-ins",
     "Slippage math",

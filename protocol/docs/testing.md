@@ -72,6 +72,7 @@ Protocols covered:
 - Haystack (HAY staking EMA APR; mocked pool snapshot)
 - Réti (per-validator consensus APR, gates, capacity; mocked registry snapshots)
 - Alpha Arcade (trailing USDC fee-share APR; mocked pool + indexer inflows)
+- STAMM (per-tier LP from recorded `/stamm/pools`; TVL + fees, APY unknown)
 - HOGSWAP LP valuation (`normalizeHogswapLpPosition`, catalog merge; recorded `/lp/{id}` and `/stamm/pools`)
 
 `adapter-execution-enrichment.test.ts` chains those transforms into
@@ -89,8 +90,10 @@ Files:
 - `tests/unit/haystack-normalize.test.ts`
 - `tests/unit/reti-normalize.test.ts`
 - `tests/unit/alpha-arcade-normalize.test.ts`
+- `tests/unit/stamm-normalize.test.ts`
+- `tests/unit/hogswap-quote.test.ts`
 - `tests/unit/hogswap-lp-normalize.test.ts`
-- `tests/unit/adapter-execution-enrichment.test.ts
+- `tests/unit/adapter-execution-enrichment.test.ts`
 
 Fixtures:
 
@@ -103,6 +106,7 @@ Fixtures:
 - `tests/fixtures/adapters/haystack.ts`
 - `tests/fixtures/adapters/reti.ts`
 - `tests/fixtures/adapters/alpha-arcade.ts`
+- `tests/fixtures/adapters/stamm.ts`
 - `tests/fixtures/hogswap/lp-valuation.ts`
 
 ### API tests (`protocol/tests/integration`)
@@ -130,7 +134,7 @@ Coverage:
 - Simulate / expected delta (`POST /execution/simulate`)
 - Policy-as-a-service (`POST /policy/validate`)
 - Swap-aware enter compose (`POST /execution/compose`)
-- Transaction-shape registry and mock-SDK execution shape fixtures for Tinyman, Pact, Folks, CompX, Dork.fi, Myth Finance, Haystack, Réti, and Alpha Arcade
+- Transaction-shape registry and mock-SDK execution shape fixtures for Tinyman, Pact, Folks, CompX, Dork.fi, Myth Finance, Haystack, Réti, Alpha Arcade, and STAMM
 
 Files:
 
@@ -161,6 +165,8 @@ Files:
 - `tests/integration/haystack-execution-shapes.test.ts`
 - `tests/integration/reti-execution-shapes.test.ts`
 - `tests/integration/alpha-arcade-execution-shapes.test.ts`
+- `tests/integration/stamm-execution-shapes.test.ts`
+- `tests/integration/stamm-adapter.test.ts`
 - `tests/integration/tinyman-farm-commit-shapes.test.ts`
 - `tests/integration/tinyman-add-liquidity-and-farm-shapes.test.ts`
 - `tests/integration/folks-finance-adapter.test.ts`
