@@ -244,7 +244,7 @@ export const WEBMCP_TOOLS: WebMcpToolSpec[] = [
   {
     name: "canix_get_plan",
     description:
-      "Compile an allocation intent into an ordered unsigned plan (POST /plans). Pass address and budget { assetId, amount } (base units; 0 = ALGO). Optional constraints and opportunityIds. Optional swapSlippage for Haystack compose. Returns eligibility, live Haystack opt-in/swap groups when requiredAssetIds differ from the budget asset, setup/enter quotes[] as independent unsigned groups (never merged), expected position delta, attached data.simulation when groups compiled, x402 + network fee totals, and expiry. Paid ~0.25 USDC. Canix does not sign or submit.",
+      "Compile an allocation intent into an ordered unsigned plan (POST /plans). Pass address and budget { assetId, amount } (base units; 0 = ALGO). Optional constraints and opportunityIds. Optional swapSlippage for multi-router compose. Returns eligibility, live multi-router opt-in/swap groups when requiredAssetIds differ from the budget asset, setup/enter quotes[] as independent unsigned groups (never merged), expected position delta, attached data.simulation when groups compiled, x402 + network fee totals, and expiry. Paid ~0.25 USDC. Canix does not sign or submit.",
     inputSchema: schemas.withPaidAuth(
       {
         address: schemas.address,
@@ -372,7 +372,7 @@ export const WEBMCP_TOOLS: WebMcpToolSpec[] = [
   {
     name: "canix_get_quote",
     description:
-      "Get a stateless Haystack swap quote via POST /swaps/quote. Free endpoint; the response is passed through unchanged.",
+      "Get a stateless multi-router swap quote via POST /swaps/quote. Quotes enabled routers in parallel and returns the best expected net out. Optional router forces one adapter. Pass the response data unchanged into canix_optin / canix_swap.",
     inputSchema: schemas.objectSchema(
       {
         address: schemas.address,
@@ -380,6 +380,8 @@ export const WEBMCP_TOOLS: WebMcpToolSpec[] = [
         toAssetId: schemas.assetId,
         amount: schemas.amount,
         type: schemas.swapType,
+        router: schemas.swapRouter,
+        slippage: { type: "number", minimum: 0, maximum: 100 },
         disabledProtocols: {
           type: "array",
           items: schemas.disabledProtocol
@@ -397,7 +399,7 @@ export const WEBMCP_TOOLS: WebMcpToolSpec[] = [
   {
     name: "canix_optin",
     description:
-      "Build missing Haystack output-asset and application opt-ins via POST /swaps/optin. Free endpoint; the response is passed through unchanged.",
+      "Build missing output-asset and application opt-ins via POST /swaps/optin for the winning quote. Free endpoint; pass the quote data object unchanged.",
     inputSchema: schemas.objectSchema(
       {
         address: schemas.algoAddress,
@@ -413,7 +415,7 @@ export const WEBMCP_TOOLS: WebMcpToolSpec[] = [
   {
     name: "canix_swap",
     description:
-      "Build Haystack swap transactions via paid POST /swaps/transactions (~0.005 USDC). Omit paymentSignature for x402 preflight, then retry with the same inputs. Canix does not sign or submit.",
+      "Build unsigned swap transactions via paid POST /swaps/transactions (~0.005 USDC) for the winning quote. Omit paymentSignature for x402 preflight, then retry with the same inputs. Canix does not sign or submit.",
     inputSchema: schemas.withPaidAuth(
       {
         address: schemas.algoAddress,

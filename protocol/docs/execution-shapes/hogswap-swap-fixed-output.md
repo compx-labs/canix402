@@ -12,7 +12,8 @@
 on-chain floor is the requested output. Canix never signs or broadcasts.
 
 Prefer `mainnet:hogswap:v1:swap:fixed-input` when the spend amount is known.
-This variant is for exact-out. It does not replace Haystack `/swaps/*`.
+This variant is for exact-out. Compile via `POST /execution/quotes`. Public
+`POST /swaps/*` also includes HOGSWAP in the parallel compare.
 
 ## Example request
 

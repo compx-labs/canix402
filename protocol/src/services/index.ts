@@ -137,8 +137,8 @@ export {
   COMPOSE_SIGNER_CAVEAT,
   COMPOSE_SLIPPAGE_CAVEAT,
   COMPOSE_STALE_QUOTE_CAVEAT,
-  HAYSTACK_OPTIN_SHAPE_KEY,
-  HAYSTACK_SWAP_SHAPE_KEY,
+  SWAP_OPTIN_SHAPE_KEY,
+  SWAP_SHAPE_KEY,
   applySlippageHaircut,
   compileCompose,
   composeCanUnblockEligibility,
@@ -246,6 +246,27 @@ export {
   createHaystackService,
   DEFAULT_DISABLED_HAYSTACK_PROTOCOLS
 } from "./haystack-router.js";
+export {
+  MetaSwapError,
+  createMetaSwapService
+} from "./meta-swap-router.js";
+export type {
+  MetaSwapErrorKind,
+  MetaSwapService
+} from "./meta-swap-router.js";
+export {
+  META_SWAP_ROUTER_PRIORITY,
+  DEFAULT_META_SWAP_SLIPPAGE_PERCENT,
+  DEFAULT_META_SWAP_QUOTE_TIMEOUT_MS,
+  DEFAULT_META_SWAP_QUOTE_TTL_MS,
+  applyBpsHaircut,
+  compareQuotedRoutes,
+  percentSlippageToBps,
+  resolveQuoteSlippagePercent,
+  selectMetaSwapWinner
+} from "./meta-swap-score.js";
+export { createDefaultMetaSwapAdapters } from "./meta-swap-adapters.js";
+export type { MetaSwapAdapter, MetaSwapAdapterInput } from "./meta-swap-adapters.js";
 export type {
   HaystackErrorKind,
   HaystackService

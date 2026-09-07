@@ -6,8 +6,8 @@ Folks Finance **lending** remains a separate adapter (`folks-finance.md`).
 This file is only the **DEX aggregator** (`@folks-router/js-sdk` ≥ 0.3.1).
 
 Folks Router is an **internal quote source**. It has no public HTTP routes and
-no MCP tools. Agents use Haystack `/swaps/*` until the meta-quote (router of
-routers) lands. The service stays so Canix can compare Folks quotes internally.
+no dedicated MCP tools. Agents call Haystack-named `canix_get_quote` /
+`POST /swaps/quote`, which compares Folks with the other enabled adapters.
 
 ## Source Strategy
 
@@ -72,7 +72,8 @@ Slippage on `buildSwapTransactions` is a **percent** (same as Haystack, `1` = 1%
 - Quotes expire after ~30s. Refresh after submitting opt-ins.
 - Folks does not pre-sign any group member. Sign every `userSignIndexes` leg locally.
 - Discount is computed at quote time. Changing sender between quote and prepare is rejected when `quote.address` is set.
-- Haystack `/swaps/*` is unchanged. This adapter does not pick a best-of router (see the multi-router ticket).
+- Public `/swaps/*` and compose/plans include Folks in the parallel compare when
+  the adapter is enabled.
 
 ## Tests
 

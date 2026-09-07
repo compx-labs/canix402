@@ -4,9 +4,9 @@ Walletless Canix adapter for the ASA Stats Smart Router (mainnet app
 `3692588382`, v1.0.0, Sep 2026). Quotes and unsigned mixed groups only — Canix
 does not sign, does not submit, and does not scrape the website UI.
 
-Public `/swaps/*` remains Haystack until the multi-router compiler
-([NEO-353](https://linear.app/neonforge/issue/NEO-353)). This adapter is the
-ASA Stats source that compiler will call.
+Public `/swaps/*` quotes ASA Stats in parallel with Haystack, HOGSWAP,
+Tinyman, Pact, and Folks when `ASASTATS_API_TOKEN` is set, then builds the
+unsigned group from the winner only.
 
 ## Integrator path (spike, 2026-09-07)
 

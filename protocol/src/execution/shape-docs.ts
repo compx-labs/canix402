@@ -111,6 +111,10 @@ export const EXECUTION_SHAPE_DOCS_PATHS: Readonly<Record<string, string>> = {
     "protocol/docs/execution-shapes/dorkfi-borrow-asa.md",
   "mainnet:dorkfi:v1:repay:asa":
     "protocol/docs/execution-shapes/dorkfi-repay-asa.md",
+  "mainnet:swap:router:optin:required":
+    "protocol/docs/execution-shapes/haystack-swap-compose.md",
+  "mainnet:swap:router:swap:fixed-input":
+    "protocol/docs/execution-shapes/haystack-swap-compose.md",
   "mainnet:haystack:v1:stake:hay":
     "protocol/docs/execution-shapes/haystack-stake-hay.md",
   "mainnet:haystack:v1:unstake:hay":

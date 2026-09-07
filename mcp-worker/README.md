@@ -20,7 +20,7 @@ Stateless remote MCP server for canix402, designed for Cloudflare Workers deploy
 - Exposes `canix_check_eligibility` for paid `POST /eligibility` (0.01 USDC);
   check `canEnter` / gates / capacity before quoting an enter
 - Exposes `canix_get_plan` for paid `POST /plans` (0.25 USDC); compile an
-  allocation intent into ordered unsigned groups, including live Haystack
+  allocation intent into ordered unsigned groups, including live multi-router
   opt-in → swap compose when `requiredAssetIds` differ from the budget asset.
   Consume this rather than forking a compiler.
 - Exposes `canix_get_rebalance_plan` for paid `POST /plans/rebalance` (0.25 USDC);
@@ -48,12 +48,12 @@ Stateless remote MCP server for canix402, designed for Cloudflare Workers deploy
   - `canix_rotate_watch_secret` → free rotate with current HMAC secret
 - Resource `canix://watch` publishes watch **policy** (TTL, price, signature headers).
 - Resource `canix://watch/{watchId}` publishes the receipt and recent firings.
-- Exposes stateless Haystack tools:
-  - `canix_get_quote` → free `POST /swaps/quote`
+- Exposes stateless swap tools (`canix_get_quote` / `canix_optin` / `canix_swap` → `/swaps/*`):
+  - `canix_get_quote` → free `POST /swaps/quote` (parallel multi-router compare)
   - `canix_optin` → free `POST /swaps/optin`
   - `canix_swap` → paid `POST /swaps/transactions` with a 0.005 USDC fallback price
 
-Haystack quote and transaction responses pass through from the gateway. The Worker does not retain quotes, sign transactions, or submit them.
+Quote and transaction responses pass through from the gateway. The Worker does not retain quotes, sign transactions, or submit them.
 
 ## Local Development
 

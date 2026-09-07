@@ -59,6 +59,7 @@ test("discovery includes every endpoint in policy matrix", async () => {
   // Agent discovery metadata: advertises MCP tooling without invoking the MCP server.
   assert.ok(payload.data.capabilities.includes("mcp-server"));
   assert.ok(payload.data.capabilities.includes("haystack-swaps"));
+  assert.ok(payload.data.capabilities.includes("multi-router-swaps"));
   assert.equal(payload.data.capabilities.includes("folks-router-swaps"), false);
   assert.ok(payload.data.capabilities.includes("prepaid-sessions"));
   assert.ok(payload.data.capabilities.includes("watch-retainers"));
@@ -74,7 +75,7 @@ test("discovery includes every endpoint in policy matrix", async () => {
   );
   const pricing = payload.data.endpoints.find((endpoint) => endpoint.id === "tokenPricing");
   assert.equal(quote?.access, "free");
-  assert.deepEqual(quote?.responseCodes, [200, 400, 429, 502]);
+  assert.deepEqual(quote?.responseCodes, [200, 400, 404, 429, 502]);
   assert.equal(optIn?.access, "free");
   assert.deepEqual(optIn?.responseCodes, [200, 400, 502]);
   assert.equal(transactions?.access, "paid");

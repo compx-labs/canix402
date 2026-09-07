@@ -144,9 +144,9 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     method: "POST",
     pathPattern: "/swaps/quote",
     access: "free",
-    summary: "Fetch a walletless Haystack swap quote",
+    summary: "Fetch a walletless multi-router swap quote",
     description:
-      "Returns a serializable Haystack route quote for an Algorand swap without signing or submitting transactions. Amounts use asset base units. Quotes are short-lived and should be refreshed after completing prerequisite opt-ins.",
+      "Quotes every enabled swap router in parallel, scores expected net out, and returns the winning route without signing or submitting. Pass optional router to force a single adapter. Amounts use asset base units. Quotes are short-lived and should be refreshed after completing prerequisite opt-ins.",
     tags: ["defi", "swaps", "haystack", "agents"]
   },
   {
@@ -154,9 +154,9 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     method: "POST",
     pathPattern: "/swaps/optin",
     access: "free",
-    summary: "Build prerequisite Haystack swap opt-ins",
+    summary: "Build prerequisite swap opt-ins for the winning quote",
     description:
-      "Inspects the supplied account and quote, then returns any required output-asset and application opt-in transactions as an unsigned group. The caller signs and submits the group locally; canix402 never receives wallet keys or submits it.",
+      "Inspects the supplied account and winning quote, then returns any required output-asset and application opt-in transactions as an unsigned group. The caller signs and submits the group locally; canix402 never receives wallet keys or submits it.",
     tags: ["defi", "swaps", "haystack", "transactions", "wallet"]
   },
   {
@@ -263,7 +263,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     access: "paid",
     summary: "Compile an allocation intent into an ordered unsigned plan",
     description:
-      "Agent states an allocation intent (address, budget/asset, constraints). Canix ranks enterable venues with designed risk constraints before raw APY, then returns ordered steps: eligibility, optional live Haystack swap compose (opt-in → swap → enter, driven by requiredAssetIds), protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, a fail-closed simulation summary when compiled groups are available, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume this SKU rather than forking a compiler.",  // pragma: allowlist secret
+      "Agent states an allocation intent (address, budget/asset, constraints). Canix ranks enterable venues with designed risk constraints before raw APY, then returns ordered steps: eligibility, optional live multi-router swap compose (opt-in → swap → enter, driven by requiredAssetIds), protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, a fail-closed simulation summary when compiled groups are available, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume this SKU rather than forking a compiler.",  // pragma: allowlist secret
     tags: ["defi", "plans", "execution", "eligibility", "wallet", "x402", "agents", HACKATHON_TAG],
     priceUsdc: process.env.X402_PRICE_PLANS_USDC ?? "0.25",
     sessionAccess: "quotes"
@@ -275,7 +275,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     access: "paid",
     summary: "Compile a delta rebalance plan of unsigned groups",
     description:
-      "Positions are the book; opportunities are the menu. Pass address plus targetWeights (bps summing to 10000) and/or harvestIdle to claim worth-claiming rewards and redeploy idle ALGO. Returns ordered unsigned groups — claims, partial exits, optional Haystack swap compose, and enters — only the delta legs that change the book (not a full unwind-and-rebuild). Reuses claim desk, eligibility, compose, and position exit/manage shapeKeys. Groups are never merged. Attaches a fail-closed simulation summary when compiled groups are available. Canix does not sign or submit.",  // pragma: allowlist secret
+      "Positions are the book; opportunities are the menu. Pass address plus targetWeights (bps summing to 10000) and/or harvestIdle to claim worth-claiming rewards and redeploy idle ALGO. Returns ordered unsigned groups — claims, partial exits, optional multi-router swap compose, and enters — only the delta legs that change the book (not a full unwind-and-rebuild). Reuses claim desk, eligibility, compose, and position exit/manage shapeKeys. Groups are never merged. Attaches a fail-closed simulation summary when compiled groups are available. Canix does not sign or submit.",  // pragma: allowlist secret
     tags: ["defi", "plans", "rebalance", "execution", "eligibility", "wallet", "x402", "agents", HACKATHON_TAG],
     priceUsdc: process.env.X402_PRICE_PLANS_REBALANCE_USDC ?? "0.25",
     sessionAccess: "quotes"
@@ -333,9 +333,9 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     method: "POST",
     pathPattern: "/swaps/transactions",
     access: "paid",
-    summary: "Build a walletless Haystack swap transaction group",
+    summary: "Build a walletless swap transaction group from the winning quote",
     description:
-      "Returns an ordered Algorand swap group for a fresh Haystack quote, including signer indexes and any Haystack pre-signed members. The caller signs only the designated transactions and submits the complete group locally. The 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee, DEX fees, price impact, and Algorand network fees.",
+      "Returns an ordered Algorand swap group for a fresh multi-router quote, including signer indexes and any pre-signed members from the winning router. The caller signs only the designated transactions and submits the complete group locally. The 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee, other router fees, DEX fees, price impact, and Algorand network fees.",
     tags: ["defi", "swaps", "haystack", "transactions", "x402", "agents", HACKATHON_TAG],
     priceUsdc: process.env.X402_PRICE_HAYSTACK_SWAP_USDC ?? "0.005",
     sessionAccess: "quotes"
@@ -369,10 +369,10 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     method: "POST",
     pathPattern: "/execution/compose",
     access: "paid",
-    summary: "Compose opt-in → Haystack swap → enter as unmerged unsigned groups",
+    summary: "Compose opt-in → winning swap → enter as unmerged unsigned groups",
     description:
-      "Compiles “I hold asset A, I want this opportunity” into sequenced groups: optional ASA/app opt-in, Haystack swap (signer indexes and pre-signed members preserved), then enter — driven by requiredAssetIds. Groups are never merged. Failure modes (stale quote, missing opt-in, slippage) are listed on step warnings. Canix does not sign or submit. Caller signs user legs and submits locally in order.",  // pragma: allowlist secret
-    tags: ["execution", "swaps", "haystack", "plans", "x402", "agents", HACKATHON_TAG],
+      "Compiles “I hold asset A, I want this opportunity” into sequenced groups: optional ASA/app opt-in, multi-router swap (signer indexes and pre-signed members preserved), then enter — driven by requiredAssetIds. Groups are never merged. Failure modes (stale quote, missing opt-in, slippage) are listed on step warnings. Canix does not sign or submit. Caller signs user legs and submits locally in order.",  // pragma: allowlist secret
+    tags: ["execution", "swaps", "plans", "x402", "agents", HACKATHON_TAG],
     priceUsdc: process.env.X402_PRICE_EXECUTION_COMPOSE_USDC ?? "0.1",
     sessionAccess: "quotes"
   },

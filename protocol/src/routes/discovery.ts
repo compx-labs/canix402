@@ -235,7 +235,7 @@ function buildDiscoveryDocument(): DiscoveryDocument {
           : endpoint.id === "tokenPricing"
             ? [200, 400, 502]
           : endpoint.id === "haystackSwapQuote"
-            ? [200, 400, 429, 502]
+            ? [200, 400, 404, 429, 502]
             : endpoint.id === "haystackSwapOptIn"
               ? [200, 400, 502]
               : endpoint.id === "haystackSwapTransactions"
@@ -272,6 +272,7 @@ function buildDiscoveryDocument(): DiscoveryDocument {
       "prepaid-sessions",
       "watch-retainers",
       "haystack-swaps",
+      "multi-router-swaps",
       "token-pricing",
       "mcp-server"
     ],

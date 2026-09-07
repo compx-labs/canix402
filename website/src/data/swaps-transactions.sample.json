@@ -1,14 +1,27 @@
 {
   "data": {
-    "encodedTransactions": [
-      "<base64-txn-0-user-sign>",
-      "<base64-txn-1-haystack-presigned>",
-      "<base64-txn-2-user-sign>"
+    "router": "hogswap",
+    "transactions": [
+      {
+        "index": 0,
+        "encodedTransaction": "<base64-txn-0-user-sign>",
+        "signer": "user"
+      },
+      {
+        "index": 1,
+        "encodedTransaction": "<base64-txn-1-protocol>",
+        "signer": "protocol"
+      },
+      {
+        "index": 2,
+        "encodedTransaction": "<base64-txn-2-user-sign>",
+        "signer": "user"
+      }
     ],
     "userSignIndexes": [0, 2],
     "createdAt": "2026-07-30T12:00:30.000Z",
-    "expiresAt": "2026-07-30T12:02:00.000Z",
-    "note": "Sign only userSignIndexes members. Preserve Haystack pre-signed members and atomic group order. Submit the complete group via your own Algod client."
+    "quoteExpiresAt": "2026-07-30T12:00:30.000Z",
+    "note": "Sign only userSignIndexes members. Preserve pre-signed members and atomic group order. Submit the complete group via your own Algod client."
   },
   "meta": {
     "paymentRequired": true,

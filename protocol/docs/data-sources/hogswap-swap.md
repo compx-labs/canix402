@@ -3,10 +3,11 @@
 Canix adapter that quotes and builds **unsigned** swaps via LiquiHog HOGSWAP
 (multi-DEX aggregator). Canix stays walletless: it does not sign or submit.
 
-This is a **router source**, not a yield-opportunity adapter. Haystack
-`/swaps/*` is unchanged. Unified LP position valuation is documented in
-[hogswap-lp.md](hogswap-lp.md). STAMM mint/redeem shapes stay in
-[stamm.md](stamm.md).
+This is a **router source**, not a yield-opportunity adapter. Public
+`POST /swaps/*` compares HOGSWAP with Haystack, Folks, Tinyman, Pact, and
+ASA Stats and returns the winning unsigned group. Unified LP position
+valuation is documented in [hogswap-lp.md](hogswap-lp.md). STAMM mint/redeem
+shapes stay in [stamm.md](stamm.md).
 
 ## Source Strategy
 

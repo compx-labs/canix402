@@ -8,7 +8,8 @@ This is the portfolio-side HOGSWAP integration. STAMM opportunity discovery and
 unsigned mint/redeem shapes live in [stamm.md](stamm.md)
 (`mainnet:stamm:v1:mint:lp` / `mainnet:stamm:v1:redeem:lp`). The HOGSWAP
 **swap** router (`mainnet:hogswap:v1:swap:fixed-input`) is documented in
-[hogswap-swap.md](hogswap-swap.md) and does not replace Haystack `/swaps/*`.
+[hogswap-swap.md](hogswap-swap.md). Public `/swaps/*` includes HOGSWAP in the
+parallel compare; this LP collector does not quote swaps.
 
 ## Source Strategy
 

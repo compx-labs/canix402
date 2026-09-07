@@ -142,9 +142,9 @@ function buildLlmsTxt(discovery: DiscoveryDocument): string {
 
   return `# CANIX402
 
-> x402-gated Algorand DeFi data and walletless transaction API for autonomous agents. Pay in USDC micropayments at the gateway edge, fetch normalized APY/TVL data, and build locally signable Haystack swap groups.  # pragma: allowlist secret
+> x402-gated Algorand DeFi data and walletless transaction API for autonomous agents. Pay in USDC micropayments at the gateway edge, fetch normalized APY/TVL data, and build locally signable swap groups.  # pragma: allowlist secret
 
-Use the **Caddy gateway** (\`${GATEWAY}\`) for all API calls. Discovery, execution shapes, Haystack quotes, and opt-in preparation are free; data routes, execution quotes, and swap transaction generation require x402 payment as advertised. The API never receives wallet keys or submits transactions. For the full integration guide in one file, see [llms-full.txt](${docs}/llms-full.txt).  # pragma: allowlist secret
+Use the **Caddy gateway** (\`${GATEWAY}\`) for all API calls. Discovery, execution shapes, swap quotes, and opt-in preparation are free; data routes, execution quotes, and swap transaction generation require x402 payment as advertised. The API never receives wallet keys or submits transactions. For the full integration guide in one file, see [llms-full.txt](${docs}/llms-full.txt).  # pragma: allowlist secret
 
 ## API (machine-readable)
 
@@ -212,7 +212,7 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
     watch: loadSample("watch.sample.json")
   };
 
-  const fullGuideBlurb = `x402-gated Algorand DeFi data and walletless transaction API (version ${discovery.apiVersion}). Normalized yield data and Haystack swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.`; // pragma: allowlist secret
+  const fullGuideBlurb = `x402-gated Algorand DeFi data and walletless transaction API (version ${discovery.apiVersion}). Normalized yield data and multi-router swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.`; // pragma: allowlist secret
 
   return `# CANIX402 — full agent integration guide
 
@@ -280,9 +280,9 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 - \`GET /opportunities/personalized\` — requires \`address\` (Algorand account); premium price; matches opportunities to wallet-held assets using eligibility rules (full/gated venues are not recommended as enterable).  // pragma: allowlist secret
 - \`GET /opportunities/:id/history\` — bounded APY/TVL series (\`window=1d|7d|30d\`, default 30d); empty until snapshots exist; includes a stability signal so snapshot APY cannot dominate plan sizing. Research SKU ~0.01 USDC.
 - \`POST /eligibility\` — requires \`address\` and \`opportunityIds\`; 0.01 USDC; returns \`canEnter\`, \`missingAssets\`, \`gates\`, \`capacity\`, \`suggestedSwap\`. NFD/creator gates stay unresolved (\`eligibilityFullyCheckable: false\`). Quote-time checks remain authoritative.  // pragma: allowlist secret
-- \`POST /plans\` — requires \`address\` and \`budget { assetId, amount }\`; 0.25 USDC compiler SKU; returns ordered eligibility/setup/enter steps with unsigned groups, live Haystack opt-in → swap compose when \`requiredAssetIds\` differ from the budget asset, \`quotes[]\`, expected position delta, and fee totals. Brownie should consume this rather than forking a compiler.  // pragma: allowlist secret
+- \`POST /plans\` — requires \`address\` and \`budget { assetId, amount }\`; 0.25 USDC compiler SKU; returns ordered eligibility/setup/enter steps with unsigned groups, live multi-router opt-in → swap compose when \`requiredAssetIds\` differ from the budget asset, \`quotes[]\`, expected position delta, and fee totals. Brownie should consume this rather than forking a compiler.  // pragma: allowlist secret
 - \`POST /plans/rebalance\` — requires \`address\` plus \`targetWeights\` and/or \`harvestIdle\`; 0.25 USDC; delta claims/exits/swaps/enters as unmerged unsigned groups (not a full unwind).  // pragma: allowlist secret
-- \`POST /execution/compose\` — requires \`address\`, \`opportunityId\`, \`fromAssetId\`, \`amount\`; 0.10 USDC; sequenced unsigned groups opt-in → Haystack swap → enter. Groups never merged; sign only user legs. Failure modes (stale quote, missing opt-in, slippage) on step warnings.  // pragma: allowlist secret
+- \`POST /execution/compose\` — requires \`address\`, \`opportunityId\`, \`fromAssetId\`, \`amount\`; 0.10 USDC; sequenced unsigned groups opt-in → winning swap → enter. Groups never merged; sign only user legs. Failure modes (stale quote, missing opt-in, slippage) on step warnings.  // pragma: allowlist secret
 - \`POST /execution/simulate\` — requires \`address\` and compiled \`groups[]\`; 0.10 USDC; predicted balance and position deltas without signing. Fail closed with machine-readable reasons (stale quote, not opted in, min balance, health factor, capacity). \`POST /plans\` attaches \`data.simulation\` when groups are compiled.  // pragma: allowlist secret
 - \`POST /policy/validate\` — requires a versioned \`policy\` document plus a compiled \`plan\` and/or proposed \`quotes[]\`; 0.25 USDC; machine-readable \`pass\` / \`reasons[]\` (protocol weight, ALGO reserve, TVL/freshness, no-new-borrows, execution-ready). Fails closed when a required field is missing. Canix does not sign.  // pragma: allowlist secret
 - \`POST /sessions\` — 0.25 USDC; mints a walletless prepaid receipt that unlocks N research + M quotes/plans for a TTL. One-shots remain the default.  // pragma: allowlist secret
@@ -291,9 +291,9 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 - \`GET /positions/claimable\` — requires \`address\`; claim desk with USD, fee/worth-claiming hints, and \`claimAllQuotes\` for exactly 0.001 USDC. Compile via \`POST /execution/quotes\` (~0.1 USDC flat; groups never merged).
 - \`GET /execution/shapes\` — free catalog of verified shape keys and requiredInputs (metadata only). \`meta.caveatsDocsPath\` is \`protocol/docs/execution-shapes/protocol-caveats.md\` (pool discovery, opt-ins, min-balance, slippage, liquidity limits, app upgrades). Do not guess those details.
 - \`POST /execution/quotes\` — batch unsigned transaction groups for verified shapes; flat ~0.1 USDC per request. Canix never signs or submits. Read each shape's \`docsPath\` plus the protocol caveats doc before filling inputs.
-- Haystack swaps — call free \`POST /swaps/quote\`, sign and submit any group from free \`POST /swaps/optin\`, refresh the short-lived quote, then call paid \`POST /swaps/transactions\` for 0.005 USDC. Amounts are asset base units.
-- Walletless handoff — sign only the returned \`userSignIndexes\`, preserve Haystack pre-signed members and group order, and submit the complete group through the caller's Algod client.
-- Swap costs — the 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee/referral, DEX fees, price impact, and Algorand network fees.  // pragma: allowlist secret
+- Multi-router swaps — call free \`POST /swaps/quote\` (parallel compare unless \`router\` is set), sign and submit any group from free \`POST /swaps/optin\`, refresh the short-lived quote, then call paid \`POST /swaps/transactions\` for 0.005 USDC. Amounts are asset base units. Pass the quote object unchanged; do not edit \`payload\`.
+- Walletless handoff — sign only the returned \`userSignIndexes\`, preserve any pre-signed members and group order, and submit the complete group through the caller's Algod client.
+- Swap costs — the 0.005 USDC x402 access charge is separate from router fees, DEX fees, price impact, and Algorand network fees.
 
 Free routes: \`/health\`, \`/metadata\`, \`/discovery\`, \`/openapi.json\`, \`/.well-known/x402.json\`, \`GET /execution/shapes\`, \`POST /swaps/quote\`, \`POST /swaps/optin\`.
 

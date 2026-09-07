@@ -416,8 +416,9 @@ unsigned groups only.
 
 LiquiHog multi-DEX swap aggregator (STAMM, Tinyman, Pact, Humble, AlgoFi, Folks,
 LST mints). Canix treats it as **one** router source. Quote `POST /quote`
-`mode: SWAP` then `POST /execute` for an unsigned group. Does not replace
-Haystack `/swaps/*`.
+`mode: SWAP` then `POST /execute` for an unsigned group. Public `/swaps/*`
+includes HOGSWAP in the parallel compare; compile a specific HOGSWAP shape via
+`POST /execution/quotes`.
 
 ### Pool discovery
 

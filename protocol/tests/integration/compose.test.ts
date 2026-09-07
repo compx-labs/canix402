@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import type { HaystackService } from "../../src/services/haystack-router.js";
-import type { HaystackQuote } from "../../src/types/swap-schema.js";
+import type { MetaSwapQuote } from "../../src/types/swap-schema.js";
+import type { MetaSwapService } from "../../src/services/meta-swap-router.js";
 import type { ExecutableQuote } from "../../src/execution/types.js";
 import { buildApp } from "../../src/app.js";
 import {
@@ -12,8 +12,8 @@ import {
   COMPOSE_STALE_QUOTE_CAVEAT,
   compileCompose,
   composeEnterSteps,
-  HAYSTACK_OPTIN_SHAPE_KEY,
-  HAYSTACK_SWAP_SHAPE_KEY,
+  SWAP_OPTIN_SHAPE_KEY,
+  SWAP_SHAPE_KEY,
   selectComposeTargetAsset,
   setComposeDependenciesForTests
 } from "../../src/services/compose.js";
@@ -99,35 +99,59 @@ function mockQuote(shapeKey: string, amount = "247500"): ExecutableQuote {
   };
 }
 
-function haystackQuote(): HaystackQuote {
+function metaQuote(): MetaSwapQuote {
   return {
+    router: "hogswap",
     address: VALID_ADDRESS,
     fromAssetId: String(USDC_ASSET_ID),
     toAssetId: "0",
     amount: "1000000",
     type: "fixed-input",
     quotedAmount: "250000",
+    minOut: "247500",
+    networkFeeMicroAlgos: "0",
+    slippageBps: 100,
     createdAt: NOW.toISOString(),
     expiresAt: new Date(NOW.getTime() + 25_000).toISOString(),
-    requiredAppOptIns: ["123"],
-    txnPayload: { iv: "iv", data: "payload" },
-    usdIn: 1,
-    usdOut: 0.25,
-    route: [],
-    quotes: [],
-    protocolFees: {}
+    score: {
+      expectedNetOut: "250000",
+      minOut: "247500",
+      expectedIn: "1000000",
+      maxIn: "1000000",
+      networkFeeMicroAlgos: "0",
+      feeAlreadyNetted: true
+    },
+    alternatives: [
+      {
+        router: "hogswap",
+        status: "quoted",
+        expectedNetOut: "250000",
+        minOut: "247500",
+        networkFeeMicroAlgos: "0"
+      },
+      {
+        router: "haystack",
+        status: "quoted",
+        expectedNetOut: "240000",
+        minOut: "237600",
+        networkFeeMicroAlgos: "0"
+      }
+    ],
+    legs: [],
+    payload: { iv: "iv", data: "payload" }
   };
 }
 
-function mockHaystack(): HaystackService {
+function mockSwaps(): MetaSwapService {
   return {
     async getQuote(input) {
       return {
-        ...haystackQuote(),
+        ...metaQuote(),
         address: input.address,
         fromAssetId: String(input.fromAssetId),
         toAssetId: String(input.toAssetId),
-        amount: String(input.amount)
+        amount: String(input.amount),
+        type: input.type ?? "fixed-input"
       };
     },
     async buildOptIns() {
@@ -149,6 +173,7 @@ function mockHaystack(): HaystackService {
     },
     async buildSwapTransactions() {
       return {
+        router: "hogswap" as const,
         transactions: [
           {
             index: 0,
@@ -158,7 +183,7 @@ function mockHaystack(): HaystackService {
           {
             index: 1,
             encodedTransaction: "cm91dGVy",
-            signer: "haystack",
+            signer: "protocol",
             signedTransaction: "c2lnbmVk"
           }
         ],
@@ -185,7 +210,7 @@ function installComposeStubs(): void {
           : "247500";
       return mockQuote(shapeKey, amount);
     },
-    haystack: mockHaystack(),
+    swaps: mockSwaps(),
     priceUsdc: "0.1"
   });
   setPlanCompilerDependenciesForTests({
@@ -203,7 +228,7 @@ function installComposeStubs(): void {
           : "247500";
       return mockQuote(shapeKey, amount);
     },
-    haystack: mockHaystack(),
+    swaps: mockSwaps(),
     priceUsdc: "0.25"
   });
 }
@@ -227,7 +252,7 @@ test("selectComposeTargetAsset skips two-sided required assets", () => {
   assert.equal(selectComposeTargetAsset(chain, 0), undefined);
 });
 
-test("applySlippageHaircut subtracts Haystack percent as bps", () => {
+test("applySlippageHaircut subtracts slippage percent as bps", () => {
   assert.equal(applySlippageHaircut("250000", 1), "247500");
   assert.equal(applySlippageHaircut("250000", 0), "250000");
 });
@@ -257,7 +282,7 @@ test("composeEnterSteps emits opt-in → swap → enter without merging groups",
           ? String((input as { amount: string }).amount)
           : "247500"
       ),
-    haystack: mockHaystack(),
+    swaps: mockSwaps(),
     now: NOW
   });
 
@@ -269,14 +294,18 @@ test("composeEnterSteps emits opt-in → swap → enter without merging groups",
 
   const optIn = result.steps.find((step) => step.kind === "opt-in");
   assert.equal(optIn?.compileStatus, "compiled");
-  assert.equal(optIn?.shapeKey, HAYSTACK_OPTIN_SHAPE_KEY);
+  assert.equal(optIn?.shapeKey, SWAP_OPTIN_SHAPE_KEY);
+  assert.equal(optIn?.quote?.identity.protocol, "swap");
+  assert.equal(optIn?.quote?.metadata?.router, "hogswap");
   assert.deepEqual(optIn?.quote?.userSignIndexes, [0]);
   assert.equal(optIn?.quote?.groupTransactions?.[0]?.signer, "user");
 
   const swap = result.steps.find((step) => step.kind === "swap");
   assert.equal(swap?.compileStatus, "compiled");
-  assert.equal(swap?.shapeKey, HAYSTACK_SWAP_SHAPE_KEY);
-  assert.deepEqual(swap?.prerequisiteShapeKeys, [HAYSTACK_OPTIN_SHAPE_KEY]);
+  assert.equal(swap?.shapeKey, SWAP_SHAPE_KEY);
+  assert.deepEqual(swap?.prerequisiteShapeKeys, [SWAP_OPTIN_SHAPE_KEY]);
+  assert.equal(swap?.quote?.identity.protocol, "swap");
+  assert.equal(swap?.quote?.metadata?.router, "hogswap");
   assert.deepEqual(swap?.quote?.userSignIndexes, [0]);
   assert.equal(swap?.quote?.encodedTransactions.length, 1);
   assert.equal(swap?.quote?.groupTransactions?.length, 2);
@@ -288,7 +317,7 @@ test("composeEnterSteps emits opt-in → swap → enter without merging groups",
 
   const enter = result.steps.find((step) => step.kind === "enter");
   assert.equal(enter?.compileStatus, "compiled");
-  assert.ok(enter?.prerequisiteShapeKeys?.includes(HAYSTACK_SWAP_SHAPE_KEY));
+  assert.ok(enter?.prerequisiteShapeKeys?.includes(SWAP_SHAPE_KEY));
   assert.equal(enter?.quoteRequest?.input.amount, "247500");
   assert.equal(result.quotes.length, 1);
   assert.equal(result.quotes[0]?.shapeKey, "mainnet:reti:v1:stake:algo");
@@ -309,6 +338,9 @@ test("POST /plans composes USDC budget into a Réti ALGO enter", async () => {
   assert.deepEqual(kinds, ["eligibility", "opt-in", "swap", "enter"]);
   const swap = plan.data.allocations[0]!.steps.find((step) => step.kind === "swap");
   assert.equal(swap?.compileStatus, "compiled");
+  assert.equal(swap?.shapeKey, SWAP_SHAPE_KEY);
+  assert.equal(swap?.quote?.identity.protocol, "swap");
+  assert.equal(swap?.quote?.metadata?.router, "hogswap");
   assert.equal(swap?.quote?.groupTransactions?.[1]?.signedTransaction, "c2lnbmVk");
   const enter = plan.data.allocations[0]!.steps.find((step) => step.kind === "enter");
   assert.equal(enter?.compileStatus, "compiled");
@@ -346,6 +378,8 @@ test("POST /execution/compose returns sequenced unsigned groups", async () => {
             userSignIndexes?: number[];
             groupTransactions?: Array<{ signer: string; signedTransaction?: string }>;
             encodedTransactions: string[];
+            identity?: { protocol: string };
+            metadata?: { router?: string };
           };
         }>;
         quotes: Array<{ shapeKey: string }>;
@@ -368,6 +402,8 @@ test("POST /execution/compose returns sequenced unsigned groups", async () => {
     assert.equal(swap?.compileStatus, "compiled");
     assert.deepEqual(swap?.quote?.userSignIndexes, [0]);
     assert.equal(swap?.quote?.groupTransactions?.[1]?.signer, "logicsig");
+    assert.equal(swap?.quote?.identity?.protocol, "swap");
+    assert.equal(swap?.quote?.metadata?.router, "hogswap");
     assert.equal(body.data.quotes[0]?.shapeKey, "mainnet:reti:v1:stake:algo");
   } finally {
     await app.close();

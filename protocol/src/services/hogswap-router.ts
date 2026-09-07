@@ -61,6 +61,7 @@ export interface HogswapSwapQuoteDto {
   amount: string;
   type: HogswapSwapType;
   quotedAmount: string;
+  amountIn: string;
   minOutAtSlippage: string;
   expectedOutRobust: string;
   quoteId: string;
@@ -274,6 +275,7 @@ export function toSwapQuoteDto(
     amount: input.amount.toString(),
     type: input.type,
     quotedAmount: String(quote.expectedOut),
+    amountIn: String(quote.amountIn),
     minOutAtSlippage: String(quote.minOutAtSlippage),
     expectedOutRobust: String(quote.expectedOutRobust),
     quoteId: quote.quoteId,

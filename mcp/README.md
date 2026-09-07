@@ -4,8 +4,8 @@ MCP server that exposes canix402 free and paid gateway endpoints as agent tools.
 
 ## What it does
 
-- Free tools: health, metadata, discovery, OpenAPI, execution shape catalog, Haystack quotes, and Haystack opt-ins
-- Paid tools: opportunities (list/search/personalized/history/protocol), wallet positions, claimable rewards, eligibility, intent plans, policy validate, execution quotes, execution simulate, Haystack swap transactions, and prepaid session create/refresh
+- Free tools: health, metadata, discovery, OpenAPI, execution shape catalog, swap quotes, and swap opt-ins
+- Paid tools: opportunities (list/search/personalized/history/protocol), wallet positions, claimable rewards, eligibility, intent plans, policy validate, execution quotes, execution simulate, swap transactions, and prepaid session create/refresh
 - Walletless x402 passthrough: paid tool preflight returns `PAYMENT-REQUIRED`, retry with `paymentSignature`. Session-eligible tools also accept `sessionReceipt` (`X-Canix-Session`).
 - Resources: `canix://discovery`, `canix://openapi`, `canix://execution-shapes` (live `GET /execution/shapes`, including `meta.caveatsDocsPath`), `canix://session` (prepaid session **policy**), `canix://session/{sessionId}` (remaining N/M receipt)
 - Prompt: `analyze-opportunity`
@@ -50,7 +50,7 @@ remain authoritative.
 
 `canix_get_plan` calls paid `POST /plans` with `address` and
 `budget: { assetId, amount }` (fallback price 0.25 USDC). Optional constraints
-and `opportunityIds` pin the compiler. The response includes eligibility, live Haystack
+and `opportunityIds` pin the compiler. The response includes eligibility, live multi-router
 opt-in → swap compose when `requiredAssetIds` differ from the budget asset, setup/enter
 `quotes[]` as independent unsigned groups (never merged), expected position delta, x402 +
 network fee totals, and expiry. Brownie and other agents should consume this SKU rather
@@ -61,15 +61,15 @@ sequence.
 
 `canix_compose_enter` calls paid `POST /execution/compose` (fallback price 0.10 USDC)
 with `address`, `opportunityId`, `fromAssetId`, and `amount`. Optional `slippage`
-(Haystack percent, default 1). Returns sequenced unsigned groups: opt-in → Haystack swap
-→ enter. Groups stay unmerged; sign only user legs and preserve Haystack pre-signed
+(percent, default 1). Returns sequenced unsigned groups: opt-in → winning swap
+→ enter. Groups stay unmerged; sign only user legs and preserve any pre-signed
 members. Prefer `canix_get_plan` for budget allocation.
 
 ## Rebalance / delta quotes
 
 `canix_get_rebalance_plan` calls paid `POST /plans/rebalance` (fallback price 0.25 USDC)
 with `address` plus `targetWeights` (bps summing to 10000) and/or `harvestIdle`.
-Returns ordered unsigned groups — claims, partial exits, optional Haystack compose,
+Returns ordered unsigned groups — claims, partial exits, optional multi-router compose,
 enters — only the legs that change the book. Positions not listed in `targetWeights`
 are left alone. Groups stay unmerged; sign and submit locally.
 
@@ -89,9 +89,9 @@ Returns `{ pass, reasons[] }`. Reuses compiled fields and fails closed when a re
 field is missing — Canix does not re-quote on-chain, sign, or submit. Sample:
 `protocol/docs/policy-brownie.sample.json`.
 
-## Haystack swap tools
+## Swap tools (multi-router)
 
-- `canix_get_quote` passes `{address, fromAssetId, toAssetId, amount, type?, disabledProtocols?, maxGroupSize?, maxDepth?}` to free `POST /swaps/quote`.
+- `canix_get_quote` passes `{address, fromAssetId, toAssetId, amount, type?, router?, slippage?, disabledProtocols?, maxGroupSize?, maxDepth?}` to free `POST /swaps/quote`. Omit `router` to compare enabled adapters and pick the best expected net out.
 - `canix_optin` passes `{address, quote}` to free `POST /swaps/optin`.
 - `canix_swap` passes `{address, quote, slippage}` to paid `POST /swaps/transactions`. Its fallback price is 0.005 USDC; omit `paymentSignature` for preflight, then retry with the same body and signed payload.
 

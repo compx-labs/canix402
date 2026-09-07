@@ -33,7 +33,7 @@ algorandfoundation/reti `ValidatorRegistry.addStake`
 
 ## Swap-aware enter
 
-When the wallet holds a different asset than ALGO, compose opt-in → Haystack swap →
+When the wallet holds a different asset than ALGO, compose opt-in → winning swap →
 stake as **separate** unsigned groups via `POST /execution/compose` or `POST /plans`.
 See `haystack-swap-compose.md` for stale-quote, missing opt-in, and slippage caveats.
 Groups are never merged.

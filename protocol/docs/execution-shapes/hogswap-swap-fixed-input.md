@@ -12,7 +12,8 @@
 taken from the live `/execute` response — do not hardcode it. Canix never
 signs or broadcasts.
 
-This shape is a **router adapter**. It does not replace Haystack `/swaps/*`.
+This shape is a **router adapter**. Compile via `POST /execution/quotes`. Public
+`POST /swaps/*` also includes HOGSWAP in the parallel compare.
 Treat HOGSWAP as one Canix router source for later meta-compare.
 
 ## Example request (ALGO → USDC)

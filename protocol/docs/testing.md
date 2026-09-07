@@ -494,10 +494,12 @@ executes a real mainnet swap through the deployed production gateway:
 X402_HAYSTACK_SWAP_LIVE=1 npm run test:live:haystack-swap
 ```
 
-It requests a fixed-input quote for **0.1 USDC (100,000 micro-USDC) to ALGO**,
-submits any Haystack app or asset opt-ins, pays the production
-`/swaps/transactions` x402 charge, signs the returned user transactions locally,
-preserves Haystack-signed group members, and submits the atomic group.
+It requests a fixed-input quote for **0.1 USDC (100,000 micro-USDC) to ALGO**
+with `router: "haystack"` (so the live probe stays on Haystack through the
+multi-router `/swaps/*` envelope), submits any app or asset opt-ins, pays the
+production `/swaps/transactions` x402 charge, signs the returned user
+transactions locally, preserves any pre-signed group members, and submits the
+atomic group.
 
 The test requires `X402_CLIENT_MNEMONIC`, at least **0.105 USDC** (0.1 USDC swap
 input plus the 0.005 USDC x402 charge), and enough ALGO for opt-ins and network
@@ -610,7 +612,7 @@ X402_HAYSTACK_GOLD_QUOTE_LIVE=1 npm run test:live:haystack-gold-quote
 
 It quotes **0.400392 GOLD (400392 base units)** through:
 
-1. production `POST /swaps/quote`
+1. production `POST /swaps/quote` with `router: "haystack"`
 2. Haystack `fetchQuote` directly with canix402's default disabled protocols
    (`Tinyman`, `Humble`, `Algofi`, `Algomint`), `maxDepth=3`, `optIn=false`
 3. local `createHaystackService().getQuote()` when `HAYSTACK_API_KEY` is set

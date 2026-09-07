@@ -9,11 +9,12 @@ import {
 import { evaluateOpportunityEligibility } from "./eligibility.js";
 import { attachExecutionShapesToOpportunity } from "./opportunity-execution-shapes.js";
 import {
-  createHaystackService,
-  HaystackRouterError,
-  type HaystackService
-} from "./haystack-router.js";
+  createMetaSwapService,
+  MetaSwapError,
+  type MetaSwapService
+} from "./meta-swap-router.js";
 import {
+  buildShapeKey,
   compileExecutableQuote,
   createExecutionAlgodClient,
   DEFAULT_QUOTE_TTL_MS,
@@ -21,8 +22,8 @@ import {
   serializeTransaction,
   type ExecutableQuote,
   type ExecutableQuoteGroupTransaction,
-  type ExecutionProtocol,
-  type SerializedTransaction
+  type SerializedTransaction,
+  type TransactionShapeIdentity
 } from "../execution/index.js";
 import type { OpportunityExecutionShape, OpportunityRecordV1 } from "../types/opportunity.js";
 import type { OpportunityEligibility } from "../types/eligibility.js";
@@ -30,7 +31,7 @@ import type { ComposeRequest, ComposeResponse } from "../types/compose-schema.js
 import { DEFAULT_COMPOSE_PRICE_USDC, DEFAULT_COMPOSE_SLIPPAGE_PERCENT } from "../types/compose-schema.js";
 import type { PlanQuoteRequest, PlanStep } from "../types/plan.js";
 import type {
-  HaystackQuote,
+  MetaSwapQuote,
   SwapOptInResponse,
   SwapTransactionsResponse
 } from "../types/swap-schema.js";
@@ -44,20 +45,36 @@ const AMOUNT_INPUT_FIELDS = [
   "commitAmount"
 ] as const;
 
-export const HAYSTACK_OPTIN_SHAPE_KEY = "mainnet:haystack:router:optin:required";
-export const HAYSTACK_SWAP_SHAPE_KEY = "mainnet:haystack:router:swap:fixed-input";
+const SWAP_OPTIN_IDENTITY: TransactionShapeIdentity = {
+  network: "mainnet",
+  protocol: "swap",
+  protocolVersion: "router",
+  action: "optin",
+  variant: "required"
+};
+
+const SWAP_IDENTITY: TransactionShapeIdentity = {
+  network: "mainnet",
+  protocol: "swap",
+  protocolVersion: "router",
+  action: "swap",
+  variant: "fixed-input"
+};
+
+export const SWAP_OPTIN_SHAPE_KEY = buildShapeKey(SWAP_OPTIN_IDENTITY);
+export const SWAP_SHAPE_KEY = buildShapeKey(SWAP_IDENTITY);
 
 export const COMPOSE_STALE_QUOTE_CAVEAT =
-  "Stale quote: Haystack swap groups expire at quote.expiresAt (typically ~30s). Submit the swap group before expiry. After a missing opt-in confirms, the swap quote is likely stale — re-call POST /execution/compose or POST /swaps/quote then POST /swaps/transactions, then POST /execution/quotes for enter.";
+  "Stale quote: swap groups expire at quote.expiresAt (typically ~30s). Submit the swap group before expiry. After a missing opt-in confirms, the swap quote is likely stale — re-call POST /execution/compose or POST /swaps/quote then POST /swaps/transactions, then POST /execution/quotes for enter.";
 
 export const COMPOSE_MISSING_OPTIN_CAVEAT =
-  "Missing opt-in: submit the opt-in group and wait for confirmation before submitting the Haystack swap group. Swap members fail on-chain if the wallet is not opted into the output asset or required apps. Groups are never merged.";
+  "Missing opt-in: submit the opt-in group and wait for confirmation before submitting the swap group. Swap members fail on-chain if the wallet is not opted into the output asset or required apps. Groups are never merged.";
 
 export const COMPOSE_SLIPPAGE_CAVEAT =
-  "Slippage: Haystack min-out uses the requested slippage percent; actual swap output may be below quotedAmount. Enter is compiled with a slippage haircut of the quoted output. If the confirmed swap delivers less, the enter group may fail — re-quote enter via POST /execution/quotes with the received amount. Groups are never merged.";
+  "Slippage: min-out uses the requested slippage percent; actual swap output may be below quotedAmount. Enter is compiled with a slippage haircut of the quoted output. If the confirmed swap delivers less, the enter group may fail — re-quote enter via POST /execution/quotes with the received amount. Groups are never merged.";
 
 export const COMPOSE_SIGNER_CAVEAT =
-  "Preserve Haystack signer indexes and pre-signed members. Sign only userSignIndexes / signer:user legs. Do not rebuild or merge groups. Canix does not sign or submit.";
+  "Preserve signer indexes and any pre-signed members from the winning router. Sign only userSignIndexes / signer:user legs. Do not rebuild or merge groups. Canix does not sign or submit.";
 
 export interface ComposeEnterResult {
   steps: PlanStep[];
@@ -78,7 +95,7 @@ export interface ComposeEnterArgs {
   chain: readonly OpportunityExecutionShape[];
   slippage?: number;
   compileQuote?: (shapeKey: string, input: unknown) => Promise<ExecutableQuote>;
-  haystack?: HaystackService;
+  swaps?: MetaSwapService;
   now?: Date;
 }
 
@@ -86,7 +103,7 @@ export interface ComposeServiceDependencies {
   fetchHoldings?: (address: string) => Promise<AccountHoldings>;
   fetchOpportunities?: (refresh: boolean) => Promise<import("../types/opportunity.js").OpportunityMarketRecord[]>;
   compileQuote?: (shapeKey: string, input: unknown) => Promise<ExecutableQuote>;
-  haystack?: HaystackService;
+  swaps?: MetaSwapService;
   now?: () => Date;
   priceUsdc?: string;
 }
@@ -189,7 +206,7 @@ export async function composeEnterSteps(
     warnings:
       !args.eligibility.canEnter && composable
         ? [
-            "Eligibility is gated on missing required assets; swap-aware compose unblocks enter after the Haystack group confirms."
+            "Eligibility is gated on missing required assets; swap-aware compose unblocks enter after the swap group confirms."
           ]
         : [],
     ...(args.eligibility.suggestedSwap
@@ -204,15 +221,15 @@ export async function composeEnterSteps(
   const swapPrereqs: string[] = [];
 
   if (swapTarget !== undefined) {
-    const haystack = args.haystack ?? composeOverrides?.haystack;
-    const composed = await composeHaystackLegs({
+    const swaps = args.swaps ?? composeOverrides?.swaps;
+    const composed = await composeSwapLegs({
       address: args.address,
       fromAssetId: args.fromAssetId,
       toAssetId: swapTarget,
       amount: args.amount,
       slippage,
       eligibility: args.eligibility,
-      ...(haystack ? { haystack } : {}),
+      ...(swaps ? { swaps } : {}),
       now,
       order
     });
@@ -254,7 +271,7 @@ export async function composeEnterSteps(
       const deferredWarnings = [
         ...(swapUncompiled
           ? [
-              "Deferred until the Haystack swap group is compiled and submitted. Re-quote enter after the swap confirms."
+              "Deferred until the swap group is compiled and submitted. Re-quote enter after the swap confirms."
             ]
           : []),
         ...(missing.length > 0
@@ -383,12 +400,12 @@ export async function compileCompose(
     !composeCanUnblockEligibility(eligibility, swapTarget)
   ) {
     throw new ComposeValidationError(
-      "Opportunity is not composable: eligibility is blocked by capacity, unresolved gates, or assets a single Haystack swap cannot acquire."
+      "Opportunity is not composable: eligibility is blocked by capacity, unresolved gates, or assets a single swap cannot acquire."
     );
   }
   if (swapTarget === undefined && !eligibility.canEnter) {
     throw new ComposeValidationError(
-      "Opportunity is not enterable with this asset and cannot be composed via a single Haystack swap."
+      "Opportunity is not enterable with this asset and cannot be composed via a single swap."
     );
   }
 
@@ -403,7 +420,7 @@ export async function compileCompose(
     ...(composeOverrides?.compileQuote
       ? { compileQuote: composeOverrides.compileQuote }
       : {}),
-    ...(composeOverrides?.haystack ? { haystack: composeOverrides.haystack } : {}),
+    ...(composeOverrides?.swaps ? { swaps: composeOverrides.swaps } : {}),
     now
   });
 
@@ -475,7 +492,7 @@ export async function compileCompose(
   };
 }
 
-interface HaystackLegsResult {
+interface SwapLegsResult {
   steps: PlanStep[];
   warnings: string[];
   compiledQuotes: ExecutableQuote[];
@@ -485,17 +502,17 @@ interface HaystackLegsResult {
   enterAmount?: string;
 }
 
-async function composeHaystackLegs(args: {
+async function composeSwapLegs(args: {
   address: string;
   fromAssetId: number;
   toAssetId: number;
   amount: string;
   slippage: number;
   eligibility: OpportunityEligibility;
-  haystack?: HaystackService;
+  swaps?: MetaSwapService;
   now: Date;
   order: number;
-}): Promise<HaystackLegsResult> {
+}): Promise<SwapLegsResult> {
   const warnings: string[] = [];
   const steps: PlanStep[] = [];
   const compiledQuotes: ExecutableQuote[] = [];
@@ -506,37 +523,23 @@ async function composeHaystackLegs(args: {
     toAssetId: args.toAssetId,
     amount: args.amount,
     reason: "missing-required-asset" as const,
-    note: "Live Haystack compose — not a hint. Submit opt-in then swap then enter as separate groups."
+    note: "Live multi-router compose — not a hint. Submit opt-in then swap then enter as separate groups."
   };
 
-  let haystack: HaystackService;
-  try {
-    haystack = args.haystack ?? createHaystackService();
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Haystack service is not configured.";
-    steps.push(blockedSwapStep(order, suggestedSwap, [message]));
-    return {
-      steps,
-      warnings: [message],
-      compiledQuotes,
-      nextOrder: order + 1,
-      swapCompiled: false,
-      prerequisiteKeys
-    };
-  }
+  const swaps = args.swaps ?? createMetaSwapService();
 
-  let quote: HaystackQuote;
+  let quote: MetaSwapQuote;
   try {
-    quote = await haystack.getQuote({
+    quote = await swaps.getQuote({
       address: args.address,
       fromAssetId: args.fromAssetId,
       toAssetId: args.toAssetId,
       amount: args.amount,
-      type: "fixed-input"
+      type: "fixed-input",
+      slippage: args.slippage
     });
   } catch (error) {
-    const message = formatHaystackError(error, "Failed to fetch a Haystack swap quote.");
+    const message = formatSwapError(error, "Failed to fetch a swap quote.");
     steps.push(blockedSwapStep(order, suggestedSwap, [message]));
     return {
       steps,
@@ -550,9 +553,9 @@ async function composeHaystackLegs(args: {
 
   let optIns: SwapOptInResponse["data"];
   try {
-    optIns = await haystack.buildOptIns(args.address, quote);
+    optIns = await swaps.buildOptIns(args.address, quote);
   } catch (error) {
-    const message = formatHaystackError(error, "Failed to build Haystack opt-in group.");
+    const message = formatSwapError(error, "Failed to build swap opt-in group.");
     steps.push(blockedSwapStep(order, suggestedSwap, [message, COMPOSE_MISSING_OPTIN_CAVEAT]));
     return {
       steps,
@@ -565,39 +568,39 @@ async function composeHaystackLegs(args: {
   }
 
   if (optIns.required && optIns.transactions.length > 0) {
-    const optInQuote = optInToExecutableQuote(optIns, args.now);
+    const optInQuote = optInToExecutableQuote(optIns, quote, args.now);
     compiledQuotes.push(optInQuote);
     steps.push({
       kind: "opt-in",
       order,
       compileStatus: "compiled",
-      shapeKey: HAYSTACK_OPTIN_SHAPE_KEY,
+      shapeKey: SWAP_OPTIN_SHAPE_KEY,
       quote: optInQuote,
       suggestedSwap,
       warnings: [COMPOSE_MISSING_OPTIN_CAVEAT, COMPOSE_SIGNER_CAVEAT]
     });
     order += 1;
-    prerequisiteKeys.push(HAYSTACK_OPTIN_SHAPE_KEY);
+    prerequisiteKeys.push(SWAP_OPTIN_SHAPE_KEY);
     warnings.push(COMPOSE_MISSING_OPTIN_CAVEAT);
   }
 
   let swapGroup: SwapTransactionsResponse["data"];
   try {
-    swapGroup = await haystack.buildSwapTransactions(
+    swapGroup = await swaps.buildSwapTransactions(
       args.address,
       quote,
       args.slippage
     );
   } catch (error) {
-    const message = formatHaystackError(
+    const message = formatSwapError(
       error,
-      "Failed to build Haystack swap transactions."
+      "Failed to build swap transactions."
     );
     steps.push({
       kind: "swap",
       order,
       compileStatus: "blocked",
-      shapeKey: HAYSTACK_SWAP_SHAPE_KEY,
+      shapeKey: SWAP_SHAPE_KEY,
       ...(prerequisiteKeys.length > 0
         ? { prerequisiteShapeKeys: [...prerequisiteKeys] }
         : {}),
@@ -626,7 +629,7 @@ async function composeHaystackLegs(args: {
     kind: "swap",
     order,
     compileStatus: "compiled",
-    shapeKey: HAYSTACK_SWAP_SHAPE_KEY,
+    shapeKey: SWAP_SHAPE_KEY,
     ...(prerequisiteKeys.length > 0
       ? { prerequisiteShapeKeys: [...prerequisiteKeys] }
       : {}),
@@ -635,7 +638,7 @@ async function composeHaystackLegs(args: {
     warnings: unique(swapWarnings)
   });
   order += 1;
-  prerequisiteKeys.push(HAYSTACK_SWAP_SHAPE_KEY);
+  prerequisiteKeys.push(SWAP_SHAPE_KEY);
   warnings.push(COMPOSE_STALE_QUOTE_CAVEAT, COMPOSE_SLIPPAGE_CAVEAT, COMPOSE_SIGNER_CAVEAT);
 
   const enterAmount = applySlippageHaircut(quote.quotedAmount, args.slippage);
@@ -660,7 +663,7 @@ function blockedSwapStep(
     kind: "swap",
     order,
     compileStatus: "blocked",
-    shapeKey: HAYSTACK_SWAP_SHAPE_KEY,
+    shapeKey: SWAP_SHAPE_KEY,
     ...(suggestedSwap ? { suggestedSwap } : {}),
     warnings
   };
@@ -668,6 +671,7 @@ function blockedSwapStep(
 
 function optInToExecutableQuote(
   optIns: SwapOptInResponse["data"],
+  quote: MetaSwapQuote,
   now: Date
 ): ExecutableQuote {
   const groupTransactions: ExecutableQuoteGroupTransaction[] = optIns.transactions.map(
@@ -678,15 +682,9 @@ function optInToExecutableQuote(
     })
   );
   return {
-    shapeKey: HAYSTACK_OPTIN_SHAPE_KEY,
+    shapeKey: SWAP_OPTIN_SHAPE_KEY,
     shapeVersion: "1.0.0",
-    identity: {
-      network: "mainnet",
-      protocol: "haystack" as ExecutionProtocol,
-      protocolVersion: "router",
-      action: "optin",
-      variant: "required"
-    },
+    identity: { ...SWAP_OPTIN_IDENTITY },
     createdAt: optIns.createdAt,
     expiresAt: optIns.expiresAt,
     transactions: groupTransactions.map((member) =>
@@ -697,7 +695,8 @@ function optInToExecutableQuote(
     userSignIndexes: [...optIns.userSignIndexes],
     warnings: [COMPOSE_MISSING_OPTIN_CAVEAT, COMPOSE_SIGNER_CAVEAT],
     metadata: {
-      kind: "haystack-opt-in",
+      kind: "swap-opt-in",
+      router: quote.router,
       required: optIns.required,
       createdAt: now.toISOString()
     }
@@ -706,7 +705,7 @@ function optInToExecutableQuote(
 
 function swapToExecutableQuote(
   swap: SwapTransactionsResponse["data"],
-  quote: HaystackQuote,
+  quote: MetaSwapQuote,
   slippage: number,
   now: Date
 ): ExecutableQuote {
@@ -726,15 +725,9 @@ function swapToExecutableQuote(
       : groupTransactions.filter((member) => member.signer === "user").map((m) => m.index);
 
   return {
-    shapeKey: HAYSTACK_SWAP_SHAPE_KEY,
+    shapeKey: SWAP_SHAPE_KEY,
     shapeVersion: "1.0.0",
-    identity: {
-      network: "mainnet",
-      protocol: "haystack" as ExecutionProtocol,
-      protocolVersion: "router",
-      action: "swap",
-      variant: "fixed-input"
-    },
+    identity: { ...SWAP_IDENTITY },
     createdAt: swap.createdAt,
     expiresAt: swap.quoteExpiresAt,
     transactions: groupTransactions.map((member) =>
@@ -747,14 +740,15 @@ function swapToExecutableQuote(
     userSignIndexes,
     warnings: [COMPOSE_STALE_QUOTE_CAVEAT, COMPOSE_SLIPPAGE_CAVEAT, COMPOSE_SIGNER_CAVEAT],
     metadata: {
-      kind: "haystack-swap",
+      kind: "meta-swap",
+      router: quote.router,
       slippage,
       fromAssetId: quote.fromAssetId,
       toAssetId: quote.toAssetId,
       amount: quote.amount,
       quotedAmount: quote.quotedAmount,
       quoteExpiresAt: quote.expiresAt,
-      haystackQuote: quote,
+      swapQuote: quote,
       createdAt: now.toISOString()
     }
   };
@@ -876,7 +870,7 @@ function parsePositiveAmount(raw: string): bigint {
 export function applySlippageHaircut(quotedAmount: string, slippagePercent: number): string {
   const quoted = BigInt(quotedAmount);
   if (quoted <= 0n) {
-    throw new ComposeValidationError("Haystack quotedAmount must be greater than zero.");
+    throw new ComposeValidationError("quotedAmount must be greater than zero.");
   }
   const bps = BigInt(Math.round(slippagePercent * 100));
   const haircut = (quoted * bps) / 10_000n;
@@ -909,8 +903,8 @@ function sumNetworkFees(quotes: readonly ExecutableQuote[]): bigint {
   return total;
 }
 
-function formatHaystackError(error: unknown, fallback: string): string {
-  if (error instanceof HaystackRouterError) {
+function formatSwapError(error: unknown, fallback: string): string {
+  if (error instanceof MetaSwapError) {
     return error.message;
   }
   if (error instanceof Error && error.message.trim().length > 0) {

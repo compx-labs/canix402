@@ -256,6 +256,7 @@ export function createHaystackService(
       );
 
       return {
+        router: "haystack",
         transactions,
         userSignIndexes: transactions
           .filter(({ signer }) => signer === "user")

@@ -47,7 +47,8 @@ test(
       fromAssetId: GOLD_ASSET_ID,
       toAssetId: USDC_ASSET_ID,
       amount: GOLD_AMOUNT,
-      type: "fixed-input" as const
+      type: "fixed-input" as const,
+      router: "haystack" as const
     };
 
     console.log(
@@ -81,7 +82,8 @@ test(
       assert.equal(quote.data.toAssetId, String(USDC_ASSET_ID));
       assert.equal(quote.data.amount, GOLD_AMOUNT);
       assert.ok(BigInt(quote.data.quotedAmount) > 0n);
-      assert.ok(quote.data.txnPayload);
+      assert.equal(quote.data.router, "haystack");
+      assert.ok(quote.data.payload);
       return;
     }
 
