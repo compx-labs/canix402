@@ -45,6 +45,7 @@
   },
   "overrides": {
     "find-my-way": "9.9.0",
-    "fast-uri": "3.1.7"
+    "fast-uri": "3.1.7",
+    "@algorandfoundation/algokit-utils": "9.2.2"
   }
 }
