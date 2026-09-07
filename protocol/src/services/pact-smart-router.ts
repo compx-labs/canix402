@@ -191,8 +191,8 @@ export async function quotePactSmartRouter(
       pools,
       amountIn: request.amount,
       network,
-      algod: request.algod,
-      quoteHop: dependencies.quoteHop
+      quoteHop: dependencies.quoteHop,
+      ...(request.algod === undefined ? {} : { algod: request.algod })
     });
     if (hops === undefined) {
       continue;
