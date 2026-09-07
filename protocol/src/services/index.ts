@@ -254,6 +254,31 @@ export type {
   FolksRouterService
 } from "./folks-router.js";
 export {
+  ASASTATS_ACCESS_BLOCKER,
+  ASASTATS_DEFAULT_ROUTER_APP_ID,
+  ASASTATS_GROUP_PATH,
+  ASASTATS_PLATFORM_FEE_BPS,
+  ASASTATS_QUOTE_PATH,
+  ASASTATS_REQUIRED_SCOPES,
+  ASASTATS_SWAP_META,
+  AsaStatsAccessBlockedError,
+  AsaStatsQuoteStaleError,
+  AsaStatsRouterError,
+  asaStatsRouterAccessStatus,
+  createAsaStatsRouterService,
+  isAsaStatsRouterConfigured,
+  parseAsaStatsGroup,
+  parseAsaStatsQuote,
+  scoreAsaStatsQuote,
+  wrapAsaStatsGroup,
+  wrapAsaStatsQuote
+} from "./asastats-router.js";
+export type {
+  AsaStatsErrorKind,
+  AsaStatsRouterAccessStatus,
+  AsaStatsRouterService
+} from "./asastats-router.js";
+export {
   FEE_HARVEST_RECIPIENT_A,
   FEE_HARVEST_RECIPIENT_B,
   FEE_HARVEST_RECIPIENT_C,
