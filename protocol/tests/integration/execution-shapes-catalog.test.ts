@@ -44,6 +44,16 @@ test("GET /execution/shapes returns the live registry catalog for free", async (
     "protocol/docs/execution-shapes/tinyman-add-liquidity-flexible.md"
   );
 
+  const swapRouter = body.data.find(
+    (shape) => shape.shapeKey === "mainnet:tinyman:v2:swap:fixedInput"
+  );
+  assert.ok(swapRouter);
+  assert.ok(swapRouter.requiredInputs.includes("assetInId"));
+  assert.equal(
+    swapRouter.docsPath,
+    "protocol/docs/execution-shapes/tinyman-swap-router.md"
+  );
+
   const reti = body.data.find(
     (shape) => shape.shapeKey === "mainnet:reti:v1:stake:algo"
   );

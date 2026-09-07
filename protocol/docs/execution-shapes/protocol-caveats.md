@@ -23,6 +23,9 @@ Alpha Arcade, and STAMM. Per-shape group layouts stay in the sibling markdown fi
 - Asset ordering is Tinyman’s: **asset1 = higher asset id**, **asset2 = lower**
   (native ALGO `0` is always asset2). Callers may pass `assetA`/`assetB` in any
   order; shapes normalize with `orderTinymanAssets`.
+- Swap shapes (`swap:fixedInput` / `swap:fixedOutput`) quote Tinyman Swap
+  Router (`getSwapRoute`) **and** the single v2 pool, then pick the better net
+  return. The router is Tinyman-pool only — not a cross-DEX aggregator.
 - Subsequent LP (`addLiquidity:flexible` / `singleAsset`, both removes) require
   a **created and ready** pool with a pool-token id. Initial add
   (`addLiquidity:initial`) is the opposite: it rejects ready pools that already
@@ -36,6 +39,9 @@ Alpha Arcade, and STAMM. Per-shape group layouts stay in the sibling markdown fi
 - Flexible / initial / single-asset **add liquidity does not opt the user into
   the pool token**. The wallet must already be opted in (and hold ALGO for the
   extra ASA minimum balance) or the group will fail on submit.
+- Swap Router / single-pool **swap does not opt the user into the output ASA**
+  (or intermediary hop assets). Router `asset_opt_in` is a separate group and
+  is never merged into the swap.
 - tALGO mint, stALGO increase, and stALGO TINY claim may prefix optional
   tALGO / stALGO / TINY opt-ins when the SDK detects they are missing.
 - Farm commit keeps LP in the wallet. Farm `claimRewards` is a Tinyman Analytics
@@ -53,6 +59,10 @@ Alpha Arcade, and STAMM. Per-shape group layouts stay in the sibling markdown fi
 
 - `maxSlippageBps` is an integer in `[0, 10000]`. Tinyman SDK quotes use
   `maxSlippageBps / 10000` as a fraction.
+- Swap Router comparison uses expected out (fixed-input) or expected in
+  (fixed-output) after the API’s slippage floor (`output_amount_arg` /
+  `input_amount_arg`). Extra router network fees are already accounted for in
+  the Tinyman route suggestion; there is no additional router fee beyond AMM v2.
 - Remove-liquidity shapes apply that fraction with Tinyman’s
   `applySlippageToAmount("negative", …)` to encode **minimum outputs** in the
   app-call args.
@@ -62,6 +72,9 @@ Alpha Arcade, and STAMM. Per-shape group layouts stay in the sibling markdown fi
 
 - Flexible add requires both sides of the pair; single-asset add performs an
   internal swap and is not a substitute for two-sided amounts.
+- Swap Router is used when its net expected return beats the single-pool path
+  (or when no ready v2 pool exists). Ties and worse router quotes fall back to
+  the direct v2 swap; `metadata.fallbackReason` documents why.
 - Farm commit takes an absolute LP amount that must not exceed wallet LP
   balance. Tinyman farms stake the full committed LP (no separate partial-stake
   shape).
@@ -72,6 +85,8 @@ Alpha Arcade, and STAMM. Per-shape group layouts stay in the sibling markdown fi
 
 - App-call validation pins the **current SDK validator app id**. A Tinyman v2
   upgrade that changes that id fails quote validation until Canix/SDK catch up.
+- Swap Router groups pin the **SDK Swap Router app id**. A router upgrade that
+  changes that id fails quote validation until Canix/SDK catch up.
 - Farm claim bytes come from Analytics `prepare-claim-transactions`; a staking
   program upgrade can change group shape. Always inspect `groupTransactions`
   and `userSignIndexes`.

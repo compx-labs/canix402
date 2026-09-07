@@ -14,6 +14,10 @@ import { tinymanBurnTAlgoShape } from "./burn-talgo.js";
 import { tinymanIncreaseStakeStAlgoShape } from "./increase-stake-stalgo.js";
 import { tinymanDecreaseStakeStAlgoShape } from "./decrease-stake-stalgo.js";
 import { tinymanClaimRewardsStAlgoShape } from "./claim-rewards-stalgo.js";
+import {
+  tinymanSwapFixedInputShape,
+  tinymanSwapFixedOutputShape
+} from "./swap-router.js";
 
 export {
   tinymanAddLiquidityFlexibleShape,
@@ -160,6 +164,23 @@ export type {
   TinymanClaimRewardsStAlgoDependencies
 } from "./claim-rewards-stalgo.js";
 export {
+  tinymanSwapFixedInputShape,
+  tinymanSwapFixedOutputShape,
+  setTinymanSwapRouterDependenciesForTests,
+  quoteTinymanSwap
+} from "./swap-router.js";
+export type { TinymanSwapInput, TinymanSwapState, TinymanSwapRouterDependencies } from "./swap-router.js";
+export {
+  hopCountFromRouter,
+  selectTinymanSwapWinner
+} from "./swap-compare.js";
+export type {
+  TinymanSwapCandidate,
+  TinymanSwapFallbackReason,
+  TinymanSwapPath,
+  TinymanSwapType
+} from "./swap-compare.js";
+export {
   resolveTinymanLiquidStakeState,
   setTinymanLiquidStakeStateDependenciesForTests,
   TINYMAN_STAKE_APP_ID,
@@ -190,5 +211,7 @@ export const tinymanShapes: readonly TransactionShapeSpec[] = [
   tinymanBurnTAlgoShape,
   tinymanIncreaseStakeStAlgoShape,
   tinymanDecreaseStakeStAlgoShape,
-  tinymanClaimRewardsStAlgoShape
+  tinymanClaimRewardsStAlgoShape,
+  tinymanSwapFixedInputShape,
+  tinymanSwapFixedOutputShape
 ];

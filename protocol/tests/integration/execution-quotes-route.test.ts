@@ -1843,7 +1843,7 @@ test("POST /execution/quotes returns 404 for unknown shape key", async () => {
     url: "/execution/quotes",
     payload: {
       quotes: [{
-      shapeKey: "mainnet:tinyman:v2:swap:fixedInput",
+      shapeKey: "mainnet:tinyman:v2:swap:does-not-exist",
       input: flexibleAddInput
     
       }]
