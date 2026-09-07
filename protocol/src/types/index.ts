@@ -174,6 +174,13 @@ export type {
   WatchThresholdsDto
 } from "./watch-schema.js";
 export type {
+  FolksRouterDiscount,
+  FolksSwapOptInRequest,
+  FolksSwapQuote,
+  FolksSwapQuoteRequest,
+  FolksSwapQuoteResponse,
+  FolksSwapTransactionsRequest,
+  FolksSwapTransactionsResponse,
   HaystackQuote,
   SwapOptInRequest,
   SwapOptInResponse,

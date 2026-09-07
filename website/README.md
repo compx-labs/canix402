@@ -89,6 +89,8 @@ positions, execution, and swap routes from checked-in JSON under `src/data`:
 - `swaps-quote.sample.json` (`POST /swaps/quote`)
 - `swaps-optin.sample.json` (`POST /swaps/optin`)
 - `swaps-transactions.sample.json` (`POST /swaps/transactions`)
+- `folks-swaps-quote.sample.json` (`POST /swaps/folks/quote`)
+- `folks-swaps-transactions.sample.json` (`POST /swaps/folks/transactions`)
 - `sessions.sample.json` (`GET /sessions/{sessionId}`)
 - `watch.sample.json` (`GET /watch/{watchId}`)
 

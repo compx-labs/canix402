@@ -224,8 +224,21 @@ function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): Pro
     };
   }
 
-  // `/swaps/optin` stays POST without a fixture body. Production smoke feeds it
-  // the quote returned by `/swaps/quote` — static Haystack quotes expire.
+  if (entry.pathPattern === "/swaps/folks/quote") {
+    return {
+      ...base,
+      body: {
+        address: getProductionPersonalizedAddress(),
+        fromAssetId: ALGO_ASSET_ID,
+        toAssetId: USDC_ASSET_ID,
+        amount: SMOKE_QUOTE_AMOUNT,
+        type: "fixed-input"
+      }
+    };
+  }
+
+  // `/swaps/optin` and `/swaps/folks/optin` stay POST without a fixture body.
+  // Production smoke feeds them the quote returned by the matching quote route.
 
   return base;
 }

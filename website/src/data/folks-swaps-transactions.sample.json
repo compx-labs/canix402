@@ -1,0 +1,29 @@
+{
+  "data": {
+    "source": "folks-router",
+    "apiVersion": "v2",
+    "routerAppId": "3279848327",
+    "routeKind": "direct",
+    "hopCount": 1,
+    "transactions": [
+      {
+        "index": 0,
+        "encodedTransaction": "<base64-unsigned-send>",
+        "signer": "user"
+      },
+      {
+        "index": 1,
+        "encodedTransaction": "<base64-unsigned-fi-end-swap>",
+        "signer": "user"
+      }
+    ],
+    "userSignIndexes": [0, 1],
+    "createdAt": "2026-09-07T12:00:05.000Z",
+    "quoteExpiresAt": "2026-09-07T12:00:30.000Z",
+    "note": "Every member is unsigned. Sign userSignIndexes locally and submit the complete group via your own Algod client. Canix does not sign or submit."
+  },
+  "meta": {
+    "paymentRequired": true,
+    "executionSubmitted": false
+  }
+}

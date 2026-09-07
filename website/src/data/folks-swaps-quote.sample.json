@@ -1,0 +1,37 @@
+{
+  "data": {
+    "source": "folks-router",
+    "apiVersion": "v2",
+    "routerAppId": "3279848327",
+    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+    "fromAssetId": "0",
+    "toAssetId": "31566704", "note": "Pass this quote unchanged to /swaps/folks/optin and /swaps/folks/transactions. Discount fields are present when address was set at quote time. pragma: allowlist secret",
+    "amount": "1000000",
+    "type": "fixed-input",
+    "swapMode": "FIXED_INPUT",
+    "quotedAmount": "184250",
+    "createdAt": "2026-09-07T12:00:00.000Z",
+    "expiresAt": "2026-09-07T12:00:30.000Z",
+    "requiredAppOptIns": ["3279848327"],
+    "txnPayload": "<opaque-folks-router-v2-txn-payload>",
+    "priceImpact": 0.00041,
+    "microalgoTxnsFee": 5000,
+    "discount": {
+      "sender": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+      "userFeeDiscount": 10,
+      "applied": true,
+      "tiers": [
+        { "minFolks": 0, "maxFolksExclusive": 15, "discountPercent": 0 },
+        { "minFolks": 15, "maxFolksExclusive": 325, "discountPercent": 10 },
+        { "minFolks": 325, "maxFolksExclusive": 1000, "discountPercent": 20 },
+        { "minFolks": 1000, "maxFolksExclusive": 5000, "discountPercent": 30 },
+        { "minFolks": 5000, "maxFolksExclusive": 12500, "discountPercent": 40 },
+        { "minFolks": 12500, "discountPercent": 50 }
+      ]
+    }
+  },
+  "meta": {
+    "paymentRequired": false,
+    "executionSubmitted": false
+  }
+}
