@@ -15,6 +15,7 @@ This section tracks protocol-specific source contracts and normalization rules.
 - [Alpha Arcade](alpha-arcade.md)
 - [STAMM](stamm.md) (LiquiHog multi-tier AMM; HOGSWAP discovery + unsigned mint/redeem)
 - [HOGSWAP LP valuation](hogswap-lp.md) (STAMM, AlgoFi, Humble positions; Tinyman/Pact overlap)
+- [ASA Stats Smart Router](asastats-router.md) (quote + unsigned mixed group; partner `router:quote` / `router:group` token required)
 
 ## Planned Protocols
 
