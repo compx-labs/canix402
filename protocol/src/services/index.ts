@@ -232,6 +232,28 @@ export type {
   HaystackService
 } from "./haystack-router.js";
 export {
+  DEFAULT_FOLKS_QUOTE_TTL_MS,
+  FOLKS_ROUTER_DEFAULT_FEE_BPS,
+  FOLKS_ROUTER_FEE_DISCOUNT_TIERS,
+  FOLKS_ROUTER_MAINNET_APP_ID,
+  FOLKS_ROUTER_TESTNET_APP_ID,
+  FOLKS_ROUTER_V2_MAINNET_API_BASE,
+  FOLKS_ROUTER_V2_TESTNET_API_BASE,
+  FolksRouterError,
+  assertFolksRouterV2BaseUrl,
+  createFolksRouterService,
+  folksRouterAppId,
+  folksRouterV2ApiBase,
+  inferFolksRouteKind,
+  percentSlippageToFolksBps
+} from "./folks-router.js";
+export type {
+  FolksRouterAlgod,
+  FolksRouterErrorKind,
+  FolksRouterSdk,
+  FolksRouterService
+} from "./folks-router.js";
+export {
   FEE_HARVEST_RECIPIENT_A,
   FEE_HARVEST_RECIPIENT_B,
   FEE_HARVEST_RECIPIENT_C,

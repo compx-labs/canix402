@@ -234,11 +234,14 @@ function buildDiscoveryDocument(): DiscoveryDocument {
             ? [200, 402]
           : endpoint.id === "tokenPricing"
             ? [200, 400, 502]
-          : endpoint.id === "haystackSwapQuote"
+          : endpoint.id === "haystackSwapQuote" ||
+              endpoint.id === "folksRouterSwapQuote"
             ? [200, 400, 429, 502]
-            : endpoint.id === "haystackSwapOptIn"
+            : endpoint.id === "haystackSwapOptIn" ||
+                endpoint.id === "folksRouterSwapOptIn"
               ? [200, 400, 502]
-              : endpoint.id === "haystackSwapTransactions"
+              : endpoint.id === "haystackSwapTransactions" ||
+                  endpoint.id === "folksRouterSwapTransactions"
                 ? [200, 400, 402, 429, 502]
           : endpoint.access === "paid"
             ? [200, 402, 500]
@@ -272,6 +275,7 @@ function buildDiscoveryDocument(): DiscoveryDocument {
       "prepaid-sessions",
       "watch-retainers",
       "haystack-swaps",
+      "folks-router-swaps",
       "token-pricing",
       "mcp-server"
     ],

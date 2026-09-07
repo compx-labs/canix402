@@ -1,7 +1,7 @@
 {
   "data": {
     "service": "canix402",
-    "apiVersion": "1.6.5",
+    "apiVersion": "0.1.0",
     "discoveryVersion": "1.0.0",
     "capabilities": [
       "algorand-defi-opportunities",
@@ -18,6 +18,7 @@
       "prepaid-sessions",
       "watch-retainers",
       "haystack-swaps",
+      "folks-router-swaps",
       "token-pricing",
       "mcp-server"
     ],
@@ -278,6 +279,50 @@
           "defi",
           "swaps",
           "haystack",
+          "transactions",
+          "wallet"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          400,
+          502
+        ]
+      },
+      {
+        "id": "folksRouterSwapQuote",
+        "method": "POST",
+        "path": "/swaps/folks/quote",
+        "access": "free",
+        "summary": "Fetch a walletless Folks Router V2 swap quote",
+        "description": "Returns a serializable Folks Router V2 quote (Tinyman/Pact/Humble routing, split and multi-hop) without signing or submitting. Amounts use asset base units. When address is set, GET /fetch/discount is applied as userFeeDiscount and the FOLKS holdings tiers are documented on data.discount. Quotes are short-lived and should be refreshed after completing prerequisite opt-ins.",
+        "tags": [
+          "defi",
+          "swaps",
+          "folks-router",
+          "agents"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          400,
+          429,
+          502
+        ]
+      },
+      {
+        "id": "folksRouterSwapOptIn",
+        "method": "POST",
+        "path": "/swaps/folks/optin",
+        "access": "free",
+        "summary": "Build prerequisite Folks Router swap opt-ins",
+        "description": "Inspects the supplied account and Folks Router V2 quote, then returns any required output-asset and Folks Router application opt-in transactions as an unsigned group. The caller signs and submits the group locally; canix402 never receives wallet keys or submits it.",
+        "tags": [
+          "defi",
+          "swaps",
+          "folks-router",
           "transactions",
           "wallet"
         ],
@@ -872,6 +917,51 @@
             "network": "algorand",
             "asset": "31566704",
             "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "maxAmountRequired": "0.005"
+          },
+          "amountUsdc": "0.005",
+          "amountMicro": "5000"
+        }
+      },
+      {
+        "id": "folksRouterSwapTransactions",
+        "method": "POST",
+        "path": "/swaps/folks/transactions",
+        "access": "paid",
+        "summary": "Build a walletless Folks Router V2 swap transaction group",
+        "description": "Returns an ordered unsigned Algorand swap group for a fresh Folks Router V2 quote. Every member is signer:user — Canix does not sign or submit. The 0.005 USDC x402 access charge is separate from Folks Router's ~0.1% output fee (FOLKS holdings discount when sender was set at quote time), DEX fees, price impact, and Algorand network fees. pragma: allowlist secret",
+        "tags": [
+          "defi",
+          "swaps",
+          "folks-router",
+          "transactions",
+          "x402",
+          "agents",
+          "x402-global-challenge"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "sessionAccess": "quotes",
+        "responseCodes": [
+          200,
+          400,
+          402,
+          429,
+          502
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma-facilitator": "pragma: allowlist secret",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ", "x-pragma-payto": "pragma: allowlist secret",
             "maxAmountRequired": "0.005"
           },
           "amountUsdc": "0.005",

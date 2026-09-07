@@ -1,8 +1,8 @@
 # CANIX402
 
-> x402-gated Algorand DeFi data and walletless transaction API for autonomous agents. Pay in USDC micropayments at the gateway edge, fetch normalized APY/TVL data, and build locally signable Haystack swap groups.
+> x402-gated Algorand DeFi data and walletless transaction API for autonomous agents. Pay in USDC micropayments at the gateway edge, fetch normalized APY/TVL data, and build locally signable Haystack and Folks Router V2 swap groups.  # pragma: allowlist secret
 
-Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. Discovery, execution shapes, Haystack quotes, and opt-in preparation are free; data routes, execution quotes, and Haystack swap transaction generation require x402 payment as advertised. The API never receives wallet keys or submits transactions. For the full integration guide in one file, see [llms-full.txt](https://canix402.compx.io/llms-full.txt).
+Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. Discovery, execution shapes, Haystack and Folks Router quotes, and opt-in preparation are free; data routes, execution quotes, and swap transaction generation require x402 payment as advertised. The API never receives wallet keys or submits transactions. For the full integration guide in one file, see [llms-full.txt](https://canix402.compx.io/llms-full.txt).  # pragma: allowlist secret
 
 ## API (machine-readable)
 
@@ -37,6 +37,7 @@ Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. D
 - [GET /positions](https://canix402-api.compx.io/positions): 0.005 USDC — Algorand DeFi positions held by a wallet
 - [GET /positions/claimable](https://canix402-api.compx.io/positions/claimable): 0.001 USDC — Claimable DeFi rewards across supported protocols
 - [POST /swaps/transactions](https://canix402-api.compx.io/swaps/transactions): 0.005 USDC — Build a walletless Haystack swap transaction group
+- [POST /swaps/folks/transactions](https://canix402-api.compx.io/swaps/folks/transactions): 0.005 USDC — Build a walletless Folks Router V2 swap transaction group  # pragma: allowlist secret
 - [POST /execution/quotes](https://canix402-api.compx.io/execution/quotes): 0.1 USDC — Compile one or more verified transaction shapes into unsigned Algorand transaction groups
 - [POST /execution/compose](https://canix402-api.compx.io/execution/compose): 0.1 USDC — Compose opt-in → Haystack swap → enter as unmerged unsigned groups  # pragma: allowlist secret
 - [POST /execution/simulate](https://canix402-api.compx.io/execution/simulate): 0.1 USDC — Simulate compiled unsigned groups for predicted balance and position deltas  # pragma: allowlist secret
