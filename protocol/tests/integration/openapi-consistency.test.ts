@@ -46,6 +46,11 @@ import {
   WalletPositionsResponseSchema
 } from "../../src/types/position-schema.js";
 import {
+  FolksSwapOptInRequestSchema,
+  FolksSwapQuoteRequestSchema,
+  FolksSwapQuoteResponseSchema,
+  FolksSwapTransactionsRequestSchema,
+  FolksSwapTransactionsResponseSchema,
   SwapOptInRequestSchema,
   SwapOptInResponseSchema,
   SwapQuoteRequestSchema,
@@ -222,6 +227,15 @@ test("paid operations expose x-x402 metadata", async () => {
   assert.match(haystackSwapOperation?.description ?? "", /sign/i);
   assert.match(haystackSwapOperation?.description ?? "", /10 bps/i);
 
+  const folksSwapOperation = openapi.paths["/swaps/folks/transactions"]?.post;
+  assert.equal(
+    folksSwapOperation?.["x-x402"]?.requirementTemplate?.maxAmountRequired,
+    "0.005"
+  );
+  assert.equal(folksSwapOperation?.["x-payment-info"]?.price?.amount, "0.005");
+  assert.match(folksSwapOperation?.description ?? "", /unsigned/i);
+  assert.match(folksSwapOperation?.description ?? "", /0\.1%/);
+
   const sessionsCreateOperation = openapi.paths["/sessions"]?.post;
   assert.equal(
     sessionsCreateOperation?.["x-x402"]?.requirementTemplate?.maxAmountRequired,
@@ -292,6 +306,8 @@ test("paid operations expose x-x402 metadata", async () => {
 
   assert.deepEqual(openapi.paths["/swaps/quote"]?.post?.security, []);
   assert.deepEqual(openapi.paths["/swaps/optin"]?.post?.security, []);
+  assert.deepEqual(openapi.paths["/swaps/folks/quote"]?.post?.security, []);
+  assert.deepEqual(openapi.paths["/swaps/folks/optin"]?.post?.security, []);
 
   const freePolicyEndpoints = endpointPolicyMatrix.filter(
     (endpoint) => endpoint.access === "free"
@@ -415,7 +431,12 @@ test("Haystack OpenAPI request and response envelopes stay aligned", async () =>
     ["HaystackSwapOptInRequest", SwapOptInRequestSchema],
     ["HaystackSwapOptInResponse", SwapOptInResponseSchema],
     ["HaystackSwapTransactionsRequest", SwapTransactionsRequestSchema],
-    ["HaystackSwapTransactionsResponse", SwapTransactionsResponseSchema]
+    ["HaystackSwapTransactionsResponse", SwapTransactionsResponseSchema],
+    ["FolksSwapQuoteRequest", FolksSwapQuoteRequestSchema],
+    ["FolksSwapQuoteResponse", FolksSwapQuoteResponseSchema],
+    ["FolksSwapOptInRequest", FolksSwapOptInRequestSchema],
+    ["FolksSwapTransactionsRequest", FolksSwapTransactionsRequestSchema],
+    ["FolksSwapTransactionsResponse", FolksSwapTransactionsResponseSchema]
   ] as const;
 
   for (const [name, typeboxSchema] of pairs) {

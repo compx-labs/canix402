@@ -44,6 +44,16 @@ test("GET /execution/shapes returns the live registry catalog for free", async (
     "protocol/docs/execution-shapes/tinyman-add-liquidity-flexible.md"
   );
 
+  const swapRouter = body.data.find(
+    (shape) => shape.shapeKey === "mainnet:tinyman:v2:swap:fixedInput"
+  );
+  assert.ok(swapRouter);
+  assert.ok(swapRouter.requiredInputs.includes("assetInId"));
+  assert.equal(
+    swapRouter.docsPath,
+    "protocol/docs/execution-shapes/tinyman-swap-router.md"
+  );
+
   const reti = body.data.find(
     (shape) => shape.shapeKey === "mainnet:reti:v1:stake:algo"
   );
@@ -64,6 +74,16 @@ test("GET /execution/shapes returns the live registry catalog for free", async (
   assert.equal(
     pactSmartRouter.docsPath,
     "protocol/docs/execution-shapes/pact-smart-router-swap.md"
+  );
+
+  const hogswapSwap = body.data.find(
+    (shape) => shape.shapeKey === "mainnet:hogswap:v1:swap:fixed-input"
+  );
+  assert.ok(hogswapSwap);
+  assert.ok(hogswapSwap.requiredInputs.includes("fromAssetId"));
+  assert.equal(
+    hogswapSwap.docsPath,
+    "protocol/docs/execution-shapes/hogswap-swap-fixed-input.md"
   );
 
   assert.equal(
@@ -98,6 +118,7 @@ test("protocol execution caveats doc covers construction topics for fixture prot
     "Réti",
     "Alpha Arcade",
     "STAMM",
+    "HOGSWAP",
     "Pool discovery",
     "Opt-ins",
     "Slippage math",

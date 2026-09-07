@@ -21,6 +21,7 @@ import {
 } from "../../src/execution/shapes/stamm/index.js";
 import {
   HogswapMissingOptInError,
+  hogswapQuoteRouteDefaults,
   type HogswapExecuteResult,
   type HogswapQuote
 } from "../../src/services/hogswap-client.js";
@@ -144,6 +145,7 @@ function mintQuote(overrides: Partial<HogswapQuote> = {}): HogswapQuote {
     },
     quotedAtMs: QUOTED_AT,
     raw: {},
+    ...hogswapQuoteRouteDefaults(),
     ...overrides
   };
 }

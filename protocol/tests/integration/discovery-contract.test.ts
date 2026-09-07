@@ -59,6 +59,7 @@ test("discovery includes every endpoint in policy matrix", async () => {
   // Agent discovery metadata: advertises MCP tooling without invoking the MCP server.
   assert.ok(payload.data.capabilities.includes("mcp-server"));
   assert.ok(payload.data.capabilities.includes("haystack-swaps"));
+  assert.ok(payload.data.capabilities.includes("folks-router-swaps"));
   assert.ok(payload.data.capabilities.includes("prepaid-sessions"));
   assert.ok(payload.data.capabilities.includes("watch-retainers"));
   assert.ok(payload.data.sessionPolicy);
@@ -71,6 +72,15 @@ test("discovery includes every endpoint in policy matrix", async () => {
   const transactions = payload.data.endpoints.find(
     (endpoint) => endpoint.id === "haystackSwapTransactions"
   );
+  const folksQuote = payload.data.endpoints.find(
+    (endpoint) => endpoint.id === "folksRouterSwapQuote"
+  );
+  const folksOptIn = payload.data.endpoints.find(
+    (endpoint) => endpoint.id === "folksRouterSwapOptIn"
+  );
+  const folksTransactions = payload.data.endpoints.find(
+    (endpoint) => endpoint.id === "folksRouterSwapTransactions"
+  );
   const pricing = payload.data.endpoints.find((endpoint) => endpoint.id === "tokenPricing");
   assert.equal(quote?.access, "free");
   assert.deepEqual(quote?.responseCodes, [200, 400, 429, 502]);
@@ -79,6 +89,13 @@ test("discovery includes every endpoint in policy matrix", async () => {
   assert.equal(transactions?.access, "paid");
   assert.deepEqual(transactions?.responseCodes, [200, 400, 402, 429, 502]);
   assert.equal(transactions?.x402?.requirementTemplate.maxAmountRequired, "0.005");
+  assert.equal(folksQuote?.access, "free");
+  assert.deepEqual(folksQuote?.responseCodes, [200, 400, 429, 502]);
+  assert.equal(folksOptIn?.access, "free");
+  assert.deepEqual(folksOptIn?.responseCodes, [200, 400, 502]);
+  assert.equal(folksTransactions?.access, "paid");
+  assert.deepEqual(folksTransactions?.responseCodes, [200, 400, 402, 429, 502]);
+  assert.equal(folksTransactions?.x402?.requirementTemplate.maxAmountRequired, "0.005");
   assert.equal(pricing?.access, "free");
   assert.deepEqual(pricing?.responseCodes, [200, 400, 502]);
   const sessionsReceipt = payload.data.endpoints.find(
@@ -154,6 +171,11 @@ test("well-known x402 manifest lists paid resources and indexing links", async (
   );
   assert.equal(
     manifest.resources.find((resource) => resource.id === "haystackSwapTransactions")?.price
+      .amount,
+    "0.005"
+  );
+  assert.equal(
+    manifest.resources.find((resource) => resource.id === "folksRouterSwapTransactions")?.price
       .amount,
     "0.005"
   );

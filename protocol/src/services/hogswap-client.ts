@@ -110,10 +110,24 @@ export class HogswapMissingOptInError extends HogswapClientError {
   }
 }
 
+/** No route exists for the requested pair/size (`POST /quote` HTTP 404). */
+export class HogswapNoRouteError extends HogswapClientError {
+  public constructor(message: string, status?: number, body?: unknown) {
+    super(message, status, body);
+    this.name = "HogswapNoRouteError";
+  }
+}
+
 /** HOGSWAP quote lifetime used by STAMM mint/redeem shapes (matches Haystack compose). */
 export const HOGSWAP_QUOTE_TTL_MS = 30_000;
 
 export const HOGSWAP_LP_DEFAULT_SLIPPAGE_BPS = 100;
+
+/** SWAP OpenAPI default (`slippage_bps`). Distinct from the LP SDK default of 100. */
+export const HOGSWAP_SWAP_DEFAULT_SLIPPAGE_BPS = 50;
+
+/** SWAP OpenAPI default (`max_hops`). */
+export const HOGSWAP_SWAP_DEFAULT_MAX_HOPS = 3;
 
 interface HogswapClientDependencies {
   fetch: typeof fetch;
@@ -272,6 +286,9 @@ function mapHogswapHttpError(
       : `HOGSWAP ${path} returned HTTP ${status}.`;
   if (status === 404 && (path === "/execute" || path.startsWith("/execute"))) {
     return new HogswapQuoteExpiredError(message, status, payload);
+  }
+  if (status === 404 && (path === "/quote" || path.startsWith("/quote"))) {
+    return new HogswapNoRouteError(message, status, payload);
   }
   if (status === 422 && isMissingOptInMessage(detail)) {
     return new HogswapMissingOptInError(
@@ -605,6 +622,33 @@ export interface HogswapLpQuoteExtras {
   expectedBOut: number;
 }
 
+export interface HogswapQuoteLeg {
+  poolId: number;
+  dexKind: number;
+  dexName: string;
+  assetIn: number;
+  assetOut: number;
+  plannedIn: number;
+  plannedOut: number;
+}
+
+export interface HogswapPathBreakdown {
+  assets: number[];
+  inputAmount: number;
+  outputAmount: number;
+}
+
+export interface HogswapSwapQuoteRequest {
+  assetIn: number;
+  assetOut: number;
+  amountIn?: bigint;
+  amountOut?: bigint;
+  slippageBps?: number;
+  maxHops?: number;
+  maxLegs?: number;
+  sender?: string;
+}
+
 export interface HogswapQuote {
   quoteId: string;
   mode: string;
@@ -618,8 +662,56 @@ export interface HogswapQuote {
   networkFeeMicroalgo: number;
   deposits: Array<{ assetId: number; amount: number }>;
   lp: HogswapLpQuoteExtras | null;
+  legs: HogswapQuoteLeg[];
+  pathBreakdown: HogswapPathBreakdown[];
+  coverAlgoFee: boolean;
+  requestedOut: number | null;
+  maxInAtSlippage: number | null;
+  /**
+   * Router fee already deducted from `expectedOut` / `minOutAtSlippage`.
+   * Do not subtract this again when scoring net out.
+   */
+  routerFeeBpsNominal: number;
+  routerFeeBpsEffective: number;
+  routerFeeAmount: number;
+  routerFeeAmountUndiscounted: number;
+  routerFeeAsset: number | null;
+  hogHoldingsMicro: number | null;
+  hogDiscountPct: number | null;
   quotedAtMs: number;
   raw: Record<string, unknown>;
+}
+
+/** Route/fee fields filled when an upstream quote omits them (LP payloads). */
+export function hogswapQuoteRouteDefaults(): Pick<
+  HogswapQuote,
+  | "legs"
+  | "pathBreakdown"
+  | "coverAlgoFee"
+  | "requestedOut"
+  | "maxInAtSlippage"
+  | "routerFeeBpsNominal"
+  | "routerFeeBpsEffective"
+  | "routerFeeAmount"
+  | "routerFeeAmountUndiscounted"
+  | "routerFeeAsset"
+  | "hogHoldingsMicro"
+  | "hogDiscountPct"
+> {
+  return {
+    legs: [],
+    pathBreakdown: [],
+    coverAlgoFee: false,
+    requestedOut: null,
+    maxInAtSlippage: null,
+    routerFeeBpsNominal: 0,
+    routerFeeBpsEffective: 0,
+    routerFeeAmount: 0,
+    routerFeeAmountUndiscounted: 0,
+    routerFeeAsset: null,
+    hogHoldingsMicro: null,
+    hogDiscountPct: null
+  };
 }
 
 export interface HogswapExecuteResult {
@@ -673,6 +765,40 @@ export async function fetchStammAssets(): Promise<Map<number, HogswapStammAssetM
     });
   }
   return assets;
+}
+
+export async function quoteHogswapSwap(
+  request: HogswapSwapQuoteRequest
+): Promise<HogswapQuote> {
+  const hasAmountIn = request.amountIn !== undefined;
+  const hasAmountOut = request.amountOut !== undefined;
+  if (hasAmountIn === hasAmountOut) {
+    throw new HogswapClientError("SWAP quote requires exactly one of amountIn or amountOut.");
+  }
+  if (request.assetIn === request.assetOut) {
+    throw new HogswapClientError("SWAP quote assetIn and assetOut must differ.");
+  }
+  const body: Record<string, unknown> = {
+    mode: "SWAP",
+    asset_in: request.assetIn,
+    asset_out: request.assetOut,
+    slippage_bps: request.slippageBps ?? HOGSWAP_SWAP_DEFAULT_SLIPPAGE_BPS
+  };
+  if (hasAmountIn) {
+    body.amount_in = numberFromBigInt(request.amountIn!, "amountIn");
+  } else {
+    body.amount_out = numberFromBigInt(request.amountOut!, "amountOut");
+  }
+  if (request.maxHops !== undefined) {
+    body.max_hops = request.maxHops;
+  }
+  if (request.maxLegs !== undefined) {
+    body.max_legs = request.maxLegs;
+  }
+  if (request.sender !== undefined && request.sender.length > 0) {
+    body.sender = request.sender;
+  }
+  return parseHogswapQuote(await hogswapPostJson("/quote", body));
 }
 
 export async function quoteHogswapLpMint(
@@ -747,6 +873,7 @@ export function parseHogswapQuote(payload: unknown): HogswapQuote {
     throw new HogswapClientError("HOGSWAP quote is missing quote_id.");
   }
   const lpRecord = asRecord(record.lp);
+  const defaults = hogswapQuoteRouteDefaults();
   return {
     quoteId,
     mode: typeof record.mode === "string" ? record.mode : "SWAP",
@@ -767,9 +894,76 @@ export function parseHogswapQuote(payload: unknown): HogswapQuote {
       return [{ assetId, amount }];
     }),
     lp: lpRecord === null ? null : parseLpQuoteExtras(lpRecord),
+    legs: parseHogswapLegs(record.legs),
+    pathBreakdown: parseHogswapPathBreakdown(record.path_breakdown),
+    coverAlgoFee: record.cover_algo_fee === true,
+    requestedOut: parseNullableNonNegativeNumber(record.requested_out),
+    maxInAtSlippage: parseNullableNonNegativeNumber(record.max_in_at_slippage),
+    routerFeeBpsNominal:
+      parseNullableNonNegativeNumber(record.router_fee_bps_nominal) ??
+      defaults.routerFeeBpsNominal,
+    routerFeeBpsEffective:
+      parseNullableNonNegativeNumber(record.router_fee_bps_effective) ??
+      defaults.routerFeeBpsEffective,
+    routerFeeAmount:
+      parseNullableNonNegativeNumber(record.router_fee_amount) ?? defaults.routerFeeAmount,
+    routerFeeAmountUndiscounted:
+      parseNullableNonNegativeNumber(record.router_fee_amount_undiscounted) ??
+      defaults.routerFeeAmountUndiscounted,
+    routerFeeAsset: parseSafeNonNegativeInteger(record.router_fee_asset),
+    hogHoldingsMicro: parseNullableNonNegativeNumber(record.hog_holdings_micro),
+    hogDiscountPct: parseNullableNonNegativeNumber(record.hog_discount_pct),
     quotedAtMs: resolveDependencies().now(),
     raw: record
   };
+}
+
+function parseHogswapLegs(value: unknown): HogswapQuoteLeg[] {
+  return asObjectArray(value).flatMap((leg) => {
+    const poolId = parseSafePositiveInteger(leg.pool_id);
+    const dexKind = parseSafeNonNegativeInteger(leg.dex_kind);
+    const assetIn = parseSafeNonNegativeInteger(leg.asset_in);
+    const assetOut = parseSafeNonNegativeInteger(leg.asset_out);
+    const plannedIn = parseNullableNonNegativeNumber(leg.planned_in);
+    const plannedOut = parseNullableNonNegativeNumber(leg.planned_out);
+    if (
+      poolId === null ||
+      dexKind === null ||
+      assetIn === null ||
+      assetOut === null ||
+      plannedIn === null ||
+      plannedOut === null
+    ) {
+      return [];
+    }
+    return [
+      {
+        poolId,
+        dexKind,
+        dexName: typeof leg.dex_name === "string" ? leg.dex_name : "",
+        assetIn,
+        assetOut,
+        plannedIn,
+        plannedOut
+      }
+    ];
+  });
+}
+
+function parseHogswapPathBreakdown(value: unknown): HogswapPathBreakdown[] {
+  return asObjectArray(value).flatMap((row) => {
+    const assets = Array.isArray(row.assets)
+      ? row.assets
+          .map((asset) => parseSafeNonNegativeInteger(asset))
+          .filter((asset): asset is number => asset !== null)
+      : [];
+    const inputAmount = parseNullableNonNegativeNumber(row.input_amount);
+    const outputAmount = parseNullableNonNegativeNumber(row.output_amount);
+    if (assets.length === 0 || inputAmount === null || outputAmount === null) {
+      return [];
+    }
+    return [{ assets, inputAmount, outputAmount }];
+  });
 }
 
 function parseLpQuoteExtras(record: Record<string, unknown>): HogswapLpQuoteExtras {

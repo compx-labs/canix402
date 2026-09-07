@@ -19,6 +19,8 @@ import executionQuotesSample from "../data/execution-quotes.sample.json";
 import swapsQuoteSample from "../data/swaps-quote.sample.json";
 import swapsOptinSample from "../data/swaps-optin.sample.json";
 import swapsTransactionsSample from "../data/swaps-transactions.sample.json";
+import folksSwapsQuoteSample from "../data/folks-swaps-quote.sample.json";
+import folksSwapsTransactionsSample from "../data/folks-swaps-transactions.sample.json";
 import sessionsSample from "../data/sessions.sample.json";
 import watchSample from "../data/watch.sample.json";
 
@@ -32,9 +34,9 @@ const policyCurl = `curl -i ${config.gatewayBaseUrl}/policy/validate -H 'content
 
 <BaseLayout
   title="Examples | CANIX402"
-  description="Copy-paste Canix402 API examples for discovery, OpenAPI, x402 signed retries, opportunities, positions, execution shapes/quotes, and Haystack swaps."
-  keywords="Canix402 examples, x402 payment examples, API samples, personalized opportunities, execution quotes, positions, Haystack swaps, Algorand DeFi responses"
->
+  description="Copy-paste Canix402 API examples for discovery, OpenAPI, x402 signed retries, opportunities, positions, execution shapes/quotes, Haystack swaps, and Folks Router V2 swaps." <!-- pragma: allowlist secret -->
+  keywords="Canix402 examples, x402 payment examples, API samples, personalized opportunities, execution quotes, positions, Haystack swaps, Folks Router, Algorand DeFi responses"> <!-- pragma: allowlist secret -->
+
   <h1 class="page-title">Examples</h1>
   <p class="muted">All examples use the public Caddy gateway URL. Replace placeholders before running paid retries.</p>
 
@@ -321,7 +323,7 @@ const policyCurl = `curl -i ${config.gatewayBaseUrl}/policy/validate -H 'content
     </p>
     <h3>1) Free quote</h3>
     <CodeBlock
-      code={`curl -i ${config.gatewayBaseUrl}/swaps/quote \\\n  -H 'content-type: application/json' \\\n  -d '{\n    "address": "YOUR_ALGORAND_ADDRESS",\n    "fromAssetId": 0,\n    "toAssetId": 31566704,\n    "amount": "1000000",\n    "type": "fixed-input"\n  }'`}
+      code={`curl -i ${config.gatewayBaseUrl}/swaps/quote \\\n  -H 'content-type: application/json' \\\n  -d '{\n    "address": "YOUR_ALGORAND_ADDRESS",\n    "fromAssetId": 0,\n    "toAssetId": 31566704,\n    "amount": "1000000",\n    "type": "fixed-input"\n  }'`} // pragma: allowlist secret
     />
     <h3>Sample quote response (200)</h3>
     <CodeBlock code={format(swapsQuoteSample)} />
@@ -348,6 +350,41 @@ const policyCurl = `curl -i ${config.gatewayBaseUrl}/policy/validate -H 'content
     <p class="muted">
       Sign only <code>userSignIndexes</code>, keep Haystack pre-signed members and group order, then
       submit the complete atomic group through your own Algod client.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>Folks Router V2 swaps (quote → opt-in → unsigned group)</h2>
+    <p>
+      Cross-DEX aggregator (Tinyman, Pact, Humble; split and multi-hop). V2 API only. Pass
+      <code>address</code> on quote to apply FOLKS holdings <code>userFeeDiscount</code>;
+      <code>data.discount</code> documents the tiers. Free quote and opt-in; paid
+      <code>POST /swaps/folks/transactions</code> (~0.005 USDC). Every group member is
+      <code>signer:user</code>. Canix never signs or submits.
+    </p>
+    <h3>1) Free quote (FIXED_INPUT ALGO→USDC)</h3>
+    <CodeBlock
+      code={`curl -i ${config.gatewayBaseUrl}/swaps/folks/quote \\\n  -H 'content-type: application/json' \\\n  -d '{\n    "address": "YOUR_ALGORAND_ADDRESS",\n    "fromAssetId": 0,\n    "toAssetId": 31566704,\n    "amount": "1000000",\n    "type": "fixed-input"\n  }'`} // pragma: allowlist secret
+    />
+    <h3>Sample quote response (200)</h3>
+    <CodeBlock code={format(folksSwapsQuoteSample)} />
+    <h3>2) Free opt-in (pass quote unchanged)</h3>
+    <CodeBlock
+      code={`curl -i ${config.gatewayBaseUrl}/swaps/folks/optin \\\n  -H 'content-type: application/json' \\\n  -d '{\n    "address": "YOUR_ALGORAND_ADDRESS",\n    "quote": { /* full data object from /swaps/folks/quote */ }\n  }'`} // pragma: allowlist secret
+    />
+    <p class="muted">
+      If <code>transactions</code> is non-empty, sign and submit locally, wait for confirmation, then
+      fetch a <strong>fresh</strong> quote before the paid step.
+    </p>
+    <h3>3) Paid unsigned group — retry with PAYMENT-SIGNATURE</h3>
+    <CodeBlock
+      code={`curl -i ${config.gatewayBaseUrl}/swaps/folks/transactions \\\n  -H 'content-type: application/json' \\\n  -H 'PAYMENT-SIGNATURE: <base64-json-payload>' \\\n  -d '{\n    "address": "YOUR_ALGORAND_ADDRESS",\n    "quote": { /* fresh Folks quote data object */ },\n    "slippage": 1\n  }'`} // pragma: allowlist secret
+    />
+    <h3>Sample transactions response (200)</h3>
+    <CodeBlock code={format(folksSwapsTransactionsSample)} />
+    <p class="muted">
+      Slippage is a percent (<code>1</code> = 1% = 100 Folks <code>slippageBps</code>). Sign every
+      <code>userSignIndexes</code> member and submit the complete group through your own Algod client.
     </p>
   </section>
 
