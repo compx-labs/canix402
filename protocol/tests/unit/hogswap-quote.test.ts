@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  HogswapClientError,
   HogswapMissingOptInError,
   HogswapQuoteExpiredError,
   parseHogswapExecute,
@@ -174,4 +175,44 @@ test("executeHogswapQuote maps 404 to expired and 422 opt-in to missing opt-in",
       throw error;
     }
   }, HogswapMissingOptInError);
+});
+
+test("HOGSWAP HTTP aborts hung fetches", async () => {
+  const previousTimeout = process.env.HOGSWAP_HTTP_TIMEOUT_MS;
+  const previousDelay = process.env.HOGSWAP_HTTP_DELAY_MS;
+  process.env.HOGSWAP_HTTP_TIMEOUT_MS = "40";
+  process.env.HOGSWAP_HTTP_DELAY_MS = "0";
+  setHogswapClientDependenciesForTests({
+    now: () => 1,
+    fetch: (_input, init) =>
+      new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => {
+          const error = new Error("The operation was aborted.");
+          error.name = "AbortError";
+          reject(error);
+        });
+      })
+  });
+  try {
+    await assert.rejects(
+      quoteHogswapLpMint({
+        poolAppId: STAMM_FIXTURE_POOL_APP_ID,
+        tierIndex: 1,
+        amountA: 1_000_000n
+      }),
+      (error: unknown) =>
+        error instanceof HogswapClientError && /timed out after 40ms/.test(error.message)
+    );
+  } finally {
+    if (previousTimeout === undefined) {
+      delete process.env.HOGSWAP_HTTP_TIMEOUT_MS;
+    } else {
+      process.env.HOGSWAP_HTTP_TIMEOUT_MS = previousTimeout;
+    }
+    if (previousDelay === undefined) {
+      delete process.env.HOGSWAP_HTTP_DELAY_MS;
+    } else {
+      process.env.HOGSWAP_HTTP_DELAY_MS = previousDelay;
+    }
+  }
 });

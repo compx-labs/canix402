@@ -460,4 +460,5 @@ test("createExecutionRegistry registers STAMM mint and redeem keys", () => {
   const registry = createExecutionRegistry();
   assert.equal(registry.has("mainnet:stamm:v1:mint:lp"), true);
   assert.equal(registry.has("mainnet:stamm:v1:redeem:lp"), true);
+  assert.ok(stammMintLpShape.requiredInputs.includes("amountA"));
 });

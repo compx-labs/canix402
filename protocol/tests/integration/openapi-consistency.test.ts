@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { buildApp } from "../../src/app.js";
-import { SupportedProtocolValues } from "../../src/routes/schemas.js";
+import { SupportedOpportunityProtocolValues } from "../../src/routes/schemas.js";
 import { endpointPolicyMatrix } from "../../src/services/payment-policy.js";
 import { OpportunityRecordSchema } from "../../src/types/opportunity-schema.js";
 import {
@@ -335,7 +335,7 @@ test("opportunity record schema stays aligned with TypeBox contract", async () =
   const yieldBasisProperty = openapiProperties.yieldBasis as { enum?: string[] } | undefined;
   const assetIdsProperty = openapiProperties.assetIds as { type?: string } | undefined;
 
-  assert.deepEqual(protocolProperty?.enum, [...SupportedProtocolValues]);
+  assert.deepEqual(protocolProperty?.enum, [...SupportedOpportunityProtocolValues]);
   assert.equal(protocolProperty?.enum?.includes("haystack"), true);
   assert.deepEqual(opportunityTypeProperty?.enum, ["lp", "farm", "staking", "lending"]);
   assert.deepEqual(yieldBasisProperty?.enum, ["apy", "apr"]);

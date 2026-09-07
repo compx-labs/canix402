@@ -48,9 +48,9 @@ import {
   PERSONALIZED_OPPORTUNITIES_DEFAULT_LIMIT,
   PersonalizedOpportunitiesQuery,
   PersonalizedOpportunitiesQuerySchema,
-  Protocol,
-  SupportedOpportunityTypeValues,
-  SupportedProtocolValues
+  OpportunityProtocol,
+  SupportedOpportunityProtocolValues,
+  SupportedOpportunityTypeValues
 } from "./schemas.js";
 
 export function registerOpportunityRoutes(app: FastifyInstance) {
@@ -327,7 +327,7 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
   );
 }
 
-function parseProtocolFilters(value: string | undefined): Protocol[] {
+function parseProtocolFilters(value: string | undefined): OpportunityProtocol[] {
   if (!value) {
     return [...SUPPORTED_AGGREGATE_PROTOCOLS];
   }
@@ -335,7 +335,9 @@ function parseProtocolFilters(value: string | undefined): Protocol[] {
   const selected = value
     .split(",")
     .map((entry) => entry.trim())
-    .filter((entry): entry is Protocol => SupportedProtocolValues.includes(entry as Protocol));
+    .filter((entry): entry is OpportunityProtocol =>
+      (SupportedOpportunityProtocolValues as readonly string[]).includes(entry)
+    );
   return selected.length > 0 ? selected : [...SUPPORTED_AGGREGATE_PROTOCOLS];
 }
 

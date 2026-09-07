@@ -188,7 +188,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     access: "paid",
     summary: "Top 25 DeFi opportunities for a single protocol ranked by risk then APY",
     description:
-      "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, alpha-arcade, stamm, algofi, or humble. Ranking applies designed risk constraints before raw APY. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, risk, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",  // pragma: allowlist secret
+      "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, alpha-arcade, or stamm. Ranking applies designed risk constraints before raw APY. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, risk, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",  // pragma: allowlist secret
     tags: ["defi", "opportunities", "protocol", HACKATHON_TAG],
     pathParams: ["protocol"],
     queryParams: ["limit", "offset", "includeInactive", "refresh"],

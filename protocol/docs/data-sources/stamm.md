@@ -37,7 +37,7 @@ scheme so holdings join discovery rows.
 | `assetPair` | `{unitA}/{unitB}` (ALGO for asset `0`) |
 | `assetIds` | `[asset_a, asset_b]` |
 | `tvlUsd` | pool `tvl_usd_micro / 1e6` allocated to the tier by reserve share |
-| `apy` | `0` (unknown — see notes) |
+| `apy` | `0` (unknown — see notes; not snapshotted into opportunity history) |
 | `yieldBasis` | `apr` (schema-required placeholder; not a measured APR) |
 | `inputHints` | `poolAppId`, `poolId`, `tierIndex`, `liquidityAssetId`, `assetAId`, `assetBId` |
 
@@ -72,6 +72,7 @@ router. Live anchors (examples only, not baked into shapes): registry
 - `HOGSWAP_API_KEY` (optional; sent as `X-API-Key` when provided)
 - `HOGSWAP_HTTP_CONCURRENCY` (optional, default `2`; HOGSWAP allows 4 in-flight/IP)
 - `HOGSWAP_HTTP_DELAY_MS` (optional, default `50`)
+- `HOGSWAP_HTTP_TIMEOUT_MS` (optional, default `8000`; aborts hung quote/execute/catalog fetches)
 
 ## Rate limits and freshness
 

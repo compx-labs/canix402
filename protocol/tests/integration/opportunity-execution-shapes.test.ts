@@ -640,6 +640,7 @@ test("STAMM LP opportunity attaches exclusive mint enter and redeem exit", () =>
   assert.equal(enriched.executionReady, true);
   assert.equal(enriched.executionShapes.length, 1);
   assert.equal(enriched.executionShapes[0]?.shapeKey, "mainnet:stamm:v1:mint:lp");
+  assert.ok(enriched.executionShapes[0]?.requiredInputs.includes("amountA"));
   assert.equal(enriched.executionShapes[0]?.inputHints?.poolAppId, 3544790053);
   assert.equal(enriched.executionShapes[0]?.inputHints?.tierIndex, 1);
   assert.equal(enriched.executionShapes[0]?.inputHints?.liquidityAssetId, 3544790059);

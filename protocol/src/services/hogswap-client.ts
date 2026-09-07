@@ -10,6 +10,9 @@ export const HOGSWAP_DEFAULT_BASE_URL = "https://hogswap-v1.liquihog.dev";
 /** HOGSWAP allows 4 in-flight requests per IP. Stay under that. */
 export const HOGSWAP_DEFAULT_HTTP_CONCURRENCY = 2;
 
+/** Per-request abort. Matches Tinyman (8s); Pact uses 15s. */
+export const HOGSWAP_DEFAULT_HTTP_TIMEOUT_MS = 8_000;
+
 /**
  * Protocols whose LP ASAs are valued by the unified HOGSWAP collector.
  * Tinyman and Pact keep their dedicated collectors and are excluded here.
@@ -196,24 +199,41 @@ async function hogswapRequestJson(
         const headers: Record<string, string> = {
           ...(hogswapHeaders() as Record<string, string>)
         };
-        const init: RequestInit = { method, headers };
+        const timeoutMs = readPositiveInteger(
+          process.env.HOGSWAP_HTTP_TIMEOUT_MS,
+          HOGSWAP_DEFAULT_HTTP_TIMEOUT_MS
+        );
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), timeoutMs);
+        const init: RequestInit = { method, headers, signal: controller.signal };
         if (method === "POST") {
           headers["content-type"] = "application/json";
           init.body = JSON.stringify(body ?? {});
         }
-        const response = await fetchImpl(url, init);
-        const payload = await readJsonBody(response);
-        if (response.status === 429) {
-          throw new HogswapClientError(
-            `HOGSWAP returned HTTP 429 for ${path}.`,
-            429,
-            payload
-          );
+        try {
+          const response = await fetchImpl(url, init);
+          const payload = await readJsonBody(response);
+          if (response.status === 429) {
+            throw new HogswapClientError(
+              `HOGSWAP returned HTTP 429 for ${path}.`,
+              429,
+              payload
+            );
+          }
+          if (!response.ok) {
+            throw mapHogswapHttpError(path, response.status, payload);
+          }
+          return payload;
+        } catch (error) {
+          if (isAbortError(error)) {
+            throw new HogswapClientError(
+              `HOGSWAP ${path} timed out after ${timeoutMs}ms.`
+            );
+          }
+          throw error;
+        } finally {
+          clearTimeout(timeout);
         }
-        if (!response.ok) {
-          throw mapHogswapHttpError(path, response.status, payload);
-        }
-        return payload;
       },
       {
         maxRetries: readNonNegativeInteger(process.env.HOGSWAP_429_MAX_RETRIES, 2),
@@ -902,6 +922,10 @@ function parseNullableNonNegativeNumber(value: unknown): number | null {
       ? Number(value)
       : Number.NaN;
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}
+
+function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === "AbortError";
 }
 
 function trimTrailingSlash(value: string): string {

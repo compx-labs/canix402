@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import { createServer, Server } from "node:http";
 import test from "node:test";
 
-import { setFolksFinanceSdkDependenciesForTests } from "../../src/adapters/index.js";
+import {
+  setFolksFinanceSdkDependenciesForTests,
+  setStammAdapterDependenciesForTests
+} from "../../src/adapters/index.js";
 import { buildApp } from "../../src/app.js";
 import {
   emptyWalletHealthFactorIndex,
@@ -204,6 +207,10 @@ test("GET /opportunities/personalized returns wallet-matched opportunities ranke
 
   const tinymanMock = await startEmptyTinymanMock();
   process.env.TINYMAN_API_BASE_URL = tinymanMock.baseUrl;
+  setStammAdapterDependenciesForTests({
+    fetchPools: async () => [],
+    fetchAssets: async () => new Map()
+  });
 
   const app = buildApp();
   await app.ready();
@@ -257,6 +264,7 @@ test("GET /opportunities/personalized returns wallet-matched opportunities ranke
     await tinymanMock.close();
     delete process.env.TINYMAN_API_BASE_URL;
     setFolksFinanceSdkDependenciesForTests(undefined);
+    setStammAdapterDependenciesForTests();
     setAccountAssetsDependenciesForTests(undefined);
     setAssetDecimalsDependenciesForTests(undefined);
   }
@@ -282,6 +290,10 @@ test("GET /opportunities/personalized attaches wallet health factor from positio
 
   const tinymanMock = await startEmptyTinymanMock();
   process.env.TINYMAN_API_BASE_URL = tinymanMock.baseUrl;
+  setStammAdapterDependenciesForTests({
+    fetchPools: async () => [],
+    fetchAssets: async () => new Map()
+  });
 
   const app = buildApp();
   await app.ready();
@@ -304,6 +316,7 @@ test("GET /opportunities/personalized attaches wallet health factor from positio
     await tinymanMock.close();
     delete process.env.TINYMAN_API_BASE_URL;
     setFolksFinanceSdkDependenciesForTests(undefined);
+    setStammAdapterDependenciesForTests();
     setAccountAssetsDependenciesForTests(undefined);
     setAssetDecimalsDependenciesForTests(undefined);
     setWalletHealthFactorLoaderForTests(async () => emptyWalletHealthFactorIndex());
@@ -340,6 +353,10 @@ test("GET /opportunities/personalized returns empty data when no assets match", 
 
   const tinymanMock = await startEmptyTinymanMock();
   process.env.TINYMAN_API_BASE_URL = tinymanMock.baseUrl;
+  setStammAdapterDependenciesForTests({
+    fetchPools: async () => [],
+    fetchAssets: async () => new Map()
+  });
 
   const app = buildApp();
   await app.ready();
@@ -362,6 +379,7 @@ test("GET /opportunities/personalized returns empty data when no assets match", 
     await tinymanMock.close();
     delete process.env.TINYMAN_API_BASE_URL;
     setFolksFinanceSdkDependenciesForTests(undefined);
+    setStammAdapterDependenciesForTests();
     setAccountAssetsDependenciesForTests(undefined);
     setAssetDecimalsDependenciesForTests(undefined);
   }

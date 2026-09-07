@@ -4,6 +4,7 @@
 - Shape version: `1.0.0`
 - Source module: `src/execution/shapes/stamm/mint-lp.ts`
 - Supported opportunity types: `lp`
+- Required inputs: `userAddress`, `poolAppId`, `tierIndex`, `amountA` (pool-asset base units; `amountB` may be `0` for a one-sided mint). Alternative: omit `amountA`/`amountB` and pass `externalInputs` (any routable asset).
 - Paid API endpoint: `POST /execution/quotes` (0.1 USDC via x402)
 
 HOGSWAP `POST /quote` (`mode: LP_MINT`) then `POST /execute`. Canix returns an

@@ -1,6 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { ProtocolSchema } from "../routes/schemas.js";
+import { OpportunityProtocolSchema } from "../routes/schemas.js";
 import { OpportunityCapacitySchema } from "./opportunity-schema.js";
 
 export const ELIGIBILITY_MAX_OPPORTUNITY_IDS = 25;
@@ -121,7 +121,7 @@ export const EligibilitySuggestedSwapSchema = Type.Object(
 export const OpportunityEligibilitySchema = Type.Object(
   {
     opportunityId: Type.String({ minLength: 1 }),
-    protocol: Type.Union([ProtocolSchema, Type.Null()]),
+    protocol: Type.Union([OpportunityProtocolSchema, Type.Null()]),
     found: Type.Boolean(),
     canEnter: Type.Boolean(),
     eligibilityFullyCheckable: Type.Boolean(),

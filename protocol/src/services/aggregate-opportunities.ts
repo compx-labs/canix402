@@ -14,7 +14,10 @@ import { getAppLogger } from "../observability/logger.js";
 import { recordAdapterRequest } from "../observability/metrics.js";
 import { OpportunityMarketRecord } from "../types/opportunity.js";
 import type { Protocol } from "../routes/schemas.js";
-import { scheduleOpportunityHistorySnapshot } from "./opportunity-history.js";
+import {
+  historySnapshotsFromOpportunities,
+  scheduleOpportunityHistorySnapshot
+} from "./opportunity-history.js";
 import {
   getOpportunitiesCacheTtlSec,
   getOrSetCacheJson,
@@ -296,11 +299,5 @@ async function fetchOpportunitiesForProtocolUncachedInner(
 function scheduleHistorySnapshotFromRecords(
   records: readonly OpportunityMarketRecord[]
 ): void {
-  scheduleOpportunityHistorySnapshot(
-    records.map((row) => ({
-      opportunityId: row.opportunityId,
-      apy: row.apy,
-      tvlUsd: row.tvlUsd
-    }))
-  );
+  scheduleOpportunityHistorySnapshot(historySnapshotsFromOpportunities(records));
 }

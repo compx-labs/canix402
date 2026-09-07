@@ -8,9 +8,7 @@ export type AdapterName =
   | "haystack"
   | "reti"
   | "alpha-arcade"
-  | "stamm"
-  | "algofi"
-  | "humble";
+  | "stamm";
 
 export {
   fetchTinymanOpportunities,

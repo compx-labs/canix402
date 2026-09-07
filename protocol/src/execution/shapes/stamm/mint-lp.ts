@@ -101,7 +101,7 @@ export const stammMintLpShape: TransactionShapeSpec<StammMintLpInput, StammHogsw
     "Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
   supportedOpportunityTypes: ["lp"],
   opportunityRole: "enter",
-  requiredInputs: ["userAddress", "poolAppId", "tierIndex"],
+  requiredInputs: ["userAddress", "poolAppId", "tierIndex", "amountA"],
   sources: [
     {
       kind: "api",

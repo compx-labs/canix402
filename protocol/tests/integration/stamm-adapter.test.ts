@@ -138,3 +138,17 @@ test("GET /protocols/stamm/opportunities emits per-tier LP rows from recorded po
     }
   }
 });
+
+test("GET /protocols/algofi/opportunities is rejected — AlgoFi is positions-only", async () => {
+  const app = buildApp();
+  await app.ready();
+  try {
+    const response = await app.inject({
+      method: "GET",
+      url: "/protocols/algofi/opportunities"
+    });
+    assert.equal(response.statusCode, 400);
+  } finally {
+    await app.close();
+  }
+});

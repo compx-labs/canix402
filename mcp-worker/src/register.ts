@@ -14,9 +14,7 @@ const ProtocolSchema = z.enum([
   "haystack",
   "reti",
   "alpha-arcade",
-  "stamm",
-  "algofi",
-  "humble"
+  "stamm"
 ]);
 const AlgorandAddressSchema = z.string().length(58);
 const AssetIdSchema = z.union([

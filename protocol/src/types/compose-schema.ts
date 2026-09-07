@@ -1,6 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { ProtocolSchema } from "../routes/schemas.js";
+import { OpportunityProtocolSchema } from "../routes/schemas.js";
 import { OpportunityEligibilitySchema } from "./eligibility-schema.js";
 import { OpportunityExecutionShapeSchema } from "./opportunity-schema.js";
 import {
@@ -33,7 +33,7 @@ export const ComposeRequestSchema = Type.Object(
 export const ComposeDataSchema = Type.Object(
   {
     opportunityId: Type.String({ minLength: 1 }),
-    protocol: ProtocolSchema,
+    protocol: OpportunityProtocolSchema,
     opportunityType: Type.String({ minLength: 1 }),
     assetPair: Type.String(),
     fromAssetId: Type.Integer({ minimum: 0 }),

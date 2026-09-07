@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 
 import {
-  ProtocolSchema,
+  OpportunityProtocolSchema,
   SupportedOpportunityTypeValues
 } from "../routes/schemas.js";
 import { OpportunityStabilityBucketSchema } from "./opportunity-history-schema.js";
@@ -206,7 +206,7 @@ export const OpportunityExecutionShapeSchema = Type.Object({
 
 /** Market-data fields produced by protocol adapters (before execution enrichment). */
 export const OpportunityMarketRecordSchema = Type.Object({
-  protocol: ProtocolSchema,
+  protocol: OpportunityProtocolSchema,
   opportunityType: OpportunityTypeSchema,
   opportunityId: Type.String(),
   assetPair: Type.String(),
@@ -238,7 +238,7 @@ export const OpportunityMarketRecordSchema = Type.Object({
 });
 
 export const OpportunityRecordSchema = Type.Object({
-  protocol: ProtocolSchema,
+  protocol: OpportunityProtocolSchema,
   opportunityType: OpportunityTypeSchema,
   opportunityId: Type.String(),
   assetPair: Type.String(),

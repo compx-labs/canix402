@@ -1,6 +1,7 @@
 import { Type, Static } from "@sinclair/typebox";
 
-export const SupportedProtocolValues = [
+/** Protocols that emit opportunity rows (`/opportunities`, `/protocols/:protocol/opportunities`). */
+export const SupportedOpportunityProtocolValues = [
   "tinyman",
   "pact",
   "folks-finance",
@@ -10,16 +11,27 @@ export const SupportedProtocolValues = [
   "haystack",
   "reti",
   "alpha-arcade",
-  "stamm",
-  "algofi",
-  "humble"
+  "stamm"
+] as const;
+
+/** LP valuation on `/positions` only — no opportunity adapter. */
+export const SupportedPositionOnlyProtocolValues = ["algofi", "humble"] as const;
+
+export const SupportedProtocolValues = [
+  ...SupportedOpportunityProtocolValues,
+  ...SupportedPositionOnlyProtocolValues
 ] as const;
 export const SupportedOpportunityTypeValues = ["lp", "farm", "staking", "lending"] as const;
+
+export const OpportunityProtocolSchema = Type.Union(
+  SupportedOpportunityProtocolValues.map((value) => Type.Literal(value))
+);
 
 export const ProtocolSchema = Type.Union(
   SupportedProtocolValues.map((value) => Type.Literal(value))
 );
 
+export type OpportunityProtocol = Static<typeof OpportunityProtocolSchema>;
 export type Protocol = Static<typeof ProtocolSchema>;
 export type OpportunityType = (typeof SupportedOpportunityTypeValues)[number];
 
@@ -47,7 +59,7 @@ export const ProtocolPaginationQuerySchema = createPaginationQuerySchema(
 export const OpportunitiesQuerySchema = Type.Composite([
   PaginationQuerySchema,
   Type.Object({
-    protocol: Type.Optional(ProtocolSchema)
+    protocol: Type.Optional(OpportunityProtocolSchema)
   })
 ]);
 
@@ -92,7 +104,7 @@ export type PersonalizedOpportunitiesQuery = Static<
 >;
 
 export const ProtocolOpportunitiesParamsSchema = Type.Object({
-  protocol: ProtocolSchema
+  protocol: OpportunityProtocolSchema
 });
 
 export const ProtocolOpportunitiesQuerySchema = ProtocolPaginationQuerySchema;

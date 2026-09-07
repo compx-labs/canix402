@@ -40,6 +40,7 @@ export {
   HogswapClientError,
   HogswapMissingOptInError,
   HogswapQuoteExpiredError,
+  HOGSWAP_DEFAULT_HTTP_TIMEOUT_MS,
   HOGSWAP_LP_DEFAULT_SLIPPAGE_BPS,
   HOGSWAP_LP_POSITION_PROTOCOLS,
   HOGSWAP_QUOTE_TTL_MS
@@ -159,11 +160,13 @@ export {
 export {
   attachHistoryStability,
   computeHistoryStability,
+  historySnapshotsFromOpportunities,
   loadOpportunityHistory,
   recordOpportunitySnapshots,
   resetOpportunityHistoryForTests,
   setOpportunityHistoryPointsForTests,
   setOpportunityHistoryStoreForTests,
+  shouldSnapshotOpportunityYield,
   stabilityConstraintPenalty,
   useMemoryOpportunityHistoryForTests
 } from "./opportunity-history.js";
