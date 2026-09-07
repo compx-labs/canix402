@@ -157,6 +157,12 @@ for later escrow operations.
   primary ALGO (`0`). Shapes remap amounts; they do not swap the on-chain pool.
 - Farm enter hints set `farmAppId` and, when known, a distinct AMM `poolAppId`.
   Do not pass the farm app id as `poolAppId` on LP shapes.
+- **Smart Router swap** (`mainnet:pact:smart-router:swap:fixed-input`) is a
+  standalone swap shape, not an LP/farm enter. It is **not** Haystack.
+  There is no public Smart Router HTTP quote (`@pactfi/pactsdk` has no router
+  module). Discovery is `GET {PACT_API_BASE_URL}/pools` (fallback `/pools/all`).
+  Hop quotes use `Pool.prepareSwap` on-chain; Canix picks a 1–3 hop path and
+  the best fee-tier pool per hop. Pass `fromAssetId` / `toAssetId` / `amount`.
 
 ### Opt-ins
 
@@ -167,6 +173,10 @@ for later escrow operations.
   `farm:stake` or `addLiquidityAndFarm:twoSided` — the escrow app id is unknown
   until the create transaction confirms. Skip deploy if an escrow already
   exists.
+- Smart Router groups do **not** include router `OPTIN`/`OPTOUT`. The contract
+  is expected to be `SUPEROPTIN`'d to route assets. The wallet must already be
+  opted into the **output ASA** (ALGO needs no opt-in). Opt-in is a separate
+  group and is never merged into the swap.
 
 ### Minimum balance
 
@@ -181,6 +191,9 @@ for later escrow operations.
   **percent** argument (`50` bps → `0.5`). Do not pass bps into the SDK as
   percent.
 - Quotes warn when `maxSlippageBps >= 500`.
+- Smart Router applies slippage only as `min_expected` on the **last** SWAP
+  (`amountOut * (10000 - bps) / 10000`). Intermediate hops ignore min-out, per
+  Pact router.md.
 - **Proportional remove does not encode slippage on chain.**
   `@pactfi/pactsdk` `buildRemoveLiquidityTxs` hard-codes `REMLIQ` minimum
   primary/secondary outputs as `0` / `0`. Review quote metadata and pool state
@@ -193,12 +206,18 @@ for later escrow operations.
 - Amounts must fit JavaScript safe integers — the Pact SDK builders are
   number-based.
 - `addLiquidityAndFarm:twoSided` still cannot be atomic with escrow deploy.
+- Smart Router routes at most three pools (packed 2-hop SWAP plus optional
+  1-hop SWAP). Parallel knapsack splits are not encoded: the published SWAP ABI
+  has no per-leg amount (the deposit is consumed sequentially).
 
 ### App upgrades
 
 - `contractVersion` / `poolType` / `feeBps` come from the live SDK pool object.
   A Pact pool rewrite that changes app id is a different `poolAppId`; do not
   reuse an old id from discovery cache.
+- Smart Router app id comes from `PACT_SMART_ROUTER_APP_ID` or quote input
+  `routerAppId`. Canix does not guess a mainnet router id. A router upgrade that
+  changes the app id invalidates groups until that value is updated.
 
 ## CompX
 

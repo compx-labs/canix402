@@ -24,13 +24,27 @@ export function parseAssetId(value: unknown, field: string): number {
 }
 
 export function parsePoolAppId(value: unknown): number {
+  return parsePositiveAppId(value, "poolAppId");
+}
+
+export function parsePositiveAppId(value: unknown, field: string): number {
   const numeric = typeof value === "string" ? Number(value) : value;
   if (typeof numeric !== "number" || !Number.isInteger(numeric) || numeric <= 0) {
-    throw new InvalidShapeInputError("poolAppId must be a positive integer application id.", {
-      poolAppId: value
+    throw new InvalidShapeInputError(`${field} must be a positive integer application id.`, {
+      [field]: value
     });
   }
   return numeric;
+}
+
+export function parseOptionalPositiveAppId(
+  value: unknown,
+  field: string
+): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  return parsePositiveAppId(value, field);
 }
 
 export function parseBaseUnitAmount(value: unknown, field: string): bigint {

@@ -158,6 +158,8 @@ Files:
 - `tests/integration/tinyman-remove-liquidity-shape.test.ts`
 - `tests/integration/tinyman-adapter.test.ts`
 - `tests/integration/pact-liquidity-shapes.test.ts`
+- `tests/integration/pact-smart-router-shapes.test.ts`
+- `tests/unit/pact-smart-router.test.ts`
 - `tests/integration/pact-adapter.test.ts`
 - `tests/integration/compx-execution-shapes.test.ts`
 - `tests/integration/dorkfi-execution-shapes.test.ts`
