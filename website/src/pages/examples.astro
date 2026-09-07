@@ -221,7 +221,8 @@ const policyCurl = `curl -i ${config.gatewayBaseUrl}/policy/validate -H 'content
       <code>GET /protocols/&#123;protocol&#125;/opportunities</code> — opportunities for a single
       protocol. Substitute any supported protocol (e.g. <code>tinyman</code>, <code>pact</code>,
       <code>folks-finance</code>, <code>compx</code>, <code>dorkfi</code>, <code>myth-finance</code>,
-      <code>haystack</code>, <code>reti</code>, <code>alpha-arcade</code>).
+      <code>haystack</code>, <code>reti</code>, <code>alpha-arcade</code>, <code>stamm</code>).
+      AlgoFi and Humble LP holdings appear on <code>GET /positions</code> only.
     </p>
     <CodeBlock code={`curl -i ${config.gatewayBaseUrl}/protocols/reti/opportunities`} />
     <h3>Sample response (200)</h3>

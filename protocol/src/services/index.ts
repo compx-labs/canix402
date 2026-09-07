@@ -17,6 +17,42 @@ export {
   collectTinymanPositions,
   normalizeDorkFiHealthRecords
 } from "./protocol-positions.js";
+export {
+  collectAlgofiPositions,
+  collectHumblePositions,
+  collectStammPositions,
+  normalizeHogswapLpPosition
+} from "./hogswap-lp-positions.js";
+export {
+  executeHogswapQuote,
+  fetchHogswapAnalyticsPrices,
+  fetchHogswapLpCatalog,
+  fetchHogswapLpValuation,
+  fetchStammAssets,
+  fetchStammPools,
+  mapHogswapDexToProtocol,
+  parseHogswapExecute,
+  parseHogswapQuote,
+  quoteHogswapLpMint,
+  quoteHogswapLpRedeem,
+  resetHogswapClientCacheForTests,
+  setHogswapClientDependenciesForTests,
+  HogswapClientError,
+  HogswapMissingOptInError,
+  HogswapQuoteExpiredError,
+  HOGSWAP_DEFAULT_HTTP_TIMEOUT_MS,
+  HOGSWAP_LP_DEFAULT_SLIPPAGE_BPS,
+  HOGSWAP_LP_POSITION_PROTOCOLS,
+  HOGSWAP_QUOTE_TTL_MS
+} from "./hogswap-client.js";
+export type {
+  HogswapExecuteResult,
+  HogswapLpMintQuoteRequest,
+  HogswapLpQuoteExtras,
+  HogswapLpRedeemQuoteRequest,
+  HogswapQuote,
+  HogswapStammAssetMeta
+} from "./hogswap-client.js";
 export type {
   PositionCollector,
   ProtocolPositionsCollection
@@ -124,11 +160,13 @@ export {
 export {
   attachHistoryStability,
   computeHistoryStability,
+  historySnapshotsFromOpportunities,
   loadOpportunityHistory,
   recordOpportunitySnapshots,
   resetOpportunityHistoryForTests,
   setOpportunityHistoryPointsForTests,
   setOpportunityHistoryStoreForTests,
+  shouldSnapshotOpportunityYield,
   stabilityConstraintPenalty,
   useMemoryOpportunityHistoryForTests
 } from "./opportunity-history.js";

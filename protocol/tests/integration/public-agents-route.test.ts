@@ -33,17 +33,11 @@ function setAllCollectors(
     coverage: typeof COMPLETE_COVERAGE;
   }>
 ): void {
-  setPositionCollectorsForTests({
-    tinyman: collector,
-    pact: collector,
-    "folks-finance": collector,
-    compx: collector,
-    dorkfi: collector,
-    "myth-finance": collector,
-    haystack: collector,
-    reti: collector,
-    "alpha-arcade": collector
-  });
+  setPositionCollectorsForTests(
+    Object.fromEntries(
+      SUPPORTED_POSITION_PROTOCOLS.map((protocol) => [protocol, collector])
+    ) as Parameters<typeof setPositionCollectorsForTests>[0]
+  );
 }
 
 test("public Brownie positions route is free while /positions stays paid", () => {

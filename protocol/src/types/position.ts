@@ -26,6 +26,8 @@ export interface PositionRecordV1 {
   amountRaw: string;
   amount: string;
   usdValue: number | null;
+  /** Underlying ASA ids (e.g. LP asset A/B). Omitted when unknown. */
+  assetIds?: number[];
   healthFactor?: number | null;
   sourceTimestamp?: string;
   caveats?: string[];

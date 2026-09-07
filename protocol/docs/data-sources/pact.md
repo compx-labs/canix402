@@ -95,6 +95,10 @@ One pool can emit multiple opportunities:
 - Transaction construction (poolAppId discovery, bps→percent slippage, empty-pool
   LP lock, remove min-out `0/0`):
   [execution-shapes/protocol-caveats.md](../execution-shapes/protocol-caveats.md#pact).
+- **HOGSWAP overlap:** the unified HOGSWAP LP valuator also sees Pact LP ASAs via
+  `GET /pools`. Pact rows stay on this collector; HOGSWAP skips DEX names that
+  start with `pact` so the same LP ASA is not double-counted. See
+  [hogswap-lp.md](hogswap-lp.md).
 
 ## Tests
 

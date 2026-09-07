@@ -7,13 +7,17 @@ import {
   fetchMythFinanceOpportunities,
   fetchPactOpportunities,
   fetchRetiOpportunities,
+  fetchStammOpportunities,
   fetchTinymanOpportunities
 } from "../adapters/index.js";
 import { getAppLogger } from "../observability/logger.js";
 import { recordAdapterRequest } from "../observability/metrics.js";
 import { OpportunityMarketRecord } from "../types/opportunity.js";
 import type { Protocol } from "../routes/schemas.js";
-import { scheduleOpportunityHistorySnapshot } from "./opportunity-history.js";
+import {
+  historySnapshotsFromOpportunities,
+  scheduleOpportunityHistorySnapshot
+} from "./opportunity-history.js";
 import {
   getOpportunitiesCacheTtlSec,
   getOrSetCacheJson,
@@ -34,7 +38,8 @@ export const SUPPORTED_AGGREGATE_PROTOCOLS = [
   "myth-finance",
   "haystack",
   "reti",
-  "alpha-arcade"
+  "alpha-arcade",
+  "stamm"
 ] as const;
 
 const OPPORTUNITY_CACHE_NETWORK = "mainnet";
@@ -284,6 +289,9 @@ async function fetchOpportunitiesForProtocolUncachedInner(
   if (protocol === "alpha-arcade") {
     return await fetchAlphaArcadeOpportunities();
   }
+  if (protocol === "stamm") {
+    return await fetchStammOpportunities();
+  }
 
   return [];
 }
@@ -291,11 +299,5 @@ async function fetchOpportunitiesForProtocolUncachedInner(
 function scheduleHistorySnapshotFromRecords(
   records: readonly OpportunityMarketRecord[]
 ): void {
-  scheduleOpportunityHistorySnapshot(
-    records.map((row) => ({
-      opportunityId: row.opportunityId,
-      apy: row.apy,
-      tvlUsd: row.tvlUsd
-    }))
-  );
+  scheduleOpportunityHistorySnapshot(historySnapshotsFromOpportunities(records));
 }

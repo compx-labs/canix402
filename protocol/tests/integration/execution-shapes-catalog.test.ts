@@ -50,6 +50,12 @@ test("GET /execution/shapes returns the live registry catalog for free", async (
   assert.ok(reti);
   assert.ok(reti.requiredInputs.includes("validatorId"));
 
+  const stammMint = body.data.find(
+    (shape) => shape.shapeKey === "mainnet:stamm:v1:mint:lp"
+  );
+  assert.ok(stammMint);
+  assert.ok(stammMint.requiredInputs.includes("amountA"));
+
   assert.equal(
     body.meta.caveatsDocsPath,
     "protocol/docs/execution-shapes/protocol-caveats.md"
@@ -81,6 +87,7 @@ test("protocol execution caveats doc covers construction topics for fixture prot
     "Haystack",
     "Réti",
     "Alpha Arcade",
+    "STAMM",
     "Pool discovery",
     "Opt-ins",
     "Slippage math",

@@ -120,7 +120,9 @@ export const EXECUTION_SHAPE_DOCS_PATHS: Readonly<Record<string, string>> = {
   "mainnet:alpha-arcade:v1:unstake:alpha":
     "protocol/docs/execution-shapes/alpha-arcade-unstake-alpha.md",
   "mainnet:alpha-arcade:v1:claimRewards:usdc":
-    "protocol/docs/execution-shapes/alpha-arcade-claim-rewards-usdc.md"
+    "protocol/docs/execution-shapes/alpha-arcade-claim-rewards-usdc.md",
+  "mainnet:stamm:v1:mint:lp": "protocol/docs/execution-shapes/stamm-mint-lp.md",
+  "mainnet:stamm:v1:redeem:lp": "protocol/docs/execution-shapes/stamm-redeem-lp.md"
 };
 
 export function getExecutionShapeDocsPath(shapeKey: string): string | undefined {

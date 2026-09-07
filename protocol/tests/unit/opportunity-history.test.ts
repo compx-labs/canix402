@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   attachHistoryStability,
   computeHistoryStability,
+  historySnapshotsFromOpportunities,
   loadOpportunityHistory,
   parseHistoryWindow,
   recordOpportunitySnapshots,
@@ -103,6 +104,22 @@ test("computeHistoryStability maps APY coefficient of variation onto buckets", (
 
   const low = computeHistoryStability(points([5, 20, 8, 25]));
   assert.equal(low.bucket, "low");
+});
+
+test("computeHistoryStability treats a zero-APY series as unknown, not high-stability", () => {
+  const zero = computeHistoryStability(points([0, 0, 0, 0]));
+  assert.equal(zero.bucket, "unknown");
+  assert.equal(zero.apyMean, 0);
+});
+
+test("historySnapshotsFromOpportunities drops STAMM placeholder APY", () => {
+  assert.deepEqual(
+    historySnapshotsFromOpportunities([
+      { protocol: "stamm", opportunityId: "3544790053:lp:1", apy: 0, tvlUsd: 9_684 },
+      { protocol: "tinyman", opportunityId: "pool:lp", apy: 10, tvlUsd: 1_000 }
+    ]),
+    [{ opportunityId: "pool:lp", apy: 10, tvlUsd: 1_000 }]
+  );
 });
 
 test("stabilityConstraintPenalty ranks volatile APY worse than a thin series", () => {

@@ -22,16 +22,6 @@
       "mcp-server"
     ],
     "x402ProtocolVersion": 2,
-    "sessionPolicy": {
-      "header": "X-Canix-Session",
-      "receiptUriTemplate": "canix://session/{sessionId}",
-      "researchBudget": 50,
-      "quoteBudget": 10,
-      "ttlSeconds": 14400,
-      "priceUsdc": "0.25",
-      "oneShotDefault": true,
-      "note": "Exact-scheme one-shots remain the default. Send X-Canix-Session with a prepaid receipt to consume N research or M quotes/plans until TTL. Create/refresh are one-shot only. Fail-closed on expiry, exhausted quota, or store unavailability."
-    },
     "endpoints": [
       {
         "id": "root",
@@ -326,7 +316,7 @@
         "path": "/opportunities",
         "access": "paid",
         "summary": "Top 10 aggregated DeFi opportunities ranked by risk then APY",
-        "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, Haystack, Réti, and Alpha Arcade. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, and caveats before presenting or ranking yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
+        "description": "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, Haystack, Réti, and Alpha Arcade. Ranking applies designed risk constraints (confidence, utilization, volatility, reward runway, wallet health factor when address is in context) before raw APY. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, risk, and caveats before presenting yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": [
           "defi",
           "opportunities",
@@ -340,6 +330,7 @@
           "includeInactive",
           "refresh"
         ],
+        "sessionAccess": "research",
         "responseCodes": [
           200,
           402,
@@ -355,9 +346,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet",
+            "network": "algorand",
             "asset": "31566704",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.01"
           },
           "amountUsdc": "0.01",
@@ -370,7 +361,7 @@
         "path": "/protocols/:protocol/opportunities",
         "access": "paid",
         "summary": "Top 25 DeFi opportunities for a single protocol ranked by risk then APY",
-        "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, or alpha-arcade. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
+        "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, alpha-arcade, or stamm. Ranking applies designed risk constraints before raw APY. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, risk, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": [
           "defi",
           "opportunities",
@@ -386,6 +377,7 @@
           "includeInactive",
           "refresh"
         ],
+        "sessionAccess": "research",
         "responseCodes": [
           200,
           402,
@@ -401,9 +393,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet",
+            "network": "algorand",
             "asset": "31566704",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.01"
           },
           "amountUsdc": "0.01",
@@ -436,6 +428,7 @@
           "includeInactive",
           "refresh"
         ],
+        "sessionAccess": "research",
         "responseCodes": [
           200,
           402,
@@ -451,9 +444,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet",
+            "network": "algorand",
             "asset": "31566704",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.01"
           },
           "amountUsdc": "0.01",
@@ -466,7 +459,7 @@
         "path": "/opportunities/personalized",
         "access": "paid",
         "summary": "Top opportunities tuned to a wallet's held assets",
-        "description": "Returns Algorand DeFi opportunities whose underlying assets match a supplied wallet's holdings, including opted-in ASAs with positive balance and native ALGO when held. Matching applies POST /eligibility rules (min amount, ASA gates, capacity, unresolved NFD/creator gates) so full or gated venues are not recommended as enterable. Each row includes canEnter and eligibilityFullyCheckable; quote-time on-chain checks remain authoritative. Use POST /eligibility for the diagnostic (missingAssets, gates, capacity, suggestedSwap). This endpoint provides normalized market data only; it does not build or submit transactions.", "x-pragma": "pragma: allowlist secret",
+        "description": "Returns Algorand DeFi opportunities whose underlying assets match a supplied wallet's holdings, including opted-in ASAs with positive balance and native ALGO when held. Matching applies POST /eligibility rules (min amount, ASA gates, capacity, unresolved NFD/creator gates) so full or gated venues are not recommended as enterable. Ranking prefers designed risk constraints (including wallet health factor from existing position snapshots) over raw APY. Each row includes canEnter, eligibilityFullyCheckable, and risk; quote-time on-chain checks remain authoritative. Use POST /eligibility for the diagnostic (missingAssets, gates, capacity, suggestedSwap). This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": [
           "defi",
           "opportunities",
@@ -482,6 +475,7 @@
           "includeInactive",
           "refresh"
         ],
+        "sessionAccess": "research",
         "responseCodes": [
           200,
           402,
@@ -497,9 +491,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet",
+            "network": "algorand",
             "asset": "31566704",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.05"
           },
           "amountUsdc": "0.05",
@@ -528,7 +522,6 @@
         "sessionAccess": "research",
         "responseCodes": [
           200,
-          400,
           402,
           500
         ],
@@ -539,12 +532,12 @@
             "PAYMENT-SIGNATURE",
             "PAYMENT-RESPONSE"
           ],
-          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "network": "algorand",
+            "asset": "31566704",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.01"
           },
           "amountUsdc": "0.01",
@@ -557,7 +550,7 @@
         "path": "/eligibility",
         "access": "paid",
         "summary": "Wallet eligibility and capacity for selected opportunities",
-        "description": "Checks whether a wallet can enter one or more opportunities before requesting an execution quote. Resolves Réti entryRequirements and capacity (min amount, ASA gates, staker slots, ALGO room). NFD and creator gates are published as unresolved — canEnter is never true until eligibilityFullyCheckable is true. Returns missingAssets, gates, capacity, and an optional suggestedSwap hint (not a live quote). Quote-time on-chain checks remain authoritative. Canix does not sign or submit transactions.",
+        "description": "Checks whether a wallet can enter one or more opportunities before requesting an execution quote. Resolves Réti entryRequirements and capacity (min amount, ASA gates, staker slots, ALGO room). NFD and creator gates are published as unresolved — canEnter is never true until eligibilityFullyCheckable is true. Returns missingAssets, gates, capacity, an optional suggestedSwap hint (not a live quote), and wallet healthFactor for lending venues that already expose it on positions. Quote-time on-chain checks remain authoritative. Canix does not sign or submit transactions.",
         "tags": [
           "defi",
           "opportunities",
@@ -567,12 +560,13 @@
         ],
         "pathParams": [],
         "queryParams": [],
+        "sessionAccess": "research",
         "responseCodes": [
           200,
           400,
           402,
           500,
-          502
+          503
         ],
         "x402": {
           "protocolVersion": 2,
@@ -581,12 +575,12 @@
             "PAYMENT-SIGNATURE",
             "PAYMENT-RESPONSE"
           ],
-          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "network": "algorand",
+            "asset": "31566704",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.01"
           },
           "amountUsdc": "0.01",
@@ -599,7 +593,7 @@
         "path": "/plans",
         "access": "paid",
         "summary": "Compile an allocation intent into an ordered unsigned plan",
-        "description": "Agent states an allocation intent (address, budget/asset, constraints). Canix returns ordered steps: eligibility, optional live Haystack swap compose (opt-in → swap → enter, driven by requiredAssetIds), protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume this SKU rather than forking a compiler.",
+        "description": "Agent states an allocation intent (address, budget/asset, constraints). Canix ranks enterable venues with designed risk constraints before raw APY, then returns ordered steps: eligibility, optional live Haystack swap compose (opt-in → swap → enter, driven by requiredAssetIds), protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, a fail-closed simulation summary when compiled groups are available, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume this SKU rather than forking a compiler.",
         "tags": [
           "defi",
           "plans",
@@ -612,12 +606,13 @@
         ],
         "pathParams": [],
         "queryParams": [],
+        "sessionAccess": "quotes",
         "responseCodes": [
           200,
           400,
           402,
           500,
-          502
+          503
         ],
         "x402": {
           "protocolVersion": 2,
@@ -626,12 +621,12 @@
             "PAYMENT-SIGNATURE",
             "PAYMENT-RESPONSE"
           ],
-          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "network": "algorand",
+            "asset": "31566704",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.25"
           },
           "amountUsdc": "0.25",
@@ -644,7 +639,7 @@
         "path": "/plans/rebalance",
         "access": "paid",
         "summary": "Compile a delta rebalance plan of unsigned groups",
-        "description": "Positions are the book; opportunities are the menu. Pass address plus targetWeights (bps summing to 10000) and/or harvestIdle to claim worth-claiming rewards and redeploy idle ALGO. Returns ordered unsigned groups — claims, partial exits, optional Haystack swap compose, and enters — only the delta legs that change the book (not a full unwind-and-rebuild). Reuses claim desk, eligibility, compose, and position exit/manage shapeKeys. Groups are never merged. Canix does not sign or submit.",
+        "description": "Positions are the book; opportunities are the menu. Pass address plus targetWeights (bps summing to 10000) and/or harvestIdle to claim worth-claiming rewards and redeploy idle ALGO. Returns ordered unsigned groups — claims, partial exits, optional Haystack swap compose, and enters — only the delta legs that change the book (not a full unwind-and-rebuild). Reuses claim desk, eligibility, compose, and position exit/manage shapeKeys. Groups are never merged. Attaches a fail-closed simulation summary when compiled groups are available. Canix does not sign or submit.",
         "tags": [
           "defi",
           "plans",
@@ -658,12 +653,13 @@
         ],
         "pathParams": [],
         "queryParams": [],
+        "sessionAccess": "quotes",
         "responseCodes": [
           200,
           400,
           402,
           500,
-          502
+          503
         ],
         "x402": {
           "protocolVersion": 2,
@@ -672,12 +668,12 @@
             "PAYMENT-SIGNATURE",
             "PAYMENT-RESPONSE"
           ],
-          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "network": "algorand",
+            "asset": "31566704",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.25"
           },
           "amountUsdc": "0.25",
@@ -702,12 +698,11 @@
         ],
         "pathParams": [],
         "queryParams": [],
+        "sessionAccess": "quotes",
         "responseCodes": [
           200,
-          400,
           402,
-          500,
-          502
+          500
         ],
         "x402": {
           "protocolVersion": 2,
@@ -716,12 +711,12 @@
             "PAYMENT-SIGNATURE",
             "PAYMENT-RESPONSE"
           ],
-          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "network": "algorand",
+            "asset": "31566704",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.25"
           },
           "amountUsdc": "0.25",
@@ -734,7 +729,7 @@
         "path": "/positions",
         "access": "paid",
         "summary": "Algorand DeFi positions held by a wallet",
-        "description": "Returns normalized DeFi positions associated with a supplied Algorand wallet address across supported protocols. Use when an agent needs a wallet-level view of deposited, supplied, staked, or liquidity positions and their current values. This endpoint provides position data only; it does not build or submit transactions.",
+        "description": "Returns normalized DeFi positions associated with a supplied Algorand wallet address across supported protocols. LP tokens indexed by HOGSWAP (STAMM, AlgoFi, Humble) are valued via GET /lp/{asset_id}?amount= — proportional NAV, null rather than guessed. Tinyman and Pact LP collectors remain canonical for those venues (no double-count by LP ASA). This endpoint provides position data only; it does not build or submit transactions.",
         "tags": [
           "defi",
           "positions",
@@ -745,12 +740,13 @@
         "queryParams": [
           "address"
         ],
+        "sessionAccess": "research",
         "responseCodes": [
           200,
           400,
           402,
           500,
-          502
+          503
         ],
         "x402": {
           "protocolVersion": 2,
@@ -762,9 +758,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet",
+            "network": "algorand",
             "asset": "31566704",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.005"
           },
           "amountUsdc": "0.005",
@@ -790,12 +786,13 @@
         "queryParams": [
           "address"
         ],
+        "sessionAccess": "research",
         "responseCodes": [
           200,
           400,
           402,
           500,
-          502
+          503
         ],
         "x402": {
           "protocolVersion": 2,
@@ -807,9 +804,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet",
+            "network": "algorand",
             "asset": "31566704",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.001"
           },
           "amountUsdc": "0.001",
@@ -854,6 +851,7 @@
         ],
         "pathParams": [],
         "queryParams": [],
+        "sessionAccess": "quotes",
         "responseCodes": [
           200,
           400,
@@ -871,9 +869,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet",
+            "network": "algorand",
             "asset": "31566704",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.005"
           },
           "amountUsdc": "0.005",
@@ -905,7 +903,7 @@
         "path": "/execution/quotes",
         "access": "paid",
         "summary": "Compile one or more verified transaction shapes into unsigned Algorand transaction groups",
-        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), and Réti v1 ALGO staking shapes (stake/unstake). Canix does not sign or submit transactions in this endpoint. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
+        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), Réti v1 ALGO staking shapes (stake/unstake), Alpha Arcade v1 ALPHA staking shapes (stake/unstake/claim USDC), and STAMM v1 LP mint/redeem via HOGSWAP (unsigned groups; do not hardcode router app ids). Canix does not sign or submit transactions in this endpoint. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
         "tags": [
           "execution",
           "transactions",
@@ -915,6 +913,7 @@
         ],
         "pathParams": [],
         "queryParams": [],
+        "sessionAccess": "quotes",
         "responseCodes": [
           200,
           402,
@@ -930,9 +929,9 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet",
+            "network": "algorand",
             "asset": "31566704",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.1"
           },
           "amountUsdc": "0.1",
@@ -945,7 +944,7 @@
         "path": "/execution/compose",
         "access": "paid",
         "summary": "Compose opt-in → Haystack swap → enter as unmerged unsigned groups",
-        "description": "Compiles “I hold asset A, I want this opportunity” into sequenced groups: optional ASA/app opt-in, Haystack swap (signer indexes and pre-signed members preserved), then enter — driven by requiredAssetIds. Groups are never merged. Failure modes (stale quote, missing opt-in, slippage) are listed on step warnings. Canix does not sign or submit. Caller signs user legs and submits locally in order.", "x-pragma": "pragma: allowlist secret",
+        "description": "Compiles “I hold asset A, I want this opportunity” into sequenced groups: optional ASA/app opt-in, Haystack swap (signer indexes and pre-signed members preserved), then enter — driven by requiredAssetIds. Groups are never merged. Failure modes (stale quote, missing opt-in, slippage) are listed on step warnings. Canix does not sign or submit. Caller signs user legs and submits locally in order.",
         "tags": [
           "execution",
           "swaps",
@@ -957,12 +956,13 @@
         ],
         "pathParams": [],
         "queryParams": [],
+        "sessionAccess": "quotes",
         "responseCodes": [
           200,
           400,
           402,
           500,
-          502
+          503
         ],
         "x402": {
           "protocolVersion": 2,
@@ -971,12 +971,12 @@
             "PAYMENT-SIGNATURE",
             "PAYMENT-RESPONSE"
           ],
-          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "network": "algorand",
+            "asset": "31566704",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.1"
           },
           "amountUsdc": "0.1",
@@ -989,7 +989,7 @@
         "path": "/execution/simulate",
         "access": "paid",
         "summary": "Simulate compiled unsigned groups for predicted balance and position deltas",
-        "description": "Given compiled unsigned group(s) from a plan or execution quote, returns predicted wallet balance and position deltas without signing or submitting. Fails closed with machine-readable reasons when the group would not succeed (stale quote, not opted in, min balance, health factor too low, capacity). Canix does not sign or submit. POST /plans attaches the same simulation summary when compiled groups are available.", "x-pragma": "pragma: allowlist secret",
+        "description": "Given compiled unsigned group(s) from a plan or execution quote, returns predicted wallet balance and position deltas without signing or submitting. Fails closed with machine-readable reasons when the group would not succeed (stale quote, not opted in, min balance, health factor too low, capacity). Canix does not sign or submit. POST /plans attaches the same simulation summary when compiled groups are available.",
         "tags": [
           "defi",
           "execution",
@@ -1001,12 +1001,13 @@
         ],
         "pathParams": [],
         "queryParams": [],
+        "sessionAccess": "quotes",
         "responseCodes": [
           200,
           400,
           402,
           500,
-          502
+          503
         ],
         "x402": {
           "protocolVersion": 2,
@@ -1015,12 +1016,12 @@
             "PAYMENT-SIGNATURE",
             "PAYMENT-RESPONSE"
           ],
-          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "network": "algorand",
+            "asset": "31566704",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.1"
           },
           "amountUsdc": "0.1",
@@ -1033,11 +1034,12 @@
         "path": "/sessions",
         "access": "paid",
         "summary": "Buy a prepaid agent session receipt",
-        "description": "One compiler-priced x402 payment mints a walletless prepaid session receipt (canix://session/{id}). The receipt unlocks N research calls and M quotes/plans until TTL. Sessions are receipts, not keys.",
+        "description": "One compiler-priced x402 payment mints a walletless prepaid session receipt (canix://session/{id}). The receipt unlocks N research calls and M quotes/plans until TTL. Sessions are receipts, not keys — Canix never stores a wallet. Exact-scheme one-shots remain the default; omit X-Canix-Session to pay per request. Fail-closed on expiry, exhausted quota, or store unavailability.",
         "tags": [
           "sessions",
           "x402",
-          "agents"
+          "agents",
+          "x402-global-challenge"
         ],
         "pathParams": [],
         "queryParams": [],
@@ -1055,12 +1057,12 @@
             "PAYMENT-SIGNATURE",
             "PAYMENT-RESPONSE"
           ],
-          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "network": "algorand",
+            "asset": "31566704",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.25"
           },
           "amountUsdc": "0.25",
@@ -1073,11 +1075,12 @@
         "path": "/sessions/refresh",
         "access": "paid",
         "summary": "Refresh a prepaid agent session receipt",
-        "description": "Compiler-priced x402 payment that resets N/M quota and TTL on an existing session id, or mints a new receipt if the previous one is gone. Cannot be paid with an existing session.",
+        "description": "Compiler-priced x402 payment that resets N/M quota and TTL on an existing session id, or mints a new receipt if the previous one is gone. Cannot be paid with an existing session — this route is one-shot only.",
         "tags": [
           "sessions",
           "x402",
-          "agents"
+          "agents",
+          "x402-global-challenge"
         ],
         "pathParams": [],
         "queryParams": [],
@@ -1095,12 +1098,12 @@
             "PAYMENT-SIGNATURE",
             "PAYMENT-RESPONSE"
           ],
-          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
-            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "network": "algorand",
+            "asset": "31566704",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.25"
           },
           "amountUsdc": "0.25",
@@ -1113,7 +1116,7 @@
         "path": "/sessions/:sessionId",
         "access": "free",
         "summary": "Read prepaid session remaining N/M",
-        "description": "Returns the session receipt including remaining research and quotes/plans quota and expiry. Agents should use this resource instead of the public indexer /transactions showcase.",
+        "description": "Returns the session receipt including remaining research and quotes/plans quota and expiry. Agents should use this resource instead of the public indexer /transactions showcase. Fail-closed 402 when the receipt is unknown or expired.",
         "tags": [
           "sessions",
           "agents",
@@ -1134,7 +1137,7 @@
         "path": "/watch",
         "access": "paid",
         "summary": "Register a paid wallet watch retainer",
-        "description": "Recurring compiler-priced x402 retainer that registers a walletless watch (address + thresholds + optional HTTPS webhook). Fires signed, idempotent notifications on health-factor, claimable-USD, APY-drop, or R\u00e9ti-capacity crossings. Canix never stores wallet keys \u2014 only the address, callback, and a server-generated HMAC secret (shown once). Refresh with POST /watch/refresh before TTL. MCP resource canix://watch/{watchId} lists recent firings.",
+        "description": "Recurring compiler-priced x402 retainer that registers a walletless watch (address + thresholds + optional HTTPS webhook). Fires signed, idempotent notifications on health-factor, claimable-USD, APY-drop, or Réti-capacity crossings. Canix never stores wallet keys — only the address, callback, and a server-generated HMAC secret (shown once). Refresh with POST /watch/refresh before TTL. MCP resource canix://watch/{watchId} lists recent firings.",
         "tags": [
           "watch",
           "x402",
@@ -1157,12 +1160,12 @@
             "PAYMENT-SIGNATURE",
             "PAYMENT-RESPONSE"
           ],
-          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet", "x-pragma": "pragma: allowlist secret",
-            "asset": "31566704", "x-pragma": "pragma: allowlist secret",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "network": "algorand",
+            "asset": "31566704",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.25"
           },
           "amountUsdc": "0.25",
@@ -1198,12 +1201,12 @@
             "PAYMENT-SIGNATURE",
             "PAYMENT-RESPONSE"
           ],
-          "facilitator": "https://facilitator.goplausible.xyz", "x-pragma": "pragma: allowlist secret",
+          "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand-mainnet", "x-pragma": "pragma: allowlist secret",
-            "asset": "31566704", "x-pragma": "pragma: allowlist secret",
-            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "network": "algorand",
+            "asset": "31566704",
+            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
             "maxAmountRequired": "0.25"
           },
           "amountUsdc": "0.25",
@@ -1237,7 +1240,7 @@
         "path": "/watch/:watchId/rotate-secret",
         "access": "free",
         "summary": "Rotate the watch webhook HMAC secret",
-        "description": "Mints a new webhook signing secret. Requires the current secret in X-Canix-Watch-Secret. The new secret is returned once and never stored as a wallet key. Does not extend retainer TTL \u2014 pay POST /watch/refresh for that.",
+        "description": "Mints a new webhook signing secret. Requires the current secret in X-Canix-Watch-Secret. The new secret is returned once and never stored as a wallet key. Does not extend retainer TTL — pay POST /watch/refresh for that.",
         "tags": [
           "watch",
           "agents"
@@ -1289,21 +1292,6 @@
         "description": "Session store is unavailable. Fail-closed; omit X-Canix-Session and retry with a per-request payment."
       },
       {
-        "code": "VALIDATION_ERROR",
-        "httpStatus": 400,
-        "description": "Request validation failed."
-      },
-      {
-        "code": "NOT_FOUND",
-        "httpStatus": 404,
-        "description": "Requested resource was not found."
-      },
-      {
-        "code": "INTERNAL_ERROR",
-        "httpStatus": 500,
-        "description": "Internal server error."
-      },
-      {
         "code": "WATCH_INVALID",
         "httpStatus": 402,
         "description": "Watch receipt is unknown. Register a new paid watch with POST /watch."
@@ -1322,8 +1310,33 @@
         "code": "WATCH_UNAUTHORIZED",
         "httpStatus": 402,
         "description": "Watch HMAC secret does not match. Send the current secret in X-Canix-Watch-Secret to rotate."
+      },
+      {
+        "code": "VALIDATION_ERROR",
+        "httpStatus": 400,
+        "description": "Request validation failed."
+      },
+      {
+        "code": "NOT_FOUND",
+        "httpStatus": 404,
+        "description": "Requested resource was not found."
+      },
+      {
+        "code": "INTERNAL_ERROR",
+        "httpStatus": 500,
+        "description": "Internal server error."
       }
     ],
+    "sessionPolicy": {
+      "header": "X-Canix-Session",
+      "receiptUriTemplate": "canix://session/{sessionId}",
+      "researchBudget": 50,
+      "quoteBudget": 10,
+      "ttlSeconds": 14400,
+      "priceUsdc": "0.25",
+      "oneShotDefault": true,
+      "note": "Exact-scheme one-shots remain the default. Send X-Canix-Session with a prepaid receipt to consume N research or M quotes/plans until TTL. Create/refresh are one-shot only. Fail-closed on expiry, exhausted quota, or store unavailability."
+    },
     "watchPolicy": {
       "receiptUriTemplate": "canix://watch/{watchId}",
       "ttlSeconds": 86400,
@@ -1348,9 +1361,11 @@
         "canix_list_opportunities",
         "canix_search_opportunities",
         "canix_get_personalized_opportunities",
+        "canix_get_opportunity_history",
         "canix_check_eligibility",
         "canix_get_plan",
         "canix_get_rebalance_plan",
+        "canix_validate_policy",
         "canix_compose_enter",
         "canix_get_protocol_opportunities",
         "canix_get_positions",

@@ -5,7 +5,10 @@ import {
   fetchOpportunitiesResult,
   SUPPORTED_AGGREGATE_PROTOCOLS
 } from "../services/aggregate-opportunities.js";
-import { recordOpportunitySnapshots } from "../services/opportunity-history.js";
+import {
+  historySnapshotsFromOpportunities,
+  recordOpportunitySnapshots
+} from "../services/opportunity-history.js";
 import {
   CANIX_CACHE_KEY_PREFIX,
   tryAcquireRedisLock
@@ -68,11 +71,7 @@ export async function runOpportunityHistoryJob(
   try {
     const { data } = await fetchOpportunitiesResult(SUPPORTED_AGGREGATE_PROTOCOLS);
     const written = await recordOpportunitySnapshots(
-      data.map((row) => ({
-        opportunityId: row.opportunityId,
-        apy: row.apy,
-        tvlUsd: row.tvlUsd
-      }))
+      historySnapshotsFromOpportunities(data)
     );
     log.info(
       {

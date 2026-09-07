@@ -7,7 +7,8 @@ export type AdapterName =
   | "myth-finance"
   | "haystack"
   | "reti"
-  | "alpha-arcade";
+  | "alpha-arcade"
+  | "stamm";
 
 export {
   fetchTinymanOpportunities,
@@ -110,3 +111,14 @@ export {
   AlphaArcadeAdapterError
 } from "./alpha-arcade.js";
 export type { AlphaArcadePoolSnapshot } from "./alpha-arcade.js";
+export {
+  fetchStammOpportunities,
+  normalizeStammLpOpportunity,
+  normalizeStammPoolTiers,
+  allocateTierTvlUsd,
+  setStammAdapterDependenciesForTests,
+  stammLpOpportunityId,
+  STAMM_UNKNOWN_APY_NOTE,
+  StammAdapterError
+} from "./stamm.js";
+export type { StammTierSnapshot } from "./stamm.js";

@@ -1368,7 +1368,7 @@
     "/positions": {
       "get": {
         "summary": "Algorand DeFi positions held by a wallet",
-        "description": "Returns normalized DeFi positions associated with a supplied Algorand wallet address across supported protocols. Use when an agent needs a wallet-level view of deposited, supplied, staked, or liquidity positions and their current values. This endpoint provides position data only; it does not build or submit transactions.",
+        "description": "Returns normalized DeFi positions associated with a supplied Algorand wallet address across supported protocols. LP tokens indexed by HOGSWAP (STAMM, AlgoFi, Humble) are valued via GET /lp/{asset_id}?amount= — proportional NAV, null rather than guessed. Tinyman and Pact LP collectors remain canonical for those venues (no double-count by LP ASA). This endpoint provides position data only; it does not build or submit transactions.", "x-pragma": "pragma: allowlist secret",
         "tags": [
           "defi",
           "positions",
@@ -1558,7 +1558,7 @@
     "/protocols/{protocol}/opportunities": {
       "get": {
         "summary": "Top 25 DeFi opportunities for a single protocol ranked by risk then APY",
-        "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, or alpha-arcade. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
+        "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, alpha-arcade, or stamm. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.", "x-pragma": "pragma: allowlist secret",
         "tags": [
           "defi",
           "opportunities",
@@ -1580,7 +1580,8 @@
                 "myth-finance",
                 "haystack",
                 "reti",
-                "alpha-arcade"
+                "alpha-arcade",
+                "stamm"
               ]
             }
           },
@@ -1701,7 +1702,7 @@
     "/execution/quotes": {
       "post": {
         "summary": "Compile a verified transaction shape into unsigned Algorand transactions",
-        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), and Réti v1 ALGO staking shapes (stake/unstake). Canix does not sign or submit transactions in this endpoint. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
+        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), Réti v1 ALGO staking shapes (stake/unstake), Alpha Arcade v1 ALPHA staking shapes (stake/unstake/claim USDC), and STAMM v1 LP mint/redeem via HOGSWAP (unsigned groups; do not hardcode router app ids). Canix does not sign or submit transactions in this endpoint. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
         "tags": [
           "execution",
           "transactions",
@@ -1769,6 +1770,12 @@
                 },
                 "haystackClaimRewards": {
                   "$ref": "#/components/examples/ExecutionQuoteHaystackClaimRewardsRequestSample"
+                },
+                "stammMintLp": {
+                  "$ref": "#/components/examples/ExecutionQuoteStammMintLpRequestSample"
+                },
+                "stammRedeemLp": {
+                  "$ref": "#/components/examples/ExecutionQuoteStammRedeemLpRequestSample"
                 },
                 "multiQuote": {
                   "$ref": "#/components/examples/ExecutionQuoteMultiRequestSample"
@@ -3214,7 +3221,8 @@
               "myth-finance",
               "haystack",
               "reti",
-              "alpha-arcade"
+              "alpha-arcade",
+              "stamm"
             ]
           },
           "opportunityType": {
@@ -3491,7 +3499,10 @@
               "myth-finance",
               "haystack",
               "reti",
-              "alpha-arcade"
+              "alpha-arcade",
+              "stamm",
+              "algofi",
+              "humble"
             ]
           },
           "positionType": {
@@ -3541,6 +3552,14 @@
               "null"
             ],
             "minimum": 0
+          },
+          "assetIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "description": "Underlying ASA ids for the position (LP asset A/B). Omitted when unknown."
           },
           "healthFactor": {
             "type": [
@@ -3605,7 +3624,10 @@
               "myth-finance",
               "haystack",
               "reti",
-              "alpha-arcade"
+              "alpha-arcade",
+              "stamm",
+              "algofi",
+              "humble"
             ]
           },
           "status": {
@@ -3778,7 +3800,10 @@
               "myth-finance",
               "haystack",
               "reti",
-              "alpha-arcade"
+              "alpha-arcade",
+              "stamm",
+              "algofi",
+              "humble"
             ]
           },
           "positionId": {
@@ -5408,6 +5433,11 @@
             "type": "integer",
             "minimum": 1,
             "description": "Folks Finance loan application id (distinct from pool app id)."
+          },
+          "tierIndex": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "STAMM fee-tier index (0–5) when the LP ASA is a STAMM tier token."
           }
         }
       },
@@ -5992,7 +6022,8 @@
                   "myth-finance",
                   "haystack",
                   "reti",
-                  "alpha-arcade"
+                  "alpha-arcade",
+                  "stamm"
                 ]
               },
               {
@@ -6635,7 +6666,8 @@
               "myth-finance",
               "haystack",
               "reti",
-              "alpha-arcade"
+              "alpha-arcade",
+              "stamm"
             ]
           },
           "opportunityType": {
@@ -6944,7 +6976,8 @@
               "myth-finance",
               "haystack",
               "reti",
-              "alpha-arcade"
+              "alpha-arcade",
+              "stamm"
             ]
           },
           "opportunityType": {
@@ -8892,6 +8925,42 @@
               "shapeKey": "mainnet:haystack:v1:claim:rewards",
               "input": {
                 "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+              }
+            }
+          ]
+        }
+      },
+      "ExecutionQuoteStammMintLpRequestSample": {
+        "summary": "STAMM v1 LP mint via HOGSWAP (unsigned group)",
+        "value": {
+          "quotes": [
+            {
+              "shapeKey": "mainnet:stamm:v1:mint:lp",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "poolAppId": 3544790053,
+                "tierIndex": 1,
+                "amountA": "1000000",
+                "amountB": "0",
+                "maxSlippageBps": 100
+              }
+            }
+          ]
+        }
+      },
+      "ExecutionQuoteStammRedeemLpRequestSample": {
+        "summary": "STAMM v1 LP redeem via HOGSWAP (unsigned group)",
+        "value": {
+          "quotes": [
+            {
+              "shapeKey": "mainnet:stamm:v1:redeem:lp",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "poolAppId": 3544790053,
+                "tierIndex": 1,
+                "lpAmount": "1000000",
+                "targetAsset": 0,
+                "maxSlippageBps": 100
               }
             }
           ]

@@ -1,6 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { ProtocolSchema } from "../routes/schemas.js";
+import { OpportunityProtocolSchema, ProtocolSchema } from "../routes/schemas.js";
 import {
   EligibilitySuggestedSwapSchema,
   OpportunityEligibilitySchema
@@ -108,7 +108,7 @@ export const PlanStepSchema = Type.Object(
 export const PlanAllocationSchema = Type.Object(
   {
     opportunityId: Type.String({ minLength: 1 }),
-    protocol: ProtocolSchema,
+    protocol: OpportunityProtocolSchema,
     opportunityType: Type.String({ minLength: 1 }),
     assetPair: Type.String(),
     apy: Type.Number(),
@@ -132,7 +132,7 @@ export const PlanAllocationSchema = Type.Object(
 export const PlanBlockedAllocationSchema = Type.Object(
   {
     opportunityId: Type.String({ minLength: 1 }),
-    protocol: Type.Union([ProtocolSchema, Type.Null()]),
+    protocol: Type.Union([OpportunityProtocolSchema, Type.Null()]),
     eligibility: OpportunityEligibilitySchema,
     reasons: Type.Array(Type.String())
   },
