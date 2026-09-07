@@ -12,6 +12,7 @@ single source directory.
 - Free routes: `GET /`, `GET /logo.png`, `GET /banner.png`, `GET /health`,
   `GET /ready`, `GET /metadata`, `GET /discovery`, `GET /openapi.json`,
   `POST /swaps/quote`, `POST /swaps/optin`,
+  `POST /swaps/folks/quote`, `POST /swaps/folks/optin`,
   `GET /public/agents/brownie/positions` (Brownie Bot showcase wallet only)
   (`GET /metrics` is free on the protocol process only; not proxied as free on Caddy)
   `GET /sessions/:sessionId` (prepaid session receipt / remaining N/M)
@@ -38,6 +39,7 @@ single source directory.
   - `POST /execution/quotes` (price: `X402_PRICE_EXECUTION_QUOTE_USDC`, default `0.1`)
   - `POST /execution/compose` (price: `X402_PRICE_EXECUTION_COMPOSE_USDC`, default `0.1`)
   - `POST /swaps/transactions` (price: `X402_PRICE_HAYSTACK_SWAP_USDC`, default `0.005`)
+  - `POST /swaps/folks/transactions` (price: `X402_PRICE_FOLKS_ROUTER_SWAP_USDC`, default `0.005`)
   - `POST /sessions` (price: `X402_PRICE_SESSIONS_USDC`, default `0.25`) — prepaid receipt mint
   - `POST /sessions/refresh` (price: `X402_PRICE_SESSIONS_USDC`, default `0.25`) — quota/TTL reset; one-shot only
   - `POST /watch` (price: `X402_PRICE_WATCH_USDC`, default `0.25`) — watch retainer registration

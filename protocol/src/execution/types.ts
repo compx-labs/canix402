@@ -22,7 +22,8 @@ export type ExecutionProtocol =
   | "haystack"
   | "reti"
   | "alpha-arcade"
-  | "stamm";
+  | "stamm"
+  | "hogswap";
 
 /**
  * Fully-qualified identity for a transaction shape. The stable string key is

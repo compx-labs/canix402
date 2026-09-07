@@ -6,6 +6,7 @@ import { pactFarmDeployEscrowShape } from "./farm-deploy-escrow.js";
 import { pactFarmStakeShape } from "./farm-stake.js";
 import { pactFarmUnstakeShape } from "./farm-unstake.js";
 import { pactRemoveLiquidityProportionalShape } from "./remove-liquidity-proportional.js";
+import { pactSmartRouterSwapShape } from "./smart-router-swap.js";
 
 export {
   pactAddLiquidityTwoSidedShape,
@@ -65,6 +66,24 @@ export type {
   PactFarmClaimRewardsDependencies
 } from "./farm-claim-rewards.js";
 export {
+  pactSmartRouterSwapShape,
+  setPactSmartRouterSwapDependenciesForTests
+} from "./smart-router-swap.js";
+export type {
+  PactSmartRouterSwapInput,
+  PactSmartRouterSwapState,
+  PactSmartRouterSwapDependencies
+} from "./smart-router-swap.js";
+export {
+  SWAP_ONE_HOP_METHOD,
+  SWAP_TWO_HOP_METHOD,
+  SWAP_ONE_HOP_SELECTOR_HEX,
+  SWAP_TWO_HOP_SELECTOR_HEX,
+  packRouterSwaps,
+  buildPactSmartRouterGroup,
+  pactSwapInterfaceName
+} from "./router-abi.js";
+export {
   resolvePactFarmState,
   setPactFarmStateDependenciesForTests,
   requireEscrow
@@ -92,5 +111,6 @@ export const pactShapes: readonly TransactionShapeSpec[] = [
   pactFarmStakeShape,
   pactFarmUnstakeShape,
   pactFarmClaimRewardsShape,
-  pactAddLiquidityAndFarmTwoSidedShape
+  pactAddLiquidityAndFarmTwoSidedShape,
+  pactSmartRouterSwapShape
 ];

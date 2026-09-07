@@ -160,6 +160,26 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     tags: ["defi", "swaps", "haystack", "transactions", "wallet"]
   },
   {
+    id: "folksRouterSwapQuote",
+    method: "POST",
+    pathPattern: "/swaps/folks/quote",
+    access: "free",
+    summary: "Fetch a walletless Folks Router V2 swap quote",
+    description:
+      "Returns a serializable Folks Router V2 quote (Tinyman/Pact/Humble routing, split and multi-hop) without signing or submitting. Amounts use asset base units. When address is set, GET /fetch/discount is applied as userFeeDiscount and the FOLKS holdings tiers are documented on data.discount. Quotes are short-lived and should be refreshed after completing prerequisite opt-ins.",
+    tags: ["defi", "swaps", "folks-router", "agents"]
+  },
+  {
+    id: "folksRouterSwapOptIn",
+    method: "POST",
+    pathPattern: "/swaps/folks/optin",
+    access: "free",
+    summary: "Build prerequisite Folks Router swap opt-ins",
+    description:
+      "Inspects the supplied account and Folks Router V2 quote, then returns any required output-asset and Folks Router application opt-in transactions as an unsigned group. The caller signs and submits the group locally; canix402 never receives wallet keys or submits it.",
+    tags: ["defi", "swaps", "folks-router", "transactions", "wallet"]
+  },
+  {
     id: "tokenPricing",
     method: "POST",
     pathPattern: "/pricing",
@@ -341,6 +361,18 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     sessionAccess: "quotes"
   },
   {
+    id: "folksRouterSwapTransactions",
+    method: "POST",
+    pathPattern: "/swaps/folks/transactions",
+    access: "paid",
+    summary: "Build a walletless Folks Router V2 swap transaction group",
+    description:
+      "Returns an ordered unsigned Algorand swap group for a fresh Folks Router V2 quote. Every member is signer:user — Canix does not sign or submit. The 0.005 USDC x402 access charge is separate from Folks Router's ~0.1% output fee (FOLKS holdings discount when sender was set at quote time), DEX fees, price impact, and Algorand network fees.", // pragma: allowlist secret
+    tags: ["defi", "swaps", "folks-router", "transactions", "x402", "agents", HACKATHON_TAG],
+    priceUsdc: process.env.X402_PRICE_FOLKS_ROUTER_SWAP_USDC ?? "0.005",
+    sessionAccess: "quotes"
+  },
+  {
     id: "executionShapes",
     method: "GET",
     pathPattern: "/execution/shapes",
@@ -358,7 +390,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     access: "paid",
     summary: "Compile one or more verified transaction shapes into unsigned Algorand transaction groups",
     description:
-      "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), Réti v1 ALGO staking shapes (stake/unstake), Alpha Arcade v1 ALPHA staking shapes (stake/unstake/claim USDC), and STAMM v1 LP mint/redeem via HOGSWAP (unsigned groups; do not hardcode router app ids). Canix does not sign or submit transactions in this endpoint. " +
+      "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman v2 swap shapes (swap:fixedInput / swap:fixedOutput via Tinyman Swap Router, falling back to a single Tinyman pool when the router is not better; Tinyman-pool only, never a cross-DEX aggregator), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, Pact Smart Router unsigned swap (`mainnet:pact:smart-router:swap:fixed-input`; local graph + Pool.prepareSwap, not Haystack), CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), Réti v1 ALGO staking shapes (stake/unstake), Alpha Arcade v1 ALPHA staking shapes (stake/unstake/claim USDC), and STAMM v1 LP mint/redeem via HOGSWAP (unsigned groups; do not hardcode router app ids), and HOGSWAP v1 swap shapes (fixed-input / fixed-output; unsigned groups; routing fee already netted into expectedOut; do not hardcode router app ids). Canix does not sign or submit transactions in this endpoint. " +
       EXECUTION_PROTOCOL_CAVEATS_AGENT_HINT,
     tags: ["execution", "transactions", "x402", "agents", HACKATHON_TAG],
     priceUsdc: process.env.X402_PRICE_EXECUTION_QUOTE_USDC ?? "0.1",
@@ -558,6 +590,7 @@ const paidPathMatchers = [
   /^\/positions\/claimable$/,
   /^\/protocols\/[^/]+\/opportunities$/,
   /^\/swaps\/transactions$/,
+  /^\/swaps\/folks\/transactions$/,
   /^\/execution\/quotes$/,
   /^\/execution\/compose$/,
   /^\/execution\/simulate$/,
@@ -589,6 +622,8 @@ const freePathMatchers = [
   /^\/\.well-known\/ai-plugin\.json$/,
   /^\/swaps\/quote$/,
   /^\/swaps\/optin$/,
+  /^\/swaps\/folks\/quote$/,
+  /^\/swaps\/folks\/optin$/,
   /^\/pricing$/,
   /^\/execution\/shapes$/,
   /^\/public\/agents\/brownie\/positions$/
@@ -671,7 +706,8 @@ const quoteSessionMatchers = [
   /^\/execution\/quotes$/,
   /^\/execution\/compose$/,
   /^\/execution\/simulate$/,
-  /^\/swaps\/transactions$/
+  /^\/swaps\/transactions$/,
+  /^\/swaps\/folks\/transactions$/
 ];
 
 /** Normalize `/protocols/:protocol/opportunities` to a concrete path for matchers. */

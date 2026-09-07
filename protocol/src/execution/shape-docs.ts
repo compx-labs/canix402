@@ -41,6 +41,10 @@ export const EXECUTION_SHAPE_DOCS_PATHS: Readonly<Record<string, string>> = {
     "protocol/docs/execution-shapes/tinyman-decrease-stake-stalgo.md",
   "mainnet:tinyman:restake-v1:claimRewards:stAlgo":
     "protocol/docs/execution-shapes/tinyman-claim-rewards-stalgo.md",
+  "mainnet:tinyman:v2:swap:fixedInput":
+    "protocol/docs/execution-shapes/tinyman-swap-router.md",
+  "mainnet:tinyman:v2:swap:fixedOutput":
+    "protocol/docs/execution-shapes/tinyman-swap-router.md",
   "mainnet:folks-finance:v2:setup:depositEscrow":
     "protocol/docs/execution-shapes/folks-finance-setup-deposit-escrow.md",
   "mainnet:folks-finance:v2:setup:optEscrowAsset":
@@ -83,6 +87,8 @@ export const EXECUTION_SHAPE_DOCS_PATHS: Readonly<Record<string, string>> = {
     "protocol/docs/execution-shapes/pact-farm-claim-rewards.md",
   "mainnet:pact:v1:addLiquidityAndFarm:twoSided":
     "protocol/docs/execution-shapes/pact-add-liquidity-and-farm-two-sided.md",
+  "mainnet:pact:smart-router:swap:fixed-input":
+    "protocol/docs/execution-shapes/pact-smart-router-swap.md",
   "mainnet:compx:v1:deposit:asa":
     "protocol/docs/execution-shapes/compx-deposit-asa.md",
   "mainnet:compx:v1:withdraw:asa":
@@ -122,7 +128,11 @@ export const EXECUTION_SHAPE_DOCS_PATHS: Readonly<Record<string, string>> = {
   "mainnet:alpha-arcade:v1:claimRewards:usdc":
     "protocol/docs/execution-shapes/alpha-arcade-claim-rewards-usdc.md",
   "mainnet:stamm:v1:mint:lp": "protocol/docs/execution-shapes/stamm-mint-lp.md",
-  "mainnet:stamm:v1:redeem:lp": "protocol/docs/execution-shapes/stamm-redeem-lp.md"
+  "mainnet:stamm:v1:redeem:lp": "protocol/docs/execution-shapes/stamm-redeem-lp.md",
+  "mainnet:hogswap:v1:swap:fixed-input":
+    "protocol/docs/execution-shapes/hogswap-swap-fixed-input.md",
+  "mainnet:hogswap:v1:swap:fixed-output":
+    "protocol/docs/execution-shapes/hogswap-swap-fixed-output.md"
 };
 
 export function getExecutionShapeDocsPath(shapeKey: string): string | undefined {

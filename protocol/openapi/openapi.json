@@ -3,13 +3,13 @@
   "info": {
     "title": "canix402 API",
     "version": "1.0.0",
-    "description": "x402-gated Algorand DeFi data and walletless transaction API, including Haystack swap quotes, prerequisite opt-ins, and paid atomic swap-group generation. Numeric yield/USD fields (apy, apr, tvlUsd) are returned with a standard precision of 6 decimal places, extended up to 12 decimal places only when needed to represent small non-zero values. Asset decimals are always sourced on-chain from algod.",
+    "description": "x402-gated Algorand DeFi data and walletless transaction API, including Haystack and Folks Router V2 swap quotes, prerequisite opt-ins, and paid atomic swap-group generation. Numeric yield/USD fields (apy, apr, tvlUsd) are returned with a standard precision of 6 decimal places, extended up to 12 decimal places only when needed to represent small non-zero values. Asset decimals are always sourced on-chain from algod. pragma: allowlist secret",
     "contact": {
       "name": "Neon Forge Ltd",
       "email": "kieran@neonforge.ltd",
       "url": "https://canix402.compx.io"
     },
-    "x-guidance": "Use the gateway base URL in servers[0]. Fetch /discovery and /openapi.json before integrating. Prefer the remote canix402 MCP server at https://canix402-mcp.compx.io/mcp (streamable-http, walletless pass-through) for agent tool access. Paid routes return HTTP 402 with PAYMENT-REQUIRED; sign a USDC ASA transfer client-side and retry with PAYMENT-SIGNATURE. Haystack swaps follow quote -> opt-in if needed -> fresh quote -> paid transaction generation -> local signing/submission. Human and LLM docs: https://canix402.compx.io/llms.txt",
+    "x-guidance": "Use the gateway base URL in servers[0]. Fetch /discovery and /openapi.json before integrating. Prefer the remote canix402 MCP server at https://canix402-mcp.compx.io/mcp (streamable-http, walletless pass-through) for agent tool access. Paid routes return HTTP 402 with PAYMENT-REQUIRED; sign a USDC ASA transfer client-side and retry with PAYMENT-SIGNATURE. Haystack swaps follow quote -> opt-in if needed -> fresh quote -> paid transaction generation -> local signing/submission. Folks Router V2 swaps use POST /swaps/folks/quote, /swaps/folks/optin, and paid /swaps/folks/transactions (unsigned groups only). Human and LLM docs: https://canix402.compx.io/llms.txt pragma: allowlist secret",
     "x-precision": {
       "fields": [
         "apy",
@@ -910,7 +910,7 @@
     "/opportunities/{opportunityId}/history": {
       "get": {
         "summary": "Bounded APY/TVL history for one opportunity",
-        "description": "Returns a rolling APY and TVL series for one opportunity over a bounded window (1d, 7d, or 30d). Snapshots are stored as cheap hourly Redis buckets for ~30 days only — not a warehouse and not backfilled from explorers. The series is empty until the snapshot job has run. Includes a stability signal (APY stdev / sample count) so snapshot APY cannot dominate plan sizing. Market data only; Canix does not sign or submit transactions.",
+        "description": "Returns a rolling APY and TVL series for one opportunity over a bounded window (1d, 7d, or 30d). Snapshots are stored as cheap hourly Redis buckets for ~30 days only \u2014 not a warehouse and not backfilled from explorers. The series is empty until the snapshot job has run. Includes a stability signal (APY stdev / sample count) so snapshot APY cannot dominate plan sizing. Market data only; Canix does not sign or submit transactions.",
         "tags": [
           "defi",
           "opportunities",
@@ -1003,7 +1003,7 @@
     "/eligibility": {
       "post": {
         "summary": "Wallet eligibility and capacity for selected opportunities",
-        "description": "Checks whether a wallet can enter one or more opportunities before requesting an execution quote. Resolves Réti entryRequirements and capacity (min amount, ASA gates, staker slots, ALGO room). NFD and creator gates are published as unresolved — canEnter is never true until eligibilityFullyCheckable is true. Returns missingAssets, gates, capacity, and an optional suggestedSwap hint (not a live quote). Quote-time on-chain checks remain authoritative. Canix does not sign or submit transactions.",
+        "description": "Checks whether a wallet can enter one or more opportunities before requesting an execution quote. Resolves R\u00e9ti entryRequirements and capacity (min amount, ASA gates, staker slots, ALGO room). NFD and creator gates are published as unresolved \u2014 canEnter is never true until eligibilityFullyCheckable is true. Returns missingAssets, gates, capacity, and an optional suggestedSwap hint (not a live quote). Quote-time on-chain checks remain authoritative. Canix does not sign or submit transactions.",
         "tags": [
           "defi",
           "opportunities",
@@ -1093,7 +1093,7 @@
     "/plans": {
       "post": {
         "summary": "Compile an allocation intent into an ordered unsigned plan",
-        "description": "Agent states an allocation intent (address, budget/asset, constraints such as max protocol weight, no new borrows, execution-ready only, TVL/freshness floors). Canix returns ordered steps: eligibility, optional live Haystack swap compose (opt-in → swap → enter, driven by requiredAssetIds), protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume POST /plans rather than forking a compiler.",
+        "description": "Agent states an allocation intent (address, budget/asset, constraints such as max protocol weight, no new borrows, execution-ready only, TVL/freshness floors). Canix returns ordered steps: eligibility, optional live Haystack swap compose (opt-in \u2192 swap \u2192 enter, driven by requiredAssetIds), protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume POST /plans rather than forking a compiler.",
         "tags": [
           "defi",
           "plans",
@@ -1184,7 +1184,7 @@
     "/plans/rebalance": {
       "post": {
         "summary": "Compile a delta rebalance plan of unsigned groups",
-        "description": "Positions are the book; opportunities are the menu. Pass address plus targetWeights (bps summing to 10000) and/or harvestIdle to claim worth-claiming rewards and redeploy idle ALGO. Returns ordered unsigned groups — claims, partial exits, optional Haystack swap compose, and enters — only the delta legs that change the book (not a full unwind-and-rebuild). Reuses claim desk, eligibility, compose, and position exit/manage shapeKeys. Groups are never merged. Canix does not sign or submit.",
+        "description": "Positions are the book; opportunities are the menu. Pass address plus targetWeights (bps summing to 10000) and/or harvestIdle to claim worth-claiming rewards and redeploy idle ALGO. Returns ordered unsigned groups \u2014 claims, partial exits, optional Haystack swap compose, and enters \u2014 only the delta legs that change the book (not a full unwind-and-rebuild). Reuses claim desk, eligibility, compose, and position exit/manage shapeKeys. Groups are never merged. Canix does not sign or submit.",
         "tags": [
           "defi",
           "plans",
@@ -1276,7 +1276,7 @@
     "/policy/validate": {
       "post": {
         "summary": "Validate a compiled plan or quotes[] against an operator policy document",
-        "description": "Operators bring policy; Canix evaluates a compiled plan (or proposed quotes[]) against a versioned policy document (max protocol weight, ALGO reserve floor, TVL/freshness floors, no-new-borrows, execution-ready only). Returns { pass, reasons[] }. Reuses plan/eligibility/risk fields already on the compiled object and fails closed when a required field is missing — it does not re-quote on-chain. Canix does not sign or submit. Brownie and a second agent can share the same schema (protocol/docs/policy-schema.md).",
+        "description": "Operators bring policy; Canix evaluates a compiled plan (or proposed quotes[]) against a versioned policy document (max protocol weight, ALGO reserve floor, TVL/freshness floors, no-new-borrows, execution-ready only). Returns { pass, reasons[] }. Reuses plan/eligibility/risk fields already on the compiled object and fails closed when a required field is missing \u2014 it does not re-quote on-chain. Canix does not sign or submit. Brownie and a second agent can share the same schema (protocol/docs/policy-schema.md).",
         "tags": [
           "defi",
           "policy",
@@ -1368,7 +1368,7 @@
     "/positions": {
       "get": {
         "summary": "Algorand DeFi positions held by a wallet",
-        "description": "Returns normalized DeFi positions associated with a supplied Algorand wallet address across supported protocols. LP tokens indexed by HOGSWAP (STAMM, AlgoFi, Humble) are valued via GET /lp/{asset_id}?amount= — proportional NAV, null rather than guessed. Tinyman and Pact LP collectors remain canonical for those venues (no double-count by LP ASA). This endpoint provides position data only; it does not build or submit transactions.", "x-pragma": "pragma: allowlist secret",
+        "description": "Returns normalized DeFi positions associated with a supplied Algorand wallet address across supported protocols. LP tokens indexed by HOGSWAP (STAMM, AlgoFi, Humble) are valued via GET /lp/{asset_id}?amount= \u2014 proportional NAV, null rather than guessed. Tinyman and Pact LP collectors remain canonical for those venues (no double-count by LP ASA). This endpoint provides position data only; it does not build or submit transactions.", "x-pragma": "pragma: allowlist secret",
         "tags": [
           "defi",
           "positions",
@@ -1444,7 +1444,7 @@
     "/positions/claimable": {
       "get": {
         "summary": "Claimable DeFi rewards across supported protocols",
-        "description": "Returns claimable reward rows for a wallet with USD value, network-fee / worth-claiming hints, compatible claim shapeKeys, and ready-to-POST quote inputs. Use claimAllQuotes (or selected per-row quotes) with POST /execution/quotes to compile unsigned claim groups — groups are never merged. Covers Tinyman farm, stALGO TINY claim, CompX staking, Pact farm, Haystack, and Alpha Arcade. This endpoint does not build or submit transactions.",
+        "description": "Returns claimable reward rows for a wallet with USD value, network-fee / worth-claiming hints, compatible claim shapeKeys, and ready-to-POST quote inputs. Use claimAllQuotes (or selected per-row quotes) with POST /execution/quotes to compile unsigned claim groups \u2014 groups are never merged. Covers Tinyman farm, stALGO TINY claim, CompX staking, Pact farm, Haystack, and Alpha Arcade. This endpoint does not build or submit transactions.",
         "tags": [
           "defi",
           "positions",
@@ -1527,7 +1527,7 @@
     "/public/agents/brownie/positions": {
       "get": {
         "summary": "Public DeFi positions for the Brownie Bot showcase wallet",
-        "description": "Free showcase route that returns normalized DeFi positions for the Brownie Bot treasury wallet only. The wallet address is hardcoded server-side — this is not a general free /positions browser. Use GET /positions?address= for arbitrary wallets (paid).",
+        "description": "Free showcase route that returns normalized DeFi positions for the Brownie Bot treasury wallet only. The wallet address is hardcoded server-side \u2014 this is not a general free /positions browser. Use GET /positions?address= for arbitrary wallets (paid).",
         "tags": [
           "defi",
           "positions",
@@ -1678,7 +1678,7 @@
     "/execution/shapes": {
       "get": {
         "summary": "List verified execution shape catalog metadata",
-        "description": "Returns the live catalog of verified transaction shapes (shapeKey, requiredInputs, opportunityRole, docsPath). meta.caveatsDocsPath points at protocol-specific construction caveats. Catalog metadata only — does not compile quotes or return unsigned transactions. Use POST /execution/quotes to compile executable groups. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
+        "description": "Returns the live catalog of verified transaction shapes (shapeKey, requiredInputs, opportunityRole, docsPath). meta.caveatsDocsPath points at protocol-specific construction caveats. Catalog metadata only \u2014 does not compile quotes or return unsigned transactions. Use POST /execution/quotes to compile executable groups. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
         "tags": [
           "execution",
           "discovery",
@@ -1702,7 +1702,7 @@
     "/execution/quotes": {
       "post": {
         "summary": "Compile a verified transaction shape into unsigned Algorand transactions",
-        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), Réti v1 ALGO staking shapes (stake/unstake), Alpha Arcade v1 ALPHA staking shapes (stake/unstake/claim USDC), and STAMM v1 LP mint/redeem via HOGSWAP (unsigned groups; do not hardcode router app ids). Canix does not sign or submit transactions in this endpoint. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
+        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman v2 swap shapes (swap:fixedInput / swap:fixedOutput via Tinyman Swap Router, falling back to a single Tinyman pool when the router is not better; Tinyman-pool only, never a cross-DEX aggregator), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, Pact Smart Router unsigned swap (`mainnet:pact:smart-router:swap:fixed-input`; local graph + Pool.prepareSwap, not Haystack), CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), Réti v1 ALGO staking shapes (stake/unstake), Alpha Arcade v1 ALPHA staking shapes (stake/unstake/claim USDC), and STAMM v1 LP mint/redeem via HOGSWAP (unsigned groups; do not hardcode router app ids), and HOGSWAP v1 swap shapes (fixed-input / fixed-output; unsigned groups; routing fee already netted into expectedOut; do not hardcode router app ids). Canix does not sign or submit transactions in this endpoint. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
         "tags": [
           "execution",
           "transactions",
@@ -1777,6 +1777,12 @@
                 "stammRedeemLp": {
                   "$ref": "#/components/examples/ExecutionQuoteStammRedeemLpRequestSample"
                 },
+                "hogswapSwapFixedInput": {
+                  "$ref": "#/components/examples/ExecutionQuoteHogswapSwapFixedInputRequestSample"
+                },
+                "hogswapSwapFixedOutput": {
+                  "$ref": "#/components/examples/ExecutionQuoteHogswapSwapFixedOutputRequestSample"
+                },
                 "multiQuote": {
                   "$ref": "#/components/examples/ExecutionQuoteMultiRequestSample"
                 }
@@ -1849,8 +1855,8 @@
     },
     "/execution/compose": {
       "post": {
-        "summary": "Compose opt-in → Haystack swap → enter as unmerged unsigned groups",
-        "description": "Compiles “I hold asset A, I want this opportunity” into sequenced groups: optional ASA/app opt-in, Haystack swap (signer indexes and pre-signed members preserved), then enter — driven by requiredAssetIds. Groups are never merged. Failure modes (stale quote, missing opt-in, slippage) are listed on step warnings. Canix does not sign or submit. Caller signs user legs and submits locally in order. Quote-time on-chain checks remain authoritative.",
+        "summary": "Compose opt-in \u2192 Haystack swap \u2192 enter as unmerged unsigned groups",
+        "description": "Compiles \u201cI hold asset A, I want this opportunity\u201d into sequenced groups: optional ASA/app opt-in, Haystack swap (signer indexes and pre-signed members preserved), then enter \u2014 driven by requiredAssetIds. Groups are never merged. Failure modes (stale quote, missing opt-in, slippage) are listed on step warnings. Canix does not sign or submit. Caller signs user legs and submits locally in order. Quote-time on-chain checks remain authoritative.",
         "tags": [
           "execution",
           "swaps",
@@ -2090,7 +2096,7 @@
                   "value": {
                     "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
                     "fromAssetId": 0,
-                    "toAssetId": 31566704,
+                    "toAssetId": 31566704, "x-pragma": "pragma: allowlist secret",
                     "amount": "1000000",
                     "type": "fixed-input"
                   }
@@ -2244,6 +2250,183 @@
         ]
       }
     },
+    "/swaps/folks/quote": {
+      "post": {
+        "summary": "Fetch a walletless Folks Router V2 swap quote",
+        "description": "Returns a short-lived, serializable Folks Router V2 quote without signing or submitting transactions. Uses the V2 API only (https://api.folksrouter.io/v2/). Asset amounts are integer base units. When address is set, Folks GET /fetch/discount is applied as userFeeDiscount and data.discount documents FOLKS holdings tiers. Use the returned quote unchanged with /swaps/folks/optin and /swaps/folks/transactions.",
+        "tags": [
+          "defi",
+          "swaps",
+          "folks-router",
+          "agents"
+        ],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FolksSwapQuoteRequest"
+              },
+              "examples": {
+                "algoToUsdc": {
+                  "value": {
+                    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                    "fromAssetId": 0,
+                    "toAssetId": 31566704, "x-pragma": "pragma: allowlist secret",
+                    "amount": "1000000",
+                    "type": "fixed-input"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Serializable Folks Router V2 quote and discount fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolksSwapQuoteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/UpstreamRateLimited"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamError"
+          }
+        }
+      }
+    },
+    "/swaps/folks/optin": {
+      "post": {
+        "summary": "Build prerequisite Folks Router swap opt-ins",
+        "description": "Checks the supplied Algorand account against the Folks Router V2 quote and returns a fresh unsigned group containing any missing output-asset and Folks Router application opt-ins. An empty transaction group means no opt-ins are required. canix402 is walletless: the caller signs and submits every returned opt-in transaction locally. This route does not claim that returned opt-ins have executed.", "x-pragma": "pragma: allowlist secret",
+        "tags": [
+          "defi",
+          "swaps",
+          "folks-router",
+          "transactions",
+          "wallet"
+        ],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FolksSwapOptInRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Unsigned prerequisite group, or an empty group when no opt-ins are missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HaystackSwapOptInResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamError"
+          }
+        }
+      }
+    },
+    "/swaps/folks/transactions": {
+      "post": {
+        "summary": "Build a walletless Folks Router V2 swap transaction group",
+        "description": "Paid transaction-generation step for a fresh Folks Router V2 quote. The initial request may return 402 with PAYMENT-REQUIRED; satisfy the advertised 0.005 USDC requirement and retry with PAYMENT-SIGNATURE. On success, the response is an ordered unsigned group (every member signer:user). Sign userSignIndexes members and submit locally through your own Algod client. canix402 never receives wallet keys and never submits the swap. The 0.005 USDC x402 access charge is separate from Folks Router's ~0.1% output fee (FOLKS holdings discount when sender was set at quote time), DEX fees, route price impact, and Algorand network transaction fees.", "x-pragma": "pragma: allowlist secret",
+        "tags": [
+          "defi",
+          "swaps",
+          "folks-router",
+          "transactions",
+          "x402",
+          "agents"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FolksSwapTransactionsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ordered, unsigned Folks Router V2 swap group ready for caller signing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolksSwapTransactionsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/UpstreamRateLimited"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamError"
+          }
+        },
+        "x-payment-info": {
+          "protocols": [
+            {
+              "x402": {}
+            }
+          ],
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.005"
+          }
+        },
+        "x-x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet", "x-pragma-network": "pragma: allowlist secret",
+            "asset": "31566704", "x-pragma-asset": "pragma: allowlist secret",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.005"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CanixSessionHeader"
+          }
+        ]
+      }
+    },
     "/sessions": {
       "post": {
         "summary": "Buy a prepaid agent session receipt",
@@ -2308,7 +2491,7 @@
     "/sessions/refresh": {
       "post": {
         "summary": "Refresh a prepaid agent session receipt",
-        "description": "Compiler-priced x402 payment that resets N/M quota and TTL on an existing session id, or mints a new receipt if the previous one is gone. Cannot be paid with an existing session — this route is one-shot only.",
+        "description": "Compiler-priced x402 payment that resets N/M quota and TTL on an existing session id, or mints a new receipt if the previous one is gone. Cannot be paid with an existing session \u2014 this route is one-shot only.",
         "tags": [
           "sessions",
           "x402",
@@ -2417,7 +2600,7 @@
     "/watch": {
       "post": {
         "summary": "Register a paid wallet watch retainer",
-        "description": "Recurring compiler-priced x402 retainer that registers a walletless watch (address + thresholds + optional HTTPS webhook). Fires signed, idempotent notifications on health-factor, claimable-USD, APY-drop, or Réti-capacity crossings. Canix never stores wallet keys — only the address, callback, and a server-generated HMAC secret (shown once). Refresh with POST /watch/refresh before TTL. MCP resource canix://watch/{watchId} lists recent firings.",
+        "description": "Recurring compiler-priced x402 retainer that registers a walletless watch (address + thresholds + optional HTTPS webhook). Fires signed, idempotent notifications on health-factor, claimable-USD, APY-drop, or R\u00e9ti-capacity crossings. Canix never stores wallet keys \u2014 only the address, callback, and a server-generated HMAC secret (shown once). Refresh with POST /watch/refresh before TTL. MCP resource canix://watch/{watchId} lists recent firings.",
         "tags": [
           "watch",
           "x402",
@@ -2600,7 +2783,7 @@
     "/watch/{watchId}/rotate-secret": {
       "post": {
         "summary": "Rotate the watch webhook HMAC secret",
-        "description": "Mints a new webhook signing secret. Requires the current secret in X-Canix-Watch-Secret. The new secret is returned once and never stored as a wallet key. Does not extend retainer TTL — pay POST /watch/refresh for that.",
+        "description": "Mints a new webhook signing secret. Requires the current secret in X-Canix-Watch-Secret. The new secret is returned once and never stored as a wallet key. Does not extend retainer TTL \u2014 pay POST /watch/refresh for that.",
         "tags": [
           "watch",
           "agents"
@@ -2813,7 +2996,7 @@
         "type": "object",
         "additionalProperties": false,
         "minProperties": 1,
-        "description": "At least one threshold is required. Health factor fires when the wallet min HF crosses below the value. Claimable USD fires when totals.claimableUsd crosses at or above the value. APY drop fires when an opportunity APY falls by at least this many basis points vs the previous snapshot. Réti capacity fires when a Réti venue becomes constrained.",
+        "description": "At least one threshold is required. Health factor fires when the wallet min HF crosses below the value. Claimable USD fires when totals.claimableUsd crosses at or above the value. APY drop fires when an opportunity APY falls by at least this many basis points vs the previous snapshot. R\u00e9ti capacity fires when a R\u00e9ti venue becomes constrained.",
         "properties": {
           "healthFactor": {
             "type": "number",
@@ -2830,7 +3013,10 @@
           },
           "retiCapacity": {
             "oneOf": [
-              { "type": "boolean", "const": true },
+              {
+                "type": "boolean",
+                "const": true
+              },
               {
                 "type": "object",
                 "additionalProperties": false,
@@ -2864,37 +3050,87 @@
           "deliveryStatus"
         ],
         "properties": {
-          "firingId": { "type": "string", "minLength": 1 },
-          "idempotencyKey": { "type": "string", "minLength": 1 },
+          "firingId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 1
+          },
           "kind": {
             "type": "string",
-            "enum": ["healthFactor", "claimableUsd", "apyDrop", "retiCapacity"]
+            "enum": [
+              "healthFactor",
+              "claimableUsd",
+              "apyDrop",
+              "retiCapacity"
+            ]
           },
-          "firedAt": { "type": "string", "format": "date-time" },
+          "firedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
           "threshold": {
-            "oneOf": [{ "type": "number" }, { "type": "string" }, { "type": "boolean" }]
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
           },
           "previous": {
             "oneOf": [
-              { "type": "number" },
-              { "type": "string" },
-              { "type": "boolean" },
-              { "type": "null" }
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "current": {
             "oneOf": [
-              { "type": "number" },
-              { "type": "string" },
-              { "type": "boolean" },
-              { "type": "null" }
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
-          "opportunityId": { "type": "string", "minLength": 1 },
-          "delivered": { "type": "boolean" },
+          "opportunityId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "delivered": {
+            "type": "boolean"
+          },
           "deliveryStatus": {
             "type": "string",
-            "enum": ["pending", "delivered", "failed", "stored"]
+            "enum": [
+              "pending",
+              "delivered",
+              "failed",
+              "stored"
+            ]
           }
         }
       },
@@ -2914,18 +3150,57 @@
           "firings"
         ],
         "properties": {
-          "uri": { "type": "string", "minLength": 1 },
-          "watchId": { "type": "string", "minLength": 1 },
-          "address": { "type": "string", "minLength": 58, "maxLength": 58 },
-          "thresholds": { "$ref": "#/components/schemas/WatchThresholds" },
-          "webhookUrl": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "expiresAt": { "type": "string", "format": "date-time" },
-          "ttlSeconds": { "type": "integer", "minimum": 1 },
-          "status": { "type": "string", "enum": ["active", "expired"] },
+          "uri": {
+            "type": "string",
+            "minLength": 1
+          },
+          "watchId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "address": {
+            "type": "string",
+            "minLength": 58,
+            "maxLength": 58
+          },
+          "thresholds": {
+            "$ref": "#/components/schemas/WatchThresholds"
+          },
+          "webhookUrl": {
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ttlSeconds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "expired"
+            ]
+          },
           "firings": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/WatchFiring" }
+            "items": {
+              "$ref": "#/components/schemas/WatchFiring"
+            }
           },
           "webhookSecret": {
             "type": "string",
@@ -2937,18 +3212,42 @@
       "WatchResponse": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["data", "meta"],
+        "required": [
+          "data",
+          "meta"
+        ],
         "properties": {
-          "data": { "$ref": "#/components/schemas/WatchReceipt" },
+          "data": {
+            "$ref": "#/components/schemas/WatchReceipt"
+          },
           "meta": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["paymentRequired", "access", "receiptUri", "secretShown"],
+            "required": [
+              "paymentRequired",
+              "access",
+              "receiptUri",
+              "secretShown"
+            ],
             "properties": {
-              "paymentRequired": { "type": "boolean" },
-              "access": { "type": "string", "enum": ["watch", "receipt", "rotate"] },
-              "receiptUri": { "type": "string", "minLength": 1 },
-              "secretShown": { "type": "boolean" }
+              "paymentRequired": {
+                "type": "boolean"
+              },
+              "access": {
+                "type": "string",
+                "enum": [
+                  "watch",
+                  "receipt",
+                  "rotate"
+                ]
+              },
+              "receiptUri": {
+                "type": "string",
+                "minLength": 1
+              },
+              "secretShown": {
+                "type": "boolean"
+              }
             }
           }
         }
@@ -2956,20 +3255,40 @@
       "WatchCreateRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["address", "thresholds"],
+        "required": [
+          "address",
+          "thresholds"
+        ],
         "properties": {
-          "address": { "type": "string", "minLength": 58, "maxLength": 58 },
-          "thresholds": { "$ref": "#/components/schemas/WatchThresholds" },
-          "webhookUrl": { "type": "string", "minLength": 8, "maxLength": 2048 }
+          "address": {
+            "type": "string",
+            "minLength": 58,
+            "maxLength": 58
+          },
+          "thresholds": {
+            "$ref": "#/components/schemas/WatchThresholds"
+          },
+          "webhookUrl": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 2048
+          }
         }
       },
       "WatchRefreshRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["watchId"],
+        "required": [
+          "watchId"
+        ],
         "properties": {
-          "watchId": { "type": "string", "minLength": 1 },
-          "rotateSecret": { "type": "boolean" }
+          "watchId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rotateSecret": {
+            "type": "boolean"
+          }
         }
       },
       "OpportunityRisk": {
@@ -2983,17 +3302,17 @@
           "utilization": {
             "type": "number",
             "minimum": 0,
-            "description": "Lending utilization in percentage points (0–100+)."
+            "description": "Lending utilization in percentage points (0\u2013100+)."
           },
           "liquidationThreshold": {
             "type": "number",
             "minimum": 0,
-            "description": "Liquidation threshold in percentage points (0–100)."
+            "description": "Liquidation threshold in percentage points (0\u2013100)."
           },
           "ltv": {
             "type": "number",
             "minimum": 0,
-            "description": "Loan-to-value in percentage points (0–100)."
+            "description": "Loan-to-value in percentage points (0\u2013100)."
           },
           "borrowApr": {
             "type": "number",
@@ -3037,7 +3356,7 @@
               "low",
               "unknown"
             ],
-            "description": "Snapshot freshness from fetchedAt / cache age. high ≤ 3 minutes, medium ≤ 1 hour, otherwise low. unknown when timestamps cannot be parsed."
+            "description": "Snapshot freshness from fetchedAt / cache age. high \u2264 3 minutes, medium \u2264 1 hour, otherwise low. unknown when timestamps cannot be parsed."
           },
           "sourceAgeSeconds": {
             "type": "integer",
@@ -5427,7 +5746,7 @@
           "validatorId": {
             "type": "integer",
             "minimum": 1,
-            "description": "Réti validator id (stake target). Amounts never appear in hints."
+            "description": "R\u00e9ti validator id (stake target). Amounts never appear in hints."
           },
           "loanAppId": {
             "type": "integer",
@@ -5437,7 +5756,7 @@
           "tierIndex": {
             "type": "integer",
             "minimum": 0,
-            "description": "STAMM fee-tier index (0–5) when the LP ASA is a STAMM tier token."
+            "description": "STAMM fee-tier index (0\u20135) when the LP ASA is a STAMM tier token."
           }
         }
       },
@@ -5669,7 +5988,7 @@
               "any",
               "all"
             ],
-            "description": "How multiple ASA gates combine. Réti uses any."
+            "description": "How multiple ASA gates combine. R\u00e9ti uses any."
           },
           "eligibilityFullyCheckable": {
             "type": "boolean",
@@ -6219,7 +6538,7 @@
             "type": "number",
             "minimum": 0,
             "maximum": 100,
-            "description": "Haystack slippage percent (0–100) for swap-aware compose. Default 1."
+            "description": "Haystack slippage percent (0\u2013100) for swap-aware compose. Default 1."
           }
         }
       },
@@ -7211,11 +7530,421 @@
             }
           }
         }
+      },
+      "FolksSwapQuoteRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "fromAssetId",
+          "toAssetId",
+          "amount"
+        ],
+        "properties": {
+          "address": {
+            "type": "string",
+            "minLength": 58,
+            "maxLength": 58,
+            "description": "Optional sender. When set, Folks V2 userFeeDiscount is applied and data.discount documents FOLKS holdings tiers."
+          },
+          "fromAssetId": {
+            "description": "Input ASA id; use 0 for ALGO.",
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              }
+            ]
+          },
+          "toAssetId": {
+            "description": "Output ASA id; use 0 for ALGO.",
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              }
+            ]
+          },
+          "amount": {
+            "$ref": "#/components/schemas/AlgorandBaseUnitAmount", "x-pragma": "pragma: allowlist secret"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "fixed-input",
+              "fixed-output"
+            ],
+            "default": "fixed-input"
+          },
+          "maxGroupSize": {
+            "type": "integer",
+            "minimum": 3,
+            "maximum": 16
+          }
+        }
+      },
+      "FolksRouterDiscountTier": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "minFolks",
+          "discountPercent"
+        ],
+        "properties": {
+          "minFolks": {
+            "type": "number",
+            "minimum": 0
+          },
+          "maxFolksExclusive": {
+            "type": "number",
+            "minimum": 0
+          },
+          "discountPercent": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          }
+        }
+      },
+      "FolksRouterDiscount": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sender",
+          "userFeeDiscount",
+          "applied",
+          "tiers"
+        ],
+        "properties": {
+          "sender": {
+            "description": "Sender used for GET /fetch/discount, or null when no address was supplied.",
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 58,
+                "maxLength": 58
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "userFeeDiscount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50,
+            "description": "Percent off the ~0.1% Folks Router fee (0, 10, 20, 30, 40, or 50)."
+          },
+          "applied": {
+            "type": "boolean",
+            "description": "True when sender was set and userFeeDiscount was passed to GET /fetch/quote."
+          },
+          "tiers": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/FolksRouterDiscountTier"
+            }
+          }
+        }
+      },
+      "FolksSwapQuote": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Serializable Folks Router V2 quote. Preserve this object unchanged when calling /swaps/folks/optin and /swaps/folks/transactions. Canix does not sign or submit.",
+        "required": [
+          "source",
+          "apiVersion",
+          "routerAppId",
+          "fromAssetId",
+          "toAssetId",
+          "amount",
+          "type",
+          "swapMode",
+          "quotedAmount",
+          "createdAt",
+          "expiresAt",
+          "requiredAppOptIns",
+          "txnPayload",
+          "priceImpact",
+          "microalgoTxnsFee",
+          "discount"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "const": "folks-router"
+          },
+          "apiVersion": {
+            "type": "string",
+            "const": "v2"
+          },
+          "routerAppId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "address": {
+            "type": "string",
+            "minLength": 58,
+            "maxLength": 58
+          },
+          "fromAssetId": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "toAssetId": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "fixed-input",
+              "fixed-output"
+            ]
+          },
+          "swapMode": {
+            "type": "string",
+            "enum": [
+              "FIXED_INPUT",
+              "FIXED_OUTPUT"
+            ]
+          },
+          "quotedAmount": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "requiredAppOptIns": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$"
+            }
+          },
+          "txnPayload": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Opaque Folks V2 txnPayload. Pass back unchanged to /prepare/swap."
+          },
+          "priceImpact": {
+            "type": "number"
+          },
+          "microalgoTxnsFee": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "discount": {
+            "$ref": "#/components/schemas/FolksRouterDiscount"
+          }
+        }
+      },
+      "FolksSwapQuoteResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FolksSwapQuote"
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "paymentRequired",
+              "executionSubmitted"
+            ],
+            "properties": {
+              "paymentRequired": {
+                "type": "boolean",
+                "const": false
+              },
+              "executionSubmitted": {
+                "type": "boolean",
+                "const": false
+              }
+            }
+          }
+        }
+      },
+      "FolksSwapOptInRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "address",
+          "quote"
+        ],
+        "properties": {
+          "address": {
+            "type": "string",
+            "minLength": 58,
+            "maxLength": 58
+          },
+          "quote": {
+            "$ref": "#/components/schemas/FolksSwapQuote"
+          }
+        }
+      },
+      "FolksSwapTransactionsRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "address",
+          "quote",
+          "slippage"
+        ],
+        "properties": {
+          "address": {
+            "type": "string",
+            "minLength": 58,
+            "maxLength": 58
+          },
+          "quote": {
+            "$ref": "#/components/schemas/FolksSwapQuote"
+          },
+          "slippage": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Maximum unfavorable movement as a percentage; for example, 1 means 1% (100 Folks slippageBps)."
+          }
+        }
+      },
+      "FolksSwapGroupTransaction": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "index",
+          "encodedTransaction",
+          "signer"
+        ],
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "encodedTransaction": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Base64-encoded unsigned Folks Router V2 transaction. Canix never signs this blob."
+          },
+          "signer": {
+            "type": "string",
+            "const": "user"
+          }
+        }
+      },
+      "FolksSwapTransactionsResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "source",
+              "apiVersion",
+              "routerAppId",
+              "routeKind",
+              "hopCount",
+              "transactions",
+              "userSignIndexes",
+              "createdAt",
+              "quoteExpiresAt"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "const": "folks-router"
+              },
+              "apiVersion": {
+                "type": "string",
+                "const": "v2"
+              },
+              "routerAppId": {
+                "type": "string",
+                "pattern": "^[1-9][0-9]*$"
+              },
+              "routeKind": {
+                "type": "string",
+                "enum": [
+                  "direct",
+                  "multi-hop"
+                ]
+              },
+              "hopCount": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "transactions": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/components/schemas/FolksSwapGroupTransaction"
+                }
+              },
+              "userSignIndexes": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "quoteExpiresAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "paymentRequired",
+              "executionSubmitted"
+            ],
+            "properties": {
+              "paymentRequired": {
+                "type": "boolean",
+                "const": true
+              },
+              "executionSubmitted": {
+                "type": "boolean",
+                "const": false
+              }
+            }
+          }
+        }
       }
     },
     "responses": {
       "PaymentRequired": {
-        "description": "Payment required, or a prepaid session failure when X-Canix-Session was sent. Without a session header, retry with a signed PAYMENT-SIGNATURE payload. If X-Canix-Session was sent, the body is SESSION_INVALID / SESSION_EXPIRED / SESSION_EXHAUSTED / SESSION_UNAVAILABLE and PAYMENT-REQUIRED is absent — omit the session header to fall back to a one-shot.",
+        "description": "Payment required, or a prepaid session failure when X-Canix-Session was sent. Without a session header, retry with a signed PAYMENT-SIGNATURE payload. If X-Canix-Session was sent, the body is SESSION_INVALID / SESSION_EXPIRED / SESSION_EXHAUSTED / SESSION_UNAVAILABLE and PAYMENT-REQUIRED is absent \u2014 omit the session header to fall back to a one-shot.",
         "headers": {
           "PAYMENT-REQUIRED": {
             "description": "Base64-encoded JSON x402 payment requirements the client must satisfy before retrying.",
@@ -7344,7 +8073,7 @@
         }
       },
       "SessionError": {
-        "description": "Prepaid session receipt error. Not an x402 payment challenge — PAYMENT-REQUIRED is absent.",
+        "description": "Prepaid session receipt error. Not an x402 payment challenge \u2014 PAYMENT-REQUIRED is absent.",
         "content": {
           "application/json": {
             "schema": {
@@ -7365,7 +8094,7 @@
         }
       },
       "WatchError": {
-        "description": "Watch retainer receipt error. Not an x402 payment challenge — PAYMENT-REQUIRED is absent. Register again with POST /watch or rotate with X-Canix-Watch-Secret.",
+        "description": "Watch retainer receipt error. Not an x402 payment challenge \u2014 PAYMENT-REQUIRED is absent. Register again with POST /watch or rotate with X-Canix-Watch-Secret.",
         "content": {
           "application/json": {
             "schema": {
@@ -7720,7 +8449,7 @@
                 "algoRoomMicroAlgos": "50000000000",
                 "acceptingStake": true
               },
-              "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+              "notes": "R\u00e9ti validator-level consensus staking; quote-time eligibility checks are authoritative.",
               "executionReady": true,
               "executionShapes": [
                 {
@@ -7729,8 +8458,8 @@
                   "protocolVersion": "v1",
                   "action": "stake",
                   "variant": "algo",
-                  "title": "Réti ALGO stake to validator",
-                  "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+                  "title": "R\u00e9ti ALGO stake to validator",
+                  "summary": "Stakes ALGO to a R\u00e9ti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas \u00d72, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -7754,8 +8483,8 @@
                   "protocolVersion": "v1",
                   "action": "unstake",
                   "variant": "algo",
-                  "title": "Réti ALGO unstake from pool",
-                  "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+                  "title": "R\u00e9ti ALGO unstake from pool",
+                  "summary": "Removes ALGO stake from a R\u00e9ti staking pool via StakingPool.removeStake. Builds gas \u00d72, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -8375,7 +9104,7 @@
                 "algoRoomMicroAlgos": "50000000000",
                 "acceptingStake": true
               },
-              "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+              "notes": "R\u00e9ti validator-level consensus staking; quote-time eligibility checks are authoritative.",
               "executionReady": true,
               "executionShapes": [
                 {
@@ -8384,8 +9113,8 @@
                   "protocolVersion": "v1",
                   "action": "stake",
                   "variant": "algo",
-                  "title": "Réti ALGO stake to validator",
-                  "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+                  "title": "R\u00e9ti ALGO stake to validator",
+                  "summary": "Stakes ALGO to a R\u00e9ti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas \u00d72, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -8409,8 +9138,8 @@
                   "protocolVersion": "v1",
                   "action": "unstake",
                   "variant": "algo",
-                  "title": "Réti ALGO unstake from pool",
-                  "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+                  "title": "R\u00e9ti ALGO unstake from pool",
+                  "summary": "Removes ALGO stake from a R\u00e9ti staking pool via StakingPool.removeStake. Builds gas \u00d72, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -8474,7 +9203,7 @@
                 "algoRoomMicroAlgos": "50000000000",
                 "acceptingStake": true
               },
-              "notes": "Réti validator-level consensus staking; quote-time eligibility checks are authoritative.",
+              "notes": "R\u00e9ti validator-level consensus staking; quote-time eligibility checks are authoritative.",
               "executionReady": true,
               "executionShapes": [
                 {
@@ -8483,8 +9212,8 @@
                   "protocolVersion": "v1",
                   "action": "stake",
                   "variant": "algo",
-                  "title": "Réti ALGO stake to validator",
-                  "summary": "Stakes ALGO to a Réti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas ×2, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
+                  "title": "R\u00e9ti ALGO stake to validator",
+                  "summary": "Stakes ALGO to a R\u00e9ti validator via ValidatorRegistry.addStake. The registry allocates into one of the validator's pools. Builds gas \u00d72, ALGO payment to the registry, addStake, and optional reward-token opt-in. Enforces minEntryStake, capacity, and entry gates at quote time.",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -8508,8 +9237,8 @@
                   "protocolVersion": "v1",
                   "action": "unstake",
                   "variant": "algo",
-                  "title": "Réti ALGO unstake from pool",
-                  "summary": "Removes ALGO stake from a Réti staking pool via StakingPool.removeStake. Builds gas ×2, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
+                  "title": "R\u00e9ti ALGO unstake from pool",
+                  "summary": "Removes ALGO stake from a R\u00e9ti staking pool via StakingPool.removeStake. Builds gas \u00d72, removeStake, and optional reward-token opt-in. Partial unstake must leave at least minEntryStake (or unstake the full balance).",
                   "order": 0,
                   "requiredInputs": [
                     "userAddress",
@@ -8592,7 +9321,7 @@
         "value": {
           "error": {
             "code": "NOT_FOUND",
-            "message": "No transaction shape registered for key \"mainnet:tinyman:v2:swap:fixedInput\"."
+            "message": "No transaction shape registered for key \"mainnet:tinyman:v2:swap:does-not-exist\"."
           }
         }
       },
@@ -8966,6 +9695,40 @@
           ]
         }
       },
+      "ExecutionQuoteHogswapSwapFixedInputRequestSample": {
+        "summary": "HOGSWAP v1 fixed-in ALGO→USDC swap (unsigned group)",
+        "value": {
+          "quotes": [
+            {
+              "shapeKey": "mainnet:hogswap:v1:swap:fixed-input",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "fromAssetId": 0,
+                "toAssetId": 31566704, "x-pragma-asset": "pragma: allowlist secret",
+                "amount": "1000000",
+                "maxSlippageBps": 50
+              }
+            }
+          ]
+        }
+      },
+      "ExecutionQuoteHogswapSwapFixedOutputRequestSample": {
+        "summary": "HOGSWAP v1 exact-out ALGO→USDC swap (unsigned group)",
+        "value": {
+          "quotes": [
+            {
+              "shapeKey": "mainnet:hogswap:v1:swap:fixed-output",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "fromAssetId": 0,
+                "toAssetId": 31566704, "x-pragma-asset": "pragma: allowlist secret",
+                "amount": "100000",
+                "maxSlippageBps": 50
+              }
+            }
+          ]
+        }
+      },
       "ExecutionQuoteResponseSample": {
         "summary": "Unsigned executable quote (transactions trimmed)",
         "value": {
@@ -9050,7 +9813,7 @@
         }
       },
       "EligibilityRequestSample": {
-        "summary": "Eligibility request for a Réti validator",
+        "summary": "Eligibility request for a R\u00e9ti validator",
         "value": {
           "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
           "opportunityIds": [
@@ -9059,7 +9822,7 @@
         }
       },
       "EligibilitySample": {
-        "summary": "Wallet can enter a Réti validator",
+        "summary": "Wallet can enter a R\u00e9ti validator",
         "value": {
           "data": [
             {
@@ -9088,7 +9851,7 @@
         }
       },
       "PlanRequestSample": {
-        "summary": "ALGO budget for a Réti enter plan",
+        "summary": "ALGO budget for a R\u00e9ti enter plan",
         "value": {
           "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
           "budget": {
@@ -9106,7 +9869,7 @@
         }
       },
       "PolicyValidateRequestSample": {
-        "summary": "Validate a Réti enter quote against the Brownie sample policy",
+        "summary": "Validate a R\u00e9ti enter quote against the Brownie sample policy",
         "value": {
           "policy": {
             "schemaVersion": "1.0.0",
@@ -9154,7 +9917,7 @@
         }
       },
       "ComposeRequestSample": {
-        "summary": "Hold USDC, compose enter into a Réti ALGO opportunity",
+        "summary": "Hold USDC, compose enter into a R\u00e9ti ALGO opportunity",
         "value": {
           "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
           "opportunityId": "reti-staking-12",
@@ -9164,7 +9927,7 @@
         }
       },
       "PlanSample": {
-        "summary": "ALGO to Réti enter plan with unsigned group",
+        "summary": "ALGO to R\u00e9ti enter plan with unsigned group",
         "value": {
           "data": {
             "allocations": [

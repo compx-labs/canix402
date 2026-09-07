@@ -174,6 +174,13 @@ export type {
   WatchThresholdsDto
 } from "./watch-schema.js";
 export type {
+  FolksRouterDiscount,
+  FolksSwapOptInRequest,
+  FolksSwapQuote,
+  FolksSwapQuoteRequest,
+  FolksSwapQuoteResponse,
+  FolksSwapTransactionsRequest,
+  FolksSwapTransactionsResponse,
   HaystackQuote,
   SwapOptInRequest,
   SwapOptInResponse,
@@ -182,6 +189,22 @@ export type {
   SwapTransactionsRequest,
   SwapTransactionsResponse
 } from "./swap-schema.js";
+export {
+  AsaStatsGroupResponseSchema,
+  AsaStatsGroupSchema,
+  AsaStatsQuoteRequestSchema,
+  AsaStatsQuoteResponseSchema,
+  AsaStatsQuoteSchema,
+  AsaStatsRouterScoreSchema
+} from "./asastats-router-schema.js";
+export type {
+  AsaStatsGroup,
+  AsaStatsGroupResponse,
+  AsaStatsQuote,
+  AsaStatsQuoteRequest,
+  AsaStatsQuoteResponse,
+  AsaStatsRouterScore
+} from "./asastats-router-schema.js";
 export type { PricingRequest, PricingResponse } from "./pricing-schema.js";
 export {
   PricingRequestSchema,
