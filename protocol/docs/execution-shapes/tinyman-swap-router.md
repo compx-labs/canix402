@@ -90,3 +90,10 @@ Two outer transactions against the v2 validator (`swap` / `fixed-input` or
 `Swap.v2` direct quotes, `generateSwapRouterTxns` / `generateTxns`). Canix
 compares the two Tinyman paths, validates the unsigned group, and never calls
 `signTxns` or `execute`.
+
+## Tests
+
+- Integration: `tests/integration/tinyman-swap-router-shape.test.ts`
+- Unit: `tests/unit/tinyman-swap-router.test.ts`
+- Production live (x402 + on-chain): `tests/live/tinyman-swap-production-test.test.ts`
+  (`X402_TINYMAN_SWAP_LIVE=1`; 0.1 USDC → ALGO `swap:fixedInput`)

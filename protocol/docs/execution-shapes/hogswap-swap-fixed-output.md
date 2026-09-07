@@ -4,12 +4,12 @@
 - Shape version: `1.0.0`
 - Source module: `src/execution/shapes/hogswap/swap.ts`
 - Supported opportunity types: `swap` (router source — not a yield venue)
-- Required inputs: `userAddress`, `fromAssetId`, `toAssetId`, `amount` (desired output base units of `toAssetId`)
+- Required inputs: `userAddress`, `fromAssetId`, `toAssetId`, `amount` (desired output base units of `toAssetId`), `maxSlippageBps` (default 50)
 - Paid API endpoint: `POST /execution/quotes` (0.1 USDC via x402)
 
-HOGSWAP `POST /quote` (`mode: SWAP`, `amount_out`) then `POST /execute`. The
-solver finds the minimum input; the on-chain floor is the requested output.
-Canix returns an **unsigned** group and never signs or broadcasts.
+`resolveState` quotes with `POST /quote` (`mode: SWAP`, `amount_out`) only.
+`build` then calls `POST /execute`. The solver finds the minimum input; the
+on-chain floor is the requested output. Canix never signs or broadcasts.
 
 Prefer `mainnet:hogswap:v1:swap:fixed-input` when the spend amount is known.
 This variant is for exact-out. It does not replace Haystack `/swaps/*`.

@@ -132,21 +132,15 @@ export interface ExecutionQuoteResponse {
 
 export async function assertProductionFreeEndpoints(baseUrl: string): Promise<void> {
   let haystackQuote: unknown;
-  let folksQuote: unknown;
 
   for (const endpoint of productionFreeEndpoints) {
     const request =
       endpoint.id === "haystackSwapOptIn"
         ? withSwapOptInBody("/swaps/optin", endpoint, haystackQuote)
-        : endpoint.id === "folksRouterSwapOptIn"
-          ? withSwapOptInBody("/swaps/folks/optin", endpoint, folksQuote)
-          : endpoint;
+        : endpoint;
     const body = await assertFreeEndpoint(baseUrl, request);
     if (endpoint.id === "haystackSwapQuote") {
       haystackQuote = (body as { data?: unknown } | undefined)?.data;
-    }
-    if (endpoint.id === "folksRouterSwapQuote") {
-      folksQuote = (body as { data?: unknown } | undefined)?.data;
     }
   }
 }
@@ -292,24 +286,18 @@ export async function assertFreeEndpoint(
     }
   }
 
-  if (path === "/swaps/quote" || path === "/swaps/folks/quote") {
+  if (path === "/swaps/quote") {
     const data = body.data as Record<string, unknown> | undefined;
     const meta = body.meta as Record<string, unknown> | undefined;
     if (typeof data?.quotedAmount !== "string" || data.quotedAmount.length === 0) {
       throw new Error(`${path}: missing quotedAmount`);
-    }
-    if (path === "/swaps/folks/quote") {
-      const discount = data.discount as Record<string, unknown> | undefined;
-      if (typeof discount?.applied !== "boolean" || typeof discount.userFeeDiscount !== "number") {
-        throw new Error(`${path}: missing Folks Router discount fields`);
-      }
     }
     if (meta?.paymentRequired !== false) {
       throw new Error(`${path}: expected meta.paymentRequired to be false`);
     }
   }
 
-  if (path === "/swaps/optin" || path === "/swaps/folks/optin") {
+  if (path === "/swaps/optin") {
     const data = body.data as Record<string, unknown> | undefined;
     const meta = body.meta as Record<string, unknown> | undefined;
     if (typeof data?.required !== "boolean" || !Array.isArray(data.transactions)) {

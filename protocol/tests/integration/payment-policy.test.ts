@@ -14,26 +14,6 @@ test("Haystack quote and opt-in are free while transaction generation is paid", 
   assert.equal(classifyEndpointAccess("/swaps"), "unknown");
 });
 
-test("Folks Router quote and opt-in are free while transaction generation is paid", () => {
-  assert.equal(classifyEndpointAccess("/swaps/folks/quote"), "free");
-  assert.equal(classifyEndpointAccess("/swaps/folks/optin"), "free");
-  assert.equal(classifyEndpointAccess("/swaps/folks/transactions"), "paid");
-  assert.equal(classifySessionBucket("/swaps/folks/transactions", "POST"), "quotes");
-
-  const quote = endpointPolicyMatrix.find((endpoint) => endpoint.id === "folksRouterSwapQuote");
-  const optIn = endpointPolicyMatrix.find((endpoint) => endpoint.id === "folksRouterSwapOptIn");
-  const transactions = endpointPolicyMatrix.find(
-    (endpoint) => endpoint.id === "folksRouterSwapTransactions"
-  );
-  assert.equal(quote?.access, "free");
-  assert.equal(optIn?.access, "free");
-  assert.equal(transactions?.access, "paid");
-  assert.equal(
-    transactions?.priceUsdc,
-    process.env.X402_PRICE_FOLKS_ROUTER_SWAP_USDC ?? "0.005"
-  );
-});
-
 test("Haystack swap policy advertises the dedicated 0.005 USDC price", () => {
   const quote = endpointPolicyMatrix.find((endpoint) => endpoint.id === "haystackSwapQuote");
   const optIn = endpointPolicyMatrix.find((endpoint) => endpoint.id === "haystackSwapOptIn");

@@ -321,34 +321,6 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 			},
 		)
 
-	case "folks_router_swap":
-		return bazaar.DeclareDiscoveryExtension(
-			bazaar.MethodPOST,
-			map[string]interface{}{
-				"fromAssetId": 0,
-				"toAssetId":   31566704, // pragma: allowlist secret
-				"amount":      "1000000",
-			},
-			bazaar.JSONSchema{
-				"type": "object",
-				"properties": map[string]interface{}{
-					"fromAssetId": map[string]interface{}{"type": "number"},
-					"toAssetId":   map[string]interface{}{"type": "number"},
-					"amount":      map[string]interface{}{"type": "string"},
-					"address":     map[string]interface{}{"type": "string"},
-				},
-			},
-			bazaar.BodyTypeJSON,
-			&bazaar.OutputConfig{
-				Example: map[string]interface{}{
-					"data": map[string]interface{}{
-						"transactions": []interface{}{},
-						"source":       "folks-router",
-					},
-				},
-			},
-		)
-
 	case "plans_rebalance":
 		return bazaar.DeclareDiscoveryExtension(
 			bazaar.MethodPOST,
@@ -556,7 +528,6 @@ func knownBazaarProfiles() []string {
 		"protocol_opportunities",
 		"execution_quotes",
 		"haystack_swap",
-		"folks_router_swap",
 		"plans_rebalance",
 		"execution_compose",
 		"execution_simulate",

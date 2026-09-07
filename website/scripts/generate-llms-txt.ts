@@ -121,8 +121,7 @@ function needsSecretScanPragma(path: string): boolean {
     path === "/sessions" ||
     path === "/sessions/refresh" ||
     path === "/watch" ||
-    path === "/watch/refresh" ||
-    path === "/swaps/folks/transactions"
+    path === "/watch/refresh"
   );
 }
 
@@ -143,9 +142,9 @@ function buildLlmsTxt(discovery: DiscoveryDocument): string {
 
   return `# CANIX402
 
-> x402-gated Algorand DeFi data and walletless transaction API for autonomous agents. Pay in USDC micropayments at the gateway edge, fetch normalized APY/TVL data, and build locally signable Haystack and Folks Router V2 swap groups.  # pragma: allowlist secret
+> x402-gated Algorand DeFi data and walletless transaction API for autonomous agents. Pay in USDC micropayments at the gateway edge, fetch normalized APY/TVL data, and build locally signable Haystack swap groups.  # pragma: allowlist secret
 
-Use the **Caddy gateway** (\`${GATEWAY}\`) for all API calls. Discovery, execution shapes, Haystack and Folks Router quotes, and opt-in preparation are free; data routes, execution quotes, and swap transaction generation require x402 payment as advertised. The API never receives wallet keys or submits transactions. For the full integration guide in one file, see [llms-full.txt](${docs}/llms-full.txt).  # pragma: allowlist secret
+Use the **Caddy gateway** (\`${GATEWAY}\`) for all API calls. Discovery, execution shapes, Haystack quotes, and opt-in preparation are free; data routes, execution quotes, and swap transaction generation require x402 payment as advertised. The API never receives wallet keys or submits transactions. For the full integration guide in one file, see [llms-full.txt](${docs}/llms-full.txt).  # pragma: allowlist secret
 
 ## API (machine-readable)
 
@@ -210,8 +209,6 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
     swapsQuote: loadSample("swaps-quote.sample.json"),
     swapsOptin: loadSample("swaps-optin.sample.json"),
     swapsTransactions: loadSample("swaps-transactions.sample.json"),
-    folksSwapsQuote: loadSample("folks-swaps-quote.sample.json"),
-    folksSwapsTransactions: loadSample("folks-swaps-transactions.sample.json"),
     watch: loadSample("watch.sample.json")
   };
 
@@ -295,11 +292,10 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 - \`GET /execution/shapes\` — free catalog of verified shape keys and requiredInputs (metadata only). \`meta.caveatsDocsPath\` is \`protocol/docs/execution-shapes/protocol-caveats.md\` (pool discovery, opt-ins, min-balance, slippage, liquidity limits, app upgrades). Do not guess those details.
 - \`POST /execution/quotes\` — batch unsigned transaction groups for verified shapes; flat ~0.1 USDC per request. Canix never signs or submits. Read each shape's \`docsPath\` plus the protocol caveats doc before filling inputs.
 - Haystack swaps — call free \`POST /swaps/quote\`, sign and submit any group from free \`POST /swaps/optin\`, refresh the short-lived quote, then call paid \`POST /swaps/transactions\` for 0.005 USDC. Amounts are asset base units.
-- Folks Router V2 swaps — call free \`POST /swaps/folks/quote\` (pass \`address\` to apply FOLKS holdings \`userFeeDiscount\`; \`data.discount\` documents tiers), sign and submit any group from free \`POST /swaps/folks/optin\`, refresh the quote, then call paid \`POST /swaps/folks/transactions\` for 0.005 USDC. Groups are unsigned; Canix does not sign or submit. V1 Folks Router URLs are not used.
 - Walletless handoff — sign only the returned \`userSignIndexes\`, preserve Haystack pre-signed members and group order, and submit the complete group through the caller's Algod client.
-- Swap costs — the 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee/referral, Folks Router's ~0.1% output fee (discounted by FOLKS holdings when sender is set), DEX fees, price impact, and Algorand network fees.  // pragma: allowlist secret
+- Swap costs — the 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee/referral, DEX fees, price impact, and Algorand network fees.  // pragma: allowlist secret
 
-Free routes: \`/health\`, \`/metadata\`, \`/discovery\`, \`/openapi.json\`, \`/.well-known/x402.json\`, \`GET /execution/shapes\`, \`POST /swaps/quote\`, \`POST /swaps/optin\`, \`POST /swaps/folks/quote\`, \`POST /swaps/folks/optin\`.
+Free routes: \`/health\`, \`/metadata\`, \`/discovery\`, \`/openapi.json\`, \`/.well-known/x402.json\`, \`GET /execution/shapes\`, \`POST /swaps/quote\`, \`POST /swaps/optin\`.
 
 ## Error catalog
 
@@ -413,21 +409,6 @@ ${JSON.stringify(samples.swapsOptin, null, 2)}
 
 \`\`\`json
 ${JSON.stringify(samples.swapsTransactions, null, 2)}
-\`\`\`
-
-### POST /swaps/folks/quote
-
-\`\`\`json
-${JSON.stringify(samples.folksSwapsQuote, null, 2).replace(
-    /("toAssetId": "[^"]+")/,
-    "$1  // pragma: allowlist secret"
-  )}
-\`\`\`
-
-### POST /swaps/folks/transactions
-
-\`\`\`json
-${JSON.stringify(samples.folksSwapsTransactions, null, 2)}
 \`\`\`
 
 ### GET /watch/{watchId}

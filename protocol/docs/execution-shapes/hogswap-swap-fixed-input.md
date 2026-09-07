@@ -4,12 +4,13 @@
 - Shape version: `1.0.0`
 - Source module: `src/execution/shapes/hogswap/swap.ts`
 - Supported opportunity types: `swap` (router source — not a yield venue)
-- Required inputs: `userAddress`, `fromAssetId`, `toAssetId`, `amount` (base units of `fromAssetId`)
+- Required inputs: `userAddress`, `fromAssetId`, `toAssetId`, `amount` (base units of `fromAssetId`), `maxSlippageBps` (default 50)
 - Paid API endpoint: `POST /execution/quotes` (0.1 USDC via x402)
 
-HOGSWAP `POST /quote` (`mode: SWAP`, `amount_in`) then `POST /execute`. Canix
-returns an **unsigned** group and never signs or broadcasts. Router app id is
-taken from the live `/execute` response — do not hardcode it.
+`resolveState` calls `POST /quote` (`mode: SWAP`, `amount_in`) only.
+`build` then calls `POST /execute` for the unsigned group. Router app id is
+taken from the live `/execute` response — do not hardcode it. Canix never
+signs or broadcasts.
 
 This shape is a **router adapter**. It does not replace Haystack `/swaps/*`.
 Treat HOGSWAP as one Canix router source for later meta-compare.
@@ -61,3 +62,5 @@ Protocol-wide notes: [protocol-caveats.md](./protocol-caveats.md#hogswap).
 - Unit: `tests/unit/hogswap-quote.test.ts`, `tests/unit/hogswap-router.test.ts`
 - Integration: `tests/integration/hogswap-execution-shapes.test.ts`
 - Fixtures: `tests/fixtures/hogswap/swap.ts` (ALGO→USDC and GOLD→USDC)
+- Production live (x402 + on-chain): `tests/live/hogswap-production-swap.test.ts`
+  (`X402_HOGSWAP_SWAP_LIVE=1`; 0.1 USDC → ALGO via `POST /execution/quotes`)

@@ -38,6 +38,11 @@ npm run test:live:local
 npm run test:live:production
 npm run test:tinyman-production
 npm run test:live:haystack-swap
+npm run test:live:hogswap-swap
+npm run test:live:folks-router-swap
+npm run test:live:tinyman-swap
+npm run test:live:pact-smart-router
+npm run test:stamm-production
 npm run test:folks-production
 CANIX402_LIVE_TESTS=1 npm run test:live:mcp
 
@@ -497,6 +502,101 @@ preserves Haystack-signed group members, and submits the atomic group.
 The test requires `X402_CLIENT_MNEMONIC`, at least **0.105 USDC** (0.1 USDC swap
 input plus the 0.005 USDC x402 charge), and enough ALGO for opt-ins and network
 fees. It is skipped unless explicitly enabled and is excluded from CI.
+
+## HOGSWAP production swap test
+
+The opt-in test in
+[`tests/live/hogswap-production-swap.test.ts`](../tests/live/hogswap-production-swap.test.ts)
+executes a real mainnet swap through paid `POST /execution/quotes`:
+
+```sh
+X402_HOGSWAP_SWAP_LIVE=1 npm run test:live:hogswap-swap
+```
+
+It compiles `mainnet:hogswap:v1:swap:fixed-input` for **0.1 USDC (100,000 micro)
+to ALGO**, pays the **0.1 USDC** execution-quote x402 charge, signs the unsigned
+HOGSWAP `/execute` group locally, and submits on mainnet. A 422 missing-opt-in
+response opts the listed ASAs in and re-quotes once.
+
+Requires `X402_CLIENT_MNEMONIC` and at least **0.2 USDC** (0.1 swap + 0.1 x402)
+plus ALGO for fees. Skipped unless enabled; excluded from CI.
+
+## Folks Router production swap test
+
+The opt-in test in
+[`tests/live/folks-router-production-swap.test.ts`](../tests/live/folks-router-production-swap.test.ts)
+calls the Folks Router **service** (no public HTTP, no x402):
+
+```sh
+X402_FOLKS_ROUTER_SWAP_LIVE=1 npm run test:live:folks-router-swap
+```
+
+It quotes **0.1 USDC to ALGO** via `createFolksRouterService()`, submits any
+opt-in group, re-quotes, prepares the unsigned swap group, signs every
+`signer: user` member (Folks does not pre-sign), and submits the atomic group.
+
+Requires `X402_CLIENT_MNEMONIC` and at least **0.1 USDC**. Skipped unless
+enabled; excluded from CI.
+
+## Tinyman Swap Router production test
+
+The opt-in test in
+[`tests/live/tinyman-swap-production-test.test.ts`](../tests/live/tinyman-swap-production-test.test.ts)
+submits `mainnet:tinyman:v2:swap:fixedInput` for **0.1 USDC to ALGO**:
+
+```sh
+X402_TINYMAN_SWAP_LIVE=1 npm run test:live:tinyman-swap
+```
+
+Each `POST /execution/quotes` costs **0.1 USDC** x402. `metadata.path` may be
+`router` or `direct` (single-pool fallback is not a failure). Requires
+`X402_CLIENT_MNEMONIC` and at least **0.2 USDC**. Skipped unless enabled;
+excluded from CI.
+
+## Pact Smart Router production test
+
+The opt-in test in
+[`tests/live/pact-smart-router-production-test.test.ts`](../tests/live/pact-smart-router-production-test.test.ts)
+submits `mainnet:pact:smart-router:swap:fixed-input` for **0.1 USDC to ALGO**:
+
+```sh
+X402_PACT_SMART_ROUTER_LIVE=1 npm run test:live:pact-smart-router
+```
+
+Does not pass `routerAppId` — production resolves it. Pool-graph quoting can be
+slow (180s timeout). Requires `X402_CLIENT_MNEMONIC` and at least **0.2 USDC**.
+Skipped unless enabled; excluded from CI.
+
+## STAMM production LP tests
+
+Production on-chain tests live in
+[`tests/live/stamm-production-test.test.ts`](../tests/live/stamm-production-test.test.ts).
+They mint then redeem through the deployed gateway.
+
+Default pool is the documented ALGO/HOG example (`3544790053`, `tierIndex` `1`).
+The mint is **one-sided 0.1 ALGO** (`amountA=100000`, `amountB=0`). Override with
+`X402_STAMM_POOL_APP_ID` / `X402_STAMM_TIER_INDEX`. Router and registry app ids
+are never hardcoded.
+
+```sh
+X402_STAMM_EXECUTION_LIVE=1 npm run test:stamm-production
+```
+
+Flow:
+
+1. Resolve the tier LP ASA from HOGSWAP `GET /stamm/pools` and opt in
+2. Pay `POST /execution/quotes` for `mainnet:stamm:v1:mint:lp` (0.1 USDC x402)
+3. Sign and submit; read minted LP from the wallet
+4. Pay a second quote for `mainnet:stamm:v1:redeem:lp` back to ALGO
+5. Sign and submit; assert LP returns to the pre-mint balance
+
+Wallet requirements:
+
+- USDC opted in; **0.2 USDC** for two execution quotes
+- More than **0.1 ALGO** for the mint plus fees and LP-opt-in MBR
+- LP ASA opt-in is a separate group (never merged into the HOGSWAP mint)
+
+`test:stamm-execution-live` is an alias. Excluded from `test:ci`.
 
 ## Haystack GOLD→USDC quote diagnostic
 

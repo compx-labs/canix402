@@ -94,3 +94,6 @@ Fixture-based coverage (recorded `/stamm/pools` payload; no live paid x402):
 - `tests/fixtures/adapters/stamm.ts`
 - `tests/integration/stamm-execution-shapes.test.ts`
 - `tests/integration/stamm-adapter.test.ts`
+
+Production live (x402 + on-chain): `tests/live/stamm-production-test.test.ts`
+(`X402_STAMM_EXECUTION_LIVE=1`).

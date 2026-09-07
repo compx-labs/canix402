@@ -1,6 +1,6 @@
 # CANIX402 — full agent integration guide
 
-> x402-gated Algorand DeFi data and walletless transaction API (version 0.1.0). Normalized yield data and Haystack swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.  # pragma: allowlist secret
+> x402-gated Algorand DeFi data and walletless transaction API (version 1.6.5). Normalized yield data and Haystack swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.  # pragma: allowlist secret
 
 ## Overview
 
@@ -69,8 +69,6 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `GET /.well-known/x402.json` (Free) — x402 discovery manifest for agent and directory indexing.
 - `POST /swaps/quote` (Free) — Fetch a walletless Haystack swap quote.
 - `POST /swaps/optin` (Free) — Build prerequisite Haystack swap opt-ins.
-- `POST /swaps/folks/quote` (Free) — Fetch a walletless Folks Router V2 swap quote.
-- `POST /swaps/folks/optin` (Free) — Build prerequisite Folks Router swap opt-ins.
 - `POST /pricing` (Free) — Fetch USD token prices for Algorand asset IDs.
 - `GET /opportunities` (0.01 USDC) — Top 10 aggregated DeFi opportunities ranked by risk then APY. Params: protocol=, limit=, offset=, includeInactive=, refresh=.  # pragma: allowlist secret
 - `GET /protocols/:protocol/opportunities` (0.01 USDC) — Top 25 DeFi opportunities for a single protocol ranked by risk then APY. Params: :protocol, limit=, offset=, includeInactive=, refresh=.  # pragma: allowlist secret
@@ -85,7 +83,6 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `GET /positions/claimable` (0.001 USDC) — Claimable DeFi rewards across supported protocols. Params: address=.
 - `GET /public/agents/brownie/positions` (Free) — Public DeFi positions for the Brownie Bot showcase wallet.
 - `POST /swaps/transactions` (0.005 USDC) — Build a walletless Haystack swap transaction group.
-- `POST /swaps/folks/transactions` (0.005 USDC) — Build a walletless Folks Router V2 swap transaction group.  # pragma: allowlist secret
 - `GET /execution/shapes` (Free) — List verified execution shape catalog metadata.
 - `POST /execution/quotes` (0.1 USDC) — Compile one or more verified transaction shapes into unsigned Algorand transaction groups.
 - `POST /execution/compose` (0.1 USDC) — Compose opt-in → Haystack swap → enter as unmerged unsigned groups.  # pragma: allowlist secret
@@ -118,11 +115,10 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `GET /execution/shapes` — free catalog of verified shape keys and requiredInputs (metadata only). `meta.caveatsDocsPath` is `protocol/docs/execution-shapes/protocol-caveats.md` (pool discovery, opt-ins, min-balance, slippage, liquidity limits, app upgrades). Do not guess those details.
 - `POST /execution/quotes` — batch unsigned transaction groups for verified shapes; flat ~0.1 USDC per request. Canix never signs or submits. Read each shape's `docsPath` plus the protocol caveats doc before filling inputs.
 - Haystack swaps — call free `POST /swaps/quote`, sign and submit any group from free `POST /swaps/optin`, refresh the short-lived quote, then call paid `POST /swaps/transactions` for 0.005 USDC. Amounts are asset base units.
-- Folks Router V2 swaps — call free `POST /swaps/folks/quote` (pass `address` to apply FOLKS holdings `userFeeDiscount`; `data.discount` documents tiers), sign and submit any group from free `POST /swaps/folks/optin`, refresh the quote, then call paid `POST /swaps/folks/transactions` for 0.005 USDC. Groups are unsigned; Canix does not sign or submit. V1 Folks Router URLs are not used.
 - Walletless handoff — sign only the returned `userSignIndexes`, preserve Haystack pre-signed members and group order, and submit the complete group through the caller's Algod client.
-- Swap costs — the 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee/referral, Folks Router's ~0.1% output fee (discounted by FOLKS holdings when sender is set), DEX fees, price impact, and Algorand network fees.  // pragma: allowlist secret
+- Swap costs — the 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee/referral, DEX fees, price impact, and Algorand network fees.  // pragma: allowlist secret
 
-Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-known/x402.json`, `GET /execution/shapes`, `POST /swaps/quote`, `POST /swaps/optin`, `POST /swaps/folks/quote`, `POST /swaps/folks/optin`.
+Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-known/x402.json`, `GET /execution/shapes`, `POST /swaps/quote`, `POST /swaps/optin`.
 
 ## Error catalog
 
@@ -1699,111 +1695,6 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
     "createdAt": "2026-07-30T12:00:30.000Z",
     "expiresAt": "2026-07-30T12:02:00.000Z",
     "note": "Sign only userSignIndexes members. Preserve Haystack pre-signed members and atomic group order. Submit the complete group via your own Algod client."
-  },
-  "meta": {
-    "paymentRequired": true,
-    "executionSubmitted": false
-  }
-}
-```
-
-### POST /swaps/folks/quote
-
-```json
-{
-  "data": {
-    "source": "folks-router",
-    "apiVersion": "v2",
-    "routerAppId": "3279848327",
-    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-    "fromAssetId": "0",
-    "toAssetId": "31566704"  // pragma: allowlist secret,
-    "note": "Pass this quote unchanged to /swaps/folks/optin and /swaps/folks/transactions. Discount fields are present when address was set at quote time. pragma: allowlist secret",
-    "amount": "1000000",
-    "type": "fixed-input",
-    "swapMode": "FIXED_INPUT",
-    "quotedAmount": "184250",
-    "createdAt": "2026-09-07T12:00:00.000Z",
-    "expiresAt": "2026-09-07T12:00:30.000Z",
-    "requiredAppOptIns": [
-      "3279848327"
-    ],
-    "txnPayload": "<opaque-folks-router-v2-txn-payload>",
-    "priceImpact": 0.00041,
-    "microalgoTxnsFee": 5000,
-    "discount": {
-      "sender": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-      "userFeeDiscount": 10,
-      "applied": true,
-      "tiers": [
-        {
-          "minFolks": 0,
-          "maxFolksExclusive": 15,
-          "discountPercent": 0
-        },
-        {
-          "minFolks": 15,
-          "maxFolksExclusive": 325,
-          "discountPercent": 10
-        },
-        {
-          "minFolks": 325,
-          "maxFolksExclusive": 1000,
-          "discountPercent": 20
-        },
-        {
-          "minFolks": 1000,
-          "maxFolksExclusive": 5000,
-          "discountPercent": 30
-        },
-        {
-          "minFolks": 5000,
-          "maxFolksExclusive": 12500,
-          "discountPercent": 40
-        },
-        {
-          "minFolks": 12500,
-          "discountPercent": 50
-        }
-      ]
-    }
-  },
-  "meta": {
-    "paymentRequired": false,
-    "executionSubmitted": false
-  }
-}
-```
-
-### POST /swaps/folks/transactions
-
-```json
-{
-  "data": {
-    "source": "folks-router",
-    "apiVersion": "v2",
-    "routerAppId": "3279848327",
-    "routeKind": "direct",
-    "hopCount": 1,
-    "transactions": [
-      {
-        "index": 0,
-        "encodedTransaction": "<base64-unsigned-send>",
-        "signer": "user"
-      },
-      {
-        "index": 1,
-        "encodedTransaction": "<base64-unsigned-fi-end-swap>",
-        "signer": "user"
-      }
-    ],
-    "userSignIndexes": [
-      0,
-      1
-    ],
-    "createdAt": "2026-09-07T12:00:05.000Z",
-    "quoteExpiresAt": "2026-09-07T12:00:30.000Z",
-    "note": "Every member is unsigned. Sign userSignIndexes locally and submit the complete group via your own Algod client. Canix does not sign or submit."
   },
   "meta": {
     "paymentRequired": true,

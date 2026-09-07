@@ -19,7 +19,7 @@
 
 	@free {
 		method GET
-		path / /health /ready /metadata /discovery /openapi.json /llms.txt /llms-full.txt /robots.txt /favicon.ico /favicon.png /logo.png /banner.png /.well-known/x402 /.well-known/x402.json /.well-known/agent-card.json /.well-known/agent.json /.well-known/ai-plugin.json /swaps/quote /swaps/optin /swaps/folks/quote /swaps/folks/optin /pricing /execution/shapes /public/agents/brownie/positions /sessions/* /watch/*
+		path / /health /ready /metadata /discovery /openapi.json /llms.txt /llms-full.txt /robots.txt /favicon.ico /favicon.png /logo.png /banner.png /.well-known/x402 /.well-known/x402.json /.well-known/agent-card.json /.well-known/agent.json /.well-known/ai-plugin.json /swaps/quote /swaps/optin /pricing /execution/shapes /public/agents/brownie/positions /sessions/* /watch/*
 	}
 	handle @free {
 		reverse_proxy {$UPSTREAM_API}
@@ -27,7 +27,7 @@
 
 	@free_post {
 		method POST
-		path /swaps/quote /swaps/optin /swaps/folks/quote /swaps/folks/optin /pricing /watch/*/rotate-secret
+		path /swaps/quote /swaps/optin /pricing /watch/*/rotate-secret
 	}
 	handle @free_post {
 		reverse_proxy {$UPSTREAM_API}
@@ -35,7 +35,7 @@
 
 	@session {
 		header X-Canix-Session csess_*
-		path /opportunities /opportunities/search /opportunities/personalized /opportunities/*/history /eligibility /plans /plans/rebalance /policy/validate /positions /positions/claimable /protocols/*/opportunities /swaps/transactions /swaps/folks/transactions /execution/quotes /execution/compose /execution/simulate
+		path /opportunities /opportunities/search /opportunities/personalized /opportunities/*/history /eligibility /plans /plans/rebalance /policy/validate /positions /positions/claimable /protocols/*/opportunities /swaps/transactions /execution/quotes /execution/compose /execution/simulate
 	}
 	handle @session {
 		reverse_proxy {$UPSTREAM_API}
@@ -360,28 +360,6 @@
 			accept {
 				pay_to {$X402_PAY_TO}
 				price {$X402_PRICE_HAYSTACK_SWAP_USDC}
-				network {$X402_NETWORK}
-				scheme {$X402_SCHEME}
-				extra {
-					tag x402-global-challenge
-				}
-			}
-		}
-
-		reverse_proxy {$UPSTREAM_API}
-	}
-
-	@paid_folks_router_swap path /swaps/folks/transactions
-	handle @paid_folks_router_swap {
-		x402 {
-			description "canix402 paid Folks Router V2 swap transaction endpoint"
-			mime_type application/json
-			facilitator_url {$FACILITATOR_URL}
-			bazaar_profile folks_router_swap
-
-			accept {
-				pay_to {$X402_PAY_TO}
-				price {$X402_PRICE_FOLKS_ROUTER_SWAP_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
 				extra {

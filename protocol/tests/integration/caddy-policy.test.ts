@@ -6,7 +6,7 @@ import test from "node:test";
 const caddyfile = readFileSync(resolve(process.cwd(), "caddy/Caddyfile"), "utf-8");
 
 test("Caddy keeps free POST routes outside x402 enforcement", () => {
-  assert.match(caddyfile, /@free_post \{[\s\S]*?path \/swaps\/quote \/swaps\/optin \/swaps\/folks\/quote \/swaps\/folks\/optin \/pricing/);
+  assert.match(caddyfile, /@free_post \{[\s\S]*?path \/swaps\/quote \/swaps\/optin \/pricing/);
   assert.match(caddyfile, /@free \{[\s\S]*?path [^\n]*\/execution\/shapes/);
   assert.match(caddyfile, /@free \{[\s\S]*?path [^\n]*\/ready/);
   assert.match(
@@ -78,17 +78,6 @@ test("Caddy gives claimable positions a dedicated paid policy", () => {
   );
 });
 
-test("Caddy gives Folks Router transaction generation a dedicated paid policy", () => {
-  assert.match(
-    caddyfile,
-    /@paid_folks_router_swap path \/swaps\/folks\/transactions/
-  );
-  assert.match(
-    caddyfile,
-    /handle @paid_folks_router_swap \{[\s\S]*?price \{\$X402_PRICE_FOLKS_ROUTER_SWAP_USDC\}[\s\S]*?reverse_proxy \{\$UPSTREAM_API\}[\s\S]*?\}/
-  );
-});
-
 test("Caddy gives Haystack transaction generation a dedicated paid policy", () => {
   assert.match(
     caddyfile,
@@ -119,7 +108,7 @@ test("Caddy skips x402 when X-Canix-Session is present on session-eligible route
   );
   assert.match(
     caddyfile,
-    /@session \{[\s\S]*?path \/opportunities \/opportunities\/search \/opportunities\/personalized \/opportunities\/\*\/history \/eligibility \/plans \/plans\/rebalance \/policy\/validate \/positions \/positions\/claimable \/protocols\/\*\/opportunities \/swaps\/transactions \/swaps\/folks\/transactions \/execution\/quotes \/execution\/compose \/execution\/simulate/
+    /@session \{[\s\S]*?path \/opportunities \/opportunities\/search \/opportunities\/personalized \/opportunities\/\*\/history \/eligibility \/plans \/plans\/rebalance \/policy\/validate \/positions \/positions\/claimable \/protocols\/\*\/opportunities \/swaps\/transactions \/execution\/quotes \/execution\/compose \/execution\/simulate/
   );
   assert.match(caddyfile, /handle @session \{[\s\S]*?reverse_proxy \{\$UPSTREAM_API\}/);
   const sessionMatcher = caddyfile.match(/@session \{[\s\S]*?\n\t\}/);

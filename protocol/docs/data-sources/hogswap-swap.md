@@ -16,9 +16,10 @@ This is a **router source**, not a yield-opportunity adapter. Haystack
 - Execution shapes: `src/execution/shapes/hogswap/`
   - `mainnet:hogswap:v1:swap:fixed-input`
   - `mainnet:hogswap:v1:swap:fixed-output`
+  Quote happens in `resolveState`; `/execute` runs only in `build`.
 - Base URL: `HOGSWAP_API_BASE_URL` (default `https://hogswap-v1.liquihog.dev`)
 - Endpoints:
-  - Quote: `POST /quote` with `mode: SWAP` (`amount_in` or exact-out `amount_out`)
+  - Quote: `POST /quote` with `mode: SWAP` (`amount_in` or exact-out `amount_out`; default `max_hops` 3)
   - Execute: `POST /execute` `{ quote_id, user_address }` → unsigned msgpack-base64 group (**does not broadcast**)
 
 Optional `sender` on `/quote` applies that wallet's HOG-holdings routing-fee
@@ -63,3 +64,6 @@ Fixture-based coverage (recorded `/quote` payloads; no live paid x402):
 - `tests/unit/hogswap-router.test.ts`
 - `tests/integration/hogswap-execution-shapes.test.ts`
 - `tests/fixtures/hogswap/swap.ts` (fixed-in ALGO→USDC and GOLD→USDC)
+
+Production live (x402 + on-chain): `tests/live/hogswap-production-swap.test.ts`
+(`X402_HOGSWAP_SWAP_LIVE=1`).

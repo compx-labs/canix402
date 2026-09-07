@@ -357,4 +357,6 @@ test("createExecutionRegistry registers HOGSWAP swap keys", () => {
   assert.equal(registry.has("mainnet:hogswap:v1:swap:fixed-input"), true);
   assert.equal(registry.has("mainnet:hogswap:v1:swap:fixed-output"), true);
   assert.ok(hogswapSwapFixedInputShape.requiredInputs.includes("fromAssetId"));
+  assert.ok(hogswapSwapFixedInputShape.requiredInputs.includes("maxSlippageBps"));
+  assert.equal(hogswapSwapFixedInputShape.opportunityRole, "enter");
 });

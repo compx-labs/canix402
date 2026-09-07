@@ -32,7 +32,7 @@ Token format: `csess_` + 32-byte hex.
 
 **Research** (counts against N): `/opportunities`, `/opportunities/search`, `/opportunities/personalized`, `/protocols/:protocol/opportunities`, `/positions`, `/positions/claimable`, `/eligibility`.
 
-**Quotes** (counts against M): `/plans`, `/plans/rebalance`, `/execution/quotes`, `/execution/compose`, `/execution/simulate`, `/swaps/transactions`, `/swaps/folks/transactions`.
+**Quotes** (counts against M): `/plans`, `/plans/rebalance`, `/execution/quotes`, `/execution/compose`, `/execution/simulate`, `/swaps/transactions`.
 
 Create/refresh are never session-eligible.
 

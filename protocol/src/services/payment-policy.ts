@@ -160,26 +160,6 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     tags: ["defi", "swaps", "haystack", "transactions", "wallet"]
   },
   {
-    id: "folksRouterSwapQuote",
-    method: "POST",
-    pathPattern: "/swaps/folks/quote",
-    access: "free",
-    summary: "Fetch a walletless Folks Router V2 swap quote",
-    description:
-      "Returns a serializable Folks Router V2 quote (Tinyman/Pact/Humble routing, split and multi-hop) without signing or submitting. Amounts use asset base units. When address is set, GET /fetch/discount is applied as userFeeDiscount and the FOLKS holdings tiers are documented on data.discount. Quotes are short-lived and should be refreshed after completing prerequisite opt-ins.",
-    tags: ["defi", "swaps", "folks-router", "agents"]
-  },
-  {
-    id: "folksRouterSwapOptIn",
-    method: "POST",
-    pathPattern: "/swaps/folks/optin",
-    access: "free",
-    summary: "Build prerequisite Folks Router swap opt-ins",
-    description:
-      "Inspects the supplied account and Folks Router V2 quote, then returns any required output-asset and Folks Router application opt-in transactions as an unsigned group. The caller signs and submits the group locally; canix402 never receives wallet keys or submits it.",
-    tags: ["defi", "swaps", "folks-router", "transactions", "wallet"]
-  },
-  {
     id: "tokenPricing",
     method: "POST",
     pathPattern: "/pricing",
@@ -358,18 +338,6 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
       "Returns an ordered Algorand swap group for a fresh Haystack quote, including signer indexes and any Haystack pre-signed members. The caller signs only the designated transactions and submits the complete group locally. The 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee, DEX fees, price impact, and Algorand network fees.",
     tags: ["defi", "swaps", "haystack", "transactions", "x402", "agents", HACKATHON_TAG],
     priceUsdc: process.env.X402_PRICE_HAYSTACK_SWAP_USDC ?? "0.005",
-    sessionAccess: "quotes"
-  },
-  {
-    id: "folksRouterSwapTransactions",
-    method: "POST",
-    pathPattern: "/swaps/folks/transactions",
-    access: "paid",
-    summary: "Build a walletless Folks Router V2 swap transaction group",
-    description:
-      "Returns an ordered unsigned Algorand swap group for a fresh Folks Router V2 quote. Every member is signer:user — Canix does not sign or submit. The 0.005 USDC x402 access charge is separate from Folks Router's ~0.1% output fee (FOLKS holdings discount when sender was set at quote time), DEX fees, price impact, and Algorand network fees.", // pragma: allowlist secret
-    tags: ["defi", "swaps", "folks-router", "transactions", "x402", "agents", HACKATHON_TAG],
-    priceUsdc: process.env.X402_PRICE_FOLKS_ROUTER_SWAP_USDC ?? "0.005",
     sessionAccess: "quotes"
   },
   {
@@ -590,7 +558,6 @@ const paidPathMatchers = [
   /^\/positions\/claimable$/,
   /^\/protocols\/[^/]+\/opportunities$/,
   /^\/swaps\/transactions$/,
-  /^\/swaps\/folks\/transactions$/,
   /^\/execution\/quotes$/,
   /^\/execution\/compose$/,
   /^\/execution\/simulate$/,
@@ -622,8 +589,6 @@ const freePathMatchers = [
   /^\/\.well-known\/ai-plugin\.json$/,
   /^\/swaps\/quote$/,
   /^\/swaps\/optin$/,
-  /^\/swaps\/folks\/quote$/,
-  /^\/swaps\/folks\/optin$/,
   /^\/pricing$/,
   /^\/execution\/shapes$/,
   /^\/public\/agents\/brownie\/positions$/
@@ -707,7 +672,6 @@ const quoteSessionMatchers = [
   /^\/execution\/compose$/,
   /^\/execution\/simulate$/,
   /^\/swaps\/transactions$/,
-  /^\/swaps\/folks\/transactions$/
 ];
 
 /** Normalize `/protocols/:protocol/opportunities` to a concrete path for matchers. */

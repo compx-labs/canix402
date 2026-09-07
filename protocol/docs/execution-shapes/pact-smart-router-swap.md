@@ -87,3 +87,5 @@ Protocol-wide notes: [protocol-caveats.md](./protocol-caveats.md#pact).
 - Unit: `tests/unit/pact-smart-router.test.ts`
 - Integration fixtures: `tests/integration/pact-smart-router-shapes.test.ts`
   (single-pool and multi-hop unsigned groups)
+- Production live (x402 + on-chain): `tests/live/pact-smart-router-production-test.test.ts`
+  (`X402_PACT_SMART_ROUTER_LIVE=1`; 0.1 USDC → ALGO)

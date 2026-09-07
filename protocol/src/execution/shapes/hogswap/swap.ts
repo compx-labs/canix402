@@ -137,8 +137,8 @@ function createHogswapSwapShape(
       "Returns unsigned transactions targeting the live router — never signed or broadcast. " +
       "Wallet must already be opted into the output ASA when it is not ALGO.",
     supportedOpportunityTypes: ["swap"],
-    opportunityRole: "manage",
-    requiredInputs: ["userAddress", "fromAssetId", "toAssetId", "amount"],
+    opportunityRole: "enter",
+    requiredInputs: ["userAddress", "fromAssetId", "toAssetId", "amount", "maxSlippageBps"],
     sources: [
       {
         kind: "api",
@@ -156,9 +156,8 @@ function createHogswapSwapShape(
 
     async resolveState(context, input) {
       const dependencies = resolveDependencies();
-      let quote: HogswapQuote;
       try {
-        quote = await dependencies.quoteSwap({
+        const quote = await dependencies.quoteSwap({
           assetIn: input.fromAssetId,
           assetOut: input.toAssetId,
           slippageBps: input.maxSlippageBps,
@@ -169,11 +168,10 @@ function createHogswapSwapShape(
           ...(input.maxHops === undefined ? {} : { maxHops: input.maxHops }),
           ...(input.maxLegs === undefined ? {} : { maxLegs: input.maxLegs })
         });
+        return { quote };
       } catch (error) {
         throw mapHogswapSwapQuoteError(error);
       }
-      const executed = await executeQuotedSwapGroup(context, quote, input.userAddress);
-      return { quote, ...executed };
     },
 
     async build(
@@ -181,6 +179,10 @@ function createHogswapSwapShape(
       input: HogswapSwapInput,
       state: HogswapSwapState
     ): Promise<ShapeBuildResult> {
+      const executed = await executeQuotedSwapGroup(context, state.quote, input.userAddress);
+      state.execute = executed.execute;
+      state.transactions = executed.transactions;
+
       const now = context.now?.() ?? Date.now();
       const ttl = context.quoteTtlMs ?? HOGSWAP_QUOTE_TTL_MS;
       const warnings = hogswapSwapBuildWarnings({
@@ -189,12 +191,12 @@ function createHogswapSwapShape(
         quoteAgeMs: now - state.quote.quotedAtMs,
         quoteTtlMs: ttl
       });
-      if (state.execute.notes.length > 0) {
-        warnings.push(...state.execute.notes);
+      if (executed.execute.notes.length > 0) {
+        warnings.push(...executed.execute.notes);
       }
 
       return {
-        transactions: state.transactions,
+        transactions: executed.transactions,
         warnings,
         metadata: {
           router: "hogswap",
@@ -211,13 +213,13 @@ function createHogswapSwapShape(
           slippageBps: input.maxSlippageBps,
           legs: state.quote.legs,
           pathBreakdown: state.quote.pathBreakdown,
-          networkFeeMicroalgo: state.execute.networkFeeMicroalgo,
+          networkFeeMicroalgo: executed.execute.networkFeeMicroalgo,
           routerFeeBpsNominal: state.quote.routerFeeBpsNominal,
           routerFeeBpsEffective: state.quote.routerFeeBpsEffective,
           routerFeeAmount: state.quote.routerFeeAmount,
           routerFeeAlreadyNetted: true,
-          routerAppId: state.execute.routerAppId,
-          groupIdB64: state.execute.groupIdB64,
+          routerAppId: executed.execute.routerAppId,
+          groupIdB64: executed.execute.groupIdB64,
           ...(input.maxHops === undefined ? {} : { maxHops: input.maxHops }),
           ...(input.maxLegs === undefined ? {} : { maxLegs: input.maxLegs }),
           signed: false,

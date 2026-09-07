@@ -16,7 +16,7 @@ This section tracks protocol-specific source contracts and normalization rules.
 - [STAMM](stamm.md) (LiquiHog multi-tier AMM; HOGSWAP discovery + unsigned mint/redeem)
 - [HOGSWAP LP valuation](hogswap-lp.md) (STAMM, AlgoFi, Humble positions; Tinyman/Pact overlap)
 - [HOGSWAP swap router](hogswap-swap.md) (unsigned SWAP quote + execute; does not replace Haystack)
-- [Folks Router V2](folks-router.md) (DEX aggregator swap quotes + unsigned execute; not Folks Finance lending)
+- [Folks Router V2](folks-router.md) (internal DEX aggregator adapter for a future meta-quote; no public HTTP)
 - [ASA Stats Smart Router](asastats-router.md) (quote + unsigned mixed group; partner `router:quote` / `router:group` token required)
 
 ## Planned Protocols

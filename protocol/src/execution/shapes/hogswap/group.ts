@@ -30,8 +30,8 @@ const UNSIGNED_WARNING =
 
 export interface HogswapSwapState {
   quote: HogswapQuote;
-  execute: HogswapExecuteResult;
-  transactions: Transaction[];
+  execute?: HogswapExecuteResult;
+  transactions?: Transaction[];
 }
 
 interface HogswapSwapGroupDependencies {
@@ -196,6 +196,11 @@ export function validateHogswapSwapGroup(
     if (txn.sender !== input.userAddress) {
       errors.push(`Transaction ${index + 1} sender must be the user address.`);
     }
+  }
+
+  if (state.execute === undefined) {
+    errors.push("HOGSWAP execute result is missing; build the unsigned group before validating.");
+    return { valid: false, errors, warnings };
   }
 
   const appCalls = group.filter((txn) => txn.type === "appl" && txn.applicationCall);

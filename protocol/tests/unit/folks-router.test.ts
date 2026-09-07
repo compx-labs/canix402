@@ -40,6 +40,7 @@ interface QuoteCall {
 
 function mockSdk(options: {
   discount?: number;
+  discountError?: Error;
   quote?: SwapQuote;
   unsignedGroup?: string[];
   quoteCalls?: QuoteCall[];
@@ -49,6 +50,9 @@ function mockSdk(options: {
   return {
     async fetchUserDiscount(userAddress) {
       options.discountCalls?.push(userAddress);
+      if (options.discountError) {
+        throw options.discountError;
+      }
       return options.discount ?? 10;
     },
     async fetchSwapQuote(params, maxGroupSize, feeBps, userFeeDiscount, referrer) {
@@ -154,6 +158,30 @@ test("quote without a sender skips discount lookup", async () => {
   assert.equal(quote.discount.applied, false);
   assert.equal(quote.discount.sender, null);
   assert.equal(quote.discount.userFeeDiscount, 0);
+});
+
+test("discount lookup failure quotes at list-price fee instead of failing", async () => {
+  const quoteCalls: QuoteCall[] = [];
+  const service = createFolksRouterService({
+    client: mockSdk({
+      quoteCalls,
+      discountError: new Error("discount 503")
+    }),
+    now: () => FOLKS_ROUTER_FIXTURE_NOW_MS
+  });
+
+  const quote = await service.getQuote({
+    address: FOLKS_ROUTER_FIXTURE_ADDRESS,
+    fromAssetId: 0,
+    toAssetId: FOLKS_ROUTER_USDC_ASSET_ID,
+    amount: 1_000_000
+  });
+
+  assert.equal(quote.discount.applied, false);
+  assert.equal(quote.discount.sender, FOLKS_ROUTER_FIXTURE_ADDRESS);
+  assert.equal(quote.discount.userFeeDiscount, 0);
+  assert.equal(quoteCalls[0]?.userFeeDiscount, undefined);
+  assert.equal(quote.quotedAmount, FOLKS_ROUTER_ALGO_USDC_QUOTE.quoteAmount.toString());
 });
 
 test("prepare returns an unsigned ALGO→USDC group without signing", async () => {

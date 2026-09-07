@@ -782,15 +782,13 @@ export async function quoteHogswapSwap(
     mode: "SWAP",
     asset_in: request.assetIn,
     asset_out: request.assetOut,
-    slippage_bps: request.slippageBps ?? HOGSWAP_SWAP_DEFAULT_SLIPPAGE_BPS
+    slippage_bps: request.slippageBps ?? HOGSWAP_SWAP_DEFAULT_SLIPPAGE_BPS,
+    max_hops: request.maxHops ?? HOGSWAP_SWAP_DEFAULT_MAX_HOPS
   };
   if (hasAmountIn) {
     body.amount_in = numberFromBigInt(request.amountIn!, "amountIn");
   } else {
     body.amount_out = numberFromBigInt(request.amountOut!, "amountOut");
-  }
-  if (request.maxHops !== undefined) {
-    body.max_hops = request.maxHops;
   }
   if (request.maxLegs !== undefined) {
     body.max_legs = request.maxLegs;
@@ -874,16 +872,30 @@ export function parseHogswapQuote(payload: unknown): HogswapQuote {
   }
   const lpRecord = asRecord(record.lp);
   const defaults = hogswapQuoteRouteDefaults();
+  const mode = typeof record.mode === "string" ? record.mode : "SWAP";
+  const isSwap = mode === "SWAP";
+  const defaultSlippageBps = isSwap
+    ? HOGSWAP_SWAP_DEFAULT_SLIPPAGE_BPS
+    : HOGSWAP_LP_DEFAULT_SLIPPAGE_BPS;
+  const expectedOut = requirePresentNonNegativeNumber(record.expected_out, "expected_out");
   return {
     quoteId,
-    mode: typeof record.mode === "string" ? record.mode : "SWAP",
-    assetIn: parseSafeNonNegativeInteger(record.asset_in) ?? 0,
-    assetOut: parseSafeNonNegativeInteger(record.asset_out) ?? 0,
+    mode,
+    assetIn: isSwap
+      ? requirePresentNonNegativeInteger(record.asset_in, "asset_in")
+      : parseSafeNonNegativeInteger(record.asset_in) ?? 0,
+    assetOut: isSwap
+      ? requirePresentNonNegativeInteger(record.asset_out, "asset_out")
+      : parseSafeNonNegativeInteger(record.asset_out) ?? 0,
     amountIn: parseNullableNonNegativeNumber(record.amount_in) ?? 0,
-    expectedOut: parseNullableNonNegativeNumber(record.expected_out) ?? 0,
-    expectedOutRobust: parseNullableNonNegativeNumber(record.expected_out_robust) ?? 0,
-    minOutAtSlippage: parseNullableNonNegativeNumber(record.min_out_at_slippage) ?? 0,
-    slippageBps: parseNullableNonNegativeNumber(record.slippage_bps) ?? HOGSWAP_LP_DEFAULT_SLIPPAGE_BPS,
+    expectedOut,
+    expectedOutRobust: parseNullableNonNegativeNumber(record.expected_out_robust) ?? expectedOut,
+    minOutAtSlippage: requirePresentNonNegativeNumber(
+      record.min_out_at_slippage,
+      "min_out_at_slippage"
+    ),
+    slippageBps:
+      parseNullableNonNegativeNumber(record.slippage_bps) ?? defaultSlippageBps,
     networkFeeMicroalgo: parseNullableNonNegativeNumber(record.network_fee_microalgo) ?? 0,
     deposits: asObjectArray(record.deposits).flatMap((deposit) => {
       const assetId = parseSafeNonNegativeInteger(deposit.asset_id);
@@ -1025,6 +1037,22 @@ export function parseHogswapExecute(payload: unknown): HogswapExecuteResult {
       : [],
     raw: record
   };
+}
+
+function requirePresentNonNegativeInteger(value: unknown, field: string): number {
+  const parsed = parseSafeNonNegativeInteger(value);
+  if (parsed === null) {
+    throw new HogswapClientError(`HOGSWAP quote is missing ${field}.`);
+  }
+  return parsed;
+}
+
+function requirePresentNonNegativeNumber(value: unknown, field: string): number {
+  const parsed = parseNullableNonNegativeNumber(value);
+  if (parsed === null) {
+    throw new HogswapClientError(`HOGSWAP quote is missing ${field}.`);
+  }
+  return parsed;
 }
 
 function numberFromBigInt(value: bigint, field: string): number {

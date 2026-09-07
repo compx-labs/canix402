@@ -182,6 +182,9 @@ export function createFolksRouterService(
     ?? folksRouterV2ApiBase(network);
   assertFolksRouterV2BaseUrl(apiBaseUrl);
 
+  // FolksRouterClient(network, apiKey) selects the V2 host from Network.
+  // apiBaseUrl is a V1-misconfig guard only; the SDK does not accept a base URL.
+
   const config: FolksRouterServiceConfig = {
     network,
     apiKey: overrides.apiKey ?? process.env.FOLKS_ROUTER_API_KEY,
@@ -460,11 +463,15 @@ async function resolveDiscount(
       applied: true,
       tiers
     };
-  } catch (error) {
-    throw mapFolksError(
-      error,
-      "Unable to fetch the Folks Router V2 fee discount for the sender."
-    );
+  } catch {
+    // Discount is optional. Quote at the list-price 0.1% fee so a discount
+    // outage cannot block a Folks quote in a multi-router compare.
+    return {
+      sender: address,
+      userFeeDiscount: 0,
+      applied: false,
+      tiers
+    };
   }
 }
 

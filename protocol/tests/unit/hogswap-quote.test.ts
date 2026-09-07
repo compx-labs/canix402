@@ -239,6 +239,24 @@ test("parseHogswapQuote maps SWAP legs and already-netted router fee", () => {
   assert.equal(quote.lp, null);
 });
 
+test("parseHogswapQuote rejects SWAP payloads missing expected_out", () => {
+  assert.throws(
+    () =>
+      parseHogswapQuote({
+        ...hogswapAlgoUsdcQuotePayload,
+        expected_out: undefined
+      }),
+    (error: unknown) =>
+      error instanceof HogswapClientError && /missing expected_out/.test(error.message)
+  );
+});
+
+test("parseHogswapQuote uses SWAP slippage default when slippage_bps is omitted", () => {
+  const { slippage_bps: _omitted, ...withoutSlippage } = hogswapAlgoUsdcQuotePayload;
+  const quote = parseHogswapQuote(withoutSlippage);
+  assert.equal(quote.slippageBps, 50);
+});
+
 test("quoteHogswapSwap posts SWAP amount_in and optional sender", async () => {
   const posts: Array<{ url: string; body: unknown }> = [];
   setHogswapClientDependenciesForTests({
@@ -271,6 +289,7 @@ test("quoteHogswapSwap posts SWAP amount_in and optional sender", async () => {
     asset_out: HOGSWAP_FIXTURE_USDC_ASSET_ID,
     amount_in: 1_000_000,
     slippage_bps: 50,
+    max_hops: 3,
     sender: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
   });
 });
@@ -299,7 +318,8 @@ test("quoteHogswapSwap posts exact-out amount_out without amount_in", async () =
     asset_in: 0,
     asset_out: HOGSWAP_FIXTURE_USDC_ASSET_ID,
     amount_out: 100_000,
-    slippage_bps: 50
+    slippage_bps: 50,
+    max_hops: 3
   });
 });
 

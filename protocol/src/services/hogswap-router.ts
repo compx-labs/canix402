@@ -170,7 +170,6 @@ export function createHogswapSwapService(): HogswapSwapService {
         toAssetId,
         amount,
         type,
-        now: dependencies.now(),
         quoteTtlMs: dependencies.quoteTtlMs
       });
     },
@@ -264,7 +263,6 @@ export function toSwapQuoteDto(
     toAssetId: number;
     amount: bigint;
     type: HogswapSwapType;
-    now: number;
     quoteTtlMs: number;
   }
 ): HogswapSwapQuoteDto {
@@ -280,7 +278,7 @@ export function toSwapQuoteDto(
     expectedOutRobust: String(quote.expectedOutRobust),
     quoteId: quote.quoteId,
     createdAt: new Date(quote.quotedAtMs).toISOString(),
-    expiresAt: new Date(input.now + input.quoteTtlMs).toISOString(),
+    expiresAt: new Date(quote.quotedAtMs + input.quoteTtlMs).toISOString(),
     slippageBps: quote.slippageBps,
     networkFeeMicroalgo: String(quote.networkFeeMicroalgo),
     routerFeeBpsNominal: quote.routerFeeBpsNominal,
