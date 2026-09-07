@@ -6,7 +6,9 @@ it does not sign or submit.
 
 This is the portfolio-side HOGSWAP integration. STAMM opportunity discovery and
 unsigned mint/redeem shapes live in [stamm.md](stamm.md)
-(`mainnet:stamm:v1:mint:lp` / `mainnet:stamm:v1:redeem:lp`).
+(`mainnet:stamm:v1:mint:lp` / `mainnet:stamm:v1:redeem:lp`). The HOGSWAP
+**swap** router (`mainnet:hogswap:v1:swap:fixed-input`) is documented in
+[hogswap-swap.md](hogswap-swap.md) and does not replace Haystack `/swaps/*`.
 
 ## Source Strategy
 

@@ -7,6 +7,7 @@ import { haystackShapes } from "./shapes/haystack/index.js";
 import { mythFinanceShapes } from "./shapes/myth-finance/index.js";
 import { pactShapes } from "./shapes/pact/index.js";
 import { retiShapes } from "./shapes/reti/index.js";
+import { hogswapShapes } from "./shapes/hogswap/index.js";
 import { stammShapes } from "./shapes/stamm/index.js";
 import { tinymanShapes } from "./shapes/tinyman/index.js";
 
@@ -98,6 +99,15 @@ export type {
   StammRedeemLpInput,
   StammHogswapLpState
 } from "./shapes/stamm/index.js";
+export {
+  hogswapSwapFixedInputShape,
+  hogswapSwapFixedOutputShape,
+  hogswapShapes
+} from "./shapes/hogswap/index.js";
+export type {
+  HogswapSwapInput,
+  HogswapSwapState
+} from "./shapes/hogswap/index.js";
 
 /**
  * Build a registry pre-loaded with every verified transaction shape. Callers
@@ -116,7 +126,8 @@ export function createExecutionRegistry(): TransactionShapeRegistry {
     ...haystackShapes,
     ...retiShapes,
     ...alphaArcadeShapes,
-    ...stammShapes
+    ...stammShapes,
+    ...hogswapShapes
   ]) {
     registry.register(shape);
   }

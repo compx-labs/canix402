@@ -11,7 +11,7 @@ signing. Groups from a batch request are never merged.
 
 This page covers the protocols whose golden/integration fixtures exist today:
 Tinyman, Folks Finance, Pact, CompX, Dork.fi, Myth Finance, Haystack, Réti,
-Alpha Arcade, and STAMM. Per-shape group layouts stay in the sibling markdown files.
+Alpha Arcade, STAMM, and HOGSWAP. Per-shape group layouts stay in the sibling markdown files.
 
 ## Tinyman
 
@@ -392,3 +392,48 @@ unsigned groups only.
 - Never pin router/registry ids in shapes. A STAMM or HOGSWAP router upgrade that
   changes those ids is picked up automatically from `/execute`.
 - Quotes expire in ~30s. After opt-in, re-quote (stale-quote).
+
+## HOGSWAP
+
+LiquiHog multi-DEX swap aggregator (STAMM, Tinyman, Pact, Humble, AlgoFi, Folks,
+LST mints). Canix treats it as **one** router source. Quote `POST /quote`
+`mode: SWAP` then `POST /execute` for an unsigned group. Does not replace
+Haystack `/swaps/*`.
+
+### Pool discovery
+
+- Pass `fromAssetId` / `toAssetId` (0 = ALGO). HOGSWAP selects the route. Do not
+  invent pool or router app ids — `/execute` always targets the current router.
+- Legs in quote metadata are audit-only (`dex_name`, planned in/out).
+
+### Opt-ins
+
+- The wallet must already be opted into the **output ASA** (when it is not ALGO)
+  before execute. Opt-in is a **separate** group and is never merged.
+- Missing opt-in returns HTTP 422; Canix surfaces it as a shape-state error.
+  Re-quote after the opt-in confirms.
+
+### Minimum balance
+
+- Output-ASA opt-in consumes extra minimum balance. Shapes do not fund that MBR.
+
+### Slippage math
+
+- `maxSlippageBps` defaults to **50** (HOGSWAP SWAP OpenAPI default). Range 1–10000.
+- Delivery below `min_out_at_slippage` reverts the whole group.
+- Routing fee (~5 bps of output; HOG holdings discount; waived at 100+ HOG) is
+  **already netted** into `expected_out` / `quotedAmount`. Do not subtract
+  `routerFeeAmount` again when scoring net out.
+
+### Liquidity limits
+
+- Fixed-in uses `amount_in`; exact-out uses `amount_out` (mutually exclusive).
+- Optional `maxHops` (1–4) and `maxLegs` (1–16) cap route complexity. 404 when
+  nothing fits.
+
+### App upgrades
+
+- Never pin router app ids in shapes. A HOGSWAP router upgrade is picked up from
+  `/execute`.
+- Quotes expire in ~30s. After opt-in, re-quote (stale-quote).
+- Canix does not sign or submit.

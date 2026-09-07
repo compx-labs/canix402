@@ -35,24 +35,43 @@ export {
   parseHogswapQuote,
   quoteHogswapLpMint,
   quoteHogswapLpRedeem,
+  quoteHogswapSwap,
   resetHogswapClientCacheForTests,
   setHogswapClientDependenciesForTests,
   HogswapClientError,
   HogswapMissingOptInError,
+  HogswapNoRouteError,
   HogswapQuoteExpiredError,
   HOGSWAP_DEFAULT_HTTP_TIMEOUT_MS,
   HOGSWAP_LP_DEFAULT_SLIPPAGE_BPS,
   HOGSWAP_LP_POSITION_PROTOCOLS,
-  HOGSWAP_QUOTE_TTL_MS
+  HOGSWAP_QUOTE_TTL_MS,
+  HOGSWAP_SWAP_DEFAULT_SLIPPAGE_BPS
 } from "./hogswap-client.js";
 export type {
   HogswapExecuteResult,
   HogswapLpMintQuoteRequest,
   HogswapLpQuoteExtras,
   HogswapLpRedeemQuoteRequest,
+  HogswapPathBreakdown,
   HogswapQuote,
-  HogswapStammAssetMeta
+  HogswapQuoteLeg,
+  HogswapStammAssetMeta,
+  HogswapSwapQuoteRequest
 } from "./hogswap-client.js";
+export {
+  HOGSWAP_ROUTER,
+  HogswapRouterError,
+  createHogswapSwapService,
+  setHogswapSwapServiceDependenciesForTests,
+  toSwapQuoteDto
+} from "./hogswap-router.js";
+export type {
+  HogswapSwapExecuteDto,
+  HogswapSwapQuoteDto,
+  HogswapSwapService,
+  HogswapSwapQuoteRequest as HogswapRouterQuoteRequest
+} from "./hogswap-router.js";
 export type {
   PositionCollector,
   ProtocolPositionsCollection

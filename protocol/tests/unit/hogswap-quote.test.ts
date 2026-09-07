@@ -4,11 +4,13 @@ import test from "node:test";
 import {
   HogswapClientError,
   HogswapMissingOptInError,
+  HogswapNoRouteError,
   HogswapQuoteExpiredError,
   parseHogswapExecute,
   parseHogswapQuote,
   quoteHogswapLpMint,
   quoteHogswapLpRedeem,
+  quoteHogswapSwap,
   executeHogswapQuote,
   setHogswapClientDependenciesForTests
 } from "../../src/services/hogswap-client.js";
@@ -16,6 +18,10 @@ import {
   STAMM_FIXTURE_POOL_APP_ID,
   STAMM_FIXTURE_TIER1_LP_ASSET_ID
 } from "../fixtures/adapters/stamm.js";
+import {
+  hogswapAlgoUsdcQuotePayload,
+  HOGSWAP_FIXTURE_USDC_ASSET_ID
+} from "../fixtures/hogswap/swap.js";
 
 test.afterEach(() => {
   setHogswapClientDependenciesForTests(undefined);
@@ -199,6 +205,150 @@ test("HOGSWAP HTTP aborts hung fetches", async () => {
         poolAppId: STAMM_FIXTURE_POOL_APP_ID,
         tierIndex: 1,
         amountA: 1_000_000n
+      }),
+      (error: unknown) =>
+        error instanceof HogswapClientError && /timed out after 40ms/.test(error.message)
+    );
+  } finally {
+    if (previousTimeout === undefined) {
+      delete process.env.HOGSWAP_HTTP_TIMEOUT_MS;
+    } else {
+      process.env.HOGSWAP_HTTP_TIMEOUT_MS = previousTimeout;
+    }
+    if (previousDelay === undefined) {
+      delete process.env.HOGSWAP_HTTP_DELAY_MS;
+    } else {
+      process.env.HOGSWAP_HTTP_DELAY_MS = previousDelay;
+    }
+  }
+});
+
+test("parseHogswapQuote maps SWAP legs and already-netted router fee", () => {
+  setHogswapClientDependenciesForTests({ now: () => 1_700_000_000_000 });
+  const quote = parseHogswapQuote(hogswapAlgoUsdcQuotePayload);
+  assert.equal(quote.mode, "SWAP");
+  assert.equal(quote.assetIn, 0);
+  assert.equal(quote.assetOut, HOGSWAP_FIXTURE_USDC_ASSET_ID);
+  assert.equal(quote.expectedOut, 94_738);
+  assert.equal(quote.minOutAtSlippage, 94_169);
+  assert.equal(quote.routerFeeBpsEffective, 5);
+  assert.equal(quote.routerFeeAmount, 47);
+  assert.equal(quote.legs.length, 2);
+  assert.equal(quote.legs[0]?.dexName, "Pact CP");
+  assert.equal(quote.pathBreakdown[0]?.assets[0], 0);
+  assert.equal(quote.lp, null);
+});
+
+test("quoteHogswapSwap posts SWAP amount_in and optional sender", async () => {
+  const posts: Array<{ url: string; body: unknown }> = [];
+  setHogswapClientDependenciesForTests({
+    now: () => 1,
+    fetch: async (input, init) => {
+      posts.push({
+        url: String(input),
+        body: JSON.parse(String(init?.body ?? "{}")) as unknown
+      });
+      return new Response(JSON.stringify(hogswapAlgoUsdcQuotePayload), {
+        status: 200,
+        headers: { "content-type": "application/json" }
+      });
+    }
+  });
+
+  await quoteHogswapSwap({
+    assetIn: 0,
+    assetOut: HOGSWAP_FIXTURE_USDC_ASSET_ID,
+    amountIn: 1_000_000n,
+    slippageBps: 50,
+    sender: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+  });
+
+  assert.equal(posts.length, 1);
+  assert.match(posts[0]?.url ?? "", /\/quote$/);
+  assert.deepEqual(posts[0]?.body, {
+    mode: "SWAP",
+    asset_in: 0,
+    asset_out: HOGSWAP_FIXTURE_USDC_ASSET_ID,
+    amount_in: 1_000_000,
+    slippage_bps: 50,
+    sender: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+  });
+});
+
+test("quoteHogswapSwap posts exact-out amount_out without amount_in", async () => {
+  const posts: unknown[] = [];
+  setHogswapClientDependenciesForTests({
+    now: () => 1,
+    fetch: async (_input, init) => {
+      posts.push(JSON.parse(String(init?.body ?? "{}")));
+      return new Response(JSON.stringify(hogswapAlgoUsdcQuotePayload), {
+        status: 200,
+        headers: { "content-type": "application/json" }
+      });
+    }
+  });
+
+  await quoteHogswapSwap({
+    assetIn: 0,
+    assetOut: HOGSWAP_FIXTURE_USDC_ASSET_ID,
+    amountOut: 100_000n
+  });
+
+  assert.deepEqual(posts[0], {
+    mode: "SWAP",
+    asset_in: 0,
+    asset_out: HOGSWAP_FIXTURE_USDC_ASSET_ID,
+    amount_out: 100_000,
+    slippage_bps: 50
+  });
+});
+
+test("quoteHogswapSwap maps quote 404 to no-route and execute 404 to expired", async () => {
+  setHogswapClientDependenciesForTests({
+    fetch: async () =>
+      new Response(JSON.stringify({ detail: "no route" }), { status: 404 })
+  });
+  await assert.rejects(
+    quoteHogswapSwap({
+      assetIn: 0,
+      assetOut: HOGSWAP_FIXTURE_USDC_ASSET_ID,
+      amountIn: 1_000_000n
+    }),
+    HogswapNoRouteError
+  );
+
+  setHogswapClientDependenciesForTests({
+    fetch: async () =>
+      new Response(JSON.stringify({ detail: "quote not found" }), { status: 404 })
+  });
+  await assert.rejects(
+    executeHogswapQuote("missing", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"),
+    HogswapQuoteExpiredError
+  );
+});
+
+test("quoteHogswapSwap HTTP aborts hung fetches", async () => {
+  const previousTimeout = process.env.HOGSWAP_HTTP_TIMEOUT_MS;
+  const previousDelay = process.env.HOGSWAP_HTTP_DELAY_MS;
+  process.env.HOGSWAP_HTTP_TIMEOUT_MS = "40";
+  process.env.HOGSWAP_HTTP_DELAY_MS = "0";
+  setHogswapClientDependenciesForTests({
+    now: () => 1,
+    fetch: (_input, init) =>
+      new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => {
+          const error = new Error("The operation was aborted.");
+          error.name = "AbortError";
+          reject(error);
+        });
+      })
+  });
+  try {
+    await assert.rejects(
+      quoteHogswapSwap({
+        assetIn: 0,
+        assetOut: HOGSWAP_FIXTURE_USDC_ASSET_ID,
+        amountIn: 1_000_000n
       }),
       (error: unknown) =>
         error instanceof HogswapClientError && /timed out after 40ms/.test(error.message)
