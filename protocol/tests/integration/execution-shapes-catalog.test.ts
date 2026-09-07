@@ -66,6 +66,16 @@ test("GET /execution/shapes returns the live registry catalog for free", async (
   assert.ok(stammMint);
   assert.ok(stammMint.requiredInputs.includes("amountA"));
 
+  const pactSmartRouter = body.data.find(
+    (shape) => shape.shapeKey === "mainnet:pact:smart-router:swap:fixed-input"
+  );
+  assert.ok(pactSmartRouter);
+  assert.ok(pactSmartRouter.requiredInputs.includes("fromAssetId"));
+  assert.equal(
+    pactSmartRouter.docsPath,
+    "protocol/docs/execution-shapes/pact-smart-router-swap.md"
+  );
+
   const hogswapSwap = body.data.find(
     (shape) => shape.shapeKey === "mainnet:hogswap:v1:swap:fixed-input"
   );

@@ -450,7 +450,14 @@ test("registry includes Pact liquidity and farm shapes", () => {
   assert.equal(registry.has("mainnet:pact:v1:farm:unstake"), true);
   assert.equal(registry.has("mainnet:pact:v1:farm:claimRewards"), true);
   assert.equal(registry.has("mainnet:pact:v1:addLiquidityAndFarm:twoSided"), true);
+  assert.equal(registry.has("mainnet:pact:smart-router:swap:fixed-input"), true);
   assert.equal(registry.listForOpportunity("pact", "farm").length, 3);
+  assert.equal(
+    registry.listForOpportunity("pact", "lp").some(
+      (shape) => shape.key === "mainnet:pact:smart-router:swap:fixed-input"
+    ),
+    false
+  );
 });
 
 function buildPactSdkV3AlgodStub(): Algodv2 {

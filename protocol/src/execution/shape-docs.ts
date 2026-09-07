@@ -87,6 +87,8 @@ export const EXECUTION_SHAPE_DOCS_PATHS: Readonly<Record<string, string>> = {
     "protocol/docs/execution-shapes/pact-farm-claim-rewards.md",
   "mainnet:pact:v1:addLiquidityAndFarm:twoSided":
     "protocol/docs/execution-shapes/pact-add-liquidity-and-farm-two-sided.md",
+  "mainnet:pact:smart-router:swap:fixed-input":
+    "protocol/docs/execution-shapes/pact-smart-router-swap.md",
   "mainnet:compx:v1:deposit:asa":
     "protocol/docs/execution-shapes/compx-deposit-asa.md",
   "mainnet:compx:v1:withdraw:asa":
