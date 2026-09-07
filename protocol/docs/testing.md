@@ -74,6 +74,9 @@ Protocols covered:
 - Alpha Arcade (trailing USDC fee-share APR; mocked pool + indexer inflows)
 - STAMM (per-tier LP from recorded `/stamm/pools`; TVL + fees, APY unknown)
 - HOGSWAP LP valuation (`normalizeHogswapLpPosition`, catalog merge; recorded `/lp/{id}` and `/stamm/pools`)
+- Tinyman Swap Router (router vs single-pool quote compare; recorded 2-hop and fallback fixtures)
+- Folks Router V2 (`createFolksRouterService` quote + unsigned prepare; ALGO→USDC and multi-hop fixtures)
+- ASA Stats Smart Router (`parseAsaStatsQuote` / `parseAsaStatsGroup`; recorded `sell` ALGO→USDC and multi-venue mixed groups)
 
 `adapter-execution-enrichment.test.ts` chains those transforms into
 `attachExecutionShapesToOpportunity` so enter-shape attachment is also asserted
@@ -93,7 +96,10 @@ Files:
 - `tests/unit/stamm-normalize.test.ts`
 - `tests/unit/hogswap-quote.test.ts`
 - `tests/unit/hogswap-router.test.ts`
-- `tests/unit/hogswap-lp-normalize.test.ts
+- `tests/unit/hogswap-lp-normalize.test.ts`
+- `tests/unit/tinyman-swap-router.test.ts`
+- `tests/unit/folks-router.test.ts`
+- `tests/unit/asastats-router.test.ts`
 - `tests/unit/adapter-execution-enrichment.test.ts`
 
 Fixtures:
@@ -110,6 +116,9 @@ Fixtures:
 - `tests/fixtures/adapters/stamm.ts`
 - `tests/fixtures/hogswap/lp-valuation.ts`
 - `tests/fixtures/hogswap/swap.ts`
+- `tests/fixtures/tinyman/swap-router.ts`
+- `tests/fixtures/folks-router.ts`
+- `tests/fixtures/asastats/router.ts`
 
 ### API tests (`protocol/tests/integration`)
 
@@ -172,6 +181,7 @@ Files:
 - `tests/integration/stamm-adapter.test.ts`
 - `tests/integration/tinyman-farm-commit-shapes.test.ts`
 - `tests/integration/tinyman-add-liquidity-and-farm-shapes.test.ts`
+- `tests/integration/tinyman-swap-router-shape.test.ts`
 - `tests/integration/folks-finance-adapter.test.ts`
 
 ### Gateway tests through Caddy (`protocol/tests/e2e`)

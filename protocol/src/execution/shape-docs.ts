@@ -41,6 +41,10 @@ export const EXECUTION_SHAPE_DOCS_PATHS: Readonly<Record<string, string>> = {
     "protocol/docs/execution-shapes/tinyman-decrease-stake-stalgo.md",
   "mainnet:tinyman:restake-v1:claimRewards:stAlgo":
     "protocol/docs/execution-shapes/tinyman-claim-rewards-stalgo.md",
+  "mainnet:tinyman:v2:swap:fixedInput":
+    "protocol/docs/execution-shapes/tinyman-swap-router.md",
+  "mainnet:tinyman:v2:swap:fixedOutput":
+    "protocol/docs/execution-shapes/tinyman-swap-router.md",
   "mainnet:folks-finance:v2:setup:depositEscrow":
     "protocol/docs/execution-shapes/folks-finance-setup-deposit-escrow.md",
   "mainnet:folks-finance:v2:setup:optEscrowAsset":

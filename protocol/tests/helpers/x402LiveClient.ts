@@ -132,25 +132,32 @@ export interface ExecutionQuoteResponse {
 
 export async function assertProductionFreeEndpoints(baseUrl: string): Promise<void> {
   let haystackQuote: unknown;
+  let folksQuote: unknown;
 
   for (const endpoint of productionFreeEndpoints) {
     const request =
       endpoint.id === "haystackSwapOptIn"
-        ? withHaystackOptInBody(endpoint, haystackQuote)
-        : endpoint;
+        ? withSwapOptInBody("/swaps/optin", endpoint, haystackQuote)
+        : endpoint.id === "folksRouterSwapOptIn"
+          ? withSwapOptInBody("/swaps/folks/optin", endpoint, folksQuote)
+          : endpoint;
     const body = await assertFreeEndpoint(baseUrl, request);
     if (endpoint.id === "haystackSwapQuote") {
       haystackQuote = (body as { data?: unknown } | undefined)?.data;
     }
+    if (endpoint.id === "folksRouterSwapQuote") {
+      folksQuote = (body as { data?: unknown } | undefined)?.data;
+    }
   }
 }
 
-function withHaystackOptInBody(
+function withSwapOptInBody(
+  path: string,
   endpoint: ProductionEndpoint,
-  haystackQuote: unknown
+  quote: unknown
 ): ProductionEndpoint {
-  if (haystackQuote === undefined || haystackQuote === null) {
-    throw new Error("/swaps/optin: missing quote from POST /swaps/quote");
+  if (quote === undefined || quote === null) {
+    throw new Error(`${path}: missing quote from the matching quote route`);
   }
 
   return {
@@ -158,7 +165,7 @@ function withHaystackOptInBody(
     method: "POST",
     body: {
       address: getProductionPersonalizedAddress(),
-      quote: haystackQuote
+      quote
     }
   };
 }
@@ -285,18 +292,24 @@ export async function assertFreeEndpoint(
     }
   }
 
-  if (path === "/swaps/quote") {
+  if (path === "/swaps/quote" || path === "/swaps/folks/quote") {
     const data = body.data as Record<string, unknown> | undefined;
     const meta = body.meta as Record<string, unknown> | undefined;
     if (typeof data?.quotedAmount !== "string" || data.quotedAmount.length === 0) {
       throw new Error(`${path}: missing quotedAmount`);
+    }
+    if (path === "/swaps/folks/quote") {
+      const discount = data.discount as Record<string, unknown> | undefined;
+      if (typeof discount?.applied !== "boolean" || typeof discount.userFeeDiscount !== "number") {
+        throw new Error(`${path}: missing Folks Router discount fields`);
+      }
     }
     if (meta?.paymentRequired !== false) {
       throw new Error(`${path}: expected meta.paymentRequired to be false`);
     }
   }
 
-  if (path === "/swaps/optin") {
+  if (path === "/swaps/optin" || path === "/swaps/folks/optin") {
     const data = body.data as Record<string, unknown> | undefined;
     const meta = body.meta as Record<string, unknown> | undefined;
     if (typeof data?.required !== "boolean" || !Array.isArray(data.transactions)) {

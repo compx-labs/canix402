@@ -131,3 +131,101 @@ export type SwapTransactionsRequest = Static<typeof SwapTransactionsRequestSchem
 export type SwapQuoteResponse = Static<typeof SwapQuoteResponseSchema>;
 export type SwapOptInResponse = Static<typeof SwapOptInResponseSchema>;
 export type SwapTransactionsResponse = Static<typeof SwapTransactionsResponseSchema>;
+
+const FolksSwapTypeSchema = Type.Union([
+  Type.Literal("fixed-input"),
+  Type.Literal("fixed-output")
+]);
+
+export const FolksRouterDiscountTierSchema = Type.Object({
+  minFolks: Type.Number({ minimum: 0 }),
+  maxFolksExclusive: Type.Optional(Type.Number({ minimum: 0 })),
+  discountPercent: Type.Integer({ minimum: 0, maximum: 50 })
+});
+
+export const FolksRouterDiscountSchema = Type.Object({
+  sender: Type.Union([AlgorandAddressSchema, Type.Null()]), // pragma: allowlist secret
+  userFeeDiscount: Type.Integer({ minimum: 0, maximum: 50 }),
+  applied: Type.Boolean(),
+  tiers: Type.Array(FolksRouterDiscountTierSchema, { minItems: 1 })
+});
+
+export const FolksSwapQuoteRequestSchema = Type.Object({
+  address: Type.Optional(AlgorandAddressSchema), // pragma: allowlist secret
+  fromAssetId: AssetIdSchema,
+  toAssetId: AssetIdSchema,
+  amount: BaseUnitSchema,
+  type: Type.Optional(FolksSwapTypeSchema),
+  maxGroupSize: Type.Optional(Type.Integer({ minimum: 3, maximum: 16 }))
+});
+
+export const FolksSwapQuoteSchema = Type.Object({
+  source: Type.Literal("folks-router"),
+  apiVersion: Type.Literal("v2"),
+  routerAppId: Type.String({ pattern: "^[1-9][0-9]*$" }),
+  address: Type.Optional(AlgorandAddressSchema), // pragma: allowlist secret
+  fromAssetId: Type.String({ pattern: "^[0-9]+$" }),
+  toAssetId: Type.String({ pattern: "^[0-9]+$" }),
+  amount: Type.String({ pattern: "^[1-9][0-9]*$" }),
+  type: FolksSwapTypeSchema,
+  swapMode: Type.Union([Type.Literal("FIXED_INPUT"), Type.Literal("FIXED_OUTPUT")]),
+  quotedAmount: Type.String({ pattern: "^[0-9]+$" }),
+  createdAt: Type.String({ format: "date-time" }),
+  expiresAt: Type.String({ format: "date-time" }),
+  requiredAppOptIns: Type.Array(Type.String({ pattern: "^[1-9][0-9]*$" })),
+  txnPayload: Type.String({ minLength: 1 }),
+  priceImpact: Type.Number(),
+  microalgoTxnsFee: Type.Integer({ minimum: 0 }),
+  discount: FolksRouterDiscountSchema
+});
+
+export const FolksSwapQuoteResponseSchema = Type.Object({
+  data: FolksSwapQuoteSchema,
+  meta: Type.Object({
+    paymentRequired: Type.Literal(false),
+    executionSubmitted: Type.Literal(false)
+  })
+});
+
+export const FolksSwapOptInRequestSchema = Type.Object({
+  address: AlgorandAddressSchema, // pragma: allowlist secret
+  quote: FolksSwapQuoteSchema
+});
+
+export const FolksSwapTransactionsRequestSchema = Type.Object({
+  address: AlgorandAddressSchema, // pragma: allowlist secret
+  quote: FolksSwapQuoteSchema,
+  slippage: Type.Number({ minimum: 0, maximum: 100 })
+});
+
+export const FolksSwapGroupTransactionSchema = Type.Object({
+  index: Type.Integer({ minimum: 0 }),
+  encodedTransaction: Type.String({ minLength: 1 }),
+  signer: Type.Literal("user")
+});
+
+export const FolksSwapTransactionsResponseSchema = Type.Object({
+  data: Type.Object({
+    source: Type.Literal("folks-router"),
+    apiVersion: Type.Literal("v2"),
+    routerAppId: Type.String({ pattern: "^[1-9][0-9]*$" }),
+    routeKind: Type.Union([Type.Literal("direct"), Type.Literal("multi-hop")]),
+    hopCount: Type.Integer({ minimum: 1 }),
+    transactions: Type.Array(FolksSwapGroupTransactionSchema, { minItems: 1 }),
+    userSignIndexes: Type.Array(Type.Integer({ minimum: 0 }), { minItems: 1 }),
+    createdAt: Type.String({ format: "date-time" }),
+    quoteExpiresAt: Type.String({ format: "date-time" })
+  }),
+  meta: Type.Object({
+    paymentRequired: Type.Literal(true),
+    executionSubmitted: Type.Literal(false)
+  })
+});
+
+export type FolksSwapQuoteRequest = Static<typeof FolksSwapQuoteRequestSchema>;
+export type FolksSwapQuote = Static<typeof FolksSwapQuoteSchema>;
+export type FolksSwapQuoteResponse = Static<typeof FolksSwapQuoteResponseSchema>;
+export type FolksSwapOptInRequest = Static<typeof FolksSwapOptInRequestSchema>;
+export type FolksSwapTransactionsRequest = Static<typeof FolksSwapTransactionsRequestSchema>;
+export type FolksSwapTransactionsResponse = Static<typeof FolksSwapTransactionsResponseSchema>;
+export type FolksRouterDiscount = Static<typeof FolksRouterDiscountSchema>;

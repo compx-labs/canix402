@@ -30,6 +30,25 @@ test("production smoke posts Haystack quote and opt-in instead of GET", () => {
   assert.ok(quoteIndex >= 0 && optInIndex > quoteIndex);
 });
 
+test("production smoke posts Folks Router quote instead of GET", () => {
+  const quote = productionFreeEndpoints.find((endpoint) => endpoint.id === "folksRouterSwapQuote");
+  const optIn = productionFreeEndpoints.find((endpoint) => endpoint.id === "folksRouterSwapOptIn");
+  assert.equal(quote?.method, "POST");
+  assert.equal(quote?.path, "/swaps/folks/quote");
+  assert.equal((quote?.body as { type?: string } | undefined)?.type, "fixed-input");
+  assert.ok((quote?.body as { address?: string } | undefined)?.address);
+  assert.equal(optIn?.method, "POST");
+  assert.equal(optIn?.path, "/swaps/folks/optin");
+  assert.equal(optIn?.body, undefined);
+  const quoteIndex = productionFreeEndpoints.findIndex(
+    (endpoint) => endpoint.id === "folksRouterSwapQuote"
+  );
+  const optInIndex = productionFreeEndpoints.findIndex(
+    (endpoint) => endpoint.id === "folksRouterSwapOptIn"
+  );
+  assert.ok(quoteIndex >= 0 && optInIndex > quoteIndex);
+});
+
 test("production endpoint mapping copies method from the policy matrix", () => {
   for (const endpoint of [...productionFreeEndpoints, ...productionPaidEndpoints]) {
     assert.ok(endpoint.method === "GET" || endpoint.method === "POST", endpoint.id);
