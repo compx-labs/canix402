@@ -1,6 +1,6 @@
 # CANIX402 — full agent integration guide
 
-> x402-gated Algorand DeFi data and walletless transaction API (version 1.6.5). Normalized yield data and Haystack swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.  # pragma: allowlist secret
+> x402-gated Algorand DeFi data and walletless transaction API (version 1.7.0). Normalized yield data and Haystack swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.  # pragma: allowlist secret
 
 ## Overview
 
