@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 
 import {
-  ProtocolSchema,
+  OpportunityProtocolSchema,
   SupportedOpportunityTypeValues
 } from "../routes/schemas.js";
 import { OpportunityStabilityBucketSchema } from "./opportunity-history-schema.js";
@@ -34,7 +34,9 @@ export const OpportunityExecutionInputHintsSchema = Type.Object(
     escrowAppId: Type.Optional(Type.Integer({ minimum: 1 })),
     validatorId: Type.Optional(Type.Integer({ minimum: 1 })),
     /** Folks Finance loan application id (distinct from pool app id). */
-    loanAppId: Type.Optional(Type.Integer({ minimum: 1 }))
+    loanAppId: Type.Optional(Type.Integer({ minimum: 1 })),
+    /** STAMM fee-tier index (0–5) when the LP ASA is a STAMM tier token. */
+    tierIndex: Type.Optional(Type.Integer({ minimum: 0 }))
   },
   { additionalProperties: false }
 );
@@ -204,7 +206,7 @@ export const OpportunityExecutionShapeSchema = Type.Object({
 
 /** Market-data fields produced by protocol adapters (before execution enrichment). */
 export const OpportunityMarketRecordSchema = Type.Object({
-  protocol: ProtocolSchema,
+  protocol: OpportunityProtocolSchema,
   opportunityType: OpportunityTypeSchema,
   opportunityId: Type.String(),
   assetPair: Type.String(),
@@ -215,6 +217,11 @@ export const OpportunityMarketRecordSchema = Type.Object({
    * execution inputHints; omitted from the public OpportunityRecord surface.
    */
   poolAppId: Type.Optional(Type.Integer({ minimum: 1 })),
+  /**
+   * LP ASA id when distinct from `assetIds` underlyings (STAMM tier token).
+   * Adapter-only; omitted from the public OpportunityRecord surface.
+   */
+  liquidityAssetId: Type.Optional(Type.Integer({ minimum: 0 })),
   apy: Type.Number(),
   yieldBasis: YieldBasisSchema,
   tvlUsd: Type.Number(),
@@ -231,7 +238,7 @@ export const OpportunityMarketRecordSchema = Type.Object({
 });
 
 export const OpportunityRecordSchema = Type.Object({
-  protocol: ProtocolSchema,
+  protocol: OpportunityProtocolSchema,
   opportunityType: OpportunityTypeSchema,
   opportunityId: Type.String(),
   assetPair: Type.String(),

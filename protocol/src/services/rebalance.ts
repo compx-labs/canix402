@@ -64,6 +64,7 @@ const AMOUNT_INPUT_FIELDS = [
   "amount",
   "assetAmount",
   "assetAAmount",
+  "amountA",
   "depositAmount",
   "commitAmount",
   "poolTokenAmount",

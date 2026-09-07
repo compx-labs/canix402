@@ -119,7 +119,8 @@ function resolveProtocols(protocolArg?: string): Protocol[] {
     .filter((entry) => entry.length > 0);
 
   const invalid = requested.filter(
-    (entry) => !SUPPORTED_AGGREGATE_PROTOCOLS.includes(entry as Protocol)
+    (entry) =>
+      !(SUPPORTED_AGGREGATE_PROTOCOLS as readonly string[]).includes(entry)
   );
   if (invalid.length > 0) {
     throw new Error(

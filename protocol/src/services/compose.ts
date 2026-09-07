@@ -39,6 +39,7 @@ const AMOUNT_INPUT_FIELDS = [
   "amount",
   "assetAmount",
   "assetAAmount",
+  "amountA",
   "depositAmount",
   "commitAmount"
 ] as const;
@@ -814,9 +815,23 @@ function missingRequiredInputs(
   input: Record<string, unknown>
 ): string[] {
   return shape.requiredInputs.filter((field) => {
+    if (field === "amountA" && stammMintDepositSatisfied(input)) {
+      return false;
+    }
     const value = input[field];
     return value === undefined || value === null || value === "";
   });
+}
+
+function stammMintDepositSatisfied(input: Record<string, unknown>): boolean {
+  const amountA = input.amountA;
+  const amountB = input.amountB;
+  const hasPoolDeposit =
+    (amountA !== undefined && amountA !== null && amountA !== "" && amountA !== 0 && amountA !== "0") ||
+    (amountB !== undefined && amountB !== null && amountB !== "" && amountB !== 0 && amountB !== "0");
+  const external = input.externalInputs;
+  const hasExternal = Array.isArray(external) && external.length > 0;
+  return hasPoolDeposit || hasExternal;
 }
 
 function isSetupShape(shape: OpportunityExecutionShape): boolean {

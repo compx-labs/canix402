@@ -10,8 +10,8 @@ Quotes expire after 30 seconds (`DEFAULT_QUOTE_TTL_MS`). Recompile before
 signing. Groups from a batch request are never merged.
 
 This page covers the protocols whose golden/integration fixtures exist today:
-Tinyman, Folks Finance, Pact, CompX, Dork.fi, Myth Finance, Haystack, Réti, and
-Alpha Arcade. Per-shape group layouts stay in the sibling markdown files.
+Tinyman, Folks Finance, Pact, CompX, Dork.fi, Myth Finance, Haystack, Réti,
+Alpha Arcade, and STAMM. Per-shape group layouts stay in the sibling markdown files.
 
 ## Tinyman
 
@@ -331,3 +331,49 @@ and [compx-labs/canix402#80](https://github.com/compx-labs/canix402/pull/80).
 Fixtures: `tests/integration/dorkfi-positions-merge.test.ts`
 (`get_user no ABI return is zero debt`, `readonly user simulates pay the
 inner-call group fee`).
+
+## STAMM
+
+LiquiHog multi-tier AMM. Discovery and execution go through HOGSWAP HTTP
+(`POST /quote` `LP_MINT` / `LP_REDEEM` then `POST /execute`). Canix returns
+unsigned groups only.
+
+### Pool discovery
+
+- Pass `poolAppId` (STAMM pool application id) and `tierIndex` (0–5) from
+  opportunity/position `inputHints`. Do not hardcode pool, router, or registry
+  app ids — `/health` `router_app_id` and `/stamm/meta` `registry_app_id` change;
+  `/execute` always targets the current router.
+- One opportunity row per **active tier**. `liquidityAssetId` is that tier's LP ASA.
+
+### Opt-ins
+
+- The wallet must already be opted into the LP ASA before mint or redeem execute.
+  Opt-in is a **separate** group and is never merged into the HOGSWAP group.
+- Redeem to a non-ALGO `targetAsset` also requires that ASA opt-in.
+- Missing opt-in returns a 422 from HOGSWAP; Canix surfaces it as a shape-state
+  error (re-quote after opt-in confirms).
+
+### Minimum balance
+
+- LP ASA (and target ASA) opt-ins consume extra minimum balance. Shapes do not
+  fund that MBR.
+
+### Slippage math
+
+- `maxSlippageBps` defaults to **100** (HOGSWAP LP SDK default). Range 1–10000.
+- Delivery below `min_out_at_slippage` reverts the whole group.
+
+### Liquidity limits
+
+- Mint accepts pool `amountA`/`amountB` (one side may be 0) **or** `externalInputs`
+  (any asset, converted into the tier ratio). Inactive tiers are omitted from
+  discovery.
+- Optional `maxLegs` (1–16) caps HOGSWAP conversion-leg complexity when composing
+  with other groups.
+
+### App upgrades
+
+- Never pin router/registry ids in shapes. A STAMM or HOGSWAP router upgrade that
+  changes those ids is picked up automatically from `/execute`.
+- Quotes expire in ~30s. After opt-in, re-quote (stale-quote).

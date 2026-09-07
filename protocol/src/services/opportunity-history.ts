@@ -39,6 +39,30 @@ export interface HistorySnapshotInput {
   tvlUsd: number;
 }
 
+/**
+ * STAMM listings expose TVL and fee bps only. `apy: 0` is a schema placeholder
+ * and must not become a high-stability zero-yield history series.
+ */
+export function shouldSnapshotOpportunityYield(
+  row: Pick<OpportunityMarketRecord, "protocol">
+): boolean {
+  return row.protocol !== "stamm";
+}
+
+export function historySnapshotsFromOpportunities(
+  records: readonly Pick<
+    OpportunityMarketRecord,
+    "opportunityId" | "apy" | "tvlUsd" | "protocol"
+  >[]
+): HistorySnapshotInput[] {
+  return records.flatMap((row) => {
+    if (!shouldSnapshotOpportunityYield(row)) {
+      return [];
+    }
+    return [{ opportunityId: row.opportunityId, apy: row.apy, tvlUsd: row.tvlUsd }];
+  });
+}
+
 export interface OpportunityHistoryStore {
   recordSnapshots(
     records: readonly HistorySnapshotInput[],
@@ -553,17 +577,21 @@ function sampleStdev(values: readonly number[], valuesMean: number): number {
   return Math.sqrt(variance);
 }
 
-function coefficientOfVariation(stdev: number, valuesMean: number): number {
+function coefficientOfVariation(stdev: number, valuesMean: number): number | null {
   if (!Number.isFinite(stdev) || stdev < 0) {
     return Number.POSITIVE_INFINITY;
   }
   if (valuesMean === 0) {
-    return stdev === 0 ? 0 : Number.POSITIVE_INFINITY;
+    // Placeholder / unmeasured yield (e.g. STAMM apy 0) is not a stable 0% series.
+    return stdev === 0 ? null : Number.POSITIVE_INFINITY;
   }
   return stdev / Math.abs(valuesMean);
 }
 
-function stabilityBucketFromCv(cv: number): OpportunityStabilityBucket {
+function stabilityBucketFromCv(cv: number | null): OpportunityStabilityBucket {
+  if (cv === null) {
+    return "unknown";
+  }
   if (!Number.isFinite(cv)) {
     return "low";
   }

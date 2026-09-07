@@ -1,6 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { ProtocolSchema } from "../routes/schemas.js";
+import { OpportunityProtocolSchema } from "../routes/schemas.js";
 
 /** Compiler SKU: same band as POST /plans (0.25 USDC). */
 export const DEFAULT_POLICY_VALIDATE_PRICE_USDC = "0.25";
@@ -32,7 +32,7 @@ export const PolicyQuoteSubjectSchema = Type.Object(
   {
     shapeKey: Type.Optional(Type.String({ minLength: 1 })),
     opportunityId: Type.Optional(Type.String({ minLength: 1 })),
-    protocol: Type.Optional(ProtocolSchema),
+    protocol: Type.Optional(OpportunityProtocolSchema),
     opportunityType: Type.Optional(Type.String({ minLength: 1 })),
     weightBps: Type.Optional(Type.Integer({ minimum: 0, maximum: 10_000 })),
     allocatedAmount: Type.Optional(Type.String({ minLength: 1, pattern: "^[0-9]+$" })),
