@@ -92,7 +92,8 @@ Files:
 - `tests/unit/alpha-arcade-normalize.test.ts`
 - `tests/unit/stamm-normalize.test.ts`
 - `tests/unit/hogswap-quote.test.ts`
-- `tests/unit/hogswap-lp-normalize.test.ts`
+- `tests/unit/hogswap-router.test.ts`
+- `tests/unit/hogswap-lp-normalize.test.ts
 - `tests/unit/adapter-execution-enrichment.test.ts`
 
 Fixtures:
@@ -108,6 +109,7 @@ Fixtures:
 - `tests/fixtures/adapters/alpha-arcade.ts`
 - `tests/fixtures/adapters/stamm.ts`
 - `tests/fixtures/hogswap/lp-valuation.ts`
+- `tests/fixtures/hogswap/swap.ts`
 
 ### API tests (`protocol/tests/integration`)
 
@@ -166,6 +168,7 @@ Files:
 - `tests/integration/reti-execution-shapes.test.ts`
 - `tests/integration/alpha-arcade-execution-shapes.test.ts`
 - `tests/integration/stamm-execution-shapes.test.ts`
+- `tests/integration/hogswap-execution-shapes.test.ts`
 - `tests/integration/stamm-adapter.test.ts`
 - `tests/integration/tinyman-farm-commit-shapes.test.ts`
 - `tests/integration/tinyman-add-liquidity-and-farm-shapes.test.ts`

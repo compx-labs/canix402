@@ -7,7 +7,9 @@ Discovery and execution go through the public **HOGSWAP API**, not `stamm-py-sdk
 (that SDK wants a mnemonic and talks algod directly). Canix stays walletless:
 quote and return unsigned groups; it does not sign or submit.
 
-Haystack swap routing (`/swaps/*`) is unchanged. Unified LP **position** valuation
+Haystack swap routing (`/swaps/*`) is unchanged. The HOGSWAP **swap** router
+adapter (unsigned SWAP quote + execute) is documented in
+[hogswap-swap.md](hogswap-swap.md). Unified LP **position** valuation
 via HOGSWAP is documented in [hogswap-lp.md](hogswap-lp.md).
 
 ## Source Strategy

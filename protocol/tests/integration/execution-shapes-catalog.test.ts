@@ -56,6 +56,16 @@ test("GET /execution/shapes returns the live registry catalog for free", async (
   assert.ok(stammMint);
   assert.ok(stammMint.requiredInputs.includes("amountA"));
 
+  const hogswapSwap = body.data.find(
+    (shape) => shape.shapeKey === "mainnet:hogswap:v1:swap:fixed-input"
+  );
+  assert.ok(hogswapSwap);
+  assert.ok(hogswapSwap.requiredInputs.includes("fromAssetId"));
+  assert.equal(
+    hogswapSwap.docsPath,
+    "protocol/docs/execution-shapes/hogswap-swap-fixed-input.md"
+  );
+
   assert.equal(
     body.meta.caveatsDocsPath,
     "protocol/docs/execution-shapes/protocol-caveats.md"
@@ -88,6 +98,7 @@ test("protocol execution caveats doc covers construction topics for fixture prot
     "Réti",
     "Alpha Arcade",
     "STAMM",
+    "HOGSWAP",
     "Pool discovery",
     "Opt-ins",
     "Slippage math",
