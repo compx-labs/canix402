@@ -38,6 +38,7 @@ npm run test:live:local
 npm run test:live:production
 npm run test:tinyman-production
 npm run test:live:haystack-swap
+npm run test:live:meta-swap
 npm run test:live:hogswap-swap
 npm run test:live:folks-router-swap
 npm run test:live:tinyman-swap
@@ -500,6 +501,34 @@ multi-router `/swaps/*` envelope), submits any app or asset opt-ins, pays the
 production `/swaps/transactions` x402 charge, signs the returned user
 transactions locally, preserves any pre-signed group members, and submits the
 atomic group.
+
+The test requires `X402_CLIENT_MNEMONIC`, at least **0.105 USDC** (0.1 USDC swap
+input plus the 0.005 USDC x402 charge), and enough ALGO for opt-ins and network
+fees. It is skipped unless explicitly enabled and is excluded from CI.
+
+## Multi-router production swap test
+
+The opt-in tests in
+[`tests/live/meta-swap-production-swap.test.ts`](../tests/live/meta-swap-production-swap.test.ts)
+hit deployed production `POST /swaps/quote|optin|transactions` **without** a
+router pin (unless `X402_META_SWAP_ROUTER` is set):
+
+```sh
+# Quote compare only (no swap spend)
+X402_META_SWAP_QUOTE_LIVE=1 npm run test:live:meta-swap
+
+# Quote compare, opt-in, pay x402, sign the winner, submit on mainnet
+X402_META_SWAP_LIVE=1 npm run test:live:meta-swap
+
+# Pin one adapter through the same /swaps/* envelope
+X402_META_SWAP_LIVE=1 X402_META_SWAP_ROUTER=hogswap npm run test:live:meta-swap
+```
+
+It requests a fixed-input quote for **0.1 USDC (100,000 micro-USDC) to ALGO**.
+Enabled adapters quote in parallel; the response is a meta quote (`router`,
+`quotedAmount`, `minOut`, `score`, `alternatives`, opaque `payload`). The submit
+test pays the production `/swaps/transactions` x402 charge, signs only `signer:
+"user"` members, preserves any pre-signed legs, and submits the atomic group.
 
 The test requires `X402_CLIENT_MNEMONIC`, at least **0.105 USDC** (0.1 USDC swap
 input plus the 0.005 USDC x402 charge), and enough ALGO for opt-ins and network

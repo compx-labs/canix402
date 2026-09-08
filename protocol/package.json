@@ -1,6 +1,6 @@
 {
   "name": "protocol",
-  "version": "1.6.5",
+  "version": "1.7.1",
   "private": true,
   "description": "x402-gated Algorand DeFi opportunities data API",
   "type": "module",
@@ -43,6 +43,8 @@
     "test:x402-production": "tsx --test tests/live/x402-production.test.ts",
     "test:haystack-production": "tsx --test tests/live/haystack-production-swap.test.ts",
     "test:live:haystack-swap": "npm run test:haystack-production",
+    "test:meta-swap-production": "tsx --test tests/live/meta-swap-production-swap.test.ts",
+    "test:live:meta-swap": "npm run test:meta-swap-production",
     "test:hogswap-production": "tsx --test tests/live/hogswap-production-swap.test.ts",
     "test:live:hogswap-swap": "npm run test:hogswap-production",
     "test:folks-router-production": "tsx --test tests/live/folks-router-production-swap.test.ts",

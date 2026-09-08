@@ -24,6 +24,7 @@
     "test:live:execution": "npm run test:live:execution -w protocol",
     "test:live:folks-execution": "npm run test:live:folks-execution -w protocol",
     "test:live:haystack-swap": "npm run test:haystack-production -w protocol",
+    "test:live:meta-swap": "npm run test:meta-swap-production -w protocol",
     "test:live:hogswap-swap": "npm run test:hogswap-production -w protocol",
     "test:live:folks-router-swap": "npm run test:folks-router-production -w protocol",
     "test:live:tinyman-swap": "npm run test:tinyman-swap-production -w protocol",
