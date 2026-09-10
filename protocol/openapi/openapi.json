@@ -3,13 +3,13 @@
   "info": {
     "title": "canix402 API",
     "version": "1.0.0",
-    "description": "x402-gated Algorand DeFi data and walletless transaction API, including Haystack swap quotes, prerequisite opt-ins, and paid atomic swap-group generation. Numeric yield/USD fields (apy, apr, tvlUsd) are returned with a standard precision of 6 decimal places, extended up to 12 decimal places only when needed to represent small non-zero values. Asset decimals are always sourced on-chain from algod.",
+    "description": "x402-gated Algorand DeFi data and walletless transaction API, including Haystack swap quotes, prerequisite opt-ins, and paid atomic swap-group generation. Numeric yield/USD fields (apy, apr, tvlUsd) are returned with a standard precision of 6 decimal places, extended up to 12 decimal places only when needed to represent small non-zero values. Asset decimals are always sourced on-chain from algod. pragma: allowlist secret",
     "contact": {
       "name": "Neon Forge Ltd",
       "email": "kieran@neonforge.ltd",
       "url": "https://canix402.compx.io"
     },
-    "x-guidance": "Use the gateway base URL in servers[0]. Fetch /discovery and /openapi.json before integrating. Prefer the remote canix402 MCP server at https://canix402-mcp.compx.io/mcp (streamable-http, walletless pass-through) for agent tool access. Paid routes return HTTP 402 with PAYMENT-REQUIRED; sign a USDC ASA transfer client-side and retry with PAYMENT-SIGNATURE. Haystack swaps follow quote -> opt-in if needed -> fresh quote -> paid transaction generation -> local signing/submission. Human and LLM docs: https://canix402.compx.io/llms.txt",
+    "x-guidance": "Use the gateway base URL in servers[0]. Fetch /discovery and /openapi.json before integrating. Prefer the remote canix402 MCP server at https://canix402-mcp.compx.io/mcp (streamable-http, walletless pass-through) for agent tool access. Paid routes return HTTP 402 with PAYMENT-REQUIRED; sign a USDC ASA transfer client-side and retry with PAYMENT-SIGNATURE. Haystack swaps follow quote -> opt-in if needed -> fresh quote -> paid transaction generation -> local signing/submission. Human and LLM docs: https://canix402.compx.io/llms.txt pragma: allowlist secret",
     "x-precision": {
       "fields": [
         "apy",
@@ -1093,7 +1093,7 @@
     "/plans": {
       "post": {
         "summary": "Compile an allocation intent into an ordered unsigned plan",
-        "description": "Agent states an allocation intent (address, budget/asset, constraints such as max protocol weight, no new borrows, execution-ready only, TVL/freshness floors). Canix returns ordered steps: eligibility, optional live Haystack swap compose (opt-in → swap → enter, driven by requiredAssetIds), protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume POST /plans rather than forking a compiler.",
+        "description": "Agent states an allocation intent (address, budget/asset, constraints such as max protocol weight, no new borrows, execution-ready only, TVL/freshness floors). Canix returns ordered steps: eligibility, optional live multi-router swap compose (opt-in → swap → enter, driven by requiredAssetIds), protocol setup chains, and enter quotes as independent unsigned groups (never merged). Reuses quotes[] / order / prerequisiteShapeKeys. Includes expected position delta, x402 + network fee totals, and expiry. Quote-time on-chain checks remain authoritative. Canix does not sign or submit. Brownie and other agents should consume POST /plans rather than forking a compiler.",
         "tags": [
           "defi",
           "plans",
@@ -1184,7 +1184,7 @@
     "/plans/rebalance": {
       "post": {
         "summary": "Compile a delta rebalance plan of unsigned groups",
-        "description": "Positions are the book; opportunities are the menu. Pass address plus targetWeights (bps summing to 10000) and/or harvestIdle to claim worth-claiming rewards and redeploy idle ALGO. Returns ordered unsigned groups — claims, partial exits, optional Haystack swap compose, and enters — only the delta legs that change the book (not a full unwind-and-rebuild). Reuses claim desk, eligibility, compose, and position exit/manage shapeKeys. Groups are never merged. Canix does not sign or submit.",
+        "description": "Positions are the book; opportunities are the menu. Pass address plus targetWeights (bps summing to 10000) and/or harvestIdle to claim worth-claiming rewards and redeploy idle ALGO. Returns ordered unsigned groups — claims, partial exits, optional multi-router swap compose, and enters — only the delta legs that change the book (not a full unwind-and-rebuild). Reuses claim desk, eligibility, compose, and position exit/manage shapeKeys. Groups are never merged. Canix does not sign or submit.",
         "tags": [
           "defi",
           "plans",
@@ -1368,7 +1368,8 @@
     "/positions": {
       "get": {
         "summary": "Algorand DeFi positions held by a wallet",
-        "description": "Returns normalized DeFi positions associated with a supplied Algorand wallet address across supported protocols. LP tokens indexed by HOGSWAP (STAMM, AlgoFi, Humble) are valued via GET /lp/{asset_id}?amount= — proportional NAV, null rather than guessed. Tinyman and Pact LP collectors remain canonical for those venues (no double-count by LP ASA). This endpoint provides position data only; it does not build or submit transactions.", "x-pragma": "pragma: allowlist secret",
+        "description": "Returns normalized DeFi positions associated with a supplied Algorand wallet address across supported protocols. LP tokens indexed by HOGSWAP (STAMM, AlgoFi, Humble) are valued via GET /lp/{asset_id}?amount= — proportional NAV, null rather than guessed. Tinyman and Pact LP collectors remain canonical for those venues (no double-count by LP ASA). This endpoint provides position data only; it does not build or submit transactions.",
+        "x-pragma": "pragma: allowlist secret",
         "tags": [
           "defi",
           "positions",
@@ -1558,7 +1559,8 @@
     "/protocols/{protocol}/opportunities": {
       "get": {
         "summary": "Top 25 DeFi opportunities for a single protocol ranked by risk then APY",
-        "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, alpha-arcade, or stamm. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.", "x-pragma": "pragma: allowlist secret",
+        "description": "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, alpha-arcade, or stamm. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",
+        "x-pragma": "pragma: allowlist secret",
         "tags": [
           "defi",
           "opportunities",
@@ -1702,7 +1704,7 @@
     "/execution/quotes": {
       "post": {
         "summary": "Compile a verified transaction shape into unsigned Algorand transactions",
-        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), Réti v1 ALGO staking shapes (stake/unstake), Alpha Arcade v1 ALPHA staking shapes (stake/unstake/claim USDC), and STAMM v1 LP mint/redeem via HOGSWAP (unsigned groups; do not hardcode router app ids). Canix does not sign or submit transactions in this endpoint. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
+        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman v2 swap shapes (swap:fixedInput / swap:fixedOutput via Tinyman Swap Router, falling back to a single Tinyman pool when the router is not better; Tinyman-pool only, never a cross-DEX aggregator), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, Pact Smart Router unsigned swap (`mainnet:pact:smart-router:swap:fixed-input`; local graph + Pool.prepareSwap, not Haystack), CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), Réti v1 ALGO staking shapes (stake/unstake), Alpha Arcade v1 ALPHA staking shapes (stake/unstake/claim USDC), and STAMM v1 LP mint/redeem via HOGSWAP (unsigned groups; do not hardcode router app ids), and HOGSWAP v1 swap shapes (fixed-input / fixed-output; unsigned groups; routing fee already netted into expectedOut; do not hardcode router app ids). Canix does not sign or submit transactions in this endpoint. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
         "tags": [
           "execution",
           "transactions",
@@ -1777,6 +1779,12 @@
                 "stammRedeemLp": {
                   "$ref": "#/components/examples/ExecutionQuoteStammRedeemLpRequestSample"
                 },
+                "hogswapSwapFixedInput": {
+                  "$ref": "#/components/examples/ExecutionQuoteHogswapSwapFixedInputRequestSample"
+                },
+                "hogswapSwapFixedOutput": {
+                  "$ref": "#/components/examples/ExecutionQuoteHogswapSwapFixedOutputRequestSample"
+                },
                 "multiQuote": {
                   "$ref": "#/components/examples/ExecutionQuoteMultiRequestSample"
                 }
@@ -1849,12 +1857,11 @@
     },
     "/execution/compose": {
       "post": {
-        "summary": "Compose opt-in → Haystack swap → enter as unmerged unsigned groups",
-        "description": "Compiles “I hold asset A, I want this opportunity” into sequenced groups: optional ASA/app opt-in, Haystack swap (signer indexes and pre-signed members preserved), then enter — driven by requiredAssetIds. Groups are never merged. Failure modes (stale quote, missing opt-in, slippage) are listed on step warnings. Canix does not sign or submit. Caller signs user legs and submits locally in order. Quote-time on-chain checks remain authoritative.",
+        "summary": "Compose opt-in → winning swap → enter as unmerged unsigned groups",
+        "description": "Compiles “I hold asset A, I want this opportunity” into sequenced groups: optional ASA/app opt-in, multi-router swap (signer indexes and pre-signed members preserved), then enter — driven by requiredAssetIds. Groups are never merged. Failure modes (stale quote, missing opt-in, slippage) are listed on step warnings. Canix does not sign or submit. Caller signs user legs and submits locally in order. Quote-time on-chain checks remain authoritative.",
         "tags": [
           "execution",
           "swaps",
-          "haystack",
           "plans",
           "x402",
           "agents"
@@ -1876,7 +1883,7 @@
         },
         "responses": {
           "200": {
-            "description": "Sequenced unsigned opt-in, Haystack swap, and enter groups",
+            "description": "Sequenced unsigned opt-in, winning swap, and enter groups",
             "content": {
               "application/json": {
                 "schema": {
@@ -2069,12 +2076,11 @@
     },
     "/swaps/quote": {
       "post": {
-        "summary": "Fetch a walletless Haystack swap quote",
-        "description": "Returns a short-lived, serializable Haystack route quote without signing or submitting transactions. Asset amounts are integer base units, not display-unit decimals. Use the returned quote unchanged with /swaps/optin and /swaps/transactions. If prerequisite opt-ins are submitted, fetch a fresh quote before building the swap group.",
+        "summary": "Fetch a walletless multi-router swap quote",
+        "description": "Quotes every enabled swap router in parallel, scores expected net out, and returns the winning serializable quote without signing or submitting. Pass optional router to force a single adapter. Asset amounts are integer base units. Use the returned quote unchanged with /swaps/optin and /swaps/transactions. If prerequisite opt-ins are submitted, fetch a fresh quote before building the swap group.",
         "tags": [
           "defi",
           "swaps",
-          "haystack",
           "agents"
         ],
         "security": [],
@@ -2091,6 +2097,7 @@
                     "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
                     "fromAssetId": 0,
                     "toAssetId": 31566704,
+                    "x-pragma": "pragma: allowlist secret",
                     "amount": "1000000",
                     "type": "fixed-input"
                   }
@@ -2101,7 +2108,7 @@
         },
         "responses": {
           "200": {
-            "description": "Serializable Haystack quote and prerequisite identifiers",
+            "description": "Serializable multi-router quote, winning router, and opaque payload",
             "content": {
               "application/json": {
                 "schema": {
@@ -2112,6 +2119,9 @@
           },
           "400": {
             "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
           },
           "429": {
             "$ref": "#/components/responses/UpstreamRateLimited"
@@ -2124,12 +2134,11 @@
     },
     "/swaps/optin": {
       "post": {
-        "summary": "Build prerequisite Haystack swap opt-ins",
-        "description": "Checks the supplied Algorand account against the quote and returns a fresh unsigned group containing any missing output-asset and required application opt-ins. An empty transaction group means no opt-ins are required. canix402 is walletless: the caller signs and submits every returned opt-in transaction locally, waits for confirmation, and then refreshes the quote before requesting swap transactions. This route does not claim that returned opt-ins have executed.",
+        "summary": "Build prerequisite swap opt-ins for the winning quote",
+        "description": "Checks the supplied Algorand account against the winning quote and returns a fresh unsigned group containing any missing output-asset and required application opt-ins. An empty transaction group means no opt-ins are required. canix402 is walletless: the caller signs and submits every returned opt-in transaction locally, waits for confirmation, and then refreshes the quote before requesting swap transactions. This route does not claim that returned opt-ins have executed.",
         "tags": [
           "defi",
           "swaps",
-          "haystack",
           "transactions",
           "wallet"
         ],
@@ -2166,12 +2175,11 @@
     },
     "/swaps/transactions": {
       "post": {
-        "summary": "Build a walletless Haystack swap transaction group",
-        "description": "Paid transaction-generation step for a fresh Haystack quote. The initial request may return 402 with PAYMENT-REQUIRED; satisfy the advertised 0.005 USDC requirement and retry with PAYMENT-SIGNATURE. On success, the response preserves transaction order, identifies caller members in userSignIndexes, and includes Haystack pre-signed members. Sign only the userSignIndexes members, combine them with the pre-signed members in the original order, and submit the complete atomic group through your own Algod client. canix402 never receives wallet keys and never submits the swap. The 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee (including referral split), DEX fees, route price impact, and Algorand network transaction fees.",
+        "summary": "Build a walletless swap transaction group from the winning quote",
+        "description": "Paid transaction-generation step for a fresh multi-router quote. The initial request may return 402 with PAYMENT-REQUIRED; satisfy the advertised 0.005 USDC requirement and retry with PAYMENT-SIGNATURE. On success, the response preserves transaction order, identifies caller members in userSignIndexes, and includes any pre-signed members from the winning router. Sign only the userSignIndexes members, combine them with the pre-signed members in the original order, and submit the complete atomic group through your own Algod client. canix402 never receives wallet keys and never submits the swap. The 0.005 USDC x402 access charge is separate from Haystack's SDK-default 10 bps output fee (including referral split), other router fees, DEX fees, route price impact, and Algorand network transaction fees.",
         "tags": [
           "defi",
           "swaps",
-          "haystack",
           "transactions",
           "x402",
           "agents"
@@ -2188,7 +2196,7 @@
         },
         "responses": {
           "200": {
-            "description": "Ordered, walletless Haystack swap group ready for caller signing",
+            "description": "Ordered, walletless swap group ready for caller signing",
             "content": {
               "application/json": {
                 "schema": {
@@ -2830,7 +2838,10 @@
           },
           "retiCapacity": {
             "oneOf": [
-              { "type": "boolean", "const": true },
+              {
+                "type": "boolean",
+                "const": true
+              },
               {
                 "type": "object",
                 "additionalProperties": false,
@@ -2864,37 +2875,87 @@
           "deliveryStatus"
         ],
         "properties": {
-          "firingId": { "type": "string", "minLength": 1 },
-          "idempotencyKey": { "type": "string", "minLength": 1 },
+          "firingId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 1
+          },
           "kind": {
             "type": "string",
-            "enum": ["healthFactor", "claimableUsd", "apyDrop", "retiCapacity"]
+            "enum": [
+              "healthFactor",
+              "claimableUsd",
+              "apyDrop",
+              "retiCapacity"
+            ]
           },
-          "firedAt": { "type": "string", "format": "date-time" },
+          "firedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
           "threshold": {
-            "oneOf": [{ "type": "number" }, { "type": "string" }, { "type": "boolean" }]
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
           },
           "previous": {
             "oneOf": [
-              { "type": "number" },
-              { "type": "string" },
-              { "type": "boolean" },
-              { "type": "null" }
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "current": {
             "oneOf": [
-              { "type": "number" },
-              { "type": "string" },
-              { "type": "boolean" },
-              { "type": "null" }
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
-          "opportunityId": { "type": "string", "minLength": 1 },
-          "delivered": { "type": "boolean" },
+          "opportunityId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "delivered": {
+            "type": "boolean"
+          },
           "deliveryStatus": {
             "type": "string",
-            "enum": ["pending", "delivered", "failed", "stored"]
+            "enum": [
+              "pending",
+              "delivered",
+              "failed",
+              "stored"
+            ]
           }
         }
       },
@@ -2914,18 +2975,57 @@
           "firings"
         ],
         "properties": {
-          "uri": { "type": "string", "minLength": 1 },
-          "watchId": { "type": "string", "minLength": 1 },
-          "address": { "type": "string", "minLength": 58, "maxLength": 58 },
-          "thresholds": { "$ref": "#/components/schemas/WatchThresholds" },
-          "webhookUrl": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "expiresAt": { "type": "string", "format": "date-time" },
-          "ttlSeconds": { "type": "integer", "minimum": 1 },
-          "status": { "type": "string", "enum": ["active", "expired"] },
+          "uri": {
+            "type": "string",
+            "minLength": 1
+          },
+          "watchId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "address": {
+            "type": "string",
+            "minLength": 58,
+            "maxLength": 58
+          },
+          "thresholds": {
+            "$ref": "#/components/schemas/WatchThresholds"
+          },
+          "webhookUrl": {
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ttlSeconds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "expired"
+            ]
+          },
           "firings": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/WatchFiring" }
+            "items": {
+              "$ref": "#/components/schemas/WatchFiring"
+            }
           },
           "webhookSecret": {
             "type": "string",
@@ -2937,18 +3037,42 @@
       "WatchResponse": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["data", "meta"],
+        "required": [
+          "data",
+          "meta"
+        ],
         "properties": {
-          "data": { "$ref": "#/components/schemas/WatchReceipt" },
+          "data": {
+            "$ref": "#/components/schemas/WatchReceipt"
+          },
           "meta": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["paymentRequired", "access", "receiptUri", "secretShown"],
+            "required": [
+              "paymentRequired",
+              "access",
+              "receiptUri",
+              "secretShown"
+            ],
             "properties": {
-              "paymentRequired": { "type": "boolean" },
-              "access": { "type": "string", "enum": ["watch", "receipt", "rotate"] },
-              "receiptUri": { "type": "string", "minLength": 1 },
-              "secretShown": { "type": "boolean" }
+              "paymentRequired": {
+                "type": "boolean"
+              },
+              "access": {
+                "type": "string",
+                "enum": [
+                  "watch",
+                  "receipt",
+                  "rotate"
+                ]
+              },
+              "receiptUri": {
+                "type": "string",
+                "minLength": 1
+              },
+              "secretShown": {
+                "type": "boolean"
+              }
             }
           }
         }
@@ -2956,20 +3080,40 @@
       "WatchCreateRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["address", "thresholds"],
+        "required": [
+          "address",
+          "thresholds"
+        ],
         "properties": {
-          "address": { "type": "string", "minLength": 58, "maxLength": 58 },
-          "thresholds": { "$ref": "#/components/schemas/WatchThresholds" },
-          "webhookUrl": { "type": "string", "minLength": 8, "maxLength": 2048 }
+          "address": {
+            "type": "string",
+            "minLength": 58,
+            "maxLength": 58
+          },
+          "thresholds": {
+            "$ref": "#/components/schemas/WatchThresholds"
+          },
+          "webhookUrl": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 2048
+          }
         }
       },
       "WatchRefreshRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["watchId"],
+        "required": [
+          "watchId"
+        ],
         "properties": {
-          "watchId": { "type": "string", "minLength": 1 },
-          "rotateSecret": { "type": "boolean" }
+          "watchId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rotateSecret": {
+            "type": "boolean"
+          }
         }
       },
       "OpportunityRisk": {
@@ -4690,6 +4834,24 @@
             ],
             "default": "fixed-input"
           },
+          "router": {
+            "type": "string",
+            "enum": [
+              "haystack",
+              "hogswap",
+              "tinyman",
+              "pact-smart-router",
+              "folks-router",
+              "asastats"
+            ],
+            "description": "Force a single adapter. Omit to quote every enabled router and pick the best net return."
+          },
+          "slippage": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Percent (0-100) used at quote time for routers that bake slippage into min-out. Default 1."
+          },
           "disabledProtocols": {
             "type": "array",
             "description": "Additional DEX protocols to exclude from routing. Tinyman (v1), Humble, Algofi, and Algomint are always disabled by canix402.",
@@ -4742,23 +4904,37 @@
       },
       "HaystackSwapQuote": {
         "type": "object",
-        "description": "Serializable, short-lived Haystack quote. Preserve this object unchanged when calling the opt-in and transaction endpoints.",
+        "description": "Serializable multi-router swap quote. Preserve this object unchanged when calling the opt-in and transaction endpoints. payload is opaque winner state — do not edit it.",
         "required": [
+          "router",
           "address",
           "fromAssetId",
           "toAssetId",
           "amount",
           "type",
           "quotedAmount",
+          "minOut",
+          "networkFeeMicroAlgos",
+          "slippageBps",
           "createdAt",
           "expiresAt",
-          "requiredAppOptIns",
-          "txnPayload",
-          "route",
-          "quotes",
-          "protocolFees"
+          "score",
+          "alternatives",
+          "legs",
+          "payload"
         ],
         "properties": {
+          "router": {
+            "type": "string",
+            "enum": [
+              "haystack",
+              "hogswap",
+              "tinyman",
+              "pact-smart-router",
+              "folks-router",
+              "asastats"
+            ]
+          },
           "address": {
             "type": "string"
           },
@@ -4784,7 +4960,20 @@
           "quotedAmount": {
             "type": "string",
             "pattern": "^[0-9]+$",
-            "description": "Quoted output base units for fixed-input or required input base units for fixed-output."
+            "description": "Expected net output base units for the winning route."
+          },
+          "minOut": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "networkFeeMicroAlgos": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "slippageBps": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
           },
           "createdAt": {
             "type": "string",
@@ -4795,51 +4984,97 @@
             "format": "date-time",
             "description": "Reject the quote after this time and fetch a fresh one."
           },
-          "priceBaseline": {
-            "type": "number"
-          },
-          "userPriceImpact": {
-            "type": "number"
-          },
-          "marketPriceImpact": {
-            "type": "number"
-          },
-          "usdIn": {
-            "type": "number"
-          },
-          "usdOut": {
-            "type": "number"
-          },
-          "route": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "quotes": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "requiredAppOptIns": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "pattern": "^[1-9][0-9]*$"
-            }
-          },
-          "txnPayload": {
-            "$ref": "#/components/schemas/HaystackTransactionPayload"
-          },
-          "protocolFees": {
+          "score": {
             "type": "object",
-            "additionalProperties": {
-              "type": "number"
+            "required": [
+              "expectedNetOut",
+              "minOut",
+              "expectedIn",
+              "networkFeeMicroAlgos",
+              "feeAlreadyNetted"
+            ],
+            "properties": {
+              "expectedNetOut": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "minOut": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "expectedIn": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "maxIn": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "networkFeeMicroAlgos": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "feeAlreadyNetted": {
+                "type": "boolean"
+              }
             }
+          },
+          "alternatives": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "router",
+                "status"
+              ],
+              "properties": {
+                "router": {
+                  "type": "string",
+                  "enum": [
+                    "haystack",
+                    "hogswap",
+                    "tinyman",
+                    "pact-smart-router",
+                    "folks-router",
+                    "asastats"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "quoted",
+                    "error",
+                    "skipped",
+                    "timeout"
+                  ]
+                },
+                "expectedNetOut": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "minOut": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "networkFeeMicroAlgos": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "legs": {
+            "type": "array",
+            "items": {}
+          },
+          "payload": {
+            "description": "Opaque winner-native quote. Pass back unchanged."
           }
         },
-        "additionalProperties": true
+        "additionalProperties": false
       },
       "HaystackSwapQuoteResponse": {
         "type": "object",
@@ -4935,7 +5170,8 @@
             "type": "string",
             "enum": [
               "user",
-              "haystack"
+              "haystack",
+              "protocol"
             ],
             "description": "Who supplies the signature for this group member."
           }
@@ -4982,12 +5218,24 @@
       "WalletlessTransactionGroup": {
         "type": "object",
         "required": [
+          "router",
           "transactions",
           "userSignIndexes",
           "createdAt",
           "quoteExpiresAt"
         ],
         "properties": {
+          "router": {
+            "type": "string",
+            "enum": [
+              "haystack",
+              "hogswap",
+              "tinyman",
+              "pact-smart-router",
+              "folks-router",
+              "asastats"
+            ]
+          },
           "transactions": {
             "type": "array",
             "items": {
@@ -6219,7 +6467,7 @@
             "type": "number",
             "minimum": 0,
             "maximum": 100,
-            "description": "Haystack slippage percent (0–100) for swap-aware compose. Default 1."
+            "description": "Swap slippage percent (0–100) for swap-aware compose. Default 1."
           }
         }
       },
@@ -7208,6 +7456,71 @@
                   true
                 ]
               }
+            }
+          }
+        }
+      },
+      "FolksRouterDiscountTier": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "minFolks",
+          "discountPercent"
+        ],
+        "properties": {
+          "minFolks": {
+            "type": "number",
+            "minimum": 0
+          },
+          "maxFolksExclusive": {
+            "type": "number",
+            "minimum": 0
+          },
+          "discountPercent": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          }
+        }
+      },
+      "FolksRouterDiscount": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sender",
+          "userFeeDiscount",
+          "applied",
+          "tiers"
+        ],
+        "properties": {
+          "sender": {
+            "description": "Sender used for GET /fetch/discount, or null when no address was supplied.",
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 58,
+                "maxLength": 58
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "userFeeDiscount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50,
+            "description": "Percent off the ~0.1% Folks Router fee (0, 10, 20, 30, 40, or 50)."
+          },
+          "applied": {
+            "type": "boolean",
+            "description": "True when sender was set and userFeeDiscount was passed to GET /fetch/quote."
+          },
+          "tiers": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/FolksRouterDiscountTier"
             }
           }
         }
@@ -8592,7 +8905,7 @@
         "value": {
           "error": {
             "code": "NOT_FOUND",
-            "message": "No transaction shape registered for key \"mainnet:tinyman:v2:swap:fixedInput\"."
+            "message": "No transaction shape registered for key \"mainnet:tinyman:v2:swap:does-not-exist\"."
           }
         }
       },
@@ -8961,6 +9274,42 @@
                 "lpAmount": "1000000",
                 "targetAsset": 0,
                 "maxSlippageBps": 100
+              }
+            }
+          ]
+        }
+      },
+      "ExecutionQuoteHogswapSwapFixedInputRequestSample": {
+        "summary": "HOGSWAP v1 fixed-in ALGO→USDC swap (unsigned group)",
+        "value": {
+          "quotes": [
+            {
+              "shapeKey": "mainnet:hogswap:v1:swap:fixed-input",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "fromAssetId": 0,
+                "toAssetId": 31566704,
+                "x-pragma-asset": "pragma: allowlist secret",
+                "amount": "1000000",
+                "maxSlippageBps": 50
+              }
+            }
+          ]
+        }
+      },
+      "ExecutionQuoteHogswapSwapFixedOutputRequestSample": {
+        "summary": "HOGSWAP v1 exact-out ALGO→USDC swap (unsigned group)",
+        "value": {
+          "quotes": [
+            {
+              "shapeKey": "mainnet:hogswap:v1:swap:fixed-output",
+              "input": {
+                "userAddress": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                "fromAssetId": 0,
+                "toAssetId": 31566704,
+                "x-pragma-asset": "pragma: allowlist secret",
+                "amount": "100000",
+                "maxSlippageBps": 50
               }
             }
           ]

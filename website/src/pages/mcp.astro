@@ -12,7 +12,7 @@ import { config, mcpToolNames } from "../lib/config";
   <h1 class="page-title">MCP server</h1>
   <p class="muted">
     The canix402 MCP is a remote, walletless wrapper over the public Caddy gateway. Agents connect
-    over Streamable HTTP, call typed tools for discovery, opportunity data, and Haystack swaps, and
+    over Streamable HTTP, call typed tools for discovery, opportunity data, and multi-router swaps, and
     handle x402 payment signing on the client side.
   </p>
 
@@ -32,9 +32,9 @@ import { config, mcpToolNames } from "../lib/config";
   </section>
 
   <section class="panel">
-    <h2>Haystack swaps</h2>
+    <h2>Swaps</h2>
     <ul>
-      <li><code>canix_get_quote</code> — free, stateless quote from <code>POST /swaps/quote</code>.</li>
+      <li><code>canix_get_quote</code> — free, parallel multi-router quote from <code>POST /swaps/quote</code>.</li>
       <li><code>canix_optin</code> — free output-asset and application opt-ins from <code>POST /swaps/optin</code>.</li>
       <li>
         <code>canix_swap</code> — paid swap transaction response from
@@ -246,8 +246,8 @@ canix_get_execution_quote({
     </ul>
     <p class="muted">
       Free tools include health, metadata, discovery, OpenAPI, execution shapes,
-      Haystack quotes, and opt-ins. Paid tools include opportunities, positions, claimable
-      rewards, execution quotes, and Haystack swap transactions.
+      swap quotes, and opt-ins. Paid tools include opportunities, positions, claimable
+      rewards, execution quotes, and swap transactions.
     </p>
   </section>
 

@@ -136,7 +136,7 @@ export async function assertProductionFreeEndpoints(baseUrl: string): Promise<vo
   for (const endpoint of productionFreeEndpoints) {
     const request =
       endpoint.id === "haystackSwapOptIn"
-        ? withHaystackOptInBody(endpoint, haystackQuote)
+        ? withSwapOptInBody("/swaps/optin", endpoint, haystackQuote)
         : endpoint;
     const body = await assertFreeEndpoint(baseUrl, request);
     if (endpoint.id === "haystackSwapQuote") {
@@ -145,12 +145,13 @@ export async function assertProductionFreeEndpoints(baseUrl: string): Promise<vo
   }
 }
 
-function withHaystackOptInBody(
+function withSwapOptInBody(
+  path: string,
   endpoint: ProductionEndpoint,
-  haystackQuote: unknown
+  quote: unknown
 ): ProductionEndpoint {
-  if (haystackQuote === undefined || haystackQuote === null) {
-    throw new Error("/swaps/optin: missing quote from POST /swaps/quote");
+  if (quote === undefined || quote === null) {
+    throw new Error(`${path}: missing quote from the matching quote route`);
   }
 
   return {
@@ -158,7 +159,7 @@ function withHaystackOptInBody(
     method: "POST",
     body: {
       address: getProductionPersonalizedAddress(),
-      quote: haystackQuote
+      quote
     }
   };
 }

@@ -53,3 +53,5 @@ Protocol-wide notes: [protocol-caveats.md](./protocol-caveats.md#stamm).
 ## Tests
 
 - Integration fixtures: `tests/integration/stamm-execution-shapes.test.ts`
+- Production live (x402 + on-chain): `tests/live/stamm-production-test.test.ts`
+  (`X402_STAMM_EXECUTION_LIVE=1`; redeem minted LP to ALGO)

@@ -224,8 +224,8 @@ function toProductionEndpoint(entry: (typeof endpointPolicyMatrix)[number]): Pro
     };
   }
 
-  // `/swaps/optin` stays POST without a fixture body. Production smoke feeds it
-  // the quote returned by `/swaps/quote` — static Haystack quotes expire.
+  // `/swaps/optin` stays POST without a fixture body.
+  // Production smoke feeds it the quote returned by the matching quote route.
 
   return base;
 }
@@ -234,8 +234,15 @@ export const productionFreeEndpoints: ProductionEndpoint[] = endpointPolicyMatri
   .filter((entry) => entry.access === "free")
   // `/metrics` is free on the protocol process but intentionally omitted from the
   // public Caddy free list (internal scrape on :3000 only). Unknown session
-  // receipts fail-closed 402, so GET /sessions/:sessionId is not a smoke 200.
-  .filter((entry) => entry.id !== "metrics" && entry.id !== "sessionsReceipt")
+  // and watch receipts fail-closed 402, so GET /sessions/:sessionId and
+  // GET /watch/:watchId are not smoke 200s until the harness can mint them.
+  .filter(
+    (entry) =>
+      entry.id !== "metrics" &&
+      entry.id !== "sessionsReceipt" &&
+      entry.id !== "watchReceipt" &&
+      entry.id !== "watchRotateSecret"
+  )
   .map(toProductionEndpoint);
 
 export const productionPaidEndpoints: ProductionEndpoint[] = endpointPolicyMatrix

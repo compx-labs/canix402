@@ -4,7 +4,7 @@ import test from "node:test";
 import algosdk from "algosdk";
 
 import type {
-  HaystackQuote,
+  MetaSwapQuote,
   SwapOptInResponse,
   SwapQuoteResponse,
   SwapTransactionsResponse
@@ -62,7 +62,8 @@ test(
     assert.equal(quoteResponse.data.amount, String(SWAP_INPUT_MICRO_USDC));
     assert.equal(quoteResponse.data.type, "fixed-input");
     assert.ok(BigInt(quoteResponse.data.quotedAmount) > 0n);
-    assert.ok(quoteResponse.data.txnPayload);
+    assert.equal(quoteResponse.data.router, "haystack");
+    assert.ok(quoteResponse.data.payload);
 
     const requestBody = {
       address,
@@ -134,14 +135,15 @@ async function fetchQuote(
     fromAssetId: USDC_ASSET_ID,
     toAssetId: ALGO_ASSET_ID,
     amount: String(SWAP_INPUT_MICRO_USDC),
-    type: "fixed-input"
+    type: "fixed-input",
+    router: "haystack"
   });
 }
 
 async function submitMissingOptIns(
   baseUrl: string,
   address: string,
-  quote: HaystackQuote,
+  quote: MetaSwapQuote,
   secretKey: Uint8Array
 ): Promise<void> {
   const response = await postFreeJson<SwapOptInResponse>(

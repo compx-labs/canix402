@@ -30,6 +30,13 @@ test("production smoke posts Haystack quote and opt-in instead of GET", () => {
   assert.ok(quoteIndex >= 0 && optInIndex > quoteIndex);
 });
 
+test("production smoke skips fail-closed session and watch receipts", () => {
+  const ids = new Set(productionFreeEndpoints.map((endpoint) => endpoint.id));
+  assert.equal(ids.has("sessionsReceipt"), false);
+  assert.equal(ids.has("watchReceipt"), false);
+  assert.equal(ids.has("watchRotateSecret"), false);
+});
+
 test("production endpoint mapping copies method from the policy matrix", () => {
   for (const endpoint of [...productionFreeEndpoints, ...productionPaidEndpoints]) {
     assert.ok(endpoint.method === "GET" || endpoint.method === "POST", endpoint.id);

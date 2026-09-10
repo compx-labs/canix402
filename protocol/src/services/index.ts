@@ -35,24 +35,43 @@ export {
   parseHogswapQuote,
   quoteHogswapLpMint,
   quoteHogswapLpRedeem,
+  quoteHogswapSwap,
   resetHogswapClientCacheForTests,
   setHogswapClientDependenciesForTests,
   HogswapClientError,
   HogswapMissingOptInError,
+  HogswapNoRouteError,
   HogswapQuoteExpiredError,
   HOGSWAP_DEFAULT_HTTP_TIMEOUT_MS,
   HOGSWAP_LP_DEFAULT_SLIPPAGE_BPS,
   HOGSWAP_LP_POSITION_PROTOCOLS,
-  HOGSWAP_QUOTE_TTL_MS
+  HOGSWAP_QUOTE_TTL_MS,
+  HOGSWAP_SWAP_DEFAULT_SLIPPAGE_BPS
 } from "./hogswap-client.js";
 export type {
   HogswapExecuteResult,
   HogswapLpMintQuoteRequest,
   HogswapLpQuoteExtras,
   HogswapLpRedeemQuoteRequest,
+  HogswapPathBreakdown,
   HogswapQuote,
-  HogswapStammAssetMeta
+  HogswapQuoteLeg,
+  HogswapStammAssetMeta,
+  HogswapSwapQuoteRequest
 } from "./hogswap-client.js";
+export {
+  HOGSWAP_ROUTER,
+  HogswapRouterError,
+  createHogswapSwapService,
+  setHogswapSwapServiceDependenciesForTests,
+  toSwapQuoteDto
+} from "./hogswap-router.js";
+export type {
+  HogswapSwapExecuteDto,
+  HogswapSwapQuoteDto,
+  HogswapSwapService,
+  HogswapSwapQuoteRequest as HogswapRouterQuoteRequest
+} from "./hogswap-router.js";
 export type {
   PositionCollector,
   ProtocolPositionsCollection
@@ -118,8 +137,8 @@ export {
   COMPOSE_SIGNER_CAVEAT,
   COMPOSE_SLIPPAGE_CAVEAT,
   COMPOSE_STALE_QUOTE_CAVEAT,
-  HAYSTACK_OPTIN_SHAPE_KEY,
-  HAYSTACK_SWAP_SHAPE_KEY,
+  SWAP_OPTIN_SHAPE_KEY,
+  SWAP_SHAPE_KEY,
   applySlippageHaircut,
   compileCompose,
   composeCanUnblockEligibility,
@@ -227,10 +246,78 @@ export {
   createHaystackService,
   DEFAULT_DISABLED_HAYSTACK_PROTOCOLS
 } from "./haystack-router.js";
+export {
+  MetaSwapError,
+  createMetaSwapService
+} from "./meta-swap-router.js";
+export type {
+  MetaSwapErrorKind,
+  MetaSwapService
+} from "./meta-swap-router.js";
+export {
+  META_SWAP_ROUTER_PRIORITY,
+  DEFAULT_META_SWAP_SLIPPAGE_PERCENT,
+  DEFAULT_META_SWAP_QUOTE_TIMEOUT_MS,
+  DEFAULT_META_SWAP_QUOTE_TTL_MS,
+  applyBpsHaircut,
+  compareQuotedRoutes,
+  percentSlippageToBps,
+  resolveQuoteSlippagePercent,
+  selectMetaSwapWinner
+} from "./meta-swap-score.js";
+export { createDefaultMetaSwapAdapters } from "./meta-swap-adapters.js";
+export type { MetaSwapAdapter, MetaSwapAdapterInput } from "./meta-swap-adapters.js";
 export type {
   HaystackErrorKind,
   HaystackService
 } from "./haystack-router.js";
+export {
+  DEFAULT_FOLKS_QUOTE_TTL_MS,
+  FOLKS_ROUTER_DEFAULT_FEE_BPS,
+  FOLKS_ROUTER_FEE_DISCOUNT_TIERS,
+  FOLKS_ROUTER_MAINNET_APP_ID,
+  FOLKS_ROUTER_TESTNET_APP_ID,
+  FOLKS_ROUTER_V2_MAINNET_API_BASE,
+  FOLKS_ROUTER_V2_TESTNET_API_BASE,
+  FolksRouterError,
+  assertFolksRouterV2BaseUrl,
+  createFolksRouterService,
+  folksRouterAppId,
+  folksRouterV2ApiBase,
+  inferFolksRouteKind,
+  percentSlippageToFolksBps
+} from "./folks-router.js";
+export type {
+  FolksRouterAlgod,
+  FolksRouterErrorKind,
+  FolksRouterSdk,
+  FolksRouterService
+} from "./folks-router.js";
+export {
+  ASASTATS_ACCESS_BLOCKER,
+  ASASTATS_DEFAULT_ROUTER_APP_ID,
+  ASASTATS_GROUP_PATH,
+  ASASTATS_PLATFORM_FEE_BPS,
+  ASASTATS_QUOTE_PATH,
+  ASASTATS_REQUIRED_SCOPES,
+  ASASTATS_SWAP_META,
+  AsaStatsAccessBlockedError,
+  AsaStatsQuoteStaleError,
+  AsaStatsRouterError,
+  asaStatsRouterAccessStatus,
+  createAsaStatsRouterService,
+  isAsaStatsRouterConfigured,
+  parseAsaStatsGroup,
+  parseAsaStatsQuote,
+  scoreAsaStatsQuote,
+  wrapAsaStatsGroup,
+  wrapAsaStatsQuote
+} from "./asastats-router.js";
+export type {
+  AsaStatsErrorKind,
+  AsaStatsRouterAccessStatus,
+  AsaStatsRouterService
+} from "./asastats-router.js";
 export {
   FEE_HARVEST_RECIPIENT_A,
   FEE_HARVEST_RECIPIENT_B,

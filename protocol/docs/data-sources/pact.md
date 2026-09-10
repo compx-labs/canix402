@@ -10,6 +10,8 @@ This document defines the current Pact adapter contract used by canix402.
 - Endpoints used:
   - `GET /pools/all?ordering=-tvl_usd&deprecated=false`
   - `GET /farms/all?ordering=-tvl_usd`
+  - Smart Router discovery (execution shape, not this adapter): `GET /pools`
+    (paginated; fallback `GET /pools/all`)
 - Pool/farm join key: `farm.pool` matches `pool.on_chain_id`
 - Verified filtering defaults to enabled (`PACT_ONLY_VERIFIED=true`)
 
@@ -18,6 +20,9 @@ This document defines the current Pact adapter contract used by canix402.
 - `PACT_API_BASE_URL` (required)
 - `PACT_API_KEY` (optional; sent as bearer token when configured)
 - `PACT_ONLY_VERIFIED` (optional boolean, default `true`)
+- `PACT_SMART_ROUTER_APP_ID` (optional; required to compile
+  `mainnet:pact:smart-router:swap:fixed-input` unless the quote passes
+  `routerAppId`. No baked-in mainnet default.)
 
 ## Normalized Output Fields
 
@@ -99,9 +104,18 @@ One pool can emit multiple opportunities:
   `GET /pools`. Pact rows stay on this collector; HOGSWAP skips DEX names that
   start with `pact` so the same LP ASA is not double-counted. See
   [hogswap-lp.md](hogswap-lp.md).
+- **Smart Router quote source (NEO-351 spike):** `@pactfi/pactsdk` has no Smart
+  Router helpers, and public swagger does not expose a route-quote HTTP API
+  (`GET /prices` only; `/api/quote` and `router.pact.fi` are not live). Canix
+  quotes `mainnet:pact:smart-router:swap:fixed-input` with `GET /pools` discovery
+  plus per-hop `Pool.prepareSwap`, then builds an unsigned deposit + router
+  `SWAP` group. This is not Haystack (`/swaps/*`). See
+  [execution-shapes/pact-smart-router-swap.md](../execution-shapes/pact-smart-router-swap.md).
 
 ## Tests
 
 Fixture-based normalize coverage: `tests/unit/pact-normalize.test.ts` plus
-`tests/fixtures/adapters/pact-pools.ts` (`npm run test:unit`). Route-level
-coverage remains in `tests/integration/pact-adapter.test.ts`.
+`tests/fixtures/adapters/pact-pools.ts` (`npm run test:unit`). Smart Router
+quote/group fixtures: `tests/unit/pact-smart-router.test.ts` and
+`tests/integration/pact-smart-router-shapes.test.ts`. Route-level coverage
+remains in `tests/integration/pact-adapter.test.ts`.

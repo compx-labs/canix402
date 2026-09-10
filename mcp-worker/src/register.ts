@@ -26,6 +26,14 @@ const AmountSchema = z.union([
   z.string().regex(/^[1-9][0-9]*$/)
 ]);
 const SwapTypeSchema = z.enum(["fixed-input", "fixed-output"]);
+const MetaSwapRouterSchema = z.enum([
+  "haystack",
+  "hogswap",
+  "tinyman",
+  "pact-smart-router",
+  "folks-router",
+  "asastats"
+]);
 const DisabledProtocolSchema = z.enum([
   "Tinyman",
   "Humble",
@@ -36,30 +44,39 @@ const DisabledProtocolSchema = z.enum([
   "Folks",
   "TAlgo"
 ]);
-const TransactionPayloadSchema = z.object({
-  // Haystack may return an empty IV; protocol /swaps/* accepts it.
-  iv: z.string(),
-  data: z.string().min(1)
-});
 const QuoteSchema = z.object({
+  router: MetaSwapRouterSchema,
   address: AlgorandAddressSchema,
   fromAssetId: z.string().regex(/^[0-9]+$/),
   toAssetId: z.string().regex(/^[0-9]+$/),
   amount: z.string().regex(/^[1-9][0-9]*$/),
   type: SwapTypeSchema,
   quotedAmount: z.string().regex(/^[0-9]+$/),
+  minOut: z.string().regex(/^[0-9]+$/),
+  networkFeeMicroAlgos: z.string().regex(/^[0-9]+$/),
+  slippageBps: z.number().int().min(0).max(10_000),
   createdAt: z.string().datetime(),
   expiresAt: z.string().datetime(),
-  requiredAppOptIns: z.array(z.string().regex(/^[1-9][0-9]*$/)),
-  txnPayload: z.union([TransactionPayloadSchema, z.null()]),
-  usdIn: z.number().optional(),
-  usdOut: z.number().optional(),
-  userPriceImpact: z.number().optional(),
-  marketPriceImpact: z.number().optional(),
-  priceBaseline: z.number().optional(),
-  route: z.array(z.unknown()),
-  quotes: z.array(z.unknown()),
-  protocolFees: z.record(z.string(), z.number())
+  score: z.object({
+    expectedNetOut: z.string().regex(/^[0-9]+$/),
+    minOut: z.string().regex(/^[0-9]+$/),
+    expectedIn: z.string().regex(/^[0-9]+$/),
+    maxIn: z.string().regex(/^[0-9]+$/).optional(),
+    networkFeeMicroAlgos: z.string().regex(/^[0-9]+$/),
+    feeAlreadyNetted: z.boolean()
+  }),
+  alternatives: z.array(
+    z.object({
+      router: MetaSwapRouterSchema,
+      status: z.enum(["quoted", "error", "skipped", "timeout"]),
+      expectedNetOut: z.string().regex(/^[0-9]+$/).optional(),
+      minOut: z.string().regex(/^[0-9]+$/).optional(),
+      networkFeeMicroAlgos: z.string().regex(/^[0-9]+$/).optional(),
+      reason: z.string().optional()
+    })
+  ),
+  legs: z.array(z.unknown()),
+  payload: z.unknown()
 });
 
 function paymentSignatureArgSchema() {
@@ -399,7 +416,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_get_plan",
     {
       description:
-        "Compile an allocation intent into an ordered unsigned plan (POST /plans). Pass address and budget { assetId, amount } (base units; 0 = ALGO). Optional constraints and opportunityIds. Optional swapSlippage for Haystack compose. Returns eligibility, live Haystack opt-in/swap groups when requiredAssetIds differ from the budget asset, setup/enter quotes[] as independent unsigned groups (never merged), expected position delta, attached data.simulation when groups compiled, x402 + network fee totals, and expiry. Paid ~0.25 USDC. Canix does not sign or submit.",
+        "Compile an allocation intent into an ordered unsigned plan (POST /plans). Pass address and budget { assetId, amount } (base units; 0 = ALGO). Optional constraints and opportunityIds. Optional swapSlippage for multi-router compose. Returns eligibility, live multi-router opt-in/swap groups when requiredAssetIds differ from the budget asset, setup/enter quotes[] as independent unsigned groups (never merged), expected position delta, attached data.simulation when groups compiled, x402 + network fee totals, and expiry. Paid ~0.25 USDC. Canix does not sign or submit.",
       inputSchema: {
         address: z.string().min(1),
         budget: z.object({
@@ -591,7 +608,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_compose_enter",
     {
       description:
-        "Compose “I hold asset A, I want this opportunity” into sequenced unsigned groups (POST /execution/compose): opt-in → Haystack swap → enter, driven by requiredAssetIds. Groups are never merged. Preserve Haystack signer indexes / pre-signed members. Paid ~0.10 USDC. Canix does not sign or submit.",
+        "Compose “I hold asset A, I want this opportunity” into sequenced unsigned groups (POST /execution/compose): opt-in → winning swap → enter, driven by requiredAssetIds. Groups are never merged. Preserve signer indexes / pre-signed members. Paid ~0.10 USDC. Canix does not sign or submit.",
       inputSchema: {
         address: z.string().min(1),
         opportunityId: z.string().min(1),
@@ -833,13 +850,15 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_get_quote",
     {
       description:
-        "Get a stateless Haystack swap quote via POST /swaps/quote. Free endpoint; the response is passed through unchanged.",
+        "Get a stateless multi-router swap quote via POST /swaps/quote. Quotes enabled routers in parallel and returns the best expected net out. Optional router forces one adapter. Pass the response data unchanged into canix_optin / canix_swap.",
       inputSchema: {
         address: z.string().min(1),
         fromAssetId: AssetIdSchema,
         toAssetId: AssetIdSchema,
         amount: AmountSchema,
         type: SwapTypeSchema.optional(),
+        router: MetaSwapRouterSchema.optional(),
+        slippage: z.number().min(0).max(100).optional(),
         disabledProtocols: z.array(DisabledProtocolSchema).optional(),
         maxGroupSize: z.number().int().min(1).max(16).optional(),
         maxDepth: z.number().int().min(1).max(4).optional()
@@ -853,6 +872,8 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
           toAssetId: args.toAssetId,
           amount: args.amount,
           ...(args.type === undefined ? {} : { type: args.type }),
+          ...(args.router === undefined ? {} : { router: args.router }),
+          ...(args.slippage === undefined ? {} : { slippage: args.slippage }),
           ...(args.disabledProtocols === undefined
             ? {}
             : { disabledProtocols: args.disabledProtocols }),
@@ -874,7 +895,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_optin",
     {
       description:
-        "Build missing Haystack output-asset and application opt-ins via POST /swaps/optin. Free endpoint; the response is passed through unchanged.",
+        "Build missing output-asset and application opt-ins via POST /swaps/optin for the winning quote. Free endpoint; pass the quote data object unchanged.",
       inputSchema: {
         address: AlgorandAddressSchema,
         quote: QuoteSchema
@@ -1114,7 +1135,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_swap",
     {
       description:
-        "Build Haystack swap transactions via paid POST /swaps/transactions (~0.005 USDC). Omit paymentSignature for x402 preflight, then retry with the same inputs.",
+        "Build unsigned swap transactions via paid POST /swaps/transactions (~0.005 USDC) for the winning quote. Omit paymentSignature for x402 preflight, then retry with the same inputs. Canix does not sign or submit.",
       inputSchema: {
         address: AlgorandAddressSchema,
         quote: QuoteSchema,

@@ -148,6 +148,10 @@ recent block headers (`bonus`, `feesCollected`). See `src/services/consensus-sta
 - `tvlUsd` and `apy` for LP/farm are trusted from source; tALGO/stALGO staking are derived.
 - Transaction construction (on-chain pool discovery, LP-token opt-in, slippage
   fraction, validator app id): [execution-shapes/protocol-caveats.md](../execution-shapes/protocol-caveats.md#tinyman).
+- **Swap Router:** execution shapes `mainnet:tinyman:v2:swap:fixedInput` and
+  `swap:fixedOutput` quote Tinyman Swap Router vs the single v2 pool and return
+  an unsigned group for the winner (Tinyman-pool only; not a cross-DEX
+  aggregator). See [tinyman-swap-router.md](../execution-shapes/tinyman-swap-router.md).
 - **HOGSWAP overlap:** the unified HOGSWAP LP valuator also sees Tinyman LP ASAs
   via `GET /pools`. Tinyman rows stay on this collector; HOGSWAP skips DEX names
   that start with `tinyman` so the same LP ASA is not double-counted. See
@@ -156,5 +160,8 @@ recent block headers (`bonus`, `feesCollected`). See `src/services/consensus-sta
 ## Tests
 
 Fixture-based normalize coverage: `tests/unit/tinyman-normalize.test.ts` plus
-`tests/fixtures/adapters/tinyman-pools.ts` (`npm run test:unit`). Route-level
-coverage remains in `tests/integration/tinyman-adapter.test.ts`.
+`tests/fixtures/adapters/tinyman-pools.ts` (`npm run test:unit`). Swap Router
+vs single-pool compare: `tests/unit/tinyman-swap-router.test.ts` and
+`tests/fixtures/tinyman/swap-router.ts` (1-hop and 2-hop). Route-level
+coverage remains in `tests/integration/tinyman-adapter.test.ts` and
+`tests/integration/tinyman-swap-router-shape.test.ts`.

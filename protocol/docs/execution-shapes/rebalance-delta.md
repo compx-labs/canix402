@@ -22,7 +22,7 @@ Optional: `includeClaims`, `minDeltaBps` (default 50), `constraints`, `swapSlipp
 
 1. **Claims** (when `harvestIdle` / `includeClaims`) — `claimAllQuotes`-compatible inputs, groups never merged.
 2. **Exits** — overweight vs target uses a **partial** `amountRaw` scaled by USD; target weight 0 is a full exit. Uses `compatibleExitShapeKeys[0]` on the position.
-3. **Enters** — idle ALGO (and live Haystack compose when the enter asset differs) via the same eligibility + compose path as `POST /plans`. Enter that would spend unconfirmed exit proceeds is `compileStatus: deferred`.
+3. **Enters** — idle ALGO (and live multi-router compose when the enter asset differs) via the same eligibility + compose path as `POST /plans`. Enter that would spend unconfirmed exit proceeds is `compileStatus: deferred`.
 
 Dust gaps below `minDeltaBps` are skipped.
 

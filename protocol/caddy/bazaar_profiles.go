@@ -300,7 +300,7 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 			bazaar.MethodPOST,
 			map[string]interface{}{
 				"fromAssetId": 0,
-				"toAssetId":   31566704,
+				"toAssetId":   31566704, // pragma: allowlist secret
 				"amount":      "1000000",
 			},
 			bazaar.JSONSchema{

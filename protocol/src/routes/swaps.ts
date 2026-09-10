@@ -1,10 +1,10 @@
 import type { FastifyInstance, FastifyReply } from "fastify";
 
 import {
-  HaystackRouterError,
-  createHaystackService,
-  type HaystackService
-} from "../services/haystack-router.js";
+  MetaSwapError,
+  createMetaSwapService,
+  type MetaSwapService
+} from "../services/meta-swap-router.js";
 import type { ApiError } from "../types/index.js";
 import {
   SwapOptInRequestSchema,
@@ -23,7 +23,7 @@ import {
 
 export function registerSwapRoutes(
   app: FastifyInstance,
-  service: HaystackService = createHaystackService()
+  service: MetaSwapService = createMetaSwapService()
 ): void {
   app.post<{
     Body: SwapQuoteRequest;
@@ -49,7 +49,7 @@ export function registerSwapRoutes(
           }
         });
       } catch (error) {
-        sendHaystackError(reply, error);
+        sendSwapError(reply, error);
         return;
       }
     }
@@ -82,7 +82,7 @@ export function registerSwapRoutes(
           }
         });
       } catch (error) {
-        sendHaystackError(reply, error);
+        sendSwapError(reply, error);
         return;
       }
     }
@@ -116,24 +116,33 @@ export function registerSwapRoutes(
           }
         });
       } catch (error) {
-        sendHaystackError(reply, error);
+        sendSwapError(reply, error);
         return;
       }
     }
   );
 }
 
-function sendHaystackError(reply: FastifyReply, error: unknown): void {
-  if (error instanceof HaystackRouterError) {
+function sendSwapError(reply: FastifyReply, error: unknown): void {
+  if (error instanceof MetaSwapError) {
     const statusCode =
-      error.kind === "validation"
+      error.kind === "validation" || error.kind === "expired"
         ? 400
-        : error.kind === "rate-limit"
-          ? 429
-          : 502;
+        : error.kind === "configuration"
+          ? 503
+          : error.kind === "rate-limit"
+            ? 429
+            : error.kind === "no-route"
+              ? 404
+              : 502;
     reply.status(statusCode).send({
       error: {
-        code: error.kind === "validation" ? "VALIDATION_ERROR" : "INTERNAL_ERROR",
+        code:
+          error.kind === "validation" || error.kind === "expired"
+            ? "VALIDATION_ERROR"
+            : error.kind === "no-route"
+              ? "NOT_FOUND"
+              : "INTERNAL_ERROR",
         message: error.message,
         ...(error.details === undefined ? {} : { details: error.details })
       }
@@ -144,7 +153,7 @@ function sendHaystackError(reply: FastifyReply, error: unknown): void {
   reply.status(500).send({
     error: {
       code: "INTERNAL_ERROR",
-      message: "Failed to process the Haystack swap request."
+      message: "Failed to process the swap request."
     }
   });
 }

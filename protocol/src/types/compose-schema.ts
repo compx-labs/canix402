@@ -12,7 +12,7 @@ import {
 
 /** Compiler SKU: same band as POST /execution/quotes (0.10 USDC). */
 export const DEFAULT_COMPOSE_PRICE_USDC = "0.1";
-/** Haystack slippage percent (0–100). */
+/** Swap slippage percent (0–100). */
 export const DEFAULT_COMPOSE_SLIPPAGE_PERCENT = 1;
 
 export const ComposeRequestSchema = Type.Object(
@@ -23,7 +23,7 @@ export const ComposeRequestSchema = Type.Object(
     fromAssetId: Type.Integer({ minimum: 0 }),
     /** Base-unit amount of fromAssetId (decimal string). */
     amount: Type.String({ minLength: 1, pattern: "^[0-9]+$" }),
-    /** Haystack slippage percent (0–100). Default 1. */
+    /** Swap slippage percent (0–100). Default 1. */
     slippage: Type.Optional(Type.Number({ minimum: 0, maximum: 100 })),
     refresh: Type.Optional(Type.Boolean())
   },

@@ -75,7 +75,7 @@ import {
   </section>
 
   <section class="panel">
-    <h2>Walletless Haystack swaps</h2>
+    <h2>Walletless swaps</h2>
     <ol>
       <li>Request a free <code>POST /swaps/quote</code> using integer asset base units.</li>
       <li>
@@ -88,7 +88,7 @@ import {
         <code>PAYMENT-SIGNATURE</code>.
       </li>
       <li>
-        Sign only the returned <code>userSignIndexes</code>, preserve Haystack pre-signed members and
+        Sign only the returned <code>userSignIndexes</code>, preserve any pre-signed members and
         atomic-group order, then submit the complete group through your own Algod client.
       </li>
     </ol>
