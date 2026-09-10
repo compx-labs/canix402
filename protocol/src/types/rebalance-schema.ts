@@ -55,7 +55,7 @@ export const RebalanceRequestSchema = Type.Object(
     /** Skip overweight/underweight legs below this gap. Default 50. */
     minDeltaBps: Type.Optional(Type.Integer({ minimum: 0, maximum: 10_000 })),
     constraints: Type.Optional(PlanConstraintsSchema),
-    /** Haystack slippage percent (0–100) for swap-aware enter compose. */
+    /** Swap slippage percent (0–100) for swap-aware enter compose. */
     swapSlippage: Type.Optional(Type.Number({ minimum: 0, maximum: 100 })),
     refresh: Type.Optional(Type.Boolean())
   },

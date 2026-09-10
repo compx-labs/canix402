@@ -15,16 +15,16 @@
         "order": 0,
         "compileStatus": "compiled",
         "warnings": [
-          "Eligibility is gated on missing required assets; swap-aware compose unblocks enter after the Haystack group confirms."
+          "Eligibility is gated on missing required assets; swap-aware compose unblocks enter after the swap group confirms."
         ]
       },
       {
         "kind": "opt-in",
         "order": 1,
         "compileStatus": "compiled",
-        "shapeKey": "mainnet:haystack:router:optin:required",
+        "shapeKey": "mainnet:swap:router:optin:required",
         "quote": {
-          "shapeKey": "mainnet:haystack:router:optin:required",
+          "shapeKey": "mainnet:swap:router:optin:required",
           "encodedTransactions": ["<base64-unsigned-opt-in>"],
           "userSignIndexes": [0],
           "groupTransactions": [
@@ -36,17 +36,17 @@
           ]
         },
         "warnings": [
-          "Missing opt-in: submit the opt-in group and wait for confirmation before submitting the Haystack swap group."
+          "Missing opt-in: submit the opt-in group and wait for confirmation before submitting the swap group."
         ]
       },
       {
         "kind": "swap",
         "order": 2,
         "compileStatus": "compiled",
-        "shapeKey": "mainnet:haystack:router:swap:fixed-input",
-        "prerequisiteShapeKeys": ["mainnet:haystack:router:optin:required"],
+        "shapeKey": "mainnet:swap:router:swap:fixed-input",
+        "prerequisiteShapeKeys": ["mainnet:swap:router:optin:required"],
         "quote": {
-          "shapeKey": "mainnet:haystack:router:swap:fixed-input",
+          "shapeKey": "mainnet:swap:router:swap:fixed-input",
           "encodedTransactions": ["<base64-user-leg>"],
           "userSignIndexes": [0],
           "groupTransactions": [
@@ -58,7 +58,7 @@
             {
               "index": 1,
               "signer": "logicsig",
-              "encodedTransaction": "<base64-haystack-leg>",
+              "encodedTransaction": "<base64-router-leg>",
               "signedTransaction": "<base64-presigned>"
             }
           ]
@@ -74,8 +74,8 @@
         "compileStatus": "compiled",
         "shapeKey": "mainnet:reti:v1:stake:algo",
         "prerequisiteShapeKeys": [
-          "mainnet:haystack:router:optin:required",
-          "mainnet:haystack:router:swap:fixed-input"
+          "mainnet:swap:router:optin:required",
+          "mainnet:swap:router:swap:fixed-input"
         ]
       }
     ],
@@ -89,7 +89,7 @@
       }
     ],
     "warnings": [
-      "Groups stay unsigned and unmerged. Sign only user legs; preserve Haystack pre-signed members."
+      "Groups stay unsigned and unmerged. Sign only user legs; preserve any pre-signed members."
     ]
   },
   "meta": {

@@ -11,7 +11,7 @@ signing. Groups from a batch request are never merged.
 
 This page covers the protocols whose golden/integration fixtures exist today:
 Tinyman, Folks Finance, Pact, CompX, Dork.fi, Myth Finance, Haystack, Réti,
-Alpha Arcade, and STAMM. Per-shape group layouts stay in the sibling markdown files.
+Alpha Arcade, STAMM, and HOGSWAP. Per-shape group layouts stay in the sibling markdown files.
 
 ## Tinyman
 
@@ -23,6 +23,9 @@ Alpha Arcade, and STAMM. Per-shape group layouts stay in the sibling markdown fi
 - Asset ordering is Tinyman’s: **asset1 = higher asset id**, **asset2 = lower**
   (native ALGO `0` is always asset2). Callers may pass `assetA`/`assetB` in any
   order; shapes normalize with `orderTinymanAssets`.
+- Swap shapes (`swap:fixedInput` / `swap:fixedOutput`) quote Tinyman Swap
+  Router (`getSwapRoute`) **and** the single v2 pool, then pick the better net
+  return. The router is Tinyman-pool only — not a cross-DEX aggregator.
 - Subsequent LP (`addLiquidity:flexible` / `singleAsset`, both removes) require
   a **created and ready** pool with a pool-token id. Initial add
   (`addLiquidity:initial`) is the opposite: it rejects ready pools that already
@@ -36,6 +39,9 @@ Alpha Arcade, and STAMM. Per-shape group layouts stay in the sibling markdown fi
 - Flexible / initial / single-asset **add liquidity does not opt the user into
   the pool token**. The wallet must already be opted in (and hold ALGO for the
   extra ASA minimum balance) or the group will fail on submit.
+- Swap Router / single-pool **swap does not opt the user into the output ASA**
+  (or intermediary hop assets). Router `asset_opt_in` is a separate group and
+  is never merged into the swap.
 - tALGO mint, stALGO increase, and stALGO TINY claim may prefix optional
   tALGO / stALGO / TINY opt-ins when the SDK detects they are missing.
 - Farm commit keeps LP in the wallet. Farm `claimRewards` is a Tinyman Analytics
@@ -53,6 +59,10 @@ Alpha Arcade, and STAMM. Per-shape group layouts stay in the sibling markdown fi
 
 - `maxSlippageBps` is an integer in `[0, 10000]`. Tinyman SDK quotes use
   `maxSlippageBps / 10000` as a fraction.
+- Swap Router comparison uses expected out (fixed-input) or expected in
+  (fixed-output) after the API’s slippage floor (`output_amount_arg` /
+  `input_amount_arg`). Extra router network fees are already accounted for in
+  the Tinyman route suggestion; there is no additional router fee beyond AMM v2.
 - Remove-liquidity shapes apply that fraction with Tinyman’s
   `applySlippageToAmount("negative", …)` to encode **minimum outputs** in the
   app-call args.
@@ -62,6 +72,9 @@ Alpha Arcade, and STAMM. Per-shape group layouts stay in the sibling markdown fi
 
 - Flexible add requires both sides of the pair; single-asset add performs an
   internal swap and is not a substitute for two-sided amounts.
+- Swap Router is used when its net expected return beats the single-pool path
+  (or when no ready v2 pool exists). Ties and worse router quotes fall back to
+  the direct v2 swap; `metadata.fallbackReason` documents why.
 - Farm commit takes an absolute LP amount that must not exceed wallet LP
   balance. Tinyman farms stake the full committed LP (no separate partial-stake
   shape).
@@ -72,6 +85,8 @@ Alpha Arcade, and STAMM. Per-shape group layouts stay in the sibling markdown fi
 
 - App-call validation pins the **current SDK validator app id**. A Tinyman v2
   upgrade that changes that id fails quote validation until Canix/SDK catch up.
+- Swap Router groups pin the **SDK Swap Router app id**. A router upgrade that
+  changes that id fails quote validation until Canix/SDK catch up.
 - Farm claim bytes come from Analytics `prepare-claim-transactions`; a staking
   program upgrade can change group shape. Always inspect `groupTransactions`
   and `userSignIndexes`.
@@ -157,6 +172,12 @@ for later escrow operations.
   primary ALGO (`0`). Shapes remap amounts; they do not swap the on-chain pool.
 - Farm enter hints set `farmAppId` and, when known, a distinct AMM `poolAppId`.
   Do not pass the farm app id as `poolAppId` on LP shapes.
+- **Smart Router swap** (`mainnet:pact:smart-router:swap:fixed-input`) is a
+  standalone swap shape, not an LP/farm enter. It is **not** Haystack.
+  There is no public Smart Router HTTP quote (`@pactfi/pactsdk` has no router
+  module). Discovery is `GET {PACT_API_BASE_URL}/pools` (fallback `/pools/all`).
+  Hop quotes use `Pool.prepareSwap` on-chain; Canix picks a 1–3 hop path and
+  the best fee-tier pool per hop. Pass `fromAssetId` / `toAssetId` / `amount`.
 
 ### Opt-ins
 
@@ -167,6 +188,10 @@ for later escrow operations.
   `farm:stake` or `addLiquidityAndFarm:twoSided` — the escrow app id is unknown
   until the create transaction confirms. Skip deploy if an escrow already
   exists.
+- Smart Router groups do **not** include router `OPTIN`/`OPTOUT`. The contract
+  is expected to be `SUPEROPTIN`'d to route assets. The wallet must already be
+  opted into the **output ASA** (ALGO needs no opt-in). Opt-in is a separate
+  group and is never merged into the swap.
 
 ### Minimum balance
 
@@ -181,6 +206,9 @@ for later escrow operations.
   **percent** argument (`50` bps → `0.5`). Do not pass bps into the SDK as
   percent.
 - Quotes warn when `maxSlippageBps >= 500`.
+- Smart Router applies slippage only as `min_expected` on the **last** SWAP
+  (`amountOut * (10000 - bps) / 10000`). Intermediate hops ignore min-out, per
+  Pact router.md.
 - **Proportional remove does not encode slippage on chain.**
   `@pactfi/pactsdk` `buildRemoveLiquidityTxs` hard-codes `REMLIQ` minimum
   primary/secondary outputs as `0` / `0`. Review quote metadata and pool state
@@ -193,12 +221,18 @@ for later escrow operations.
 - Amounts must fit JavaScript safe integers — the Pact SDK builders are
   number-based.
 - `addLiquidityAndFarm:twoSided` still cannot be atomic with escrow deploy.
+- Smart Router routes at most three pools (packed 2-hop SWAP plus optional
+  1-hop SWAP). Parallel knapsack splits are not encoded: the published SWAP ABI
+  has no per-leg amount (the deposit is consumed sequentially).
 
 ### App upgrades
 
 - `contractVersion` / `poolType` / `feeBps` come from the live SDK pool object.
   A Pact pool rewrite that changes app id is a different `poolAppId`; do not
   reuse an old id from discovery cache.
+- Smart Router app id comes from `PACT_SMART_ROUTER_APP_ID` or quote input
+  `routerAppId`. Canix does not guess a mainnet router id. A router upgrade that
+  changes the app id invalidates groups until that value is updated.
 
 ## CompX
 
@@ -377,3 +411,49 @@ unsigned groups only.
 - Never pin router/registry ids in shapes. A STAMM or HOGSWAP router upgrade that
   changes those ids is picked up automatically from `/execute`.
 - Quotes expire in ~30s. After opt-in, re-quote (stale-quote).
+
+## HOGSWAP
+
+LiquiHog multi-DEX swap aggregator (STAMM, Tinyman, Pact, Humble, AlgoFi, Folks,
+LST mints). Canix treats it as **one** router source. Quote `POST /quote`
+`mode: SWAP` then `POST /execute` for an unsigned group. Public `/swaps/*`
+includes HOGSWAP in the parallel compare; compile a specific HOGSWAP shape via
+`POST /execution/quotes`.
+
+### Pool discovery
+
+- Pass `fromAssetId` / `toAssetId` (0 = ALGO). HOGSWAP selects the route. Do not
+  invent pool or router app ids — `/execute` always targets the current router.
+- Legs in quote metadata are audit-only (`dex_name`, planned in/out).
+
+### Opt-ins
+
+- The wallet must already be opted into the **output ASA** (when it is not ALGO)
+  before execute. Opt-in is a **separate** group and is never merged.
+- Missing opt-in returns HTTP 422; Canix surfaces it as a shape-state error.
+  Re-quote after the opt-in confirms.
+
+### Minimum balance
+
+- Output-ASA opt-in consumes extra minimum balance. Shapes do not fund that MBR.
+
+### Slippage math
+
+- `maxSlippageBps` defaults to **50** (HOGSWAP SWAP OpenAPI default). Range 1–10000.
+- Delivery below `min_out_at_slippage` reverts the whole group.
+- Routing fee (~5 bps of output; HOG holdings discount; waived at 100+ HOG) is
+  **already netted** into `expected_out` / `quotedAmount`. Do not subtract
+  `routerFeeAmount` again when scoring net out.
+
+### Liquidity limits
+
+- Fixed-in uses `amount_in`; exact-out uses `amount_out` (mutually exclusive).
+- Optional `maxHops` (1–4) and `maxLegs` (1–16) cap route complexity. 404 when
+  nothing fits.
+
+### App upgrades
+
+- Never pin router app ids in shapes. A HOGSWAP router upgrade is picked up from
+  `/execute`.
+- Quotes expire in ~30s. After opt-in, re-quote (stale-quote).
+- Canix does not sign or submit.

@@ -41,7 +41,7 @@ import {
   DEFAULT_REBALANCE_PRICE_USDC
 } from "../types/rebalance-schema.js";
 import type { PlanConstraints } from "../types/plan.js";
-import type { HaystackService } from "./haystack-router.js";
+import type { MetaSwapService } from "./meta-swap-router.js";
 import {
   computeRebalanceDeltas,
   resolveIdleAlgoMicro,
@@ -83,7 +83,7 @@ export interface RebalanceCompilerDependencies {
     address: string
   ) => ClaimableRewardRecord[];
   compileQuote?: (shapeKey: string, input: unknown) => Promise<ExecutableQuote>;
-  haystack?: HaystackService;
+  swaps?: MetaSwapService;
   now?: () => Date;
   priceUsdc?: string;
 }
@@ -104,7 +104,7 @@ export function setRebalanceCompilerDependenciesForTests(
             ? { fetchOpportunities: overrides.fetchOpportunities }
             : {}),
           ...(overrides.compileQuote ? { compileQuote: overrides.compileQuote } : {}),
-          ...(overrides.haystack ? { haystack: overrides.haystack } : {}),
+          ...(overrides.swaps ? { swaps: overrides.swaps } : {}),
           ...(overrides.now ? { now: overrides.now } : {})
         }
       : undefined
@@ -582,8 +582,8 @@ async function compileEnterIntent(args: {
       ...(dependencyOverrides?.compileQuote
         ? { compileQuote: dependencyOverrides.compileQuote }
         : {}),
-      ...(dependencyOverrides?.haystack
-        ? { haystack: dependencyOverrides.haystack }
+      ...(dependencyOverrides?.swaps
+        ? { swaps: dependencyOverrides.swaps }
         : {}),
       ...(dependencyOverrides?.now ? { now: dependencyOverrides.now() } : {})
     });

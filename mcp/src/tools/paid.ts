@@ -362,7 +362,7 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
     "canix_get_plan",
     {
       description:
-        "Compile an allocation intent into an ordered unsigned plan (POST /plans). Pass address and budget { assetId, amount } (base units; 0 = ALGO). Optional constraints: maxProtocolWeightBps, noNewBorrows, executionReadyOnly, minTvlUsd, maxSourceAgeSeconds, maxAllocations. Optional opportunityIds pins the compiler. Optional swapSlippage (Haystack percent) for swap-aware compose. Returns eligibility, live Haystack opt-in/swap groups when requiredAssetIds differ from the budget asset, setup/enter quotes[] as independent unsigned groups (never merged), expected position delta, attached data.simulation when groups compiled, x402 + network fee totals, and expiry. Paid: ~0.25 USDC via x402. Canix does not sign or submit — Brownie and other agents should consume this SKU rather than forking a compiler.",
+        "Compile an allocation intent into an ordered unsigned plan (POST /plans). Pass address and budget { assetId, amount } (base units; 0 = ALGO). Optional constraints: maxProtocolWeightBps, noNewBorrows, executionReadyOnly, minTvlUsd, maxSourceAgeSeconds, maxAllocations. Optional opportunityIds pins the compiler. Optional swapSlippage (percent) for swap-aware compose. Returns eligibility, live multi-router opt-in/swap groups when requiredAssetIds differ from the budget asset, setup/enter quotes[] as independent unsigned groups (never merged), expected position delta, attached data.simulation when groups compiled, x402 + network fee totals, and expiry. Paid: ~0.25 USDC via x402. Canix does not sign or submit — Brownie and other agents should consume this SKU rather than forking a compiler.",
       inputSchema: {
         address: z.string().min(1),
         budget: z.object({
@@ -418,7 +418,7 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
     "canix_get_rebalance_plan",
     {
       description:
-        "Compile a delta rebalance plan (POST /plans/rebalance). Pass address plus targetWeights (bps summing to 10000) and/or harvestIdle to claim worth-claiming rewards and redeploy idle ALGO. Returns ordered unsigned groups — claims, partial exits, optional Haystack swap compose, and enters — only the legs that change the book (not a full unwind-and-rebuild). Reuses claim desk, eligibility, compose, and position exit/manage shapeKeys. Groups are never merged. Attaches data.simulation when compiled groups exist. Paid: ~0.25 USDC via x402. Canix does not sign or submit.",
+        "Compile a delta rebalance plan (POST /plans/rebalance). Pass address plus targetWeights (bps summing to 10000) and/or harvestIdle to claim worth-claiming rewards and redeploy idle ALGO. Returns ordered unsigned groups — claims, partial exits, optional multi-router swap compose, and enters — only the legs that change the book (not a full unwind-and-rebuild). Reuses claim desk, eligibility, compose, and position exit/manage shapeKeys. Groups are never merged. Attaches data.simulation when compiled groups exist. Paid: ~0.25 USDC via x402. Canix does not sign or submit.",
       inputSchema: {
         address: z.string().min(1),
         targetWeights: z
@@ -554,7 +554,7 @@ export function registerPaidTools(server: McpServer, client: X402Client): void {
     "canix_compose_enter",
     {
       description:
-        "Compose “I hold asset A, I want this opportunity” into sequenced unsigned groups (POST /execution/compose): opt-in → Haystack swap → enter, driven by requiredAssetIds. Groups are never merged. Haystack signer indexes and pre-signed members are preserved — sign only user legs and submit locally. Failure modes (stale quote, missing opt-in, slippage) appear on step warnings. Paid: ~0.10 USDC via x402. Prefer canix_get_plan for budget allocation; use this for a single opportunity.",
+        "Compose “I hold asset A, I want this opportunity” into sequenced unsigned groups (POST /execution/compose): opt-in → winning swap → enter, driven by requiredAssetIds. Groups are never merged. Signer indexes and pre-signed members are preserved — sign only user legs and submit locally. Failure modes (stale quote, missing opt-in, slippage) appear on step warnings. Paid: ~0.10 USDC via x402. Prefer canix_get_plan for budget allocation; use this for a single opportunity.",
       inputSchema: {
         address: z.string().min(1),
         opportunityId: z.string().min(1),

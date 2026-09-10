@@ -205,12 +205,12 @@ forking a local compiler.
 - Constraints: `maxProtocolWeightBps`, `noNewBorrows` (default true),
   `executionReadyOnly` (default true), `minTvlUsd`, `maxSourceAgeSeconds`,
   `maxAllocations` (default 1).
-- Response: ordered steps (eligibility, optional live Haystack opt-in/swap compose when `requiredAssetIds` differ from the budget asset, protocol setup
+- Response: ordered steps (eligibility, optional live multi-router opt-in/swap compose when `requiredAssetIds` differ from the budget asset, protocol setup
   chains, enter quotes), `quotes[]` / `order` / `prerequisiteShapeKeys`, expected
   position delta, x402 + estimated network fee totals, and `expiresAt`.
 - Groups stay unsigned and unmerged. Setup steps that need a confirmed prior
   group (e.g. Folks escrow address) are deferred with the `quotes[]` input for a
-  later `POST /execution/quotes`. Swap legs are live Haystack groups when a
+  later `POST /execution/quotes`. Swap legs are live multi-router groups when a
   single `requiredAssetIds` target is known (opt-in → swap → enter); see
   `POST /execution/compose` and `docs/execution-shapes/haystack-swap-compose.md`.
 - Discovery and OpenAPI advertise `maxAmountRequired: "0.25"`. Caddy enforces
@@ -226,8 +226,8 @@ Use when the agent already knows the opportunity and the asset it holds.
 
 - Body: `{ address, opportunityId, fromAssetId, amount, slippage?, refresh? }`.
   Amounts are asset base units (`fromAssetId` 0 = ALGO). Default slippage is 1%.
-- Response: sequenced steps — eligibility, optional opt-in, Haystack swap,
-  setup/enter — as independent unsigned groups (never merged). Haystack
+- Response: sequenced steps — eligibility, optional opt-in, winning swap,
+  setup/enter — as independent unsigned groups (never merged).
   `userSignIndexes` and pre-signed members are preserved.
 - Failure modes (stale quote, missing opt-in, slippage) are listed on step
   warnings. See `docs/execution-shapes/haystack-swap-compose.md`.
@@ -249,7 +249,7 @@ are the book; opportunities are the menu.
   exit groups confirm.
 - `harvestIdle` claims worth-claiming reward rows from the claim desk and
   redeploys wallet ALGO above `algoReserveMicroAlgos` (default 1 ALGO).
-- Response: ordered unsigned steps (claim → exit → optional Haystack compose →
+- Response: ordered unsigned steps (claim → exit → optional multi-router compose →
   enter), `quotes[]`, expected position delta (`enter` / `exit` / `claim`),
   x402 + network fee totals, expiry. Groups stay unmerged.
 - Discovery and OpenAPI advertise `maxAmountRequired: "0.25"`. Caddy enforces

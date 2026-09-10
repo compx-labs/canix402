@@ -4,39 +4,55 @@ import test from "node:test";
 import Fastify from "fastify";
 
 import {
-  HaystackRouterError,
-  createHaystackService,
-  type HaystackService
-} from "../../src/services/haystack-router.js";
+  MetaSwapError,
+  createMetaSwapService,
+  type MetaSwapService
+} from "../../src/services/meta-swap-router.js";
 import { registerSwapRoutes } from "../../src/routes/swaps.js";
-import type { HaystackQuote } from "../../src/types/swap-schema.js";
+import type { MetaSwapQuote } from "../../src/types/swap-schema.js";
 
 const ADDRESS = "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ";
 const OTHER_ADDRESS = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ";
 const GOLD_ASSET_ID = 246516580;
 
-function quote(overrides: Partial<HaystackQuote> = {}): HaystackQuote {
+function quote(overrides: Partial<MetaSwapQuote> = {}): MetaSwapQuote {
   return {
+    router: "haystack",
     address: ADDRESS,
     fromAssetId: "0",
     toAssetId: "31566704",
     amount: "1000000",
     type: "fixed-input",
     quotedAmount: "250000",
+    minOut: "247500",
+    networkFeeMicroAlgos: "0",
+    slippageBps: 100,
     createdAt: new Date(Date.now() - 1_000).toISOString(),
     expiresAt: new Date(Date.now() + 29_000).toISOString(),
-    requiredAppOptIns: ["123"],
-    txnPayload: { iv: "iv", data: "payload" },
-    usdIn: 0.25,
-    usdOut: 0.249,
-    route: [],
-    quotes: [],
-    protocolFees: {},
+    score: {
+      expectedNetOut: "250000",
+      minOut: "247500",
+      expectedIn: "1000000",
+      maxIn: "1000000",
+      networkFeeMicroAlgos: "0",
+      feeAlreadyNetted: true
+    },
+    alternatives: [
+      {
+        router: "haystack",
+        status: "quoted",
+        expectedNetOut: "250000",
+        minOut: "247500",
+        networkFeeMicroAlgos: "0"
+      }
+    ],
+    legs: [],
+    payload: { iv: "iv", data: "payload" },
     ...overrides
   };
 }
 
-function mockService(): HaystackService {
+function mockService(): MetaSwapService {
   return {
     async getQuote(input) {
       return quote({
@@ -44,7 +60,8 @@ function mockService(): HaystackService {
         fromAssetId: String(input.fromAssetId),
         toAssetId: String(input.toAssetId),
         amount: String(input.amount),
-        type: input.type ?? "fixed-input"
+        type: input.type ?? "fixed-input",
+        ...(input.router === undefined ? {} : { router: input.router })
       });
     },
     async buildOptIns() {
@@ -64,8 +81,9 @@ function mockService(): HaystackService {
         expiresAt: new Date(Date.now() + 60_000).toISOString()
       };
     },
-    async buildSwapTransactions() {
+    async buildSwapTransactions(_address, metaQuote) {
       return {
+        router: metaQuote.router,
         transactions: [
           {
             index: 0,
@@ -87,14 +105,14 @@ function mockService(): HaystackService {
   };
 }
 
-async function createApp(service: HaystackService) {
+async function createApp(service: MetaSwapService) {
   const app = Fastify();
   registerSwapRoutes(app, service);
   await app.ready();
   return app;
 }
 
-test("POST /swaps/quote returns a free serializable Haystack quote", async () => {
+test("POST /swaps/quote returns a free serializable multi-router quote", async () => {
   const app = await createApp(mockService());
   const response = await app.inject({
     method: "POST",
@@ -112,12 +130,14 @@ test("POST /swaps/quote returns a free serializable Haystack quote", async () =>
   const payload = response.json();
   assert.equal(payload.data.quotedAmount, "250000");
   assert.equal(payload.data.amount, "1000000");
+  assert.equal(payload.data.router, "haystack");
+  assert.equal(payload.data.minOut, "247500");
   assert.equal(payload.meta.paymentRequired, false);
   assert.equal(payload.meta.executionSubmitted, false);
   await app.close();
 });
 
-test("POST /swaps/quote accepts Haystack quotes with an empty payload iv", async () => {
+test("POST /swaps/quote passes opaque winner payload through unchanged", async () => {
   const service = mockService();
   const app = await createApp({
     ...service,
@@ -128,7 +148,7 @@ test("POST /swaps/quote accepts Haystack quotes with an empty payload iv", async
         toAssetId: String(input.toAssetId),
         amount: String(input.amount),
         type: input.type ?? "fixed-input",
-        txnPayload: { iv: "", data: "payload" }
+        payload: { iv: "", data: "payload" }
       });
     }
   });
@@ -145,7 +165,7 @@ test("POST /swaps/quote accepts Haystack quotes with an empty payload iv", async
   });
 
   assert.equal(response.statusCode, 200);
-  assert.equal(response.json().data.txnPayload.iv, "");
+  assert.equal(response.json().data.payload.iv, "");
   await app.close();
 });
 
@@ -176,6 +196,7 @@ test("POST /swaps/transactions preserves ordered signer metadata", async () => {
 
   assert.equal(response.statusCode, 200);
   const payload = response.json();
+  assert.equal(payload.data.router, "haystack");
   assert.deepEqual(payload.data.userSignIndexes, [0]);
   assert.equal(payload.data.transactions[0].signer, "user");
   assert.equal(payload.data.transactions[1].signer, "haystack");
@@ -185,10 +206,10 @@ test("POST /swaps/transactions preserves ordered signer metadata", async () => {
   await app.close();
 });
 
-test("Haystack route maps upstream rate limits without leaking upstream details", async () => {
+test("swap route maps upstream rate limits without leaking upstream details", async () => {
   const service = mockService();
   service.getQuote = async () => {
-    throw new HaystackRouterError("Haystack rate limit exceeded; retry later.", "rate-limit");
+    throw new MetaSwapError("Haystack rate limit exceeded; retry later.", "rate-limit");
   };
   const app = await createApp(service);
   const response = await app.inject({
@@ -207,10 +228,10 @@ test("Haystack route maps upstream rate limits without leaking upstream details"
   await app.close();
 });
 
-test("Haystack route surfaces upstream message details for unhandled SDK failures", async () => {
+test("swap route surfaces upstream message details for unhandled SDK failures", async () => {
   const service = mockService();
   service.getQuote = async () => {
-    throw new HaystackRouterError(
+    throw new MetaSwapError(
       "Unable to fetch a Haystack swap quote.",
       "upstream",
       { upstreamMessage: "response.quotes is not iterable" }
@@ -237,8 +258,35 @@ test("Haystack route surfaces upstream message details for unhandled SDK failure
   await app.close();
 });
 
-test("service rejects stale and address-mismatched quotes before upstream calls", async () => {
-  const service = createHaystackService({ apiKey: "test-key" });
+test("swap route returns not-found when no router quotes the pair", async () => {
+  const service = mockService();
+  service.getQuote = async () => {
+    throw new MetaSwapError("No enabled swap router returned a quote for this pair.", "no-route", {
+      alternatives: [{ router: "hogswap", status: "error", reason: "no route" }]
+    });
+  };
+  const app = await createApp(service);
+  const response = await app.inject({
+    method: "POST",
+    url: "/swaps/quote",
+    payload: {
+      address: ADDRESS,
+      fromAssetId: 0,
+      toAssetId: 31566704,
+      amount: "1000000"
+    }
+  });
+
+  assert.equal(response.statusCode, 404);
+  assert.equal(response.json().error.code, "NOT_FOUND");
+  await app.close();
+});
+
+test("service rejects stale and address-mismatched quotes before adapter calls", async () => {
+  const service = createMetaSwapService({
+    now: () => Date.now(),
+    adapters: []
+  });
 
   await assert.rejects(
     service.buildSwapTransactions(
@@ -254,7 +302,7 @@ test("service rejects stale and address-mismatched quotes before upstream calls"
   );
 });
 
-test("quote request accepts Tinyman and Humble in disabledProtocols", async () => {
+test("quote request accepts Tinyman and Humble in disabledProtocols and router override", async () => {
   const app = await createApp(mockService());
   const response = await app.inject({
     method: "POST",
@@ -264,11 +312,14 @@ test("quote request accepts Tinyman and Humble in disabledProtocols", async () =
       fromAssetId: 0,
       toAssetId: 31566704,
       amount: "1000000",
+      router: "haystack",
+      slippage: 1,
       disabledProtocols: ["Tinyman", "Humble", "Algofi", "Algomint"]
     }
   });
 
   assert.equal(response.statusCode, 200);
+  assert.equal(response.json().data.router, "haystack");
   await app.close();
 });
 

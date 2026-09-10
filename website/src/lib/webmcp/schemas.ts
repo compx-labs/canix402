@@ -62,6 +62,18 @@ const swapType = {
   enum: ["fixed-input", "fixed-output"]
 };
 
+const swapRouter = {
+  type: "string",
+  enum: [
+    "haystack",
+    "hogswap",
+    "tinyman",
+    "pact-smart-router",
+    "folks-router",
+    "asastats"
+  ]
+};
+
 const disabledProtocol = {
   type: "string",
   enum: ["Tinyman", "Humble", "TinymanV2", "Algofi", "Algomint", "Pact", "Folks", "TAlgo"]
@@ -113,54 +125,74 @@ const watchThresholds = {
 const quote = {
   type: "object",
   required: [
+    "router",
     "address",
     "fromAssetId",
     "toAssetId",
     "amount",
     "type",
     "quotedAmount",
+    "minOut",
+    "networkFeeMicroAlgos",
+    "slippageBps",
     "createdAt",
     "expiresAt",
-    "requiredAppOptIns",
-    "txnPayload",
-    "route",
-    "quotes",
-    "protocolFees"
+    "score",
+    "alternatives",
+    "legs",
+    "payload"
   ],
   properties: {
+    router: swapRouter,
     address: algoAddress,
     fromAssetId: { type: "string", pattern: "^[0-9]+$" },
     toAssetId: { type: "string", pattern: "^[0-9]+$" },
     amount: { type: "string", pattern: "^[1-9][0-9]*$" },
     type: swapType,
     quotedAmount: { type: "string", pattern: "^[0-9]+$" },
+    minOut: { type: "string", pattern: "^[0-9]+$" },
+    networkFeeMicroAlgos: { type: "string", pattern: "^[0-9]+$" },
+    slippageBps: { type: "integer", minimum: 0, maximum: 10_000 },
     createdAt: { type: "string", format: "date-time" },
     expiresAt: { type: "string", format: "date-time" },
-    requiredAppOptIns: {
+    score: {
+      type: "object",
+      required: [
+        "expectedNetOut",
+        "minOut",
+        "expectedIn",
+        "networkFeeMicroAlgos",
+        "feeAlreadyNetted"
+      ],
+      properties: {
+        expectedNetOut: { type: "string", pattern: "^[0-9]+$" },
+        minOut: { type: "string", pattern: "^[0-9]+$" },
+        expectedIn: { type: "string", pattern: "^[0-9]+$" },
+        maxIn: { type: "string", pattern: "^[0-9]+$" },
+        networkFeeMicroAlgos: { type: "string", pattern: "^[0-9]+$" },
+        feeAlreadyNetted: { type: "boolean" }
+      }
+    },
+    alternatives: {
       type: "array",
-      items: { type: "string", pattern: "^[1-9][0-9]*$" }
+      items: {
+        type: "object",
+        required: ["router", "status"],
+        properties: {
+          router: swapRouter,
+          status: {
+            type: "string",
+            enum: ["quoted", "error", "skipped", "timeout"]
+          },
+          expectedNetOut: { type: "string", pattern: "^[0-9]+$" },
+          minOut: { type: "string", pattern: "^[0-9]+$" },
+          networkFeeMicroAlgos: { type: "string", pattern: "^[0-9]+$" },
+          reason: { type: "string" }
+        }
+      }
     },
-    txnPayload: {
-      anyOf: [
-        {
-          type: "object",
-          required: ["iv", "data"],
-          properties: {
-            iv: { type: "string" },
-            data: { type: "string", minLength: 1 }
-          }
-        },
-        { type: "null" }
-      ]
-    },
-    usdIn: { type: "number" },
-    usdOut: { type: "number" },
-    userPriceImpact: { type: "number" },
-    marketPriceImpact: { type: "number" },
-    priceBaseline: { type: "number" },
-    route: { type: "array", items: {} },
-    quotes: { type: "array", items: {} },
-    protocolFees: { type: "object", additionalProperties: { type: "number" } }
+    legs: { type: "array", items: {} },
+    payload: {}
   }
 };
 
@@ -204,6 +236,7 @@ export const schemas = {
   amount,
   protocol,
   swapType,
+  swapRouter,
   disabledProtocol,
   pagination,
   constraints,

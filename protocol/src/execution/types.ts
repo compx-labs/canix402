@@ -22,7 +22,10 @@ export type ExecutionProtocol =
   | "haystack"
   | "reti"
   | "alpha-arcade"
-  | "stamm";
+  | "stamm"
+  | "hogswap"
+  /** Synthetic identity for multi-router compose opt-in/swap legs. Winner is `metadata.router`. */
+  | "swap";
 
 /**
  * Fully-qualified identity for a transaction shape. The stable string key is

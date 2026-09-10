@@ -39,7 +39,7 @@ import {
   selectComposeTargetAsset,
   setComposeDependenciesForTests
 } from "./compose.js";
-import type { HaystackService } from "./haystack-router.js";
+import type { MetaSwapService } from "./meta-swap-router.js";
 import {
   executableQuoteToSimulateGroup,
   simulateQuotesForPlan
@@ -54,14 +54,14 @@ const DEFAULT_CONSTRAINTS = {
 } as const;
 
 const SWAP_COMPOSE_NOTE =
-  "No live Haystack compose was possible for blocked rows (ambiguous requiredAssetIds, capacity, or unresolved gates). Use POST /execution/compose or POST /swaps/quote when a single swap target is known. Quote-time on-chain checks remain authoritative.";
+  "No live swap compose was possible for blocked rows (ambiguous requiredAssetIds, capacity, or unresolved gates). Use POST /execution/compose or POST /swaps/quote when a single swap target is known. Quote-time on-chain checks remain authoritative.";
 
 export interface PlanCompilerDependencies {
   fetchHoldings?: (address: string) => Promise<AccountHoldings>;
   fetchOpportunities?: (refresh: boolean) => Promise<OpportunityMarketRecord[]>;
   fetchPositions?: (address: string) => Promise<readonly PositionRecordV1[]>;
   compileQuote?: (shapeKey: string, input: unknown) => Promise<ExecutableQuote>;
-  haystack?: HaystackService;
+  swaps?: MetaSwapService;
   now?: () => Date;
   priceUsdc?: string;
 }
@@ -82,7 +82,7 @@ export function setPlanCompilerDependenciesForTests(
             ? { fetchOpportunities: overrides.fetchOpportunities }
             : {}),
           ...(overrides.compileQuote ? { compileQuote: overrides.compileQuote } : {}),
-          ...(overrides.haystack ? { haystack: overrides.haystack } : {}),
+          ...(overrides.swaps ? { swaps: overrides.swaps } : {}),
           ...(overrides.now ? { now: overrides.now } : {})
         }
       : undefined
@@ -460,8 +460,8 @@ async function compileAllocation(args: {
     ...(dependencyOverrides?.compileQuote
       ? { compileQuote: dependencyOverrides.compileQuote }
       : {}),
-    ...(dependencyOverrides?.haystack
-      ? { haystack: dependencyOverrides.haystack }
+    ...(dependencyOverrides?.swaps
+      ? { swaps: dependencyOverrides.swaps }
       : {}),
     ...(dependencyOverrides?.now ? { now: dependencyOverrides.now() } : {})
   });

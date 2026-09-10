@@ -1,6 +1,6 @@
 {
   "name": "protocol",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "private": true,
   "description": "x402-gated Algorand DeFi opportunities data API",
   "type": "module",
@@ -43,6 +43,18 @@
     "test:x402-production": "tsx --test tests/live/x402-production.test.ts",
     "test:haystack-production": "tsx --test tests/live/haystack-production-swap.test.ts",
     "test:live:haystack-swap": "npm run test:haystack-production",
+    "test:meta-swap-production": "tsx --test tests/live/meta-swap-production-swap.test.ts",
+    "test:live:meta-swap": "npm run test:meta-swap-production",
+    "test:hogswap-production": "tsx --test tests/live/hogswap-production-swap.test.ts",
+    "test:live:hogswap-swap": "npm run test:hogswap-production",
+    "test:folks-router-production": "tsx --test tests/live/folks-router-production-swap.test.ts",
+    "test:live:folks-router-swap": "npm run test:folks-router-production",
+    "test:tinyman-swap-production": "tsx --test tests/live/tinyman-swap-production-test.test.ts",
+    "test:live:tinyman-swap": "npm run test:tinyman-swap-production",
+    "test:pact-smart-router-production": "tsx --test tests/live/pact-smart-router-production-test.test.ts",
+    "test:live:pact-smart-router": "npm run test:pact-smart-router-production",
+    "test:stamm-production": "tsx --test tests/live/stamm-production-test.test.ts",
+    "test:stamm-execution-live": "npm run test:stamm-production",
     "test:haystack-gold-quote": "tsx --test tests/live/haystack-gold-usdc-quote.test.ts",
     "test:live:haystack-gold-quote": "npm run test:haystack-gold-quote",
     "test:haystack-staking-production": "tsx --test tests/live/haystack-staking-production-test.test.ts",
@@ -63,11 +75,12 @@
     "snapshot:responses": "tsx --env-file-if-exists=.env scripts/export-opportunity-snapshots.ts"
   },
   "dependencies": {
-    "@algorandfoundation/algokit-utils": "^9.2.0",
-    "@alpha-arcade/sdk": "^0.4.11",
+    "@algorandfoundation/algokit-utils": "^9.2.2",
+    "@alpha-arcade/sdk": "^0.4.13",
     "@compx/sdk": "^2.1.5",
     "@fastify/type-provider-typebox": "^6.1.0",
     "@folks-finance/algorand-sdk": "^0.2.6",
+    "@folks-router/js-sdk": "^0.5.1",
     "@myth-finance/dualstake-farm-sdk": "^3.2.7",
     "@myth-finance/dualstake-ts-sdk": "^0.3.7",
     "@pactfi/pactsdk": "^0.8.1",
@@ -75,7 +88,7 @@
     "@tinymanorg/tinyman-js-sdk": "^5.1.4",
     "@txnlab/haystack-router": "^2.0.5",
     "algosdk": "^3.6.0",
-    "fastify": "^5.12.1",
+    "fastify": "^5.12.3",
     "ioredis": "^5.11.1",
     "node-cron": "^4.6.0",
     "prom-client": "^15.1.3",
@@ -84,7 +97,7 @@
   "devDependencies": {
     "@types/node": "^24.13.3",
     "@types/node-cron": "^3.0.11",
-    "tsx": "^4.23.12",
+    "tsx": "^4.23.13",
     "typescript": "^5.8.3"
   }
 }

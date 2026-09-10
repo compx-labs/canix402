@@ -352,7 +352,7 @@
 	@paid_haystack_swap path /swaps/transactions
 	handle @paid_haystack_swap {
 		x402 {
-			description "canix402 paid Haystack swap transaction endpoint"
+			description "canix402 paid multi-router swap transaction endpoint"
 			mime_type application/json
 			facilitator_url {$FACILITATOR_URL}
 			bazaar_profile haystack_swap
