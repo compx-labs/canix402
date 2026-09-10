@@ -28,12 +28,17 @@ const plansCurl = `curl -i ${config.gatewayBaseUrl}/plans -H 'content-type: appl
 const composeCurl = `curl -i ${config.gatewayBaseUrl}/execution/compose -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","opportunityId":"reti-staking-12","fromAssetId":1,"amount":"1000000","slippage":1}'`; // pragma: allowlist secret
 const simulateCurl = `curl -i ${config.gatewayBaseUrl}/execution/simulate -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","groups":[{"shapeKey":"mainnet:reti:v1:stake:algo","encodedTransactions":["<base64-unsigned-txn>"]}]}'`; // pragma: allowlist secret
 const policyCurl = `curl -i ${config.gatewayBaseUrl}/policy/validate -H 'content-type: application/json' -d '{"policy":{"schemaVersion":"1.0.0","maxProtocolWeightBps":4000,"minAlgoReserveMicroAlgos":"1000000","minTvlUsd":25000,"maxSourceAgeSeconds":86400,"noNewBorrows":true,"executionReadyOnly":true},"quotes":[{"shapeKey":"mainnet:reti:v1:stake:algo","protocol":"reti","opportunityId":"reti-staking-12","weightBps":4000,"allocatedAmount":"1000000","allocatedAssetId":0,"tvlUsd":1000000,"sourceTimestamp":"2026-08-28T11:00:00.000Z","executionReady":true}],"walletAlgoMicroAlgos":"5000000"}'`; // pragma: allowlist secret
+const pageDescription =
+  "Copy-paste Canix402 API examples for discovery, OpenAPI, x402 signed retries, opportunities, positions, execution shapes/quotes, and multi-router swaps."; // pragma: allowlist secret
+const pageKeywords =
+  "Canix402 examples, x402 payment examples, API samples, personalized opportunities, execution quotes, positions, swaps, Algorand DeFi responses"; // pragma: allowlist secret
+const swapsQuoteCurl = `curl -i ${config.gatewayBaseUrl}/swaps/quote \\\n  -H 'content-type: application/json' \\\n  -d '{\n    "address": "YOUR_ALGORAND_ADDRESS",\n    "fromAssetId": 0,\n    "toAssetId": 31566704,\n    "amount": "1000000",\n    "type": "fixed-input"\n  }'`; // pragma: allowlist secret
 ---
 
 <BaseLayout
   title="Examples | CANIX402"
-  description="Copy-paste Canix402 API examples for discovery, OpenAPI, x402 signed retries, opportunities, positions, execution shapes/quotes, and multi-router swaps." <!-- pragma: allowlist secret -->
-  keywords="Canix402 examples, x402 payment examples, API samples, personalized opportunities, execution quotes, positions, swaps, Algorand DeFi responses"> <!-- pragma: allowlist secret -->
+  description={pageDescription}
+  keywords={pageKeywords}>
 
   <h1 class="page-title">Examples</h1>
   <p class="muted">All examples use the public Caddy gateway URL. Replace placeholders before running paid retries.</p>
@@ -320,9 +325,7 @@ const policyCurl = `curl -i ${config.gatewayBaseUrl}/policy/validate -H 'content
       <code>POST /swaps/transactions</code> (~0.005 USDC). Canix never signs or submits.
     </p>
     <h3>1) Free quote</h3>
-    <CodeBlock
-      code={`curl -i ${config.gatewayBaseUrl}/swaps/quote \\\n  -H 'content-type: application/json' \\\n  -d '{\n    "address": "YOUR_ALGORAND_ADDRESS",\n    "fromAssetId": 0,\n    "toAssetId": 31566704,\n    "amount": "1000000",\n    "type": "fixed-input"\n  }'`} // pragma: allowlist secret
-    />
+    <CodeBlock code={swapsQuoteCurl} />
     <h3>Sample quote response (200)</h3>
     <CodeBlock code={format(swapsQuoteSample)} />
     <h3>2) Free opt-in (pass quote unchanged)</h3>
