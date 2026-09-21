@@ -9,6 +9,10 @@ import { FastifyInstance } from "fastify";
 import { buildApp } from "../../src/app.js";
 import { isPaidEndpoint } from "../../src/services/payment-policy.js";
 import {
+  resetOfflineOpportunityAdaptersForHttpTests,
+  stubOfflineOpportunityAdaptersForHttpTests
+} from "../helpers/offline-opportunity-adapters.js";
+import {
   X402PaymentSignaturePayload,
   encodePaymentSignature,
   validatePaymentSignatureHeader
@@ -30,6 +34,14 @@ const PAYMENT_REQUIRED_REQUIREMENTS = {
 };
 
 const fixtures = readFixtureSet();
+
+test.beforeEach(() => {
+  stubOfflineOpportunityAdaptersForHttpTests();
+});
+
+test.afterEach(() => {
+  resetOfflineOpportunityAdaptersForHttpTests();
+});
 
 test("successful paid request with valid PAYMENT-SIGNATURE returns 200", async () => {
   const app = await buildEdgeGatedApp();

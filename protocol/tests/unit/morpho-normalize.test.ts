@@ -85,6 +85,37 @@ test("fetchMorphoOpportunities uses recorded GraphQL pages and skips live RPC", 
   assert.equal(rows[0]?.assetPair, "USDC");
 });
 
+test("fetchMorphoOpportunities skips the live GraphQL catalog in test runtimes without an override", async () => {
+  const previousNodeEnv = process.env.NODE_ENV;
+  const previousUrl = process.env.MORPHO_GRAPHQL_URL;
+  process.env.NODE_ENV = "test";
+  delete process.env.MORPHO_GRAPHQL_URL;
+  try {
+    await assert.rejects(
+      () => fetchMorphoOpportunities(),
+      (error: unknown) => {
+        assert.equal((error as Error).name, "MorphoAdapterError");
+        assert.match(
+          (error as Error).message,
+          /live Morpho catalog is disabled in CI\/tests/
+        );
+        return true;
+      }
+    );
+  } finally {
+    if (previousNodeEnv === undefined) {
+      delete process.env.NODE_ENV;
+    } else {
+      process.env.NODE_ENV = previousNodeEnv;
+    }
+    if (previousUrl === undefined) {
+      delete process.env.MORPHO_GRAPHQL_URL;
+    } else {
+      process.env.MORPHO_GRAPHQL_URL = previousUrl;
+    }
+  }
+});
+
 test("fetchMorphoOpportunities wraps GraphQL failures as MorphoAdapterError", async () => {
   setMorphoAdapterDependenciesForTests({
     fetchImpl: async () => {

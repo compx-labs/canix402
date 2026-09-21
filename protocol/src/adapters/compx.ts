@@ -16,6 +16,7 @@ import {
   withAlgodRequestGate
 } from "../services/request-throttle.js";
 import { buildSourceMetadata } from "../services/source-metadata.js";
+import { skipLiveCatalogInTests } from "./offline-test-runtime.js";
 
 export class CompXAdapterError extends Error {
   public readonly cause?: unknown;
@@ -71,6 +72,9 @@ export function setCompXSdkDependenciesForTests(
 export async function fetchCompXOpportunities(
   options: FetchCompXOpportunitiesOptions = {}
 ): Promise<OpportunityMarketRecord[]> {
+  if (skipLiveCatalogInTests(compxSdkDependencyOverrides)) {
+    throw new CompXAdapterError("CompX live SDK is disabled in CI/tests.");
+  }
   if (compxOpportunitiesInFlight !== undefined) {
     return compxOpportunitiesInFlight;
   }

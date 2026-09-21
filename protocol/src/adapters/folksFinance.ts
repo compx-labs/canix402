@@ -23,6 +23,7 @@ import {
 } from "../services/consensus-staking-apr.js";
 import { utilizationFromBalances } from "../services/opportunity-risk.js";
 import { buildSourceMetadata } from "../services/source-metadata.js";
+import { skipLiveCatalogInTests } from "./offline-test-runtime.js";
 
 export const FOLKS_XALGO_STAKING_OPPORTUNITY_ID = "folks-staking-xalgo";
 /** Folks stores protocol fee as a 16-decimal fixed-point fraction. */
@@ -65,6 +66,12 @@ export function setFolksFinanceSdkDependenciesForTests(
 }
 
 export async function fetchFolksFinanceOpportunities(): Promise<OpportunityMarketRecord[]> {
+  if (skipLiveCatalogInTests(folksFinanceSdkDependencyOverrides)) {
+    throw new FolksFinanceAdapterError(
+      "Folks live SDK is disabled in CI/tests."
+    );
+  }
+
   const dependencies = resolveDependencies();
   const fetchedAt = new Date().toISOString();
 

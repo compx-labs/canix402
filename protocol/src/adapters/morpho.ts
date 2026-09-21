@@ -6,6 +6,7 @@ import {
   isNativeEthAsset,
   normalizeEvmAddress
 } from "../execution/evm.js";
+import { isOfflineTestRuntime } from "./offline-test-runtime.js";
 
 export const DEFAULT_MORPHO_GRAPHQL_URL = "https://api.morpho.org/graphql";
 export const MORPHO_VAULT_OPPORTUNITY_ID_PREFIX = "morpho-vault-";
@@ -110,12 +111,26 @@ export function setMorphoAdapterDependenciesForTests(
 }
 
 function resolveDependencies(): MorphoAdapterDependencies {
+  const configuredUrl = process.env.MORPHO_GRAPHQL_URL?.trim();
+  const skipLiveCatalog =
+    dependencyOverrides === undefined &&
+    (configuredUrl === undefined || configuredUrl.length === 0) &&
+    isOfflineTestRuntime();
+
   return {
-    fetchImpl: fetch,
-    graphqlUrl: process.env.MORPHO_GRAPHQL_URL ?? DEFAULT_MORPHO_GRAPHQL_URL,
+    fetchImpl: skipLiveCatalog ? rejectLiveMorphoCatalog : fetch,
+    graphqlUrl: configuredUrl && configuredUrl.length > 0
+      ? configuredUrl
+      : DEFAULT_MORPHO_GRAPHQL_URL,
     onlyListed: process.env.MORPHO_ONLY_LISTED !== "false",
     ...dependencyOverrides
   };
+}
+
+async function rejectLiveMorphoCatalog(): Promise<Response> {
+  throw new MorphoAdapterError(
+    "MORPHO_GRAPHQL_URL is not configured; live Morpho catalog is disabled in CI/tests."
+  );
 }
 
 export function morphoVaultOpportunityId(vaultAddress: string): string {

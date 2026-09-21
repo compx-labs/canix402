@@ -11,6 +11,7 @@ import {
   type ConsensusStakingAprEstimate
 } from "../services/consensus-staking-apr.js";
 import { buildSourceMetadata } from "../services/source-metadata.js";
+import { skipLiveCatalogInTests } from "./offline-test-runtime.js";
 import {
   createRetiAlgodClient,
   retiGetCurMaxStakePerPool,
@@ -176,6 +177,9 @@ async function defaultGetValidatorSnapshot(
 export async function fetchRetiOpportunities(
   fetchImpl: typeof fetch = fetch
 ): Promise<OpportunityMarketRecord[]> {
+  if (skipLiveCatalogInTests(retiDependencyOverrides)) {
+    throw new RetiAdapterError("Réti live catalog is disabled in CI/tests.");
+  }
   const dependencies = resolveDependencies();
   const fetchedAtIso = new Date().toISOString();
 

@@ -2,6 +2,7 @@ import algosdk, { Algodv2 } from "algosdk";
 
 import { buildSourceMetadata } from "../services/source-metadata.js";
 import { OpportunityMarketRecord } from "../types/opportunity.js";
+import { skipLiveCatalogInTests } from "./offline-test-runtime.js";
 import {
   HAYSTACK_STAKING_APP_ID,
   HAY_ASSET_ID,
@@ -59,6 +60,9 @@ function resolveDependencies(): HaystackAdapterDependencies {
 export async function fetchHaystackOpportunities(
   fetchImpl: typeof fetch = fetch
 ): Promise<OpportunityMarketRecord[]> {
+  if (skipLiveCatalogInTests(dependencyOverrides)) {
+    throw new HaystackAdapterError("Haystack live catalog is disabled in CI/tests.");
+  }
   const dependencies = resolveDependencies();
   const fetchedAtIso = new Date().toISOString();
 
