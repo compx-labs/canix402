@@ -8,7 +8,7 @@ import {
 } from "@pactfi/pactsdk";
 
 import { InvalidShapeInputError, ShapeStateError } from "../../errors.js";
-import type { ExecutionNetwork } from "../../types.js";
+import type { AlgorandExecutionNetwork } from "../../types.js";
 import { parseAddress, parseAssetId, parseBaseUnitAmount } from "./parse-input.js";
 import {
   addressToStringForPact,
@@ -22,7 +22,7 @@ import {
  * wallet and are held in a per-user escrow application bound to one farm.
  */
 export interface PactFarmState {
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   farmAppId: number;
   stakedAssetId: number;
   rewardAssetIds: number[];
@@ -53,7 +53,7 @@ export interface PactFarmStateDependencies {
     assetId: number
   ) => Promise<bigint>;
   getSuggestedParams: (algod: Algodv2) => Promise<algosdk.SuggestedParams>;
-  ensureGasStation: (network: ExecutionNetwork, algod: Algodv2) => void;
+  ensureGasStation: (network: AlgorandExecutionNetwork, algod: Algodv2) => void;
 }
 
 let dependencyOverrides: Partial<PactFarmStateDependencies> | undefined;
@@ -80,7 +80,7 @@ function resolveDependencies(): PactFarmStateDependencies {
  * Resolve farm + optional user escrow and wallet LP balance for stake/unstake/claim.
  */
 export async function resolvePactFarmState(params: {
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   algod: Algodv2;
   userAddress: string;
   farmAppId: number;
@@ -225,7 +225,7 @@ export async function getAccountAssetBalance(
   return holding === undefined ? 0n : BigInt(holding.amount);
 }
 
-function ensurePactGasStation(network: ExecutionNetwork, algod: Algodv2): void {
+function ensurePactGasStation(network: AlgorandExecutionNetwork, algod: Algodv2): void {
   // PactClient constructor sets the process-wide gas station used by farm deploy/stake.
   new PactClient(algod as never, { network });
 }

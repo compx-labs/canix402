@@ -8,6 +8,7 @@ import { mythFinanceShapes } from "./shapes/myth-finance/index.js";
 import { pactShapes } from "./shapes/pact/index.js";
 import { retiShapes } from "./shapes/reti/index.js";
 import { hogswapShapes } from "./shapes/hogswap/index.js";
+import { morphoShapes } from "./shapes/morpho/index.js";
 import { stammShapes } from "./shapes/stamm/index.js";
 import { tinymanShapes } from "./shapes/tinyman/index.js";
 
@@ -108,6 +109,28 @@ export type {
   HogswapSwapInput,
   HogswapSwapState
 } from "./shapes/hogswap/index.js";
+export {
+  morphoVaultDepositShape,
+  morphoVaultWithdrawShape,
+  morphoVaultRedeemShape,
+  morphoShapes,
+  setMorphoVaultStateDependenciesForTests,
+  MORPHO_DEPOSIT_SHAPE_KEY,
+  MORPHO_WITHDRAW_SHAPE_KEY,
+  MORPHO_REDEEM_SHAPE_KEY
+} from "./shapes/morpho/index.js";
+export type {
+  MorphoVaultDepositInput,
+  MorphoVaultWithdrawInput,
+  MorphoVaultRedeemInput,
+  MorphoVaultPreviewState
+} from "./shapes/morpho/index.js";
+export {
+  createBaseEvmClient,
+  attachEvmContextIfNeeded,
+  BASE_CHAIN_ID,
+  DEFAULT_BASE_RPC_URL
+} from "./evm.js";
 
 /**
  * Build a registry pre-loaded with every verified transaction shape. Callers
@@ -127,7 +150,8 @@ export function createExecutionRegistry(): TransactionShapeRegistry {
     ...retiShapes,
     ...alphaArcadeShapes,
     ...stammShapes,
-    ...hogswapShapes
+    ...hogswapShapes,
+    ...morphoShapes
   ]) {
     registry.register(shape);
   }

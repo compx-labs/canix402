@@ -80,6 +80,14 @@ export const protocols: readonly SupportedProtocol[] = [
     notes:
       "On-chain pool 3626756314; trailing fee APR estimate; stake/unstake/claim via execution shapes.",
     logo: "/protocols/alpha-arcade.png"
+  },
+  {
+    slug: "morpho",
+    name: "Morpho",
+    summary: "Listed Morpho Vaults on Base — one-asset ERC-4626 earn.",
+    notes:
+      "Supply-only deposit/withdraw/redeem as unsigned calldata. Vault address in inputHints.poolId; ERC-20 in assetAddresses. chain=base on every row.",
+    logo: "/protocols/morpho.svg"
   }
 ];
 

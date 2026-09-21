@@ -14,7 +14,8 @@ This document defines the stable `OpportunityRecordV1` contract published by
 
 ### Required fields
 
-- `protocol`: `tinyman | pact | folks-finance | compx | dorkfi | myth-finance | haystack | reti | alpha-arcade | stamm`
+- `protocol`: `tinyman | pact | folks-finance | compx | dorkfi | myth-finance | haystack | reti | alpha-arcade | stamm | morpho`
+- `chain`: `algorand | base` (required on public rows so a mixed catalog is unambiguous)
 - `opportunityType`: `lp | farm | staking | lending`
 - `opportunityId`: stable protocol-local identifier
 - `assetPair`: market label (pair or single-asset label)
@@ -31,6 +32,7 @@ This document defines the stable `OpportunityRecordV1` contract published by
 ### Optional fields
 
 - `assetIds`: on-chain Algorand asset ids backing the opportunity
+- `assetAddresses`: ERC-20 addresses for EVM venues (Morpho). Do not put `0x` into `assetIds`.
 - `apr`: secondary APR metric when source provides it
 - `notes`: caveats about timestamp provenance, fallback identifiers, or estimate basis
 - `entryRequirements`: machine-readable minimum stake / token gates (discovery metadata; quote-time recheck is authoritative)

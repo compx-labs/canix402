@@ -8,7 +8,8 @@ export type AdapterName =
   | "haystack"
   | "reti"
   | "alpha-arcade"
-  | "stamm";
+  | "stamm"
+  | "morpho";
 
 export {
   fetchTinymanOpportunities,
@@ -122,3 +123,14 @@ export {
   StammAdapterError
 } from "./stamm.js";
 export type { StammTierSnapshot } from "./stamm.js";
+export {
+  fetchMorphoOpportunities,
+  normalizeMorphoVault,
+  setMorphoAdapterDependenciesForTests,
+  morphoVaultOpportunityId,
+  parseMorphoVaultAddress,
+  MORPHO_VAULT_OPPORTUNITY_ID_PREFIX,
+  DEFAULT_MORPHO_GRAPHQL_URL,
+  MorphoAdapterError
+} from "./morpho.js";
+export type { MorphoVaultItem } from "./morpho.js";

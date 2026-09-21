@@ -11,6 +11,12 @@ export const YieldBasisSchema = Type.Union([
   Type.Literal("apr")
 ]);
 
+/** Settlement chain for a catalog row. Required on the public opportunity surface. */
+export const OpportunityChainValues = ["algorand", "base"] as const;
+export const OpportunityChainSchema = Type.Union(
+  OpportunityChainValues.map((value) => Type.Literal(value))
+);
+
 export const OpportunityTypeSchema = Type.Union(
   SupportedOpportunityTypeValues.map((value) => Type.Literal(value))
 );
@@ -36,7 +42,9 @@ export const OpportunityExecutionInputHintsSchema = Type.Object(
     /** Folks Finance loan application id (distinct from pool app id). */
     loanAppId: Type.Optional(Type.Integer({ minimum: 1 })),
     /** STAMM fee-tier index (0–5) when the LP ASA is a STAMM tier token. */
-    tierIndex: Type.Optional(Type.Integer({ minimum: 0 }))
+    tierIndex: Type.Optional(Type.Integer({ minimum: 0 })),
+    /** Underlying ERC-20 address for EVM venues. Never an Algorand asset id. */
+    assetAddress: Type.Optional(Type.String({ minLength: 1 }))
   },
   { additionalProperties: false }
 );
@@ -210,7 +218,11 @@ export const OpportunityMarketRecordSchema = Type.Object({
   opportunityType: OpportunityTypeSchema,
   opportunityId: Type.String(),
   assetPair: Type.String(),
+  /** Settlement chain. Adapters may omit; the public enricher defaults to algorand. */
+  chain: Type.Optional(OpportunityChainSchema),
   assetIds: Type.Optional(Type.Array(Type.Integer({ minimum: 0 }))),
+  /** ERC-20 addresses for EVM venues. Do not put 0x values in assetIds. */
+  assetAddresses: Type.Optional(Type.Array(Type.String({ minLength: 1 }))),
   /**
    * Underlying AMM / lending pool application id when distinct from the
    * opportunity id (e.g. Pact farm app vs Pact pool app). Used to build
@@ -222,6 +234,11 @@ export const OpportunityMarketRecordSchema = Type.Object({
    * Adapter-only; omitted from the public OpportunityRecord surface.
    */
   liquidityAssetId: Type.Optional(Type.Integer({ minimum: 0 })),
+  /**
+   * String pool / vault selector when distinct from integer poolAppId
+   * (e.g. Morpho vault address). Adapter-only; omitted from the public surface.
+   */
+  poolId: Type.Optional(Type.String({ minLength: 1 })),
   apy: Type.Number(),
   yieldBasis: YieldBasisSchema,
   tvlUsd: Type.Number(),
@@ -242,7 +259,10 @@ export const OpportunityRecordSchema = Type.Object({
   opportunityType: OpportunityTypeSchema,
   opportunityId: Type.String(),
   assetPair: Type.String(),
+  chain: OpportunityChainSchema,
   assetIds: Type.Optional(Type.Array(Type.Integer({ minimum: 0 }))),
+  /** ERC-20 addresses for EVM venues. Omitted on Algorand rows. */
+  assetAddresses: Type.Optional(Type.Array(Type.String({ minLength: 1 }))),
   apy: Type.Number(),
   yieldBasis: YieldBasisSchema,
   tvlUsd: Type.Number(),
@@ -302,6 +322,7 @@ export const PersonalizedOpportunitiesListResponseSchema = Type.Object({
   meta: Type.Optional(PersonalizedOpportunitiesListMetaSchema)
 });
 
+export type OpportunityChain = Static<typeof OpportunityChainSchema>;
 export type OpportunityMarketRecord = Static<typeof OpportunityMarketRecordSchema>;
 export type OpportunityExecutionInputHints = Static<
   typeof OpportunityExecutionInputHintsSchema

@@ -4,7 +4,7 @@ import type { PoolReserves, V2PoolInfo } from "@tinymanorg/tinyman-js-sdk";
 
 import { resolveAssetDecimals } from "../../../services/asset-decimals.js";
 import { ShapeStateError } from "../../errors.js";
-import type { ExecutionNetwork } from "../../types.js";
+import type { AlgorandExecutionNetwork } from "../../types.js";
 
 /**
  * Execution-focused view of a Tinyman v2 pool. This is intentionally separate
@@ -13,7 +13,7 @@ import type { ExecutionNetwork } from "../../types.js";
  * trusted from the discovery API.
  */
 export interface TinymanV2PoolState {
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   validatorAppId: number;
   poolAddress: string;
   poolTokenId: number;
@@ -31,7 +31,7 @@ export interface TinymanPoolStateDependencies {
   createAlgodClient: () => Algodv2;
   getPoolInfo: (params: {
     client: Algodv2;
-    network: ExecutionNetwork;
+    network: AlgorandExecutionNetwork;
     asset1ID: number;
     asset2ID: number;
   }) => Promise<V2PoolInfo>;
@@ -40,7 +40,7 @@ export interface TinymanPoolStateDependencies {
     assetIds: readonly number[],
     algodClient?: Algodv2
   ) => Promise<Map<number, number>>;
-  getValidatorAppId: (network: ExecutionNetwork) => number;
+  getValidatorAppId: (network: AlgorandExecutionNetwork) => number;
 }
 
 let dependencyOverrides: Partial<TinymanPoolStateDependencies> | undefined;
@@ -76,7 +76,7 @@ export function orderTinymanAssets(assetXId: number, assetYId: number): {
 }
 
 export async function resolveTinymanV2PoolState(params: {
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   algod: Algodv2;
   asset1Id: number;
   asset2Id: number;
@@ -147,7 +147,7 @@ export async function resolveTinymanV2PoolState(params: {
  * Tinyman v2 pool. Rejects pools that do not exist or already have liquidity.
  */
 export async function resolveTinymanV2PoolStateForInitialAdd(params: {
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   algod: Algodv2;
   asset1Id: number;
   asset2Id: number;
@@ -258,7 +258,7 @@ function resolveDependencies(): TinymanPoolStateDependencies {
 
 async function defaultGetPoolInfo(params: {
   client: Algodv2;
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   asset1ID: number;
   asset2ID: number;
 }): Promise<V2PoolInfo> {
@@ -272,7 +272,7 @@ async function defaultGetPoolReserves(
   return poolUtils.v2.getPoolReserves(client, pool);
 }
 
-function defaultGetValidatorAppId(network: ExecutionNetwork): number {
+function defaultGetValidatorAppId(network: AlgorandExecutionNetwork): number {
   return getValidatorAppID(network, CONTRACT_VERSION.V2);
 }
 

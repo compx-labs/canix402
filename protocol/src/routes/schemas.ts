@@ -11,7 +11,8 @@ export const SupportedOpportunityProtocolValues = [
   "haystack",
   "reti",
   "alpha-arcade",
-  "stamm"
+  "stamm",
+  "morpho"
 ] as const;
 
 /** LP valuation on `/positions` only — no opportunity adapter. */
@@ -56,10 +57,17 @@ export const ProtocolPaginationQuerySchema = createPaginationQuerySchema(
   PROTOCOL_OPPORTUNITIES_DEFAULT_LIMIT
 );
 
+export const OpportunityChainQuerySchema = Type.Union([
+  Type.Literal("algorand"),
+  Type.Literal("base")
+]);
+
 export const OpportunitiesQuerySchema = Type.Composite([
   PaginationQuerySchema,
   Type.Object({
-    protocol: Type.Optional(OpportunityProtocolSchema)
+    protocol: Type.Optional(OpportunityProtocolSchema),
+    /** Omit to include every supported chain. */
+    chain: Type.Optional(OpportunityChainQuerySchema)
   })
 ]);
 
@@ -72,6 +80,8 @@ export const FilteredOpportunitiesQuerySchema = Type.Object({
   minApy: Type.Optional(Type.Number()),
   maxApy: Type.Optional(Type.Number()),
   minTvlUsd: Type.Optional(Type.Number({ minimum: 0 })),
+  /** Omit to include every supported chain. */
+  chain: Type.Optional(OpportunityChainQuerySchema),
   /** Comma-separated ASA ids (0 = ALGO). Matches opportunities whose assetIds intersect. */
   assetIds: Type.Optional(Type.String()),
   limit: Type.Optional(

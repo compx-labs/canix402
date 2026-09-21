@@ -2,39 +2,39 @@ import algosdk, { Algodv2 } from "algosdk";
 import { TinymanTAlgoClient } from "@tinymanorg/tinyman-js-sdk";
 
 import { InvalidShapeInputError, ShapeStateError } from "../../errors.js";
-import type { ExecutionNetwork, SerializedTransaction } from "../../types.js";
+import type { AlgorandExecutionNetwork, SerializedTransaction } from "../../types.js";
 
 /**
  * Tinyman liquid-stake / restake constants mirror
  * `@tinymanorg/tinyman-js-sdk` liquid-stake + assetConstants (not all exported
  * from the package root).
  */
-export const TINYMAN_STAKE_APP_ID: Record<ExecutionNetwork, number> = {
+export const TINYMAN_STAKE_APP_ID: Record<AlgorandExecutionNetwork, number> = {
   testnet: 724519988,
   mainnet: 2537013674
 };
 
-export const TINYMAN_RESTAKE_APP_ID: Record<ExecutionNetwork, number> = {
+export const TINYMAN_RESTAKE_APP_ID: Record<AlgorandExecutionNetwork, number> = {
   testnet: 724676904,
   mainnet: 2537022861
 };
 
-export const TINYMAN_VAULT_APP_ID: Record<ExecutionNetwork, number> = {
+export const TINYMAN_VAULT_APP_ID: Record<AlgorandExecutionNetwork, number> = {
   testnet: 480164661,
   mainnet: 2200606875
 };
 
-export const TALGO_ASSET_ID: Record<ExecutionNetwork, number> = {
+export const TALGO_ASSET_ID: Record<AlgorandExecutionNetwork, number> = {
   testnet: 724519992,
   mainnet: 2537013734
 };
 
-export const STALGO_ASSET_ID: Record<ExecutionNetwork, number> = {
+export const STALGO_ASSET_ID: Record<AlgorandExecutionNetwork, number> = {
   testnet: 724676936,
   mainnet: 2537023208
 };
 
-export const TINY_ASSET_ID: Record<ExecutionNetwork, number> = {
+export const TINY_ASSET_ID: Record<AlgorandExecutionNetwork, number> = {
   testnet: 258703304,
   mainnet: 2200000000
 };
@@ -49,7 +49,7 @@ export const APPLY_RATE_CHANGE_APP_ARG = "apply_rate_change";
 const RATE_CHANGE_END_TIMESTAMP_KEY = "current_reward_rate_per_time_end_timestamp";
 
 export interface TinymanLiquidStakeState {
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   stakeAppId: number;
   stakeAppAddress: string;
   restakeAppId: number;
@@ -75,7 +75,7 @@ export interface TinymanLiquidStakeStateDependencies {
   isAssetOptedIn: (algod: Algodv2, address: string, assetId: number) => Promise<boolean>;
   boxExists: (algod: Algodv2, appId: number, boxName: Uint8Array) => Promise<boolean>;
   needsApplyRateChange: (algod: Algodv2, restakeAppId: number) => Promise<boolean>;
-  getAlgoToTAlgoRatio: (algod: Algodv2, network: ExecutionNetwork) => Promise<number>;
+  getAlgoToTAlgoRatio: (algod: Algodv2, network: AlgorandExecutionNetwork) => Promise<number>;
 }
 
 let dependencyOverrides: Partial<TinymanLiquidStakeStateDependencies> | undefined;
@@ -98,7 +98,7 @@ function resolveDependencies(): TinymanLiquidStakeStateDependencies {
 }
 
 export async function resolveTinymanLiquidStakeState(params: {
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   algod: Algodv2;
   userAddress: string;
 }): Promise<TinymanLiquidStakeState> {
@@ -168,7 +168,7 @@ export async function resolveTinymanLiquidStakeState(params: {
 
 export async function getAlgoToTAlgoRatio(
   algod: Algodv2,
-  network: ExecutionNetwork
+  network: AlgorandExecutionNetwork
 ): Promise<number> {
   const client = new TinymanTAlgoClient(algod, network);
   return client.getRatio();

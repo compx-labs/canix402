@@ -2,7 +2,7 @@ import { Algodv2 } from "algosdk";
 import { getStakingAppID } from "@tinymanorg/tinyman-js-sdk";
 
 import { InvalidShapeInputError, ShapeStateError } from "../../errors.js";
-import type { ExecutionNetwork } from "../../types.js";
+import type { AlgorandExecutionNetwork } from "../../types.js";
 import {
   TinymanV2PoolState,
   orderTinymanAssets,
@@ -23,7 +23,7 @@ export const LOG_BALANCE_APP_ARG = "log_balance";
  * against the staking application.
  */
 export interface TinymanFarmState {
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   /** Tinyman staking application id for the network. */
   stakingAppId: number;
   /** Tinyman staking program id linked to the pool/LP token. */
@@ -42,12 +42,12 @@ export interface TinymanFarmState {
 
 export interface TinymanFarmStateDependencies {
   resolvePoolState: (params: {
-    network: ExecutionNetwork;
+    network: AlgorandExecutionNetwork;
     algod: Algodv2;
     asset1Id: number;
     asset2Id: number;
   }) => Promise<TinymanV2PoolState>;
-  getStakingAppId: (network: ExecutionNetwork) => number;
+  getStakingAppId: (network: AlgorandExecutionNetwork) => number;
   getAccountAssetBalance: (algod: Algodv2, address: string, assetId: number) => Promise<bigint>;
   resolveFarmProgram: typeof resolveTinymanFarmProgram;
 }
@@ -75,7 +75,7 @@ function resolveDependencies(): TinymanFarmStateDependencies {
  * app id, and the user's current LP-token balance for a farm commit.
  */
 export async function resolveTinymanFarmState(params: {
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   algod: Algodv2;
   userAddress: string;
   programId?: number;
@@ -175,7 +175,7 @@ interface TinymanStakingProgramsApiResponse {
 }
 
 export async function resolveTinymanFarmProgram(params: {
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   liquidityAssetId: number;
   poolAddress?: string;
   assetAId?: number;
@@ -214,7 +214,7 @@ export async function resolveTinymanFarmProgram(params: {
 }
 
 async function fetchTinymanStakingPrograms(
-  network: ExecutionNetwork,
+  network: AlgorandExecutionNetwork,
   fetchImpl: typeof fetch
 ): Promise<TinymanStakingProgramApiRecord[]> {
   const baseUrl =

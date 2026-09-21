@@ -79,6 +79,7 @@ Protocols covered:
 - Réti (per-validator consensus APR, gates, capacity; mocked registry snapshots)
 - Alpha Arcade (trailing USDC fee-share APR; mocked pool + indexer inflows)
 - STAMM (per-tier LP from recorded `/stamm/pools`; TVL + fees, APY unknown)
+- Morpho Vaults (listed Base ERC-4626 from recorded GraphQL; unsigned deposit/withdraw/redeem)
 - HOGSWAP LP valuation (`normalizeHogswapLpPosition`, catalog merge; recorded `/lp/{id}` and `/stamm/pools`)
 - Tinyman Swap Router (router vs single-pool quote compare; recorded 2-hop and fallback fixtures)
 - Folks Router V2 (`createFolksRouterService` quote + unsigned prepare; ALGO→USDC and multi-hop fixtures)
@@ -100,6 +101,8 @@ Files:
 - `tests/unit/reti-normalize.test.ts`
 - `tests/unit/alpha-arcade-normalize.test.ts`
 - `tests/unit/stamm-normalize.test.ts`
+- `tests/unit/morpho-normalize.test.ts`
+- `tests/unit/morpho-execution-shapes.test.ts`
 - `tests/unit/hogswap-quote.test.ts`
 - `tests/unit/hogswap-router.test.ts`
 - `tests/unit/hogswap-lp-normalize.test.ts`
@@ -120,6 +123,7 @@ Fixtures:
 - `tests/fixtures/adapters/reti.ts`
 - `tests/fixtures/adapters/alpha-arcade.ts`
 - `tests/fixtures/adapters/stamm.ts`
+- `tests/fixtures/adapters/morpho-vaults.ts`
 - `tests/fixtures/hogswap/lp-valuation.ts`
 - `tests/fixtures/hogswap/swap.ts`
 - `tests/fixtures/tinyman/swap-router.ts`
@@ -185,6 +189,7 @@ Files:
 - `tests/integration/reti-execution-shapes.test.ts`
 - `tests/integration/alpha-arcade-execution-shapes.test.ts`
 - `tests/integration/stamm-execution-shapes.test.ts`
+- `tests/integration/morpho-execution-shapes.test.ts`
 - `tests/integration/hogswap-execution-shapes.test.ts`
 - `tests/integration/stamm-adapter.test.ts`
 - `tests/integration/tinyman-farm-commit-shapes.test.ts`

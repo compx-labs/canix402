@@ -17,6 +17,7 @@ import { attachExecutionShapesToOpportunity } from "./opportunity-execution-shap
 import {
   compileExecutableQuote,
   createExecutionAlgodClient,
+  attachEvmContextIfNeeded,
   DEFAULT_QUOTE_TTL_MS,
   executionRegistry,
   type ExecutableQuote
@@ -877,10 +878,10 @@ async function compileOneQuote(
   shapeKey: string,
   input: unknown
 ): Promise<ExecutableQuote> {
-  return compileExecutableQuote(executionRegistry, shapeKey, input, {
+  return compileExecutableQuote(executionRegistry, shapeKey, input, attachEvmContextIfNeeded(shapeKey, {
     network: "mainnet",
     algod: createExecutionAlgodClient()
-  });
+  }));
 }
 
 function resolveExpiry(quotes: readonly ExecutableQuote[], now: Date): string {

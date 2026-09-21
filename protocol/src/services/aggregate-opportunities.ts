@@ -4,6 +4,7 @@ import {
   fetchDorkFiOpportunities,
   fetchFolksFinanceOpportunities,
   fetchHaystackOpportunities,
+  fetchMorphoOpportunities,
   fetchMythFinanceOpportunities,
   fetchPactOpportunities,
   fetchRetiOpportunities,
@@ -39,8 +40,27 @@ export const SUPPORTED_AGGREGATE_PROTOCOLS = [
   "haystack",
   "reti",
   "alpha-arcade",
-  "stamm"
+  "stamm",
+  "morpho"
 ] as const;
+
+const BASE_AGGREGATE_PROTOCOLS = new Set<Protocol>(["morpho"]);
+
+export function protocolsForOpportunityQuery(options: {
+  protocol?: Protocol | undefined;
+  chain?: "algorand" | "base" | undefined;
+}): Protocol[] {
+  const selected = options.protocol
+    ? [options.protocol]
+    : [...SUPPORTED_AGGREGATE_PROTOCOLS];
+  if (options.chain === "base") {
+    return selected.filter((protocol) => BASE_AGGREGATE_PROTOCOLS.has(protocol));
+  }
+  if (options.chain === "algorand") {
+    return selected.filter((protocol) => !BASE_AGGREGATE_PROTOCOLS.has(protocol));
+  }
+  return selected;
+}
 
 const OPPORTUNITY_CACHE_NETWORK = "mainnet";
 
@@ -291,6 +311,9 @@ async function fetchOpportunitiesForProtocolUncachedInner(
   }
   if (protocol === "stamm") {
     return await fetchStammOpportunities();
+  }
+  if (protocol === "morpho") {
+    return await fetchMorphoOpportunities();
   }
 
   return [];

@@ -132,8 +132,18 @@ function resolveDependencies(): TinymanSwapRouterDependencies {
     getSwapRoute: (params) => getSwapRoute(params),
     getDirectQuote: defaultDirectQuote,
     generateTxns: (params) => Swap.v2.generateTxns(params),
-    getRouterAppId: (network) => getSwapRouterAppID(network),
-    getValidatorAppId: (network) => getValidatorAppID(network, CONTRACT_VERSION.V2),
+    getRouterAppId: (network) => {
+      if (network !== "mainnet" && network !== "testnet") {
+        throw new Error(`Tinyman swap router app id is not defined for network "${network}".`);
+      }
+      return getSwapRouterAppID(network);
+    },
+    getValidatorAppId: (network) => {
+      if (network !== "mainnet" && network !== "testnet") {
+        throw new Error(`Tinyman validator app id is not defined for network "${network}".`);
+      }
+      return getValidatorAppID(network, CONTRACT_VERSION.V2);
+    },
     ...dependencyOverrides
   };
 }

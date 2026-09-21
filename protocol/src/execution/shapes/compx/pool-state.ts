@@ -2,7 +2,7 @@ import algosdk, { Algodv2 } from "algosdk";
 import { CompXSDK, StakingClient, type StakingPoolState } from "@compx/sdk";
 
 import { ShapeStateError } from "../../errors.js";
-import type { ExecutionNetwork } from "../../types.js";
+import type { AlgorandExecutionNetwork } from "../../types.js";
 import { ALGO_ASSET_ID } from "./parse-input.js";
 import { createStakerBoxName } from "./staking-spec.js";
 import { getAccountAssetBalance, getApplicationAddress, isAssetOptedIn } from "./shared.js";
@@ -14,7 +14,7 @@ export interface CompXStakerInfo {
 }
 
 export interface CompXStakingPoolState {
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   poolAppId: number;
   poolAppAddress: string;
   stakedAssetId: number;
@@ -31,7 +31,7 @@ export interface CompXStakingPoolState {
 }
 
 export interface CompXStakingPoolStateDependencies {
-  createStakingClient: (algod: Algodv2, network: ExecutionNetwork) => StakingClient;
+  createStakingClient: (algod: Algodv2, network: AlgorandExecutionNetwork) => StakingClient;
   getPool: (client: StakingClient, poolAppId: number) => Promise<StakingPoolState | null>;
   getStakerInfo: (
     client: StakingClient,
@@ -67,7 +67,7 @@ function resolveDependencies(): CompXStakingPoolStateDependencies {
 }
 
 export async function resolveCompXStakingPoolState(params: {
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   algod: Algodv2;
   poolAppId: number;
   userAddress: string;

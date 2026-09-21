@@ -17,6 +17,7 @@ import {
   buildShapeKey,
   compileExecutableQuote,
   createExecutionAlgodClient,
+  attachEvmContextIfNeeded,
   DEFAULT_QUOTE_TTL_MS,
   executionRegistry,
   serializeTransaction,
@@ -843,10 +844,10 @@ async function compileOneQuote(
   if (composeOverrides?.compileQuote) {
     return composeOverrides.compileQuote(shapeKey, input);
   }
-  return compileExecutableQuote(executionRegistry, shapeKey, input, {
+  return compileExecutableQuote(executionRegistry, shapeKey, input, attachEvmContextIfNeeded(shapeKey, {
     network: "mainnet",
     algod: createExecutionAlgodClient()
-  });
+  }));
 }
 
 function resolveSlippage(raw: number | undefined): number {

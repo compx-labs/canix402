@@ -133,6 +133,12 @@ export const EXECUTION_SHAPE_DOCS_PATHS: Readonly<Record<string, string>> = {
     "protocol/docs/execution-shapes/alpha-arcade-claim-rewards-usdc.md",
   "mainnet:stamm:v1:mint:lp": "protocol/docs/execution-shapes/stamm-mint-lp.md",
   "mainnet:stamm:v1:redeem:lp": "protocol/docs/execution-shapes/stamm-redeem-lp.md",
+  "base:morpho:vault:deposit:erc4626":
+    "protocol/docs/execution-shapes/morpho-deposit-erc4626.md",
+  "base:morpho:vault:withdraw:erc4626":
+    "protocol/docs/execution-shapes/morpho-withdraw-erc4626.md",
+  "base:morpho:vault:redeem:erc4626":
+    "protocol/docs/execution-shapes/morpho-redeem-erc4626.md",
   "mainnet:hogswap:v1:swap:fixed-input":
     "protocol/docs/execution-shapes/hogswap-swap-fixed-input.md",
   "mainnet:hogswap:v1:swap:fixed-output":
