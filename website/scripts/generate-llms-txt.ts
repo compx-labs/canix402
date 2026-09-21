@@ -31,7 +31,8 @@ const PROTOCOLS = [
   "Haystack",
   "Réti",
   "Alpha Arcade",
-  "STAMM"
+  "STAMM",
+  "Morpho"
 ] as const;
 
 interface DiscoveryEndpoint {
@@ -212,7 +213,7 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
     watch: loadSample("watch.sample.json")
   };
 
-  const fullGuideBlurb = `x402-gated Algorand DeFi data and walletless transaction API (version ${discovery.apiVersion}). Normalized yield data and multi-router swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.`; // pragma: allowlist secret
+  const fullGuideBlurb = `x402-gated Algorand and Base DeFi data and walletless transaction API (version ${discovery.apiVersion}). Normalized yield data and multi-router swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.`; // pragma: allowlist secret
 
   return `# CANIX402 — full agent integration guide
 
@@ -275,8 +276,8 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 ### Route notes
 
 - \`GET /opportunities\` — top aggregated opportunities ranked by risk then APY (default limit 10).
-- \`GET /protocols/:protocol/opportunities\` — protocol slug e.g. \`tinyman\`, \`pact\`, \`folks-finance\`, \`compx\`, \`dorkfi\`, \`myth-finance\`, \`haystack\`, \`reti\`, \`alpha-arcade\`, \`stamm\`. AlgoFi and Humble LP holdings are \`GET /positions\` only.
-- \`GET /opportunities/search\` — filter by \`platform\`, \`type\`, \`minApy\`, \`maxApy\`, \`minTvlUsd\`, \`assetIds\` (comma-separated ASA ids; 0 = ALGO; ANY intersection with opportunity.assetIds).
+- \`GET /protocols/:protocol/opportunities\` — protocol slug e.g. \`tinyman\`, \`pact\`, \`folks-finance\`, \`compx\`, \`dorkfi\`, \`myth-finance\`, \`haystack\`, \`reti\`, \`alpha-arcade\`, \`stamm\`, \`morpho\`. AlgoFi and Humble LP holdings are \`GET /positions\` only.
+- \`GET /opportunities/search\` — filter by \`platform\`, \`chain\` (\`algorand|base\`), \`type\`, \`minApy\`, \`maxApy\`, \`minTvlUsd\`, \`assetIds\` (comma-separated ASA ids; 0 = ALGO; ANY intersection with opportunity.assetIds).
 - \`GET /opportunities/personalized\` — requires \`address\` (Algorand account); premium price; matches opportunities to wallet-held assets using eligibility rules (full/gated venues are not recommended as enterable).  // pragma: allowlist secret
 - \`GET /opportunities/:id/history\` — bounded APY/TVL series (\`window=1d|7d|30d\`, default 30d); empty until snapshots exist; includes a stability signal so snapshot APY cannot dominate plan sizing. Research SKU ~0.01 USDC.
 - \`POST /eligibility\` — requires \`address\` and \`opportunityIds\`; 0.01 USDC; returns \`canEnter\`, \`missingAssets\`, \`gates\`, \`capacity\`, \`suggestedSwap\`. NFD/creator gates stay unresolved (\`eligibilityFullyCheckable: false\`). Quote-time checks remain authoritative.  // pragma: allowlist secret

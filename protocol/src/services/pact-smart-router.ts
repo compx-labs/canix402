@@ -7,7 +7,7 @@ import {
   createPactCompatibleAlgodClient
 } from "../execution/shapes/pact/pool-state.js";
 import { toSdkAmount } from "../execution/shapes/pact/parse-input.js";
-import type { ExecutionNetwork } from "../execution/types.js";
+import type { AlgorandExecutionNetwork } from "../execution/types.js";
 
 export const PACT_SMART_ROUTER_DEFAULT_API_BASE = "https://api.pact.fi/api";
 export const PACT_SMART_ROUTER_MAX_HOPS = 3;
@@ -84,7 +84,7 @@ export interface QuotePactSmartRouterRequest {
   toAssetId: number;
   amount: bigint;
   maxSlippageBps: number;
-  network?: ExecutionNetwork;
+  network?: AlgorandExecutionNetwork;
   algod?: Algodv2;
 }
 
@@ -95,7 +95,7 @@ interface PactSmartRouterDependencies {
     pool: PactRouterPool;
     fromAssetId: number;
     amountIn: bigint;
-    network: ExecutionNetwork;
+    network: AlgorandExecutionNetwork;
     algod?: Algodv2;
   }) => Promise<PactRouterHop | null>;
 }
@@ -314,7 +314,7 @@ async function quoteAssetPath(params: {
   assets: readonly number[];
   pools: readonly PactRouterPool[];
   amountIn: bigint;
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   algod?: Algodv2;
   quoteHop: PactSmartRouterDependencies["quoteHop"];
 }): Promise<PactRouterHop[] | undefined> {
@@ -546,7 +546,7 @@ async function defaultQuoteHop(params: {
   pool: PactRouterPool;
   fromAssetId: number;
   amountIn: bigint;
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   algod?: Algodv2;
 }): Promise<PactRouterHop | null> {
   try {

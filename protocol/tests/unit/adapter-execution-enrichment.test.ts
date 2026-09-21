@@ -16,7 +16,8 @@ import {
   normalizeRetiStakingOpportunity,
   normalizeStammLpOpportunity,
   normalizeTinymanFarm,
-  normalizeTinymanPool
+  normalizeTinymanPool,
+  normalizeMorphoVault
 } from "../../src/adapters/index.js";
 import { USDC_ASSET_ID } from "../../src/execution/shapes/haystack/constants.js";
 import { attachExecutionShapesToOpportunity } from "../../src/services/opportunity-execution-shapes.js";
@@ -66,6 +67,10 @@ import {
   STAMM_FIXTURE_POOL_APP_ID,
   STAMM_FIXTURE_TIER1_LP_ASSET_ID
 } from "../fixtures/adapters/stamm.js";
+import {
+  MORPHO_FIXTURE_FETCHED_AT,
+  morphoYearnUsdc
+} from "../fixtures/adapters/morpho-vaults.js";
 import {
   TINYMAN_FIXTURE_FETCHED_AT,
   tinymanAlgoUsdcWithFarm,
@@ -302,4 +307,23 @@ test("normalized STAMM LP rows attach mint enter and redeem exit and strip adapt
   assert.deepEqual(publicRecord.compatibleExitShapes[0]?.requiredAssetIds, [
     STAMM_FIXTURE_TIER1_LP_ASSET_ID
   ]);
+});
+
+test("normalized Morpho vault rows attach Base deposit enter and withdraw/redeem exits", () => {
+  const record = normalizeMorphoVault(morphoYearnUsdc, MORPHO_FIXTURE_FETCHED_AT);
+  assertValidMarketRecord(record);
+  const publicRecord = attachExecutionShapesToOpportunity(record);
+  assertValidPublicOpportunity(publicRecord);
+  assert.equal(publicRecord.chain, "base");
+  assert.equal(publicRecord.executionReady, true);
+  assert.equal(publicRecord.executionShapes[0]?.shapeKey, "base:morpho:vault:deposit:erc4626");
+  assert.equal(
+    publicRecord.executionShapes[0]?.inputHints?.poolId,
+    "0xef417a2512c5a41f69ae4e021648b69a7cde5d03"
+  );
+  assert.equal("poolId" in publicRecord, false);
+  assert.deepEqual(
+    publicRecord.compatibleExitShapes.map((shape) => shape.shapeKey),
+    ["base:morpho:vault:withdraw:erc4626", "base:morpho:vault:redeem:erc4626"]
+  );
 });

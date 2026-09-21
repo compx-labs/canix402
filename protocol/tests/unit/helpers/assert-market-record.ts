@@ -47,6 +47,8 @@ export function assertValidPublicOpportunity(
   assert.ok(Array.isArray(record.compatibleExitShapes));
   assert.equal("poolAppId" in record, false);
   assert.equal("liquidityAssetId" in record, false);
+  assert.equal("poolId" in record, false);
+  assert.ok(record.chain === "algorand" || record.chain === "base");
   assert.ok(record.risk);
   assert.ok(
     record.risk.confidence === "high" ||

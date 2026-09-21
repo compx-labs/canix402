@@ -2,6 +2,7 @@ import algosdk, { Algodv2, Indexer } from "algosdk";
 
 import { buildSourceMetadata } from "../services/source-metadata.js";
 import { OpportunityMarketRecord } from "../types/opportunity.js";
+import { skipLiveCatalogInTests } from "./offline-test-runtime.js";
 import {
   ALPHA_ARCADE_STAKING_APP_ID,
   ALPHA_ASSET_ID,
@@ -66,6 +67,11 @@ function resolveDependencies(): AlphaArcadeAdapterDependencies {
 export async function fetchAlphaArcadeOpportunities(
   fetchImpl: typeof fetch = fetch
 ): Promise<OpportunityMarketRecord[]> {
+  if (skipLiveCatalogInTests(dependencyOverrides)) {
+    throw new AlphaArcadeAdapterError(
+      "Alpha Arcade live catalog is disabled in CI/tests."
+    );
+  }
   const dependencies = resolveDependencies();
   const fetchedAtIso = new Date().toISOString();
 

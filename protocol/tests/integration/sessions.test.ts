@@ -8,9 +8,18 @@ import {
   resetSessionStoreForTests,
   setSessionStoreForTests
 } from "../../src/services/session-store.js";
+import {
+  resetOfflineOpportunityAdaptersForHttpTests,
+  stubOfflineOpportunityAdaptersForHttpTests
+} from "../helpers/offline-opportunity-adapters.js";
+
+test.beforeEach(() => {
+  stubOfflineOpportunityAdaptersForHttpTests();
+});
 
 test.afterEach(() => {
   resetSessionStoreForTests();
+  resetOfflineOpportunityAdaptersForHttpTests();
 });
 
 test("POST /sessions mints a receipt with remaining N/M", async () => {

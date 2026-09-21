@@ -9,6 +9,7 @@ import {
 import { tinymanVolatilityRisk } from "../services/opportunity-risk.js";
 import { buildSourceMetadata } from "../services/source-metadata.js";
 import { OpportunityMarketRecord } from "../types/opportunity.js";
+import { skipLiveCatalogInTests } from "./offline-test-runtime.js";
 import {
   STALGO_ASSET_ID,
   TALGO_ASSET_ID,
@@ -118,6 +119,9 @@ function resolveTinymanDependencies(): TinymanAdapterDependencies {
 export async function fetchTinymanOpportunities(
   fetchImpl: typeof fetch = fetch
 ): Promise<OpportunityMarketRecord[]> {
+  if (skipLiveCatalogInTests(tinymanDependencyOverrides)) {
+    throw new TinymanAdapterError("Tinyman live catalog is disabled in CI/tests.");
+  }
   const baseUrl = trimTrailingSlash(
     process.env.TINYMAN_API_BASE_URL ?? "https://mainnet.analytics.tinyman.org/api/v1"
   );

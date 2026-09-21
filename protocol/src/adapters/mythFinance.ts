@@ -15,6 +15,7 @@ import {
   type ConsensusStakingAprEstimate
 } from "../services/consensus-staking-apr.js";
 import { buildSourceMetadata } from "../services/source-metadata.js";
+import { skipLiveCatalogInTests } from "./offline-test-runtime.js";
 
 export const MYTH_STAKING_OPPORTUNITY_ID_PREFIX = "myth-staking-";
 export const MYTH_FARM_OPPORTUNITY_ID_PREFIX = "myth-farm-";
@@ -118,6 +119,9 @@ export function setMythFinanceSdkDependenciesForTests(
 export async function fetchMythFinanceOpportunities(
   fetchImpl: typeof fetch = fetch
 ): Promise<OpportunityMarketRecord[]> {
+  if (skipLiveCatalogInTests(mythFinanceDependencyOverrides)) {
+    throw new MythFinanceAdapterError("Myth Finance live catalog is disabled in CI/tests.");
+  }
   const dependencies = resolveDependencies();
   const fetchedAtIso = new Date().toISOString();
 

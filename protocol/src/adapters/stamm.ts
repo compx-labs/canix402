@@ -5,6 +5,7 @@ import {
   type HogswapStammAssetMeta
 } from "../services/hogswap-client.js";
 import { OpportunityMarketRecord } from "../types/opportunity.js";
+import { skipLiveCatalogInTests } from "./offline-test-runtime.js";
 
 export const STAMM_UNKNOWN_APY_NOTE =
   "APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume.";
@@ -56,6 +57,9 @@ function resolveDependencies(): StammAdapterDependencies {
  * HOGSWAP `GET /stamm/pools` is the source; Canix does not invent yield.
  */
 export async function fetchStammOpportunities(): Promise<OpportunityMarketRecord[]> {
+  if (skipLiveCatalogInTests(dependencyOverrides)) {
+    throw new StammAdapterError("STAMM live catalog is disabled in CI/tests.");
+  }
   const dependencies = resolveDependencies();
   const fetchedAtIso = new Date().toISOString();
 

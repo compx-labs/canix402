@@ -11,7 +11,8 @@ signing. Groups from a batch request are never merged.
 
 This page covers the protocols whose golden/integration fixtures exist today:
 Tinyman, Folks Finance, Pact, CompX, Dork.fi, Myth Finance, Haystack, Réti,
-Alpha Arcade, STAMM, and HOGSWAP. Per-shape group layouts stay in the sibling markdown files.
+Alpha Arcade, STAMM, HOGSWAP, and Morpho Vaults (Base). Per-shape group layouts
+stay in the sibling markdown files.
 
 ## Tinyman
 
@@ -457,3 +458,35 @@ includes HOGSWAP in the parallel compare; compile a specific HOGSWAP shape via
   `/execute`.
 - Quotes expire in ~30s. After opt-in, re-quote (stale-quote).
 - Canix does not sign or submit.
+
+## Morpho Vaults
+
+Listed MetaMorpho ERC-4626 vaults on Base (`chainId` 8453). Supply-only; analogue
+to CompX deposit/withdraw without borrow.
+
+### Pool discovery
+
+- Vault address is `inputHints.poolId` / quote `vaultAddress`. Do not put `0x`
+  into integer `assetIds` or `marketAppId`. Underlying ERC-20 is
+  `inputHints.assetAddress`.
+- Catalog is `listed: true` vaults from Morpho GraphQL. Unlisted and zero-TVL
+  vaults are dropped. Native ETH underlyings are skipped.
+
+### Approvals
+
+- Deposit may prepend ERC-20 `approve(vault, assets)` when allowance is short.
+- Canix cannot collect Permit / Permit2 / Bundler3 signatures. Quotes are
+  unsigned calldata the client signs.
+- Withdraw/redeem require `owner === userAddress` (no share allowance path).
+
+### Share price
+
+- `previewDeposit` / `previewWithdraw` / `previewRedeem` are quote-time
+  snapshots. Re-quote if the vault share price moves. Quote TTL still applies
+  even though EVM txs have no Algorand first/last-valid window.
+
+### Out of scope
+
+- Morpho Blue borrow, Public Allocator, Vault V2 force-withdraw, native wrap.
+- `/positions` and `/opportunities/personalized` remain Algorand snapshots.
+

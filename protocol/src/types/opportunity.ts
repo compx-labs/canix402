@@ -1,6 +1,7 @@
 export type {
   OpportunityAdapterRisk,
   OpportunityCapacity,
+  OpportunityChain,
   OpportunityEntryGate,
   OpportunityEntryRequirements,
   OpportunityExecutionInputHints,

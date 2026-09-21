@@ -118,12 +118,13 @@ export const WEBMCP_TOOLS: WebMcpToolSpec[] = [
   {
     name: "canix_list_opportunities",
     description:
-      "List top aggregated Algorand DeFi opportunities ranked by risk then APY (GET /opportunities). Paid ~0.01 USDC.", // pragma: allowlist secret
+      "List top aggregated DeFi opportunities across supported chains ranked by risk then APY (GET /opportunities). Each row includes chain (algorand|base). Paid ~0.01 USDC.", // pragma: allowlist secret
     inputSchema: schemas.withPaidAuth({
       limit: schemas.pagination.limit,
       offset: schemas.pagination.offset,
       includeInactive: schemas.pagination.includeInactive,
-      protocol: schemas.protocol
+      protocol: schemas.protocol,
+      chain: { type: "string", enum: ["algorand", "base"] }
     }),
     annotations: mutating,
     access: "paid",
@@ -132,19 +133,20 @@ export const WEBMCP_TOOLS: WebMcpToolSpec[] = [
     http: {
       method: "GET",
       path: "/opportunities",
-      queryParams: ["limit", "offset", "includeInactive", "protocol"]
+      queryParams: ["limit", "offset", "includeInactive", "protocol", "chain"]
     }
   },
   {
     name: "canix_search_opportunities",
     description:
-      "Search/filter opportunities via GET /opportunities/search. Optional assetIds is a comma-separated list of ASA ids (0 = ALGO). Paid ~0.01 USDC.",
+      "Search/filter opportunities via GET /opportunities/search. Optional chain=algorand|base. Optional assetIds is a comma-separated list of ASA ids (0 = ALGO). Paid ~0.01 USDC.",
     inputSchema: schemas.withPaidAuth({
       platform: { type: "string" },
       type: { type: "string" },
       minApy: { type: "number" },
       maxApy: { type: "number" },
       minTvlUsd: { type: "number", minimum: 0 },
+      chain: { type: "string", enum: ["algorand", "base"] },
       assetIds: {
         type: "string",
         description: "Comma-separated ASA ids (0 = ALGO)."
@@ -167,6 +169,7 @@ export const WEBMCP_TOOLS: WebMcpToolSpec[] = [
         "maxApy",
         "minTvlUsd",
         "assetIds",
+        "chain",
         "limit",
         "offset",
         "includeInactive"

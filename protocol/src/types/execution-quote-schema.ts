@@ -59,7 +59,13 @@ export const ExecutionQuoteInputSchema = Type.Object(
     // Myth Finance dualSTAKE
     appId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
     // Réti staking
-    validatorId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()]))
+    validatorId: Type.Optional(Type.Union([Type.Integer({ minimum: 1 }), Type.String()])),
+    // Morpho Vaults / ERC-4626 (validated per shape)
+    vaultAddress: Type.Optional(Type.String({ minLength: 1 })),
+    assetAddress: Type.Optional(Type.String({ minLength: 1 })),
+    receiver: Type.Optional(Type.String({ minLength: 1 })),
+    owner: Type.Optional(Type.String({ minLength: 1 })),
+    shares: Type.Optional(BaseUnitAmountSchema)
   },
   { additionalProperties: true }
 );
@@ -112,11 +118,24 @@ export const SerializedTransactionSchema = Type.Object({
   noteBase64: Type.Optional(Type.String()),
   payment: Type.Optional(SerializedPaymentFieldsSchema),
   assetTransfer: Type.Optional(SerializedAssetTransferFieldsSchema),
-  applicationCall: Type.Optional(SerializedApplicationCallFieldsSchema)
+  applicationCall: Type.Optional(SerializedApplicationCallFieldsSchema),
+  evmCall: Type.Optional(
+    Type.Object({
+      to: Type.String({ minLength: 1 }),
+      data: Type.String({ minLength: 1 }),
+      value: Type.String({ minLength: 1 }),
+      chainId: Type.Integer({ minimum: 1 }),
+      gasLimit: Type.Optional(Type.String({ minLength: 1 }))
+    })
+  )
 });
 
 export const TransactionShapeIdentitySchema = Type.Object({
-  network: Type.Union([Type.Literal("mainnet"), Type.Literal("testnet")]),
+  network: Type.Union([
+    Type.Literal("mainnet"),
+    Type.Literal("testnet"),
+    Type.Literal("base")
+  ]),
   protocol: Type.String(),
   protocolVersion: Type.String(),
   action: Type.String(),
@@ -147,7 +166,8 @@ export const ExecutableQuoteSchema = Type.Object({
   ),
   userSignIndexes: Type.Optional(Type.Array(Type.Integer({ minimum: 0 }))),
   warnings: Type.Array(Type.String()),
-  metadata: Type.Record(Type.String(), Type.Unknown())
+  metadata: Type.Record(Type.String(), Type.Unknown()),
+  chain: Type.Optional(Type.Union([Type.Literal("algorand"), Type.Literal("base")]))
 });
 
 export const ExecutionQuoteResponseSchema = Type.Object({

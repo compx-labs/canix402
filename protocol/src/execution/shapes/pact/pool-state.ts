@@ -4,7 +4,7 @@ import { PactClient } from "@pactfi/pactsdk";
 import type { Pool, PoolState, PoolType } from "@pactfi/pactsdk";
 
 import { ShapeStateError } from "../../errors.js";
-import type { ExecutionNetwork } from "../../types.js";
+import type { AlgorandExecutionNetwork } from "../../types.js";
 import { parseAssetId } from "./parse-input.js";
 
 /**
@@ -23,7 +23,7 @@ const ALGORAND_ADDRESS_RE = /^[A-Z2-7]{58}$/;
  * Pact SDK rather than the discovery API.
  */
 export interface PactPoolState {
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   poolAppId: number;
   escrowAddress: string;
   primaryAssetId: number;
@@ -38,7 +38,7 @@ export interface PactPoolState {
 }
 
 export interface PactPoolStateDependencies {
-  createPactClient: (algod: Algodv2, network: ExecutionNetwork) => PactClient;
+  createPactClient: (algod: Algodv2, network: AlgorandExecutionNetwork) => PactClient;
   fetchPoolById: (client: PactClient, poolAppId: number) => Promise<Pool>;
 }
 
@@ -94,7 +94,7 @@ export function mapAssetsToPactAmounts(params: {
 }
 
 export async function resolvePactPoolState(params: {
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   algod: Algodv2;
   poolAppId: number;
   assetAId?: number;
@@ -180,7 +180,7 @@ function resolveDependencies(): PactPoolStateDependencies {
   };
 }
 
-function defaultCreatePactClient(_algod: Algodv2, network: ExecutionNetwork): PactClient {
+function defaultCreatePactClient(_algod: Algodv2, network: AlgorandExecutionNetwork): PactClient {
   // Prefer Pact's nested algosdk client so Address values match builders.
   // Still wrap for camelCase / bytes → kebab-case / base64 when callers inject
   // a v3 algod (tests), and keep creator coercion for defense in depth.

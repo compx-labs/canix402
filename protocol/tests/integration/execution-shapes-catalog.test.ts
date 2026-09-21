@@ -86,6 +86,16 @@ test("GET /execution/shapes returns the live registry catalog for free", async (
     "protocol/docs/execution-shapes/hogswap-swap-fixed-input.md"
   );
 
+  const morphoDeposit = body.data.find(
+    (shape) => shape.shapeKey === "base:morpho:vault:deposit:erc4626"
+  );
+  assert.ok(morphoDeposit);
+  assert.ok(morphoDeposit.requiredInputs.includes("vaultAddress"));
+  assert.equal(
+    morphoDeposit.docsPath,
+    "protocol/docs/execution-shapes/morpho-deposit-erc4626.md"
+  );
+
   assert.equal(
     body.meta.caveatsDocsPath,
     "protocol/docs/execution-shapes/protocol-caveats.md"
@@ -119,6 +129,7 @@ test("protocol execution caveats doc covers construction topics for fixture prot
     "Alpha Arcade",
     "STAMM",
     "HOGSWAP",
+    "Morpho Vaults",
     "Pool discovery",
     "Opt-ins",
     "Slippage math",
