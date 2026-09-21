@@ -654,7 +654,23 @@
             "asset": "31566704",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.01"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "algorand-mainnet",
+              "asset": "31566704",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.01"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.01"
+            }
+          ]
         }
       }
     },
@@ -813,7 +829,23 @@
             "asset": "31566704",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.01"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "algorand-mainnet",
+              "asset": "31566704",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.01"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.01"
+            }
+          ]
         }
       }
     },
@@ -927,7 +959,23 @@
             "asset": "31566704",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.05"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "algorand-mainnet",
+              "asset": "31566704",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.05"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.05"
+            }
+          ]
         }
       }
     },
@@ -1020,7 +1068,23 @@
             "asset": "[REDACTED]",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.01"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "[REDACTED]",
+              "asset": "[REDACTED]",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.01"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.01"
+            }
+          ]
         }
       }
     },
@@ -1105,7 +1169,23 @@
             "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.01"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "algorand-mainnet",
+              "asset": "31566704",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.01"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.01"
+            }
+          ]
         },
         "parameters": [
           {
@@ -1196,7 +1276,23 @@
             "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "algorand-mainnet",
+              "asset": "31566704",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.25"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.25"
+            }
+          ]
         },
         "parameters": [
           {
@@ -1288,7 +1384,23 @@
             "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "algorand-mainnet",
+              "asset": "31566704",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.25"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.25"
+            }
+          ]
         },
         "parameters": [
           {
@@ -1380,7 +1492,23 @@
             "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "[REDACTED]",
+              "asset": "[REDACTED]",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.25"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.25"
+            }
+          ]
         },
         "parameters": [
           {
@@ -1462,7 +1590,23 @@
             "asset": "31566704",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.005"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "algorand-mainnet",
+              "asset": "31566704",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.005"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.005"
+            }
+          ]
         }
       }
     },
@@ -1545,7 +1689,23 @@
             "asset": "31566704",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.001"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "algorand-mainnet",
+              "asset": "31566704",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.001"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.001"
+            }
+          ]
         }
       }
     },
@@ -1698,7 +1858,23 @@
             "asset": "31566704",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.01"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "algorand-mainnet",
+              "asset": "31566704",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.01"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.01"
+            }
+          ]
         }
       }
     },
@@ -1871,7 +2047,23 @@
             "asset": "31566704",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.1"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "algorand-mainnet",
+              "asset": "31566704",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.1"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.1"
+            }
+          ]
         },
         "parameters": [
           {
@@ -1957,7 +2149,23 @@
             "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.1"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "algorand-mainnet",
+              "asset": "31566704",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.1"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.1"
+            }
+          ]
         },
         "parameters": [
           {
@@ -2039,7 +2247,23 @@
             "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.1"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "algorand-mainnet",
+              "asset": "31566704",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.1"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.1"
+            }
+          ]
         },
         "parameters": [
           {
@@ -2268,7 +2492,23 @@
             "asset": "31566704",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.005"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "algorand-mainnet",
+              "asset": "31566704",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.005"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.005"
+            }
+          ]
         },
         "parameters": [
           {
@@ -2334,7 +2574,23 @@
             "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "algorand-mainnet",
+              "asset": "31566704",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.25"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.25"
+            }
+          ]
         }
       }
     },
@@ -2405,7 +2661,23 @@
             "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "algorand-mainnet",
+              "asset": "31566704",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.25"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.25"
+            }
+          ]
         }
       }
     },
@@ -2517,7 +2789,23 @@
             "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "[REDACTED]",
+              "asset": "[REDACTED]",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.25"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.25"
+            }
+          ]
         }
       }
     },
@@ -2588,7 +2876,23 @@
             "x-pragma-asset": "pragma: allowlist secret",
             "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
-          }
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "[REDACTED]",
+              "asset": "[REDACTED]",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.25"
+            },
+            {
+              "scheme": "exact",
+              "network": "eip155:8453",
+              "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.25"
+            }
+          ]
         }
       }
     },
@@ -7930,7 +8234,23 @@
                     "x-pragma-asset": "pragma: allowlist secret",
                     "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
                     "maxAmountRequired": "0.01"
-                  }
+                  },
+                  "accepts": [
+                    {
+                      "scheme": "exact",
+                      "network": "algorand-mainnet",
+                      "asset": "31566704",
+                      "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+                      "maxAmountRequired": "0.01"
+                    },
+                    {
+                      "scheme": "exact",
+                      "network": "eip155:8453",
+                      "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                      "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+                      "maxAmountRequired": "0.01"
+                    }
+                  ]
                 }
               }
             ],
@@ -8003,7 +8323,23 @@
                   "asset": "31566704",
                   "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
                   "maxAmountRequired": "0.01"
-                }
+                },
+                "accepts": [
+                  {
+                    "scheme": "exact",
+                    "network": "algorand-mainnet",
+                    "asset": "31566704",
+                    "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+                    "maxAmountRequired": "0.01"
+                  },
+                  {
+                    "scheme": "exact",
+                    "network": "eip155:8453",
+                    "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                    "payTo": "REPLACE_WITH_BASE_PAYTO_ADDRESS",
+                    "maxAmountRequired": "0.01"
+                  }
+                ]
               }
             }
           ]

@@ -60,8 +60,17 @@ interface OpenApiOperation {
   responses?: Record<string, { $ref?: string }>;
   "x-x402"?: {
     requirementTemplate?: {
+      scheme?: string;
+      network?: string;
+      asset?: string;
       maxAmountRequired?: string;
     };
+    accepts?: Array<{
+      scheme?: string;
+      network?: string;
+      asset?: string;
+      maxAmountRequired?: string;
+    }>;
   };
   "x-payment-info"?: {
     price?: {
@@ -143,9 +152,20 @@ test("paid operations expose x-x402 metadata", async () => {
     assert.ok(operation, `${endpoint.method} ${openapiPath}`);
     assert.ok(operation?.["x-x402"]);
     assert.ok(operation?.["x-payment-info"]);
+    const accepts = operation?.["x-x402"]?.accepts;
+    const template = operation?.["x-x402"]?.requirementTemplate;
+    assert.equal(accepts?.length, 2, `${endpoint.method} ${openapiPath} accepts`);
+    assert.equal(accepts?.[0]?.network, template?.network);
+    assert.equal(accepts?.[0]?.asset, template?.asset);
+    assert.equal(accepts?.[0]?.maxAmountRequired, template?.maxAmountRequired);
+    assert.equal(accepts?.[1]?.network, "eip155:8453");
+    assert.equal(accepts?.[1]?.asset, "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913");
+    assert.equal(accepts?.[1]?.scheme, "exact");
+    assert.equal(accepts?.[1]?.maxAmountRequired, template?.maxAmountRequired);
   }
 
   const positionsOperation = openapi.paths["/positions"]?.get;
+  assert.equal(positionsOperation?.["x-x402"]?.requirementTemplate?.network, "algorand-mainnet");
   assert.equal(
     positionsOperation?.["x-x402"]?.requirementTemplate?.maxAmountRequired,
     "0.005"

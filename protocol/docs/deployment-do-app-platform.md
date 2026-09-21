@@ -40,7 +40,9 @@ Required for production:
 CADDY_SITE_ADDRESS=:8080
 UPSTREAM_API=http://<protocol-component-name>:3000
 FACILITATOR_URL=https://facilitator.goplausible.xyz
-X402_PAY_TO=<your-address>
+X402_PAY_TO=<your-algorand-address>
+# Optional. Placeholder (or unset) keeps Algorand-only. A 0x address enables Base USDC.
+X402_PAY_TO_BASE=REPLACE_WITH_BASE_PAYTO_ADDRESS
 X402_PRICE_AGGREGATE_USDC=0.01
 X402_PRICE_SEARCH_USDC=0.01
 X402_PRICE_PERSONALIZED_USDC=0.05
@@ -60,6 +62,11 @@ X402_PRICE_WATCH_USDC=0.25
 X402_NETWORK=algorand-mainnet
 X402_SCHEME=exact
 ```
+
+`X402_PAY_TO_BASE` on the Caddy component must match
+`X402_PAYMENT_RECEIVER_ADDRESS_BASE` on the protocol component. Leave both as
+`REPLACE_WITH_BASE_PAYTO_ADDRESS` until the merchant Base address is ready.
+The GoPlausible facilitator already lists `exact` for `eip155:8453`.
 
 The **protocol** (internal API) component should also set
 `X402_PRICE_POSITIONS_USDC=0.005`, `X402_PRICE_POSITIONS_CLAIMABLE_USDC=0.001`,

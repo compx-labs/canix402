@@ -23,7 +23,7 @@ Algorand analogue: CompX deposit/withdraw without the borrow path.
 - `MORPHO_ONLY_LISTED` (optional; default `true`. Set `false` to include unlisted vaults that still have positive TVL and `netApy`)
 - `BASE_RPC_URL` (quotes only; default `https://mainnet.base.org`) for allowance and ERC-4626 preview calls
 
-x402 payment stays Algorand USDC. Caddy already accepts `base` / `eip155:8453` as a network label; do not switch the merchant rail.
+x402 accepts Algorand USDC and, when `X402_PAY_TO_BASE` is a real address, Base USDC at the same price. Algorand stays the first accept. Do not remove that rail. Base payment is EIP-3009, separate from vault calldata.
 
 ## Field Mapping
 

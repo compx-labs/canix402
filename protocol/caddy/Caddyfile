@@ -58,6 +58,15 @@
 					tag x402-global-challenge
 				}
 			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_HISTORY_USDC}
+				network base
+				scheme exact
+				extra {
+					tag x402-global-challenge
+				}
+			}
 		}
 
 		reverse_proxy {$UPSTREAM_API}
@@ -76,6 +85,15 @@
 				price {$X402_PRICE_AGGREGATE_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_AGGREGATE_USDC}
+				network base
+				scheme exact
 				extra {
 					tag x402-global-challenge
 				}
@@ -102,6 +120,15 @@
 					tag x402-global-challenge
 				}
 			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_SEARCH_USDC}
+				network base
+				scheme exact
+				extra {
+					tag x402-global-challenge
+				}
+			}
 		}
 
 		reverse_proxy {$UPSTREAM_API}
@@ -120,6 +147,15 @@
 				price {$X402_PRICE_PERSONALIZED_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_PERSONALIZED_USDC}
+				network base
+				scheme exact
 				extra {
 					tag x402-global-challenge
 				}
@@ -146,6 +182,15 @@
 					tag x402-global-challenge
 				}
 			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_ELIGIBILITY_USDC}
+				network base
+				scheme exact
+				extra {
+					tag x402-global-challenge
+				}
+			}
 		}
 
 		reverse_proxy {$UPSTREAM_API}
@@ -164,6 +209,15 @@
 				price {$X402_PRICE_PLANS_REBALANCE_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_PLANS_REBALANCE_USDC}
+				network base
+				scheme exact
 				extra {
 					tag x402-global-challenge
 				}
@@ -190,6 +244,15 @@
 					tag x402-global-challenge
 				}
 			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_PLANS_USDC}
+				network base
+				scheme exact
+				extra {
+					tag x402-global-challenge
+				}
+			}
 		}
 
 		reverse_proxy {$UPSTREAM_API}
@@ -208,6 +271,15 @@
 				price {$X402_PRICE_POLICY_VALIDATE_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_POLICY_VALIDATE_USDC}
+				network base
+				scheme exact
 				extra {
 					tag x402-global-challenge
 				}
@@ -234,6 +306,15 @@
 					tag x402-global-challenge
 				}
 			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_POSITIONS_USDC}
+				network base
+				scheme exact
+				extra {
+					tag x402-global-challenge
+				}
+			}
 		}
 
 		reverse_proxy {$UPSTREAM_API}
@@ -252,6 +333,15 @@
 				price {$X402_PRICE_POSITIONS_CLAIMABLE_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_POSITIONS_CLAIMABLE_USDC}
+				network base
+				scheme exact
 				extra {
 					tag x402-global-challenge
 				}
@@ -278,6 +368,15 @@
 					tag x402-global-challenge
 				}
 			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_PROTOCOL_USDC}
+				network base
+				scheme exact
+				extra {
+					tag x402-global-challenge
+				}
+			}
 		}
 
 		reverse_proxy {$UPSTREAM_API}
@@ -296,6 +395,15 @@
 				price {$X402_PRICE_EXECUTION_QUOTE_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_EXECUTION_QUOTE_USDC}
+				network base
+				scheme exact
 				extra {
 					tag x402-global-challenge
 				}
@@ -322,6 +430,15 @@
 					tag x402-global-challenge
 				}
 			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_EXECUTION_COMPOSE_USDC}
+				network base
+				scheme exact
+				extra {
+					tag x402-global-challenge
+				}
+			}
 		}
 
 		reverse_proxy {$UPSTREAM_API}
@@ -340,6 +457,15 @@
 				price {$X402_PRICE_EXECUTION_SIMULATE_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_EXECUTION_SIMULATE_USDC}
+				network base
+				scheme exact
 				extra {
 					tag x402-global-challenge
 				}
@@ -366,6 +492,15 @@
 					tag x402-global-challenge
 				}
 			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_HAYSTACK_SWAP_USDC}
+				network base
+				scheme exact
+				extra {
+					tag x402-global-challenge
+				}
+			}
 		}
 
 		reverse_proxy {$UPSTREAM_API}
@@ -384,6 +519,15 @@
 				price {$X402_PRICE_SESSIONS_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_SESSIONS_USDC}
+				network base
+				scheme exact
 				extra {
 					tag x402-global-challenge
 				}
@@ -410,6 +554,15 @@
 					tag x402-global-challenge
 				}
 			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_SESSIONS_USDC}
+				network base
+				scheme exact
+				extra {
+					tag x402-global-challenge
+				}
+			}
 		}
 
 		reverse_proxy {$UPSTREAM_API}
@@ -432,6 +585,15 @@
 					tag x402-global-challenge
 				}
 			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_WATCH_USDC}
+				network base
+				scheme exact
+				extra {
+					tag x402-global-challenge
+				}
+			}
 		}
 
 		reverse_proxy {$UPSTREAM_API}
@@ -450,6 +612,15 @@
 				price {$X402_PRICE_WATCH_USDC}
 				network {$X402_NETWORK}
 				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_WATCH_USDC}
+				network base
+				scheme exact
 				extra {
 					tag x402-global-challenge
 				}

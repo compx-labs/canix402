@@ -4,7 +4,7 @@
 - Shape version: `1.0.0`
 - Source module: `src/execution/shapes/morpho/redeem-erc4626.ts`
 - Supported opportunity types: `lending`
-- Paid API endpoint: `POST /execution/quotes` (0.1 USDC via x402 on Algorand)
+- Paid API endpoint: `POST /execution/quotes` (0.1 USDC via x402 on Algorand or Base)
 
 ## Example request
 
