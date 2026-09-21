@@ -1,6 +1,6 @@
 ---
 name: use-canix402-mcp
-description: Interact with canix402 MCP paid tools by handling x402 preflight responses, validating payment requirements, creating and signing Algorand USDC payment transactions, retrying with paymentSignature, and signing executable quote groups locally. Use when calling canix_* paid tools or handling PAYMENT_REQUIRED, PAYMENT-SIGNATURE, paymentGroup, or encodedTransactions.
+description: Interact with canix402 MCP paid tools by handling x402 preflight responses, validating payment requirements, creating and signing Algorand or Base USDC payments, retrying with paymentSignature, and signing executable quote groups locally. Use when calling canix_* paid tools or handling PAYMENT_REQUIRED, PAYMENT-SIGNATURE, paymentGroup, EIP-3009, or encodedTransactions.
 ---
 
 # Use the canix402 MCP
@@ -28,13 +28,15 @@ the returned execution group.
    - `mcpPayment.paymentRequired`
    - `mcpPayment.paymentRequiredHeader`
    - `request`, containing the request that must be retried
-3. Select an Algorand accept option from
-   `mcpPayment.paymentRequired.accepts`.
+3. Select an accept from `mcpPayment.paymentRequired.accepts` by
+   `network`, not by index. Algorand is first so existing `accepts[0]`
+   clients keep paying on Algorand. Choose `base` or `eip155:8453` only
+   when the user is paying with Base USDC.
 4. Validate the requirement before signing:
    - `scheme` is `exact`
-   - `network` is the intended Algorand network
+   - `network` is the rail you intend to pay
    - `asset` is the asset the user approved paying
-   - `payTo` is a valid Algorand address
+   - `payTo` matches that network (Algorand address, or `0x` on Base)
    - `maxAmountRequired ?? amount` is present and within the user's budget
    - `resource.url`, when present, is the expected canix402 gateway resource
 5. Build and sign the payment locally.
@@ -154,6 +156,58 @@ Wrap either variant in this JSON shape, then base64-encode the UTF-8 JSON:
 
 Preserve the complete live `paymentRequired` and selected accept object. Do not
 invent, omit, or rewrite facilitator fields.
+
+### Base USDC (EIP-3009)
+
+Use this only for the accept whose network is `base` or `eip155:8453`.
+Do not put an Algorand `paymentGroup` on that accept, and do not use this
+signature as Morpho vault calldata.
+
+1. Amount is USDC base units (6 decimals). `10000` is 0.01 USDC.
+2. Asset is Circle USDC on Base:
+   `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`, unless the accept names
+   another `asset`.
+3. Build an EIP-3009 `TransferWithAuthorization`:
+   - `from`: payer
+   - `to`: `accepted.payTo`
+   - `value`: amount base units as a decimal string
+   - `validAfter`: now minus 600 seconds
+   - `validBefore`: now plus 3600 seconds
+   - `nonce`: random 32-byte `0x` hex
+4. Sign EIP-712 with domain name `USD Coin`, version `2`, chain id `8453`,
+   and `verifyingContract` set to the USDC asset. Honor `accepted.extra.name`
+   and `accepted.extra.version` when the facilitator sends them.
+5. The payer needs Base USDC. The facilitator submits the authorization and
+   pays gas.
+
+`payload` is `authorization` plus `signature`, not `paymentGroup`:
+
+```json
+{
+  "x402Version": 2,
+  "scheme": "exact",
+  "network": "eip155:8453",
+  "resource": "<paymentRequest.resource>",
+  "accepted": "<selected Base accept with normalized amount>",
+  "extensions": {},
+  "outputSchema": null,
+  "payload": {
+    "signature": "0x<65-byte EIP-712 signature>",
+    "authorization": {
+      "from": "0x<payer>",
+      "to": "0x<payTo>",
+      "value": "10000",
+      "validAfter": "<unix seconds>",
+      "validBefore": "<unix seconds>",
+      "nonce": "0x<32 bytes>"
+    }
+  },
+  "paymentRequired": "<complete decoded PAYMENT_REQUIRED object>"
+}
+```
+
+`@canix402/x402-client` `buildBasePaymentSignature` builds this envelope.
+`CANIX402_NETWORK` stays `algorand-mainnet`; Base is opt-in by accept selection.
 
 ## Claim desk agent loop
 

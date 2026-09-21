@@ -60,6 +60,63 @@ func TestEnrichPaymentRequiredExtraMergesTag(t *testing.T) {
 	}
 }
 
+func TestEnrichPaymentRequiredExtraTagsBothAccepts(t *testing.T) {
+	payload := map[string]any{
+		"x402Version": 2,
+		"accepts": []any{
+			map[string]any{
+				"scheme":  "exact",
+				"network": "algorand:wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=",
+			},
+			map[string]any{
+				"scheme":  "exact",
+				"network": "eip155:8453",
+			},
+		},
+	}
+	raw, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp := &x402http.HTTPResponseInstructions{
+		Status: 402,
+		Headers: map[string]string{
+			"PAYMENT-REQUIRED": base64.StdEncoding.EncodeToString(raw),
+		},
+	}
+	tag := map[string]interface{}{"tag": "x402-global-challenge"}
+	enriched := enrichPaymentRequiredExtra(resp, []PaymentOption{
+		{Network: "algorand-mainnet", Extra: tag},
+		{Network: "base", Extra: tag},
+	})
+
+	decoded, err := base64.StdEncoding.DecodeString(enriched.Headers["PAYMENT-REQUIRED"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	var out map[string]any
+	if err := json.Unmarshal(decoded, &out); err != nil {
+		t.Fatal(err)
+	}
+	accepts := out["accepts"].([]any)
+	if len(accepts) != 2 {
+		t.Fatalf("expected 2 accepts, got %d", len(accepts))
+	}
+	networks := []string{
+		accepts[0].(map[string]any)["network"].(string),
+		accepts[1].(map[string]any)["network"].(string),
+	}
+	if networks[0] != "algorand:wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=" || networks[1] != "eip155:8453" {
+		t.Fatalf("expected Algorand then Base, got %#v", networks)
+	}
+	for i, item := range accepts {
+		extra := item.(map[string]any)["extra"].(map[string]any)
+		if extra["tag"] != "x402-global-challenge" {
+			t.Fatalf("accept %d missing tag, got %#v", i, extra)
+		}
+	}
+}
+
 func TestTruncateHeader(t *testing.T) {
 	short := "ok"
 	if got := truncateHeader(short); got != short {

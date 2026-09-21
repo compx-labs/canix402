@@ -35,7 +35,7 @@ Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `htt
 
 1. **Discover** — `GET https://canix402-api.compx.io/discovery` and `GET https://canix402-api.compx.io/openapi.json` (free).
 2. **Preflight** — call a paid route without `PAYMENT-SIGNATURE`; expect HTTP **402** with `PAYMENT-REQUIRED`.
-3. **Sign** — client-side: build a USDC ASA transfer matching the advertised requirement (`scheme`, `network`, `asset`, `payTo`, `maxAmountRequired`). Wallet keys stay on the client.
+3. **Sign** — client-side, selecting the accept by network. Algorand (first accept) is a USDC ASA transfer. Base (`eip155:8453`) is an EIP-3009 `transferWithAuthorization` for USDC `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`. Match `scheme`, `network`, `asset`, `payTo`, and `maxAmountRequired`. Wallet keys stay on the client.
 4. **Retry** — repeat the request with `PAYMENT-SIGNATURE` (base64 JSON payload). Success returns **200** and may include `PAYMENT-RESPONSE`.
 
 Default payment context (confirm against live discovery before integrating):
