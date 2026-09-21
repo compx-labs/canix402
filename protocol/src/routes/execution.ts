@@ -8,12 +8,14 @@ import {
   ShapeNotFoundError,
   ShapeStateError,
   ShapeValidationError,
+  attachEvmContextIfNeeded,
   compileExecutableQuote,
   createExecutionAlgodClient,
   executionRegistry,
   listExecutionShapeCatalog,
   EXECUTION_PROTOCOL_CAVEATS_DOCS_PATH
 } from "../execution/index.js";
+import type { ShapeBuildContext } from "../execution/types.js";
 import { ApiError, ApiSuccess } from "../types/index.js";
 import {
   ExecutionQuoteRequest,
@@ -90,10 +92,7 @@ export function registerExecutionRoutes(app: FastifyInstance) {
     async (request, reply) => {
       const { quotes: quoteRequests } = request.body;
       const quotes: ExecutableQuote[] = [];
-      const context = {
-        network: "mainnet" as const,
-        algod: createExecutionAlgodClient()
-      };
+      const algod = createExecutionAlgodClient();
 
       for (let quoteIndex = 0; quoteIndex < quoteRequests.length; quoteIndex += 1) {
         const item = quoteRequests[quoteIndex]!;
@@ -103,7 +102,7 @@ export function registerExecutionRoutes(app: FastifyInstance) {
               executionRegistry,
               item.shapeKey,
               item.input,
-              context
+              contextForShapeKey(item.shapeKey, algod)
             )
           );
         } catch (error) {
@@ -237,6 +236,16 @@ export function registerExecutionRoutes(app: FastifyInstance) {
       }
     }
   );
+}
+
+function contextForShapeKey(
+  shapeKey: string,
+  algod: ReturnType<typeof createExecutionAlgodClient>
+): ShapeBuildContext {
+  return attachEvmContextIfNeeded(shapeKey, {
+    network: "mainnet",
+    algod
+  });
 }
 
 function mapExecutionError(

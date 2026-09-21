@@ -1,11 +1,13 @@
 import algosdk, { Algodv2, Transaction } from "algosdk";
 
+export type AlgorandExecutionNetwork = "mainnet" | "testnet";
+
 /**
  * Networks Canix is willing to compile executable transaction groups for.
- * Shape keys are network-scoped because app IDs and pool addresses differ
- * between mainnet and testnet.
+ * Shape keys are network-scoped because app IDs, pool addresses, and chain IDs
+ * differ between Algorand mainnet/testnet and Base.
  */
-export type ExecutionNetwork = "mainnet" | "testnet";
+export type ExecutionNetwork = AlgorandExecutionNetwork | "base";
 
 /**
  * Protocols that Canix can (eventually) execute against. A protocol appearing
@@ -24,6 +26,7 @@ export type ExecutionProtocol =
   | "alpha-arcade"
   | "stamm"
   | "hogswap"
+  | "morpho"
   /** Synthetic identity for multi-router compose opt-in/swap legs. Winner is `metadata.router`. */
   | "swap";
 
@@ -59,11 +62,41 @@ export interface ShapeSourceReference {
 }
 
 /**
+ * Unsigned EVM call the client signs and submits. Canix never signs or sends.
+ */
+export interface EvmUnsignedCall {
+  to: string;
+  data: string;
+  value: string;
+  chainId: number;
+  from?: string;
+  gasLimit?: string;
+}
+
+export interface SerializedEvmCallFields {
+  to: string;
+  data: string;
+  value: string;
+  chainId: number;
+  gasLimit?: string;
+}
+
+/**
+ * Minimal JSON-RPC surface Morpho shapes need for allowance / share preview.
+ */
+export interface EvmRpcClient {
+  chainId: number;
+  call(to: string, data: string): Promise<string>;
+}
+
+/**
  * Runtime context shared across shape resolution and building.
+ * Algorand shapes require `algod`. Base/EVM shapes require `evm`.
  */
 export interface ShapeBuildContext {
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   algod: Algodv2;
+  evm?: EvmRpcClient;
   /** Injectable clock for deterministic tests. Defaults to `Date.now`. */
   now?: () => number;
   /** Quote validity window in milliseconds. Defaults to `DEFAULT_QUOTE_TTL_MS`. */
@@ -100,6 +133,11 @@ export interface ExecutableQuoteGroupTransaction {
  */
 export interface ShapeBuildResult {
   transactions: Transaction[];
+  /**
+   * Unsigned EVM calls. When present, `compileExecutableQuote` serializes these
+   * instead of algosdk groups and leaves Algorand encoded blobs empty.
+   */
+  evmCalls?: EvmUnsignedCall[];
   metadata: Record<string, unknown>;
   warnings?: string[];
   /**
@@ -203,6 +241,8 @@ export interface SerializedTransaction {
   payment?: SerializedPaymentFields;
   assetTransfer?: SerializedAssetTransferFields;
   applicationCall?: SerializedApplicationCallFields;
+  /** Present when `type` is `evm`. */
+  evmCall?: SerializedEvmCallFields;
 }
 
 /**
@@ -234,6 +274,8 @@ export interface ExecutableQuote {
   userSignIndexes?: number[];
   warnings: string[];
   metadata: Record<string, unknown>;
+  /** Settlement chain. Present on Base/EVM quotes. */
+  chain?: "algorand" | "base";
 }
 
 export const DEFAULT_QUOTE_TTL_MS = 30_000;
@@ -310,6 +352,22 @@ export function serializeTransaction(txn: Transaction): SerializedTransaction {
 
 export function encodeUnsignedTransactionBase64(txn: Transaction): string {
   return Buffer.from(algosdk.encodeUnsignedTransaction(txn)).toString("base64");
+}
+
+export function serializeEvmCall(call: EvmUnsignedCall): SerializedTransaction {
+  return {
+    type: "evm",
+    sender: call.from ?? "",
+    fee: call.gasLimit ?? "0",
+    groupPresent: false,
+    evmCall: {
+      to: call.to,
+      data: call.data,
+      value: call.value,
+      chainId: call.chainId,
+      ...(call.gasLimit !== undefined ? { gasLimit: call.gasLimit } : {})
+    }
+  };
 }
 
 function decodePrintableUtf8(bytes: Uint8Array): string | null {

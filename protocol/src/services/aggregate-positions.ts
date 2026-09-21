@@ -53,7 +53,10 @@ export class AllPositionSourcesUnavailableError extends Error {
   }
 }
 
-type PositionCollectors = Record<Protocol, PositionCollector>;
+type PositionCollectors = Record<
+  (typeof SUPPORTED_POSITION_PROTOCOLS)[number],
+  PositionCollector
+>;
 
 let collectorOverrides: Partial<PositionCollectors> | undefined;
 

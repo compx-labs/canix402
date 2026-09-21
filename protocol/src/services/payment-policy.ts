@@ -176,9 +176,9 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     access: "paid",
     summary: "Top 10 aggregated DeFi opportunities ranked by risk then APY",
     description:
-      "Returns ranked Algorand DeFi yield opportunities across supported protocols including Tinyman, Pact, Folks Finance, CompX, Dork.fi, Myth Finance, Haystack, Réti, and Alpha Arcade. Ranking applies designed risk constraints (confidence, utilization, volatility, reward runway, wallet health factor when address is in context) before raw APY. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, source freshness, risk, and caveats before presenting yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",  // pragma: allowlist secret
+      "Returns ranked DeFi yield opportunities across supported chains (Algorand and Base). Each row includes `chain`. Default list mixes Algorand venues with listed Morpho Vaults on Base. Filter with protocol= or chain=algorand|base. Ranking applies designed risk constraints (confidence, utilization, volatility, reward runway, wallet health factor when address is in context) before raw APY. Use when an agent needs to compare APY/APR, TVL, asset pairs, opportunity type, protocol, chain, source freshness, risk, and caveats before presenting yield options. This endpoint provides normalized market data only; it does not build or submit transactions.",  // pragma: allowlist secret
     tags: ["defi", "opportunities", HACKATHON_TAG],
-    queryParams: ["protocol", "limit", "offset", "includeInactive", "refresh"],
+    queryParams: ["protocol", "chain", "limit", "offset", "includeInactive", "refresh"],
     sessionAccess: "research"
   },
   {
@@ -188,7 +188,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     access: "paid",
     summary: "Top 25 DeFi opportunities for a single protocol ranked by risk then APY",
     description:
-      "Returns ranked DeFi opportunities for one Algorand protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, alpha-arcade, or stamm. Ranking applies designed risk constraints before raw APY. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, risk, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",  // pragma: allowlist secret
+      "Returns ranked DeFi opportunities for one protocol: tinyman, pact, folks-finance, compx, dorkfi, myth-finance, haystack, reti, alpha-arcade, stamm, or morpho. Morpho rows are Base listed ERC-4626 vaults; other slugs are Algorand. Ranking applies designed risk constraints before raw APY. Use when an agent already knows the target protocol and needs normalized APY/APR, TVL, asset pair, opportunity type, timestamps, risk, and caveats for that venue. This endpoint provides normalized market data only; it does not build or submit transactions.",  // pragma: allowlist secret
     tags: ["defi", "opportunities", "protocol", HACKATHON_TAG],
     pathParams: ["protocol"],
     queryParams: ["limit", "offset", "includeInactive", "refresh"],
@@ -201,7 +201,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     access: "paid",
     summary: "Caller-filtered opportunities across supported platforms",
     description:
-      "Returns Algorand DeFi opportunities filtered by platform, opportunity type, APY range, TVL threshold, and optional ASA assetIds across supported sources. Use when an agent needs targeted discovery such as high-yield liquidity pools, lending markets, protocol-specific yield, minimum-liquidity opportunities, or yields for specific Algorand assets (assetIds=0 for ALGO). This endpoint provides normalized market data only; it does not build or submit transactions.",
+      "Returns DeFi opportunities filtered by platform, chain (algorand|base), opportunity type, APY range, TVL threshold, and optional ASA assetIds across supported sources. Base Morpho rows use assetAddresses instead of assetIds. Use when an agent needs targeted discovery such as high-yield liquidity pools, lending markets, protocol-specific yield, minimum-liquidity opportunities, or yields for specific Algorand assets (assetIds=0 for ALGO). This endpoint provides normalized market data only; it does not build or submit transactions.",
     tags: ["defi", "opportunities", "search", HACKATHON_TAG],
     queryParams: [
       "platform",
@@ -210,6 +210,7 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
       "maxApy",
       "minTvlUsd",
       "assetIds",
+      "chain",
       "limit",
       "offset",
       "includeInactive",

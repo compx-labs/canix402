@@ -5,6 +5,7 @@ import { fetchAccountHoldings } from "../services/account-assets.js";
 import {
   cacheMetaForResponse,
   fetchOpportunitiesResult,
+  protocolsForOpportunityQuery,
   SUPPORTED_AGGREGATE_PROTOCOLS
 } from "../services/aggregate-opportunities.js";
 import { filterOpportunitiesByActivity } from "../services/opportunity-activity.js";
@@ -70,14 +71,17 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
         offset = 0,
         includeInactive = false,
         protocol,
+        chain,
         refresh = false
       } = request.query;
 
       const { data: fetched, cache } = await fetchOpportunitiesResult(
-        protocol ? [protocol] : SUPPORTED_AGGREGATE_PROTOCOLS,
+        protocolsForOpportunityQuery({ protocol, chain }),
         { refresh }
       );
-      const data = filterOpportunitiesByActivity(fetched, includeInactive);
+      const data = filterOpportunitiesByActivity(fetched, includeInactive).filter((row) =>
+        chainMatches(row.chain, chain)
+      );
       const ranked = rankOpportunities(await attachHistoryStability(data)).slice(
         offset,
         offset + limit
@@ -117,13 +121,17 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
         maxApy,
         minTvlUsd,
         assetIds: assetIdsRaw,
+        chain,
         limit = FilteredOpportunitiesDefaultLimit,
         offset = 0,
         includeInactive = false,
         refresh = false
       } = request.query;
 
-      const platforms = parseProtocolFilters(platform);
+      const requested = parseProtocolFilters(platform);
+      const platforms = requested.filter((entry) =>
+        chain === "base" ? entry === "morpho" : chain === "algorand" ? entry !== "morpho" : true
+      );
       const types = parseOpportunityTypeFilters(type);
       const assetIds = parseAssetIdFilters(assetIdsRaw);
       if (assetIdsRaw !== undefined && assetIds.length === 0) {
@@ -140,6 +148,9 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
       const { data, cache } = await fetchOpportunitiesResult(platforms, { refresh });
       const filtered = filterOpportunitiesByActivity(data, includeInactive).filter(
         (row) => {
+        if (!chainMatches(row.chain, chain)) {
+          return false;
+        }
         if (types.length > 0 && !types.includes(row.opportunityType)) {
           return false;
         }
@@ -325,6 +336,16 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
       });
     }
   );
+}
+
+function chainMatches(
+  rowChain: OpportunityRecordV1["chain"] | undefined,
+  requested: "algorand" | "base" | undefined
+): boolean {
+  if (!requested) {
+    return true;
+  }
+  return (rowChain ?? "algorand") === requested;
 }
 
 function parseProtocolFilters(value: string | undefined): OpportunityProtocol[] {

@@ -2,12 +2,12 @@ import algosdk, { Algodv2 } from "algosdk";
 import { CompXSDK, LendingClient, type MarketData } from "@compx/sdk";
 
 import { ShapeStateError } from "../../errors.js";
-import type { ExecutionNetwork } from "../../types.js";
+import type { AlgorandExecutionNetwork } from "../../types.js";
 import { ALGO_ASSET_ID } from "./parse-input.js";
 import { getAccountAssetBalance, getApplicationAddress, isAssetOptedIn } from "./shared.js";
 
 export interface CompXLendingMarketState {
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   marketAppId: number;
   marketAppAddress: string;
   baseTokenId: number;
@@ -21,7 +21,7 @@ export interface CompXLendingMarketState {
 }
 
 export interface CompXLendingMarketStateDependencies {
-  createLendingClient: (algod: Algodv2, network: ExecutionNetwork) => LendingClient;
+  createLendingClient: (algod: Algodv2, network: AlgorandExecutionNetwork) => LendingClient;
   getMarket: (client: LendingClient, marketAppId: number) => Promise<MarketData | null>;
   getAccountAssetBalance: typeof getAccountAssetBalance;
   isAssetOptedIn: typeof isAssetOptedIn;
@@ -48,7 +48,7 @@ function resolveDependencies(): CompXLendingMarketStateDependencies {
 }
 
 export async function resolveCompXLendingMarketState(params: {
-  network: ExecutionNetwork;
+  network: AlgorandExecutionNetwork;
   algod: Algodv2;
   marketAppId: number;
   userAddress: string;

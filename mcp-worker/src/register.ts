@@ -14,7 +14,8 @@ const ProtocolSchema = z.enum([
   "haystack",
   "reti",
   "alpha-arcade",
-  "stamm"
+  "stamm",
+  "morpho"
 ]);
 const AlgorandAddressSchema = z.string().length(58);
 const AssetIdSchema = z.union([
@@ -219,12 +220,13 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_list_opportunities",
     {
       description:
-        "List top aggregated Algorand DeFi opportunities ranked by risk then APY (GET /opportunities). Paid ~0.01 USDC.", // pragma: allowlist secret
+        "List top aggregated DeFi opportunities across supported chains ranked by risk then APY (GET /opportunities). Each row includes chain (algorand|base). Paid ~0.01 USDC.", // pragma: allowlist secret
       inputSchema: {
         limit: z.number().int().min(1).max(200).optional(),
         offset: z.number().int().min(0).optional(),
         includeInactive: z.boolean().optional(),
         protocol: ProtocolSchema.optional(),
+        chain: z.enum(["algorand", "base"]).optional(),
         paymentSignature: paymentSignatureArgSchema(),
         sessionReceipt: sessionReceiptArgSchema()
       }
@@ -235,7 +237,8 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
           limit: args.limit,
           offset: args.offset,
           includeInactive: args.includeInactive,
-          protocol: args.protocol
+          protocol: args.protocol,
+          chain: args.chain
         };
         const result = await client.fetchPaid("/opportunities", {
           method: "GET",
@@ -257,13 +260,14 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_search_opportunities",
     {
       description:
-        "Search/filter opportunities via GET /opportunities/search. Optional assetIds is a comma-separated list of ASA ids (0 = ALGO). Paid ~0.01 USDC.",
+        "Search/filter opportunities via GET /opportunities/search. Optional chain=algorand|base. Optional assetIds is a comma-separated list of ASA ids (0 = ALGO). Paid ~0.01 USDC.",
       inputSchema: {
         platform: z.string().optional(),
         type: z.string().optional(),
         minApy: z.number().optional(),
         maxApy: z.number().optional(),
         minTvlUsd: z.number().min(0).optional(),
+        chain: z.enum(["algorand", "base"]).optional(),
         assetIds: z
           .string()
           .optional()
@@ -283,6 +287,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
           minApy: args.minApy,
           maxApy: args.maxApy,
           minTvlUsd: args.minTvlUsd,
+          chain: args.chain,
           assetIds: args.assetIds,
           limit: args.limit,
           offset: args.offset,

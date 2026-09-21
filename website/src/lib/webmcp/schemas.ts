@@ -53,7 +53,8 @@ const protocol = {
     "haystack",
     "reti",
     "alpha-arcade",
-    "stamm"
+    "stamm",
+    "morpho"
   ]
 };
 

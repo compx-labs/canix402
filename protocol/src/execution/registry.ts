@@ -13,6 +13,7 @@ import {
   TransactionShapeKey,
   TransactionShapeSpec,
   encodeUnsignedTransactionBase64,
+  serializeEvmCall,
   serializeTransaction
 } from "./types.js";
 
@@ -150,7 +151,10 @@ export async function compileExecutableQuote(
     });
   }
 
-  const serialized = buildResult.transactions.map((txn) => serializeTransaction(txn));
+  const serialized =
+    buildResult.evmCalls && buildResult.evmCalls.length > 0
+      ? buildResult.evmCalls.map(serializeEvmCall)
+      : buildResult.transactions.map((txn) => serializeTransaction(txn));
   const validation = shape.validate(serialized, input, state);
 
   if (!validation.valid) {
@@ -173,12 +177,15 @@ export async function compileExecutableQuote(
           .filter((member) => member.signer === "user")
           .map((member) => member.index);
 
+  const evmCalls = buildResult.evmCalls ?? [];
   const encodedTransactions =
-    groupTransactions === undefined
-      ? buildResult.transactions.map((txn) => encodeUnsignedTransactionBase64(txn))
-      : groupTransactions
-          .filter((member) => member.signer === "user")
-          .map((member) => member.encodedTransaction);
+    evmCalls.length > 0
+      ? evmCalls.map((call) => call.data)
+      : groupTransactions === undefined
+        ? buildResult.transactions.map((txn) => encodeUnsignedTransactionBase64(txn))
+        : groupTransactions
+            .filter((member) => member.signer === "user")
+            .map((member) => member.encodedTransaction);
 
   return {
     shapeKey: shape.key,
@@ -191,6 +198,14 @@ export async function compileExecutableQuote(
     ...(groupTransactions === undefined ? {} : { groupTransactions }),
     ...(userSignIndexes === undefined ? {} : { userSignIndexes }),
     warnings: [...(buildResult.warnings ?? []), ...validation.warnings],
-    metadata: buildResult.metadata
+    metadata:
+      evmCalls.length > 0
+        ? {
+            ...buildResult.metadata,
+            chain: "base",
+            evmCalls
+          }
+        : buildResult.metadata,
+    ...(shape.identity.network === "base" ? { chain: "base" as const } : {})
   };
 }

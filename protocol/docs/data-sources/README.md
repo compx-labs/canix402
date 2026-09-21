@@ -14,6 +14,7 @@ This section tracks protocol-specific source contracts and normalization rules.
 - [Réti](reti.md)
 - [Alpha Arcade](alpha-arcade.md)
 - [STAMM](stamm.md) (LiquiHog multi-tier AMM; HOGSWAP discovery + unsigned mint/redeem)
+- [Morpho Vaults](morpho.md) (Base listed ERC-4626 earn; unsigned deposit/withdraw/redeem)
 - [HOGSWAP LP valuation](hogswap-lp.md) (STAMM, AlgoFi, Humble positions; Tinyman/Pact overlap)
 - [HOGSWAP swap router](hogswap-swap.md) (unsigned SWAP quote + execute; included in `/swaps/*` compare)
 - [Folks Router V2](folks-router.md) (internal DEX aggregator adapter; included in `/swaps/*` compare; no public Folks HTTP)
@@ -38,10 +39,10 @@ Dork.fi live next to the shape specs in
 ## Normalization unit tests
 
 Adapter `normalize*` transforms for Tinyman, Folks Finance, Pact, CompX,
-Dork.fi, Myth Finance, Haystack, Réti, Alpha Arcade, and STAMM are covered by
-fixture-based tests in `protocol/tests/unit/` (recorded SDK/API shapes or
-mocked SDK dependencies; no live chain, no paid x402). Run `npm run test:unit`
-from repo root. See `docs/testing.md`.
+Dork.fi, Myth Finance, Haystack, Réti, Alpha Arcade, STAMM, and Morpho Vaults
+are covered by fixture-based tests in `protocol/tests/unit/` (recorded SDK/API
+shapes or mocked SDK dependencies; no live chain, no paid x402). Run
+`npm run test:unit` from repo root. See `docs/testing.md`.
 
 ## Asset ID Enrichment
 
@@ -53,6 +54,7 @@ on-chain Algorand asset ids:
 - Pact: `primary_asset.algoid` and `secondary_asset.algoid` from the pools API.
 - Folks Finance: the lending pool `assetId` from the SDK.
 - CompX: lending `baseTokenId`/`lstTokenId` and staking `stakedAssetId`/`rewardAssetId` from the SDK.
+- Morpho: ERC-20 `assetAddresses` (not Algorand `assetIds`); vault address in `inputHints.poolId`.
 
 Asset ids are emitted only when present; opportunities without resolvable ids simply do
 not match any wallet holdings. Native ALGO is represented as asset id `0`.
@@ -75,6 +77,7 @@ Current adapter policy:
 - Myth Finance: staking `apy`; farm `apr`
 - Haystack: `apr`
 - STAMM: listings expose TVL and fees, not APY (`apy` is `0` unknown; do not invent fee-APR)
+- Morpho: `apy` (`state.netApy` as percent)
 
 ## Asset Decimals and Precision
 

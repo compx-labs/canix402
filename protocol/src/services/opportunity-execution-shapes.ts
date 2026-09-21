@@ -46,6 +46,9 @@ const ALPHA_ARCADE_UNSTAKE_ALPHA = "mainnet:alpha-arcade:v1:unstake:alpha";
 const ALPHA_ARCADE_CLAIM_REWARDS = "mainnet:alpha-arcade:v1:claimRewards:usdc";
 const STAMM_MINT_LP = "mainnet:stamm:v1:mint:lp";
 const STAMM_REDEEM_LP = "mainnet:stamm:v1:redeem:lp";
+const MORPHO_DEPOSIT_ERC4626 = "base:morpho:vault:deposit:erc4626";
+const MORPHO_WITHDRAW_ERC4626 = "base:morpho:vault:withdraw:erc4626";
+const MORPHO_REDEEM_ERC4626 = "base:morpho:vault:redeem:erc4626";
 
 type ShapeStep = {
   shapeKey: string;
@@ -168,6 +171,17 @@ const STAMM_LP_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
   { shapeKey: STAMM_REDEEM_LP, order: 0 }
 ];
 
+/** Exclusive enter path for Morpho ERC-4626 vault deposit. */
+const MORPHO_VAULT_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: MORPHO_DEPOSIT_ERC4626, order: 0 }
+];
+
+/** Exit path for Morpho vault withdraw / redeem. */
+const MORPHO_VAULT_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: MORPHO_WITHDRAW_ERC4626, order: 0 },
+  { shapeKey: MORPHO_REDEEM_ERC4626, order: 0 }
+];
+
 export function attachExecutionShapesToOpportunity(
   record: OpportunityMarketRecord,
   registry: TransactionShapeRegistry = executionRegistry
@@ -197,11 +211,13 @@ export function attachExecutionShapesToOpportunity(
   const {
     poolAppId: _poolAppId,
     liquidityAssetId: _liquidityAssetId,
+    poolId: _poolId,
     ...publicRecord
   } = record;
 
   return {
     ...publicRecord,
+    chain: record.chain ?? "algorand",
     executionReady: executionShapes.length > 0,
     executionShapes,
     compatibleExitShapes,
@@ -317,6 +333,12 @@ function orderEnterShapes(
     });
   }
 
+  if (isMorphoVaultOpportunity(record)) {
+    return orderBySteps(shapes, MORPHO_VAULT_ENTER_STEPS, {
+      exclusive: true
+    });
+  }
+
   return shapes.map((shape) => ({ shape, order: 0 }));
 }
 
@@ -387,6 +409,9 @@ function resolveExitSteps(
   }
   if (isStammLpOpportunity(record)) {
     return STAMM_LP_EXIT_STEPS;
+  }
+  if (isMorphoVaultOpportunity(record)) {
+    return MORPHO_VAULT_EXIT_STEPS;
   }
   return [];
 }
@@ -536,6 +561,10 @@ function buildInputHints(
 
   if (record.protocol === "stamm") {
     return buildStammLpInputHints(record);
+  }
+
+  if (record.protocol === "morpho") {
+    return buildMorphoVaultInputHints(record);
   }
 
   if (record.protocol === "tinyman" || record.protocol === "pact") {
@@ -726,6 +755,9 @@ function buildExitInputHints(
   if (isStammLpOpportunity(record)) {
     return buildStammLpInputHints(record);
   }
+  if (isMorphoVaultOpportunity(record)) {
+    return buildMorphoVaultInputHints(record);
+  }
   return {};
 }
 
@@ -766,6 +798,29 @@ function isMythDualStakeOpportunity(record: OpportunityMarketRecord): boolean {
 
 function isStammLpOpportunity(record: OpportunityMarketRecord): boolean {
   return record.protocol === "stamm" && record.opportunityType === "lp";
+}
+
+function isMorphoVaultOpportunity(record: OpportunityMarketRecord): boolean {
+  return record.protocol === "morpho" && record.opportunityType === "lending";
+}
+
+function buildMorphoVaultInputHints(
+  record: OpportunityMarketRecord
+): OpportunityExecutionInputHints {
+  const hints: OpportunityExecutionInputHints = {};
+  const vaultAddress =
+    record.poolId ??
+    (record.opportunityId.startsWith("morpho-vault-")
+      ? record.opportunityId.slice("morpho-vault-".length)
+      : undefined);
+  if (vaultAddress !== undefined && vaultAddress.length > 0) {
+    hints.poolId = vaultAddress;
+  }
+  const assetAddress = record.assetAddresses?.[0];
+  if (assetAddress !== undefined) {
+    hints.assetAddress = assetAddress;
+  }
+  return hints;
 }
 
 function buildStammLpInputHints(
