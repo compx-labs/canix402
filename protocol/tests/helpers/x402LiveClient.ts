@@ -4,7 +4,7 @@ import algosdk from "algosdk";
 import {
   buildBasePaymentSignature as signBaseUsdcPayment,
   type BuildBasePaymentSignatureInput
-} from "@canix402/x402-client";
+} from "../../../packages/x402-client/src/index.ts";
 
 import {
   buildProductionUrl,

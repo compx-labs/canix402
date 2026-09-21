@@ -152,7 +152,8 @@ function parsePrivateKey(value: string): Hex {
 }
 
 function randomNonce(): Hex {
-  return `0x${randomBytes(32).toString("hex")}`;
+  const hex = Array.from(randomBytes(32), (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return `0x${hex}`;
 }
 
 function chainIdForNetwork(network: string): number {
