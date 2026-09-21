@@ -31,7 +31,8 @@ const PROTOCOLS = [
   "Haystack",
   "Réti",
   "Alpha Arcade",
-  "STAMM"
+  "STAMM",
+  "Morpho"
 ] as const;
 
 interface DiscoveryEndpoint {
@@ -212,7 +213,7 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
     watch: loadSample("watch.sample.json")
   };
 
-  const fullGuideBlurb = `x402-gated Algorand DeFi data and walletless transaction API (version ${discovery.apiVersion}). Normalized yield data and multi-router swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.`; // pragma: allowlist secret
+  const fullGuideBlurb = `x402-gated Algorand and Base DeFi data and walletless transaction API (version ${discovery.apiVersion}). Normalized yield data and multi-router swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.`; // pragma: allowlist secret
 
   return `# CANIX402 — full agent integration guide
 
