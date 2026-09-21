@@ -86,9 +86,9 @@ test("fetchMorphoOpportunities uses recorded GraphQL pages and skips live RPC", 
 });
 
 test("fetchMorphoOpportunities skips the live GraphQL catalog in test runtimes without an override", async () => {
-  const previousNodeEnv = process.env.NODE_ENV;
+  const previousFlag = process.env.CANIX402_OFFLINE_CATALOG;
   const previousUrl = process.env.MORPHO_GRAPHQL_URL;
-  process.env.NODE_ENV = "test";
+  process.env.CANIX402_OFFLINE_CATALOG = "1";
   delete process.env.MORPHO_GRAPHQL_URL;
   try {
     await assert.rejects(
@@ -103,10 +103,10 @@ test("fetchMorphoOpportunities skips the live GraphQL catalog in test runtimes w
       }
     );
   } finally {
-    if (previousNodeEnv === undefined) {
-      delete process.env.NODE_ENV;
+    if (previousFlag === undefined) {
+      delete process.env.CANIX402_OFFLINE_CATALOG;
     } else {
-      process.env.NODE_ENV = previousNodeEnv;
+      process.env.CANIX402_OFFLINE_CATALOG = previousFlag;
     }
     if (previousUrl === undefined) {
       delete process.env.MORPHO_GRAPHQL_URL;

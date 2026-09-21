@@ -17,6 +17,10 @@ import {
   resetSessionStoreForTests,
   setSessionStoreForTests
 } from "../../src/services/session-store.js";
+import {
+  resetOfflineOpportunityAdaptersForHttpTests,
+  stubOfflineOpportunityAdaptersForHttpTests
+} from "../helpers/offline-opportunity-adapters.js";
 
 const CADDY_BINARY = resolve(process.cwd(), ".bin/caddy-x402");
 const fixtures = readFixtures();
@@ -659,11 +663,15 @@ interface TestContext {
 }
 
 async function setup(options: FacilitatorMockOptions = {}): Promise<TestContext> {
+  const previousOfflineCatalog = process.env.CANIX402_OFFLINE_CATALOG;
+  process.env.CANIX402_OFFLINE_CATALOG = "1";
+  stubOfflineOpportunityAdaptersForHttpTests();
   const facilitator = await startFacilitatorMock(options);
   let harness: Awaited<ReturnType<typeof startCaddyHarness>> | undefined;
   try {
     harness = await startCaddyHarness(facilitator, CADDY_BINARY);
   } catch (error) {
+    restoreOfflineCatalogFlag(previousOfflineCatalog);
     await facilitator.close();
     throw error;
   }
@@ -673,8 +681,18 @@ async function setup(options: FacilitatorMockOptions = {}): Promise<TestContext>
     teardown: async () => {
       await harness.stop();
       await facilitator.close();
+      restoreOfflineCatalogFlag(previousOfflineCatalog);
     }
   };
+}
+
+function restoreOfflineCatalogFlag(previous: string | undefined): void {
+  resetOfflineOpportunityAdaptersForHttpTests();
+  if (previous === undefined) {
+    delete process.env.CANIX402_OFFLINE_CATALOG;
+  } else {
+    process.env.CANIX402_OFFLINE_CATALOG = previous;
+  }
 }
 
 function readFixtures(): { valid: X402PaymentSignaturePayload } {
