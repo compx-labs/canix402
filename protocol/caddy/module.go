@@ -150,9 +150,36 @@ func (X402) CaddyModule() caddy.ModuleInfo {
 	}
 }
 
+// unsetBasePayToPlaceholder is the Caddyfile default when X402_PAY_TO_BASE is
+// unset. Those accepts are dropped so a missing Base receiver does not
+// advertise a half-configured rail. The Algorand placeholder is left in place.
+const unsetBasePayToPlaceholder = "REPLACE_WITH_BASE_PAYTO_ADDRESS"
+
+func (x *X402) dropUnconfiguredAccepts() int {
+	kept := make([]PaymentOption, 0, len(x.Accepts))
+	dropped := 0
+	for _, accept := range x.Accepts {
+		payTo := strings.TrimSpace(accept.PayTo)
+		if payTo == "" || payTo == unsetBasePayToPlaceholder {
+			dropped++
+			continue
+		}
+		accept.PayTo = payTo
+		kept = append(kept, accept)
+	}
+	x.Accepts = kept
+	return dropped
+}
+
 // Provision initialises the module after configuration is loaded.
 func (x *X402) Provision(ctx caddy.Context) error {
 	x.logger = ctx.Logger(x)
+	if dropped := x.dropUnconfiguredAccepts(); dropped > 0 {
+		x.logger.Warn("x402 omitted unconfigured accept",
+			zap.Int("dropped", dropped),
+			zap.Int("remaining", len(x.Accepts)),
+		)
+	}
 
 	if x.FacilitatorURL == "" {
 		x.FacilitatorURL = defaultFacilitatorURL
@@ -271,6 +298,7 @@ func (x *X402) Provision(ctx caddy.Context) error {
 
 // Validate checks that all required configuration values are present and valid.
 func (x *X402) Validate() error {
+	x.dropUnconfiguredAccepts()
 	if len(x.Accepts) == 0 {
 		return fmt.Errorf("x402: at least one accept block is required")
 	}

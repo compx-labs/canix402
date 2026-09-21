@@ -8,7 +8,11 @@ import {
 } from "../../src/constants/mcp.js";
 
 import { buildApp } from "../../src/app.js";
-import { endpointPolicyMatrix } from "../../src/services/payment-policy.js";
+import {
+  endpointPolicyMatrix,
+  getX402Chains,
+  getX402EndpointMetadata
+} from "../../src/services/payment-policy.js";
 import { DiscoveryDocument } from "../../src/types/discovery.js";
 
 interface X402Manifest {
@@ -22,8 +26,14 @@ interface X402Manifest {
   bannerUrl: string;
   facilitator: string;
   chains: Array<{
+    namespace?: string;
     network: string;
-    assets: Array<{ symbol: string; assetId: string; decimals: number }>;
+    assets: Array<{
+      symbol: string;
+      assetId?: string;
+      contractAddress?: string;
+      decimals: number;
+    }>;
   }>;
   resources: Array<{
     id: string;
@@ -133,6 +143,8 @@ test("well-known x402 manifest lists paid resources and indexing links", async (
   );
   assert.equal(typeof manifest.facilitator, "string");
   assert.equal(manifest.chains[0]?.assets[0]?.symbol, "USDC");
+  assert.equal(manifest.chains[0]?.namespace, "algorand");
+  assert.deepEqual(manifest.chains, getX402Chains());
   assert.deepEqual(manifestPaths, paidPolicyPaths);
   assert.equal(
     manifest.resources.find((resource) => resource.id === "positions")?.price.amount,
@@ -194,6 +206,9 @@ test("paid discovery endpoints include complete x402 descriptors", async () => {
       "PAYMENT-SIGNATURE",
       "PAYMENT-RESPONSE"
     ]);
+    assert.equal(endpoint.x402?.accepts?.[0]?.network, endpoint.x402?.requirementTemplate.network);
+    assert.equal(endpoint.x402?.accepts?.[0]?.asset, endpoint.x402?.requirementTemplate.asset);
+    assert.deepEqual(endpoint.x402?.accepts, getX402EndpointMetadata(endpoint.x402?.amountUsdc).accepts);
     assert.equal(typeof endpoint.x402?.requirementTemplate.network, "string");
     assert.equal(typeof endpoint.x402?.requirementTemplate.asset, "string");
     assert.equal(typeof endpoint.x402?.requirementTemplate.payTo, "string");

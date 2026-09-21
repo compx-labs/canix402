@@ -21,7 +21,7 @@ Preferred public link target from this page:
 
 Canix402 is an x402-paid Algorand DeFi opportunities API. It gives agents and builders a single machine-readable data rail for normalized yield opportunities across supported Algorand DeFi protocols.
 
-The API is designed for agent integrations: discover endpoints through OpenAPI and `/discovery`, preflight paid routes with HTTP `402 Payment Required`, pay in Algorand USDC through x402, then retry for normalized APY/APR data.
+The API is designed for agent integrations: discover endpoints through OpenAPI and `/discovery`, preflight paid routes with HTTP `402 Payment Required`, pay in Algorand or Base USDC through x402, then retry for normalized APY/APR data.
 
 ## Suggested Hero Copy
 
@@ -89,7 +89,7 @@ Use three or four max:
 
 - Normalized APY/APR opportunity data for Algorand DeFi.
 - Machine-readable OpenAPI and discovery metadata for agents.
-- Pay-per-request access using x402 and Algorand USDC.
+- Pay-per-request access using x402 and Algorand or Base USDC.
 - Wallet-personalized yield recommendations for supported assets.
 
 ## Useful Links

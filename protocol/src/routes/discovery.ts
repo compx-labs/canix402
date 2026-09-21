@@ -16,7 +16,9 @@ import {
   endpointPolicyMatrix,
   getSessionPolicy,
   getWatchPolicy,
-  getX402EndpointMetadata
+  getX402Chains,
+  getX402EndpointMetadata,
+  type X402ChainDescriptor
 } from "../services/payment-policy.js";
 import { ApiSuccess } from "../types/api.js";
 import { DiscoveryDocument, DiscoveryEndpointDescriptor } from "../types/discovery.js";
@@ -380,15 +382,7 @@ interface X402DiscoveryManifest {
   mcpUrl: string;
   mcpTransport: string;
   facilitator: string;
-  chains: Array<{
-    namespace: "algorand";
-    network: string;
-    assets: Array<{
-      symbol: "USDC";
-      assetId: string;
-      decimals: 6;
-    }>;
-  }>;
+  chains: X402ChainDescriptor[];
   resources: Array<{
     id: string;
     method: "GET" | "POST";
@@ -437,7 +431,7 @@ function buildX402Manifest(): X402DiscoveryManifest {
     name: "canix402",
     version: getApiVersion(),
     description:
-      "x402-gated Algorand DeFi opportunities data API with USDC payment support.",
+      "x402-gated DeFi opportunities API. Paid routes accept Algorand USDC, and Base USDC when a Base receiver is configured.",
     x402Version: 2,
     docsUrl,
     llmsTxtUrl,
@@ -449,19 +443,7 @@ function buildX402Manifest(): X402DiscoveryManifest {
     mcpUrl,
     mcpTransport: MCP_SERVER_TRANSPORT,
     facilitator: defaultX402.facilitator,
-    chains: [
-      {
-        namespace: "algorand",
-        network: defaultX402.requirementTemplate.network,
-        assets: [
-          {
-            symbol: "USDC",
-            assetId: defaultX402.requirementTemplate.asset,
-            decimals: 6
-          }
-        ]
-      }
-    ],
+    chains: getX402Chains(defaultX402),
     resources: paidEndpoints.map((endpoint) => {
       const x402 = getX402EndpointMetadata(endpoint.priceUsdc);
       const path = toOpenApiPath(endpoint.pathPattern);
@@ -541,7 +523,7 @@ function buildLlmsText(includeAllEndpoints = false): string {
 
   lines.push(
     "",
-    "Unpaid paid-route requests return HTTP 402 with PAYMENT-REQUIRED. Sign a USDC payment client-side and retry with PAYMENT-SIGNATURE. Canix never receives wallet keys or submits transactions.",
+    "Unpaid paid-route requests return HTTP 402 with PAYMENT-REQUIRED. Select an accept by network (Algorand stays first). Sign that USDC payment client-side — an Algorand ASA transfer, or a Base EIP-3009 authorization when that accept is listed — and retry with PAYMENT-SIGNATURE. Canix never receives wallet keys or submits transactions.",
     "Do not guess execution construction (pool discovery, opt-ins, min-balance, slippage, liquidity limits, app upgrades). Read protocol/docs/execution-shapes/protocol-caveats.md and GET /execution/shapes meta.caveatsDocsPath."
   );
 
@@ -575,7 +557,7 @@ function buildAgentCard() {
     protocolVersion: "0.3.0",
     name: "canix402",
     description:
-      "x402-gated Algorand DeFi data and walletless transaction API for agents. Paid requests settle in USDC through the public Caddy gateway; no API keys or server-side wallet access.",
+      "x402-gated DeFi data and walletless transaction API for agents. Paid requests settle in Algorand USDC, or Base USDC when that accept is listed, through the public Caddy gateway; no API keys or server-side wallet access.",
     url: publicBaseUrl,
     preferredTransport: "HTTP+JSON",
     version: getApiVersion(),
@@ -610,6 +592,7 @@ function buildAgentCard() {
       protocol: "x402",
       scheme: "exact",
       network: getX402EndpointMetadata().requirementTemplate.network,
+      networks: getX402EndpointMetadata().accepts.map((accept) => accept.network),
       currency: "USDC",
       facilitator: getX402EndpointMetadata().facilitator,
       manifest: `${publicBaseUrl}/.well-known/x402.json`,
@@ -618,7 +601,7 @@ function buildAgentCard() {
       logoUrl: `${publicBaseUrl}/logo.png?v=2`,
       bannerUrl: `${publicBaseUrl}/banner.png?v=2`,
       note:
-        "Make a normal HTTP request. An unpaid paid-route request returns HTTP 402 with payment requirements; sign client-side and retry with PAYMENT-SIGNATURE."
+        "Make a normal HTTP request. An unpaid paid-route request returns HTTP 402 with payment requirements. Algorand is the first accept. Choose the Base accept by network when it is listed, sign client-side, and retry with PAYMENT-SIGNATURE."
     }
   };
 }

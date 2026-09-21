@@ -47,6 +47,12 @@ When `X-Canix-Session` is present on session-eligible paid paths, Caddy skips x4
 and the protocol process consumes the receipt (fail-closed). Create/refresh never
 accept a session header.
 
+Each paid handle lists Algorand first, then Base (`network base`, which the
+plugin publishes as `eip155:8453`). Both accepts use the same price and
+`extra.tag`. `X402_PAY_TO_BASE` defaults to `REPLACE_WITH_BASE_PAYTO_ADDRESS`;
+that placeholder is omitted at startup so a missing Base receiver does not
+advertise a rail. Set it to the merchant `0x` address to enable Base USDC.
+
 ## Local Usage
 
 1. Build the local Caddy binary with the x402 plugin:

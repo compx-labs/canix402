@@ -477,6 +477,36 @@ export interface X402RequirementTemplate {
   maxAmountRequired: string;
 }
 
+/** Circle USDC on Base mainnet. Same contract the EVM exact scheme defaults to. */
+export const BASE_USDC_ASSET_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+/** CAIP-2 published on 402 responses after Caddy resolves the short name `base`. */
+export const DEFAULT_BASE_PAYMENT_NETWORK = "eip155:8453";
+/** Caddy and discovery omit the Base accept while pay-to is still this placeholder. */
+export const UNCONFIGURED_BASE_PAY_TO = "REPLACE_WITH_BASE_PAYTO_ADDRESS";
+
+export interface X402PaymentRailConfig {
+  facilitator: string;
+  algorandNetwork: string;
+  algorandAsset: string;
+  algorandPayTo: string;
+  baseNetwork: string;
+  baseAsset: string;
+  basePayTo?: string;
+}
+
+export interface X402ChainAsset {
+  symbol: "USDC";
+  decimals: 6;
+  assetId?: string;
+  contractAddress?: string;
+}
+
+export interface X402ChainDescriptor {
+  namespace: "algorand" | "eip155";
+  network: string;
+  assets: X402ChainAsset[];
+}
+
 export interface X402EndpointMetadata {
   protocolVersion: 2;
   requiredHeaders: readonly [
@@ -486,10 +516,47 @@ export interface X402EndpointMetadata {
   ];
   facilitator: string;
   requirementTemplate: X402RequirementTemplate;
+  /** Algorand first. Base is included only when a receiver address is configured. */
+  accepts: X402RequirementTemplate[];
   /** Human-readable USDC price for this endpoint (same as maxAmountRequired). */
   amountUsdc: string;
   /** Micro-USDC integer string (6 decimals) matching Caddy PAYMENT-REQUIRED amounts. */
   amountMicro: string;
+}
+
+export function isBasePaymentNetwork(network: string): boolean {
+  const normalized = network.trim().toLowerCase();
+  return (
+    normalized === "base"
+    || normalized === "base-mainnet"
+    || normalized === "eip155:8453"
+  );
+}
+
+export function isConfiguredBasePayTo(payTo: string | undefined): payTo is string {
+  if (!payTo) {
+    return false;
+  }
+  const trimmed = payTo.trim();
+  return trimmed.length > 0 && trimmed !== UNCONFIGURED_BASE_PAY_TO;
+}
+
+export function readX402PaymentRailConfig(
+  env: NodeJS.ProcessEnv = process.env
+): X402PaymentRailConfig {
+  const basePayTo = [env.X402_PAYMENT_RECEIVER_ADDRESS_BASE, env.X402_PAY_TO_BASE]
+    .map((candidate) => candidate?.trim())
+    .find((candidate) => isConfiguredBasePayTo(candidate));
+  return {
+    facilitator:
+      env.X402_FACILITATOR_BASE_URL?.trim() || "https://facilitator.goplausible.xyz",
+    algorandNetwork: env.X402_PAYMENT_NETWORK?.trim() || "algorand-mainnet",
+    algorandAsset: env.X402_USDC_ASSET_ID?.trim() || "31566704",
+    algorandPayTo: env.X402_PAYMENT_RECEIVER_ADDRESS?.trim() || "REPLACE_WITH_PAYTO_ADDRESS",
+    baseNetwork: env.X402_BASE_NETWORK?.trim() || DEFAULT_BASE_PAYMENT_NETWORK,
+    baseAsset: env.X402_BASE_USDC_ASSET?.trim() || BASE_USDC_ASSET_ADDRESS,
+    ...(isConfiguredBasePayTo(basePayTo) ? { basePayTo } : {})
+  };
 }
 
 function resolveUsdcAmount(...candidates: Array<string | undefined>): string {
@@ -520,11 +587,31 @@ export function usdcAmountToMicro(amountUsdc: string): string {
   return (BigInt(whole) * 1_000_000n + BigInt(frac)).toString();
 }
 
-export function getX402EndpointMetadata(amountUsdc?: string): X402EndpointMetadata {
+export function getX402EndpointMetadata(
+  amountUsdc?: string,
+  config: X402PaymentRailConfig = readX402PaymentRailConfig()
+): X402EndpointMetadata {
   const resolvedUsdc = resolveUsdcAmount(
     amountUsdc,
     process.env.X402_PAYMENT_AMOUNT_USDC
   );
+  const requirementTemplate: X402RequirementTemplate = {
+    scheme: "exact",
+    network: config.algorandNetwork,
+    asset: config.algorandAsset,
+    payTo: config.algorandPayTo,
+    maxAmountRequired: resolvedUsdc
+  };
+  const accepts: X402RequirementTemplate[] = [requirementTemplate];
+  if (config.basePayTo) {
+    accepts.push({
+      scheme: "exact",
+      network: config.baseNetwork,
+      asset: config.baseAsset,
+      payTo: config.basePayTo,
+      maxAmountRequired: resolvedUsdc
+    });
+  }
   return {
     protocolVersion: 2,
     requiredHeaders: [
@@ -532,18 +619,45 @@ export function getX402EndpointMetadata(amountUsdc?: string): X402EndpointMetada
       "PAYMENT-SIGNATURE",
       "PAYMENT-RESPONSE"
     ],
-    facilitator:
-      process.env.X402_FACILITATOR_BASE_URL ?? "https://facilitator.goplausible.xyz",
-    requirementTemplate: {
-      scheme: "exact",
-      network: process.env.X402_PAYMENT_NETWORK ?? "algorand-mainnet",
-      asset: process.env.X402_USDC_ASSET_ID ?? "31566704",
-      payTo: process.env.X402_PAYMENT_RECEIVER_ADDRESS ?? "REPLACE_WITH_PAYTO_ADDRESS",
-      maxAmountRequired: resolvedUsdc
-    },
+    facilitator: config.facilitator,
+    requirementTemplate,
+    accepts,
     amountUsdc: resolvedUsdc,
     amountMicro: usdcAmountToMicro(resolvedUsdc)
   };
+}
+
+export function getX402Chains(
+  metadata: X402EndpointMetadata = getX402EndpointMetadata()
+): X402ChainDescriptor[] {
+  const chains: X402ChainDescriptor[] = [
+    {
+      namespace: "algorand",
+      network: metadata.requirementTemplate.network,
+      assets: [
+        {
+          symbol: "USDC",
+          assetId: metadata.requirementTemplate.asset,
+          decimals: 6
+        }
+      ]
+    }
+  ];
+  const base = metadata.accepts.find((accept) => isBasePaymentNetwork(accept.network));
+  if (base) {
+    chains.push({
+      namespace: "eip155",
+      network: base.network,
+      assets: [
+        {
+          symbol: "USDC",
+          contractAddress: base.asset,
+          decimals: 6
+        }
+      ]
+    });
+  }
+  return chains;
 }
 
 const paidPathMatchers = [

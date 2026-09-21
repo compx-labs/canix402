@@ -1,6 +1,10 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import algosdk from "algosdk";
+import {
+  buildBasePaymentSignature as signBaseUsdcPayment,
+  type BuildBasePaymentSignatureInput
+} from "@canix402/x402-client";
 
 import {
   buildProductionUrl,
@@ -14,6 +18,13 @@ export async function buildLivePaymentSignature(
   input: BuildPaymentSignatureInput
 ): Promise<string> {
   return buildPaymentSignature(input);
+}
+
+/** EIP-3009 PAYMENT-SIGNATURE for the Base accept. Does not broadcast. */
+export async function buildBasePaymentSignature(
+  input: BuildBasePaymentSignatureInput
+): Promise<string> {
+  return signBaseUsdcPayment(input);
 }
 
 export interface LiveEnv {
