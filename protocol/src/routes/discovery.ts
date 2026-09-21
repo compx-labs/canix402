@@ -431,7 +431,7 @@ function buildX402Manifest(): X402DiscoveryManifest {
     name: "canix402",
     version: getApiVersion(),
     description:
-      "x402-gated DeFi opportunities API. Paid routes accept Algorand USDC, and Base USDC when a Base receiver is configured.",
+      "x402-gated DeFi opportunity API.",
     x402Version: 2,
     docsUrl,
     llmsTxtUrl,
@@ -495,7 +495,7 @@ function buildLlmsText(includeAllEndpoints = false): string {
   const lines = [
     "# CANIX402",
     "",
-    "> x402-gated Algorand DeFi data and walletless transaction API for autonomous agents.",
+    "> x402-gated DeFi data and walletless transaction API for autonomous agents.",
     "",
     `Use the public Caddy gateway: ${publicBaseUrl}. The upstream API is private.`,
     `Canonical documentation: ${getDocsSiteUrl()}.`,
@@ -615,9 +615,9 @@ function buildAiPluginManifest() {
     name_for_human: "canix402",
     name_for_model: "canix402",
     description_for_human:
-      "Algorand DeFi data and walletless transaction API for agents, paid per call with USDC using x402.",
+      "DeFi data and walletless transaction API for agents, paid per call with USDC using x402.",
     description_for_model:
-      "Use this public Caddy gateway for Algorand DeFi opportunities, positions, pricing, swap preparation, and unsigned transaction quotes. Free discovery endpoints describe paid operations. An unpaid paid request returns HTTP 402 with PAYMENT-REQUIRED; sign the requested USDC payment client-side and retry with PAYMENT-SIGNATURE. The service never receives wallet keys or submits transactions.",
+      "Use this public Caddy gateway for DeFi opportunities, positions, pricing, swap preparation, and unsigned transaction quotes. Free discovery endpoints describe paid operations. An unpaid paid request returns HTTP 402 with PAYMENT-REQUIRED; sign the requested USDC payment client-side and retry with PAYMENT-SIGNATURE. The service never receives wallet keys or submits transactions.",
     api: {
       type: "openapi",
       url: `${publicBaseUrl}/openapi.json`

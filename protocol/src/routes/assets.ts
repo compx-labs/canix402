@@ -17,7 +17,7 @@ const bannerPng = readFileSync(resolve(publicDir, "banner.png"));
 const SITE_NAME = "CANIX402";
 const DEFAULT_TITLE = "CANIX402 | Hunting down the best yields";
 const DEFAULT_DESCRIPTION =
-  "Canix402 is an x402-paid Algorand DeFi opportunity API for autonomous agents. Discover endpoints, pay in USDC, and fetch normalized APY data — including wallet-personalized yield recommendations.";
+  "Canix402 is an x402-paid DeFi opportunity API for autonomous agents. Discover endpoints, pay in USDC, and fetch normalized APY data — including wallet-personalized yield recommendations.";
 const DOCS_URL = "https://canix402.compx.io";
 
 function publicBaseUrl(): string {
@@ -51,7 +51,7 @@ function buildRootHtml(): string {
     <meta property="og:image" content="${bannerUrl}" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="CANIX402 — x402-paid Algorand DeFi API" />
+    <meta property="og:image:alt" content="CANIX402 — x402-paid DeFi API" />
     <meta property="og:locale" content="en_US" />
 
     <meta name="twitter:card" content="summary_large_image" />

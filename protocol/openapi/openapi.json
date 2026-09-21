@@ -3,13 +3,13 @@
   "info": {
     "title": "canix402 API",
     "version": "1.0.0",
-    "description": "x402-gated Algorand DeFi data and walletless transaction API, including Haystack swap quotes, prerequisite opt-ins, and paid atomic swap-group generation. Numeric yield/USD fields (apy, apr, tvlUsd) are returned with a standard precision of 6 decimal places, extended up to 12 decimal places only when needed to represent small non-zero values. Asset decimals are always sourced on-chain from algod. pragma: allowlist secret",
+    "description": "x402-gated DeFi data and walletless transaction API, including best price swaps, prerequisite opt-ins, and paid atomic swap-group generation. Numeric yield/USD fields (apy, apr, tvlUsd) are returned with a standard precision of 6 decimal places, extended up to 12 decimal places only when needed to represent small non-zero values. Asset decimals are always sourced on-chain from algod. pragma: allowlist secret",
     "contact": {
       "name": "Neon Forge Ltd",
       "email": "kieran@neonforge.ltd",
       "url": "https://canix402.compx.io"
     },
-    "x-guidance": "Use the gateway base URL in servers[0]. Fetch /discovery and /openapi.json before integrating. Prefer the remote canix402 MCP server at https://canix402-mcp.compx.io/mcp (streamable-http, walletless pass-through) for agent tool access. Paid routes return HTTP 402 with PAYMENT-REQUIRED; sign a USDC ASA transfer client-side and retry with PAYMENT-SIGNATURE. Haystack swaps follow quote -> opt-in if needed -> fresh quote -> paid transaction generation -> local signing/submission. Human and LLM docs: https://canix402.compx.io/llms.txt pragma: allowlist secret",
+    "x-guidance": "Use the gateway base URL in servers[0]. Fetch /discovery and /openapi.json before integrating. Prefer the remote canix402 MCP server at https://canix402-mcp.compx.io/mcp (streamable-http, walletless pass-through) for agent tool access. Paid routes return HTTP 402 with PAYMENT-REQUIRED; sign a USDC ASA transfer client-side and retry with PAYMENT-SIGNATURE. Best price swaps follow quote -> opt-in if needed -> fresh quote -> paid transaction generation -> local signing/submission. Human and LLM docs: https://canix402.compx.io/llms.txt pragma: allowlist secret",
     "x-precision": {
       "fields": [
         "apy",
@@ -8270,7 +8270,7 @@
           "service": "canix402",
           "name": "canix402",
           "version": "1.0.0",
-          "description": "x402-gated Algorand DeFi opportunities data API with USDC payment support.",
+          "description": "x402-gated DeFi opportunity API.",
           "x402Version": 2,
           "docsUrl": "https://canix402.compx.io/x402",
           "llmsTxtUrl": "https://canix402.compx.io/llms.txt",

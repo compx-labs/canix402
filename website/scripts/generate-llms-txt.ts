@@ -143,7 +143,7 @@ function buildLlmsTxt(discovery: DiscoveryDocument): string {
 
   return `# CANIX402
 
-> x402-gated Algorand DeFi data and walletless transaction API for autonomous agents. Pay in USDC micropayments at the gateway edge, fetch normalized APY/TVL data, and build locally signable swap groups.  # pragma: allowlist secret
+> x402-gated DeFi data and walletless transaction API for autonomous agents. Pay in USDC micropayments at the gateway edge, fetch normalized APY/TVL data, and build locally signable swap groups.  # pragma: allowlist secret
 
 Use the **Caddy gateway** (\`${GATEWAY}\`) for all API calls. Discovery, execution shapes, swap quotes, and opt-in preparation are free; data routes, execution quotes, and swap transaction generation require x402 payment as advertised. The API never receives wallet keys or submits transactions. For the full integration guide in one file, see [llms-full.txt](${docs}/llms-full.txt).  # pragma: allowlist secret
 
@@ -213,7 +213,7 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
     watch: loadSample("watch.sample.json")
   };
 
-  const fullGuideBlurb = `x402-gated Algorand and Base DeFi data and walletless transaction API (version ${discovery.apiVersion}). Normalized yield data and multi-router swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.`; // pragma: allowlist secret
+  const fullGuideBlurb = `x402-gated DeFi data and walletless transaction API (version ${discovery.apiVersion}). Normalized yield data and multi-router swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.`; // pragma: allowlist secret
 
   return `# CANIX402 — full agent integration guide
 

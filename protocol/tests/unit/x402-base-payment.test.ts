@@ -2,11 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { recoverTypedDataAddress } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
 import {
   BASE_USDC_ASSET_ADDRESS,
   BASE_USDC_EIP712_NAME,
   BASE_USDC_EIP712_VERSION,
-  buildBasePaymentSignature
+  baseTransferTypedData,
+  buildBasePaymentSignature,
+  encodeBasePaymentSignature
 } from "@canix402/x402-client";
 
 const PRIVATE_KEY = "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d";
@@ -101,4 +104,61 @@ test("Base PAYMENT-SIGNATURE is an EIP-3009 authorization for the Base accept", 
     signature: payload.payload.signature
   });
   assert.equal(recovered, PAYER);
+});
+
+test("encodeBasePaymentSignature matches the private-key EIP-3009 envelope", async () => {
+  const paymentRequest = {
+    x402Version: 2,
+    accepts: [
+      {
+        scheme: "exact",
+        network: "algorand-mainnet",
+        asset: "31566704",
+        payTo: "ALGOADDR",
+        amount: "100000"
+      },
+      {
+        scheme: "exact",
+        network: "eip155:8453",
+        asset: BASE_USDC_ASSET_ADDRESS,
+        payTo: PAY_TO,
+        maxAmountRequired: "0.1",
+        extra: { tag: "x402-global-challenge" }
+      }
+    ]
+  };
+  const requestUrl = "https://canix402-api.compx.io/execution/quotes";
+  const typed = baseTransferTypedData({
+    paymentRequest,
+    from: PAYER,
+    nowSeconds: NOW,
+    nonce: NONCE
+  });
+  const account = privateKeyToAccount(PRIVATE_KEY);
+  const signature = await account.signTypedData({
+    domain: typed.domain,
+    types: typed.types,
+    primaryType: typed.primaryType,
+    message: typed.message
+  });
+  const encoded = encodeBasePaymentSignature({
+    paymentRequest,
+    requestUrl,
+    typed,
+    signature
+  });
+  const fromKey = await buildBasePaymentSignature({
+    paymentRequest,
+    requestUrl,
+    privateKey: PRIVATE_KEY,
+    nowSeconds: NOW,
+    nonce: NONCE
+  });
+
+  assert.equal(encoded, fromKey);
+  const payload = JSON.parse(Buffer.from(encoded, "base64").toString("utf8")) as {
+    payload: { paymentGroup?: unknown; signature: string };
+  };
+  assert.equal(payload.payload.paymentGroup, undefined);
+  assert.equal(payload.payload.signature, signature);
 });

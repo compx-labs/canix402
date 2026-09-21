@@ -1,3 +1,4 @@
+import { isBasePaymentNetwork } from "@canix402/x402-client/base";
 import algosdk from "algosdk";
 
 import { utf8ToBase64, bytesToBase64 } from "./bytes";
@@ -35,7 +36,25 @@ export type SignTransactionsFn = (
 export function selectPaymentAccept(
   paymentRequired: PaymentRequest | null | undefined
 ): PaymentRequestAccept | { error: string; message: string } {
-  const accepted = paymentRequired?.accepts?.[0];
+  return validatePaymentAccept(paymentRequired?.accepts?.[0]);
+}
+
+export function selectBasePaymentAccept(
+  paymentRequired: PaymentRequest | null | undefined
+): PaymentRequestAccept | { error: string; message: string } {
+  const accepted = paymentRequired?.accepts?.find((accept) => isBasePaymentNetwork(accept.network));
+  if (!accepted) {
+    return {
+      error: "PAYMENT_INVALID",
+      message: "PAYMENT_REQUIRED did not include a Base accept option."
+    };
+  }
+  return validatePaymentAccept(accepted);
+}
+
+function validatePaymentAccept(
+  accepted: PaymentRequestAccept | undefined
+): PaymentRequestAccept | { error: string; message: string } {
   if (!accepted) {
     return {
       error: "PAYMENT_INVALID",

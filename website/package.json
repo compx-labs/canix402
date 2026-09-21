@@ -17,11 +17,16 @@
     "snapshot:responses": "tsx ../protocol/scripts/export-opportunity-snapshots.ts"
   },
   "dependencies": {
+    "@canix402/x402-client": "^1.0.0",
+    "@coinbase/wallet-sdk": "^4.3.7",
     "@txnlab/use-wallet": "^5.0.0",
     "@txnlab/use-wallet-defly": "^5.0.0",
     "@txnlab/use-wallet-pera": "^5.0.0",
+    "@wagmi/connectors": "^8.2.0",
+    "@wagmi/core": "^3.6.5",
     "algosdk": "3.6.0",
-    "astro": "^5.7.10"
+    "astro": "^5.7.10",
+    "viem": "^2.37.6"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
