@@ -6,14 +6,16 @@ import { config, mcpToolNames } from "../lib/config";
 
 <BaseLayout
   title="MCP Server | CANIX402"
-  description="Connect agents to the remote canix402 MCP server over Streamable HTTP. Walletless pass-through to the public Caddy gateway — paid tools return payment requirements, then accept paymentSignature on retry."
+  description="Connect agents to the remote canix402 MCP server over Streamable HTTP. Walletless pass-through to the public Caddy gateway. Pay on Algorand, Base, or both. An Algorand-only agent does not need a Base address."
   keywords="Canix402 MCP, Model Context Protocol, streamable-http, agent tools, x402, walletless, Cloudflare Worker"
 >
   <h1 class="page-title">MCP server</h1>
   <p class="muted">
     The canix402 MCP is a remote, walletless wrapper over the public Caddy gateway. Agents connect
-    over Streamable HTTP, call typed tools for discovery, opportunity data, and best price swaps, and
-    handle x402 payment signing on the client side.
+    over Streamable HTTP, call typed tools for discovery, opportunity data, and unsigned quotes, and
+    sign x402 payments on the client. An agent may use Algorand, Base, or both. Algorand tool
+    arguments take an Algorand address alone. Omitting a Base address does not change rank,
+    eligibility, price, or access.
   </p>
 
   <section class="panel">
@@ -214,11 +216,14 @@ canix_get_execution_quote({
       </li>
       <li>
         The tool returns <code>PAYMENT_REQUIRED</code> metadata with gateway payment requirements
-        (same x402 policy as direct HTTP).
+        (same x402 policy as direct HTTP). Select an accept by <code>network</code>. Algorand is
+        first. Base is optional and the same price.
       </li>
       <li>
-        Your agent builds a <code>PAYMENT-SIGNATURE</code> payload client-side and retries the same
-        tool with <code>paymentSignature</code> set.
+        Your agent builds a <code>PAYMENT-SIGNATURE</code> payload for that accept and retries the
+        same tool with <code>paymentSignature</code> set. Algorand uses a signed ASA
+        <code>paymentGroup</code>. Base uses an EIP-3009 authorization. A Base address is required
+        only when you pay the Base accept or request a Morpho quote.
       </li>
       <li>On success, the tool returns the gateway response.</li>
     </ol>

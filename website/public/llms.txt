@@ -1,8 +1,8 @@
 # CANIX402
 
-> x402-gated DeFi data and walletless transaction API for autonomous agents. Pay in USDC micropayments at the gateway edge, fetch normalized APY/TVL data, and build locally signable swap groups.  # pragma: allowlist secret
+> x402-gated DeFi data and walletless transaction API for autonomous agents. Pay in Algorand or Base USDC at the gateway edge, fetch normalized APY/TVL data, and build locally signable groups. An Algorand-only agent does not supply a Base address.  # pragma: allowlist secret
 
-Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. Discovery, execution shapes, swap quotes, and opt-in preparation are free; data routes, execution quotes, and swap transaction generation require x402 payment as advertised. The API never receives wallet keys or submits transactions. For the full integration guide in one file, see [llms-full.txt](https://canix402.compx.io/llms-full.txt).  # pragma: allowlist secret
+Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. Discovery, execution shapes, swap quotes, and opt-in preparation are free; data routes, execution quotes, and swap transaction generation require x402 payment as advertised. Agents may pay and act on Algorand, on Base, or on both. Omitting a Base address does not change rank, eligibility, price, or access. The API never receives wallet keys or submits transactions. For the full integration guide in one file, see [llms-full.txt](https://canix402.compx.io/llms-full.txt).  # pragma: allowlist secret
 
 ## API (machine-readable)
 
@@ -17,7 +17,7 @@ Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. D
 - [Quickstart](https://canix402.compx.io/quickstart): agent onboarding (MCP or direct HTTP)
 - [MCP setup](https://canix402.compx.io/mcp): connect to `https://canix402-mcp.compx.io/mcp`, paid-tool paymentSignature retry
 - [WebMCP demo](https://canix402.compx.io/webmcp): `document.modelContext.registerTool` (Chrome) / `navigator.modelContext` fallback; fail-closed execute
-- [x402 payment flow](https://canix402.compx.io/x402): preflight 402, sign USDC transfer, retry with PAYMENT-SIGNATURE
+- [x402 payment flow](https://canix402.compx.io/x402): preflight 402, pay on Algorand or Base USDC, retry with PAYMENT-SIGNATURE
 - [Examples](https://canix402.compx.io/examples): copy-paste curl and sample payloads
 - [Endpoint catalog](https://canix402.compx.io/endpoints): human-readable route table sourced from discovery
 - [Live transactions](https://canix402.compx.io/transactions): recent inbound USDC payments to the x402 pay-to wallet
@@ -37,7 +37,7 @@ Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. D
 - [GET /positions](https://canix402-api.compx.io/positions): 0.005 USDC — Algorand DeFi positions held by a wallet
 - [GET /positions/claimable](https://canix402-api.compx.io/positions/claimable): 0.001 USDC — Claimable DeFi rewards across supported protocols
 - [POST /swaps/transactions](https://canix402-api.compx.io/swaps/transactions): 0.005 USDC — Build a walletless swap transaction group from the winning quote
-- [POST /execution/quotes](https://canix402-api.compx.io/execution/quotes): 0.1 USDC — Compile one or more verified transaction shapes into unsigned Algorand transaction groups
+- [POST /execution/quotes](https://canix402-api.compx.io/execution/quotes): 0.1 USDC — Compile verified transaction shapes into unsigned Algorand groups or Base calldata
 - [POST /execution/compose](https://canix402-api.compx.io/execution/compose): 0.1 USDC — Compose opt-in → winning swap → enter as unmerged unsigned groups  # pragma: allowlist secret
 - [POST /execution/simulate](https://canix402-api.compx.io/execution/simulate): 0.1 USDC — Simulate compiled unsigned groups for predicted balance and position deltas  # pragma: allowlist secret
 - [POST /sessions](https://canix402-api.compx.io/sessions): 0.25 USDC — Buy a prepaid agent session receipt  # pragma: allowlist secret
@@ -48,6 +48,6 @@ Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. D
 ## Optional
 
 - [Full LLM guide](https://canix402.compx.io/llms-full.txt): self-contained integration reference without following links
-- [FAQ](https://canix402.compx.io/faq): gateway vs upstream, 402 behavior, USDC asset id
+- [FAQ](https://canix402.compx.io/faq): Algorand, Base, or both; no penalty for omitting a Base address; 402 behavior
 - [Terms and disclaimer](https://canix402.compx.io/terms): informational-only use, no financial advice
 - [Support](mailto:kieran@neonforge.ltd): kieran@neonforge.ltd (Neon Forge Ltd)

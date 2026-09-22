@@ -1,10 +1,10 @@
-# x402 Algorand DeFi Opportunities - Project Overview
+# x402 DeFi Opportunities - Project Overview
 
 ## Purpose
 
-This project provides an x402-only data source for DeFi opportunities on Algorand.
+This project provides an x402-only data source for DeFi opportunities on Algorand and Base (Morpho vaults).
 
-It replaces the earlier public standalone APR/APY website model with a paid API model where consumers pay in USDC via x402-gated endpoints to access structured opportunity data.
+It replaces the earlier public standalone APR/APY website model with a paid API model where consumers pay in USDC via x402-gated endpoints to access structured opportunity data. Agents may pay and act on Algorand, on Base, or on both. An Algorand-only agent supplies an Algorand address and pays the Algorand accept. Omitting a Base address does not change rank, eligibility, price, or access.
 
 ## Goals
 
@@ -390,7 +390,7 @@ Discovery guarantees:
 1. Read `/discovery` to learn endpoints and payment policy.
 2. Read `/openapi.json` for detailed operation schemas.
 3. Call free endpoints (`/health`, `/metadata`, discovery endpoints) directly.
-4. Call paid endpoints and follow x402 negotiation (`PAYMENT-REQUIRED` -> `PAYMENT-SIGNATURE` -> `PAYMENT-RESPONSE`).
+4. Call paid endpoints and follow x402 negotiation (`PAYMENT-REQUIRED` -> select an accept by `network` -> `PAYMENT-SIGNATURE` -> `PAYMENT-RESPONSE`). Algorand USDC is the first accept and a complete payment. Base USDC (`eip155:8453`) is optional at the same price. A Base address is required only for a Morpho quote or a Base payment.
 
 ## Agent Onboarding Website
 

@@ -5,7 +5,7 @@ import { site } from "../lib/config.js";
 
 <BaseLayout
   title="Terms & Disclaimer | CANIX402"
-  description="Terms of use and risk disclaimer for the Canix402 x402-gated Algorand DeFi opportunities data API."
+  description="Terms of use and risk disclaimer for the Canix402 x402-gated DeFi opportunities data API on Algorand and Base."
   keywords="Canix402 terms, disclaimer, risk, x402 API"
 >
   <h1 class="page-title">Terms &amp; Disclaimer</h1>
@@ -40,8 +40,9 @@ import { site } from "../lib/config.js";
 
     <h2>x402 payments</h2>
     <p>
-      Paid endpoints require USDC micropayments via the x402 protocol. Payments are
-      processed through third-party facilitators and blockchain networks. Fees paid
+      Paid endpoints require USDC micropayments via the x402 protocol. An agent may pay on
+      Algorand, on Base, or on both. An Algorand payment is complete without a Base address.
+      Payments are processed through third-party facilitators and blockchain networks. Fees paid
       for API access are generally non-refundable. Failed requests due to client
       errors, invalid payment proofs, or upstream unavailability do not entitle you to
       a refund unless required by applicable law.
@@ -49,7 +50,7 @@ import { site } from "../lib/config.js";
 
     <h2>Third-party services</h2>
     <p>
-      The API aggregates data from independent Algorand DeFi protocols and relies on
+      The API aggregates data from independent Algorand DeFi protocols and Morpho on Base, and relies on
       external infrastructure (facilitators, RPC nodes, hosting providers). We are not
       responsible for outages, policy changes, or actions of those third parties.
     </p>
