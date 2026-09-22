@@ -29,7 +29,7 @@ export function createCanixMcpServer(options: CreateServerOptions = {}): McpServ
         prompts: {}
       },
       instructions: [
-        "canix402 MCP server for Algorand DeFi opportunities, execution quotes, and Haystack swaps.",
+        "canix402 MCP server for DeFi opportunities, execution quotes, and best price swaps.",
         "Always use the Caddy gateway URL configured via CANIX402_API_URL.",
         "Free tools: health, metadata, discovery, openapi, token prices, list_execution_shapes.",
         "Paid tools are walletless passthrough wrappers: initial call returns PAYMENT-REQUIRED metadata, retry with paymentSignature.",

@@ -21,7 +21,11 @@ export default defineConfig({
         "algosdk",
         "@txnlab/use-wallet",
         "@txnlab/use-wallet-pera",
-        "@txnlab/use-wallet-defly"
+        "@txnlab/use-wallet-defly",
+        "viem",
+        "@wagmi/core",
+        "@wagmi/connectors",
+        "@coinbase/wallet-sdk"
       ],
       esbuildOptions: {
         define: {

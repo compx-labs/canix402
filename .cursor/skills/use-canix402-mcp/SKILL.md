@@ -29,9 +29,15 @@ the returned execution group.
    - `mcpPayment.paymentRequiredHeader`
    - `request`, containing the request that must be retried
 3. Select an accept from `mcpPayment.paymentRequired.accepts` by
-   `network`, not by index. Algorand is first so existing `accepts[0]`
-   clients keep paying on Algorand. Choose `base` or `eip155:8453` only
-   when the user is paying with Base USDC.
+   `network`, not by index. An agent may pay on Algorand, on Base, or on
+   both. Algorand is first so existing `accepts[0]` clients keep paying on
+   Algorand, and paying that accept is complete. Choose `base` or
+   `eip155:8453` only when the user is paying with Base USDC. An
+   Algorand-only agent is not penalized for omitting a Base address:
+   positions, personalized opportunities, eligibility, plans, and Algorand
+   quotes take an Algorand address alone. A Base `0x` address is required
+   only for a Morpho quote or a payment signed against the Base accept.
+   Omitting it does not change rank, eligibility, price, or access.
 4. Validate the requirement before signing:
    - `scheme` is `exact`
    - `network` is the rail you intend to pay

@@ -431,7 +431,7 @@ function buildX402Manifest(): X402DiscoveryManifest {
     name: "canix402",
     version: getApiVersion(),
     description:
-      "x402-gated DeFi opportunities API. Paid routes accept Algorand USDC, and Base USDC when a Base receiver is configured.",
+      "x402-gated DeFi opportunity API.",
     x402Version: 2,
     docsUrl,
     llmsTxtUrl,
@@ -495,7 +495,7 @@ function buildLlmsText(includeAllEndpoints = false): string {
   const lines = [
     "# CANIX402",
     "",
-    "> x402-gated Algorand DeFi data and walletless transaction API for autonomous agents.",
+    "> x402-gated DeFi data and walletless transaction API for autonomous agents.",
     "",
     `Use the public Caddy gateway: ${publicBaseUrl}. The upstream API is private.`,
     `Canonical documentation: ${getDocsSiteUrl()}.`,
@@ -523,7 +523,7 @@ function buildLlmsText(includeAllEndpoints = false): string {
 
   lines.push(
     "",
-    "Unpaid paid-route requests return HTTP 402 with PAYMENT-REQUIRED. Select an accept by network (Algorand stays first). Sign that USDC payment client-side — an Algorand ASA transfer, or a Base EIP-3009 authorization when that accept is listed — and retry with PAYMENT-SIGNATURE. Canix never receives wallet keys or submits transactions.",
+    "Unpaid paid-route requests return HTTP 402 with PAYMENT-REQUIRED. Agents may use Algorand, Base, or both. Select an accept by network (Algorand stays first and is a complete payment). Sign that USDC payment client-side — an Algorand ASA transfer, or a Base EIP-3009 authorization when that accept is listed — and retry with PAYMENT-SIGNATURE. An Algorand-only agent omits a Base address. That does not change rank, eligibility, price, or access. A Base address is required only for a Morpho quote or a Base payment. Canix never receives wallet keys or submits transactions.",
     "Do not guess execution construction (pool discovery, opt-ins, min-balance, slippage, liquidity limits, app upgrades). Read protocol/docs/execution-shapes/protocol-caveats.md and GET /execution/shapes meta.caveatsDocsPath."
   );
 
@@ -601,7 +601,7 @@ function buildAgentCard() {
       logoUrl: `${publicBaseUrl}/logo.png?v=2`,
       bannerUrl: `${publicBaseUrl}/banner.png?v=2`,
       note:
-        "Make a normal HTTP request. An unpaid paid-route request returns HTTP 402 with payment requirements. Algorand is the first accept. Choose the Base accept by network when it is listed, sign client-side, and retry with PAYMENT-SIGNATURE."
+        "Make a normal HTTP request. An unpaid paid-route request returns HTTP 402 with payment requirements. Agents may use Algorand, Base, or both. Algorand is the first accept and a complete payment. Choose the Base accept by network when it is listed, sign client-side, and retry with PAYMENT-SIGNATURE. Omitting a Base address does not change rank, eligibility, price, or access."
     }
   };
 }
@@ -615,9 +615,9 @@ function buildAiPluginManifest() {
     name_for_human: "canix402",
     name_for_model: "canix402",
     description_for_human:
-      "Algorand DeFi data and walletless transaction API for agents, paid per call with USDC using x402.",
+      "DeFi data and walletless transaction API for agents, paid per call with USDC using x402.",
     description_for_model:
-      "Use this public Caddy gateway for Algorand DeFi opportunities, positions, pricing, swap preparation, and unsigned transaction quotes. Free discovery endpoints describe paid operations. An unpaid paid request returns HTTP 402 with PAYMENT-REQUIRED; sign the requested USDC payment client-side and retry with PAYMENT-SIGNATURE. The service never receives wallet keys or submits transactions.",
+      "Use this public Caddy gateway for DeFi opportunities, positions, pricing, swap preparation, and unsigned transaction quotes. Agents may use Algorand, Base, or both. An Algorand-only agent omits a Base address; that does not change rank, eligibility, price, or access. Free discovery endpoints describe paid operations. An unpaid paid request returns HTTP 402 with PAYMENT-REQUIRED; select an accept by network, sign that USDC payment client-side, and retry with PAYMENT-SIGNATURE. The service never receives wallet keys or submits transactions.",
     api: {
       type: "openapi",
       url: `${publicBaseUrl}/openapi.json`

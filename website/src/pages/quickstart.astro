@@ -7,14 +7,16 @@ import { config } from "../lib/config";
 
 <BaseLayout
   title="Quickstart | CANIX402"
-  description="Get an agent connected to Canix402 in four steps: read discovery and OpenAPI, probe free routes (including execution shapes and Haystack quotes), then call paid opportunities, positions, execution quotes, or swap transactions with x402 USDC payment."
-  keywords="Canix402 quickstart, agent onboarding, x402 integration, discovery, OpenAPI, Algorand DeFi API"
+  description="Get an agent connected to Canix402 in four steps: read discovery and OpenAPI, probe free routes, then call paid routes with Algorand or Base USDC. An Algorand-only agent does not need a Base address."
+  keywords="Canix402 quickstart, agent onboarding, x402 integration, discovery, OpenAPI, Algorand, Base"
 >
   <h1 class="page-title">Quickstart</h1>
   <p class="muted">
     Use the Caddy gateway URL as your base URL. Discovery, OpenAPI,
     <code>GET /execution/shapes</code>, and <code>POST /swaps/quote</code> are free; paid data,
-    quote, and swap-transaction routes require x402 USDC payment.
+    quote, and swap-transaction routes require x402 USDC payment. Pay on Algorand, on Base, or on
+    both. An Algorand address is enough for Algorand wallet routes. Omitting a Base address does
+    not change rank, eligibility, price, or access.
   </p>
 
   <section class="panel">
@@ -69,8 +71,10 @@ import { config } from "../lib/config";
   <section class="panel">
     <h2>4. Call a paid route</h2>
     <p>
-      First call returns <code>402</code> with <code>PAYMENT-REQUIRED</code>. Retry with a signed
-      payload. Same pattern for opportunities, positions, execution quotes, and Haystack
+      First call returns <code>402</code> with <code>PAYMENT-REQUIRED</code>. Select an accept by
+      <code>network</code> and retry with a signed payload. Algorand is the first accept and a
+      complete payment on its own. Base (<code>eip155:8453</code>) is optional and uses the same
+      price. Same pattern for opportunities, positions, execution quotes, and
       <code>POST /swaps/transactions</code>.
     </p>
     <PaymentFlow />

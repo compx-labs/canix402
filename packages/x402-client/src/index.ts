@@ -25,10 +25,16 @@ export {
   BASE_USDC_ASSET_ADDRESS,
   BASE_USDC_EIP712_NAME,
   BASE_USDC_EIP712_VERSION,
+  TRANSFER_WITH_AUTHORIZATION_TYPES,
+  baseTransferTypedData,
   buildBasePaymentSignature,
+  encodeBasePaymentSignature,
   getBaseAccept,
   isBasePaymentNetwork,
   tryGetBaseAccept,
+  type BaseTransferTypedData,
+  type BaseTransferTypedDataInput,
   type BuildBasePaymentSignatureInput,
+  type EncodeBasePaymentSignatureInput,
   type ExactEip3009Authorization
 } from "./base-payment.js";

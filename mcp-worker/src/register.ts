@@ -804,7 +804,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_get_execution_quote",
     {
       description:
-        "Compile one or more unsigned Algorand transaction groups (POST /execution/quotes). Pass quotes: [{ shapeKey, input }, ...]. Required input fields vary by shapeKey — call canix_list_execution_shapes and use each shape's requiredInputs (userAddress is always required). Response data is an ExecutableQuote array. Paid flat ~0.10 USDC per request (not per item). On failure, error.details includes quoteIndex and shapeKey. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades — read protocol/docs/execution-shapes/protocol-caveats.md and each shape's docsPath.", // pragma: allowlist secret
+        "Compile one or more unsigned groups (POST /execution/quotes). Algorand shapes return Algorand groups; Morpho shapes (base:morpho:vault:*) return unsigned Base calldata. Pass an Algorand userAddress unless the shape is on Base. Omitting a Base address does not change rank, eligibility, price, or access. Pass quotes: [{ shapeKey, input }, ...]. Required input fields vary by shapeKey — call canix_list_execution_shapes and use each shape's requiredInputs (userAddress is always required). Response data is an ExecutableQuote array. Paid flat ~0.10 USDC per request on Algorand or Base (not per item). On failure, error.details includes quoteIndex and shapeKey. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades — read protocol/docs/execution-shapes/protocol-caveats.md and each shape's docsPath.", // pragma: allowlist secret
       inputSchema: {
         quotes: z
           .array(

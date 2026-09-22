@@ -11,6 +11,7 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
+    "./base": "./src/base-typed-data.ts",
     "./manifest": "./src/manifest.ts",
     "./protocol": "./src/protocol.ts",
     "./payment": "./src/payment.ts"

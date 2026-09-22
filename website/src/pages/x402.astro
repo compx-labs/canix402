@@ -18,12 +18,14 @@ import {
 <BaseLayout
   title="x402 Payment Flow | CANIX402"
   description="Learn how x402 USDC payment works for Canix402 paid routes: 402 preflight, PAYMENT-REQUIRED headers, wallet signing, gateway verification, and per-route pricing."
-  keywords="x402 payment flow, Canix402, USDC payments, PAYMENT-SIGNATURE, Algorand, gateway settlement"
+  keywords="x402 payment flow, Canix402, USDC payments, PAYMENT-SIGNATURE, Algorand, Base, gateway settlement"
 >
   <h1 class="page-title">x402 payment flow</h1>
   <p class="muted">
     Payment enforcement happens at the Caddy gateway. The API publishes payment requirements through
-    discovery and OpenAPI; the gateway verifies and settles via the facilitator.
+    discovery and OpenAPI; the gateway verifies and settles via the facilitator. An agent may pay on
+    Algorand, on Base, or on both. Paying the Algorand accept is a complete payment. Omitting a Base
+    address does not change rank, eligibility, price, or access.
   </p>
 
   <PaymentFlow />
@@ -38,12 +40,56 @@ import {
   </section>
 
   <section class="panel">
+    <h2>Choose a payment rail</h2>
+    <p>
+      <code>PAYMENT-REQUIRED</code> lists accepts. Select one by <code>network</code>, not by index.
+      Algorand is first so existing clients keep paying on Algorand. Both accepts use the same price.
+      The payment network is separate from the chain a quote executes on: an Algorand USDC payment
+      can buy a Morpho quote, and a Base USDC payment can buy an Algorand quote.
+    </p>
+    <ul>
+      <li>
+        <strong>Algorand</strong> — <code>network</code> <code>algorand-mainnet</code>, asset USDC ASA
+        <code>31566704</code>, <code>payTo</code> an Algorand address. Payload is a signed ASA
+        transfer in <code>paymentGroup</code>.
+      </li>
+      <li>
+        <strong>Base</strong> — <code>network</code> <code>eip155:8453</code> (also advertised as
+        <code>base</code>), asset Circle USDC
+        <code>0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913</code>, <code>payTo</code> a
+        <code>0x</code> address. Payload is an EIP-3009
+        <code>transferWithAuthorization</code>. That signature is the API fee, not Morpho vault
+        calldata. The Base accept is omitted until the gateway has a real Base receiver.
+      </li>
+    </ul>
+    <p>
+      A Base address is required only when you sign the Base accept or request a Base execution
+      quote. Wallet routes such as <code>/positions</code>, <code>/opportunities/personalized</code>,
+      <code>/eligibility</code>, <code>/plans</code>, and Algorand swaps take an Algorand address
+      alone.
+    </p>
+    <h3>Algorand envelope</h3>
+    <CodeBlock
+      code={`{\n  "x402Version": 2,\n  "scheme": "exact",\n  "network": "algorand-mainnet",\n  "accepted": { /* selected Algorand accept */ },\n  "payload": {\n    "paymentGroup": ["<base64-signed-txn>"],\n    "paymentIndex": 0\n  },\n  "paymentRequired": { /* decoded PAYMENT-REQUIRED */ }\n}`}
+    />
+    <h3>Base envelope</h3>
+    <CodeBlock
+      code={`{\n  "x402Version": 2,\n  "scheme": "exact",\n  "network": "eip155:8453",\n  "accepted": { /* selected Base accept */ },\n  "payload": {\n    "signature": "0x<65-byte EIP-712 signature>",\n    "authorization": {\n      "from": "0x<payer>",\n      "to": "0x<payTo>",\n      "value": "10000",\n      "validAfter": "<unix seconds>",\n      "validBefore": "<unix seconds>",\n      "nonce": "0x<32 bytes>"\n    }\n  },\n  "paymentRequired": { /* decoded PAYMENT-REQUIRED */ }\n}`}
+    />
+    <p class="muted">
+      Match <code>scheme</code>, <code>network</code>, <code>asset</code>, <code>payTo</code>, and
+      <code>maxAmountRequired</code> from the live accept. Base64-encode the JSON for
+      <code>PAYMENT-SIGNATURE</code>. Full field rules: <a href="/examples">examples</a>.
+    </p>
+  </section>
+
+  <section class="panel">
     <h2>Typical accept policy fields</h2>
     <ul>
       <li><code>scheme</code>: usually <code>exact</code></li>
-      <li><code>network</code>: e.g. <code>algorand-mainnet</code></li>
-      <li><code>asset</code>: USDC ASA id on Algorand mainnet</li>
-      <li><code>payTo</code>: receiver address configured for the gateway</li>
+      <li><code>network</code>: <code>algorand-mainnet</code> or <code>eip155:8453</code></li>
+      <li><code>asset</code>: USDC ASA <code>31566704</code> on Algorand, or Circle USDC on Base</li>
+      <li><code>payTo</code>: receiver address for the selected network</li>
       <li><code>maxAmountRequired</code>: USDC-denominated amount for the route (e.g. <code>0.01</code>).</li>
     </ul>
   </section>

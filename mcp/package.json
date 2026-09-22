@@ -2,7 +2,7 @@
   "name": "@canix402/mcp",
   "version": "1.0.0",
   "private": true,
-  "description": "MCP server for canix402 x402-gated Algorand DeFi API",
+  "description": "MCP server for canix402 x402-gated DeFi API",
   "type": "module",
   "engines": {
     "node": ">=20"

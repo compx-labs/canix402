@@ -12,6 +12,12 @@ MCP server that exposes canix402 free and paid gateway endpoints as agent tools.
 
 Always call the **Caddy gateway** (`CANIX402_API_URL`), never the raw Fastify upstream.
 
+## Payment rails
+
+Agents may pay on Algorand, on Base, or on both. Paid tools return `PAYMENT_REQUIRED` with accepts. Select by `network`. Algorand is first (`algorand-mainnet`, USDC ASA `31566704`, signed ASA `paymentGroup`) and a complete payment on its own. Base (`eip155:8453`, Circle USDC, EIP-3009) is optional and the same price.
+
+An Algorand-only agent is not penalized for omitting a Base address. Positions, personalized opportunities, eligibility, plans, and Algorand quotes take an Algorand address alone. A Base `0x` address is required only for a Morpho quote or a payment signed against the Base accept. Omitting it does not change rank, eligibility, price, or access.
+
 `canix_list_execution_shapes` / `canix_get_execution_quote` point at
 `protocol/docs/execution-shapes/protocol-caveats.md` for protocol-specific
 construction caveats (pool discovery, opt-ins, min-balance, slippage, liquidity

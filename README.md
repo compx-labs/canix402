@@ -1,6 +1,6 @@
 # canix402 monorepo
 
-x402-gated Algorand DeFi opportunities platform.
+x402-gated DeFi opportunities platform for Algorand and Base. Agents may use either chain or both. An Algorand-only agent does not supply a Base address, and omitting one does not change rank, eligibility, price, or access.
 
 This repository contains two workspaces:
 

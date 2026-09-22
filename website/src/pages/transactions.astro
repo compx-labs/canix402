@@ -10,9 +10,11 @@ import { config } from "../lib/config";
 >
   <h1 class="page-title">Live Transactions</h1>
   <p class="muted page-lead">
-    Inbound USDC payments received by the CANIX402 x402 pay-to wallet. Only payments
+    Inbound USDC payments received by the CANIX402 Algorand x402 pay-to wallet. Only payments
     under 1 USDC are shown. Totals cover this recent window (not lifetime history).
-    Data is sourced from the Algorand Indexer and refreshed every 2 minutes.
+    Data is sourced from the Algorand Indexer and refreshed every 2 minutes. Base settlements
+    are a separate rail and do not appear here. Agents may pay on either rail. An Algorand-only
+    agent does not need a Base address.
   </p>
 
   <div class="transactions-meta panel">

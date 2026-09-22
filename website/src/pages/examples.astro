@@ -31,7 +31,7 @@ const policyCurl = `curl -i ${config.gatewayBaseUrl}/policy/validate -H 'content
 const pageDescription =
   "Copy-paste Canix402 API examples for discovery, OpenAPI, x402 signed retries, opportunities, positions, execution shapes/quotes, and multi-router swaps."; // pragma: allowlist secret
 const pageKeywords =
-  "Canix402 examples, x402 payment examples, API samples, personalized opportunities, execution quotes, positions, swaps, Algorand DeFi responses"; // pragma: allowlist secret
+  "Canix402 examples, x402 payment examples, Algorand, Base, API samples, personalized opportunities, execution quotes, positions, swaps"; // pragma: allowlist secret
 const swapsQuoteCurl = `curl -i ${config.gatewayBaseUrl}/swaps/quote \\\n  -H 'content-type: application/json' \\\n  -d '{\n    "address": "YOUR_ALGORAND_ADDRESS",\n    "fromAssetId": 0,\n    "toAssetId": 31566704,\n    "amount": "1000000",\n    "type": "fixed-input"\n  }'`; // pragma: allowlist secret
 ---
 
@@ -41,7 +41,12 @@ const swapsQuoteCurl = `curl -i ${config.gatewayBaseUrl}/swaps/quote \\\n  -H 'c
   keywords={pageKeywords}>
 
   <h1 class="page-title">Examples</h1>
-  <p class="muted">All examples use the public Caddy gateway URL. Replace placeholders before running paid retries.</p>
+  <p class="muted">
+    All examples use the public Caddy gateway URL. Replace placeholders before running paid retries.
+    An agent may use Algorand, Base, or both. Algorand examples below pass an Algorand address only.
+    Omitting a Base address does not change rank, eligibility, price, or access. A Base
+    <code>0x</code> address appears only on the Morpho quote.
+  </p>
 
   <section class="panel">
     <h2>MCP discovery tool</h2>
@@ -77,9 +82,18 @@ const swapsQuoteCurl = `curl -i ${config.gatewayBaseUrl}/swaps/quote \\\n  -H 'c
 
   <section class="panel">
     <h2>Signed retry shape (HTTP)</h2>
-    <p>The website does not sign payments. Your agent/client wallet must build this payload.</p>
+    <p>
+      The website does not sign payments. Your agent selects an accept by <code>network</code> and
+      builds that payload. Algorand is first and a complete payment on its own. Base is the same
+      price and is optional. Base64-encode the JSON as <code>PAYMENT-SIGNATURE</code>.
+    </p>
+    <h3>Algorand</h3>
     <CodeBlock
-      code={`{\n  "x402Version": 2,\n  "scheme": "exact",\n  "network": "algorand-mainnet",\n  "accepted": { /* selected accept option from PAYMENT-REQUIRED */ },\n  "payload": {\n    "paymentGroup": ["<base64-signed-txn>"],\n    "paymentIndex": 0\n  },\n  "paymentRequired": { /* decoded PAYMENT-REQUIRED */ }\n}`}
+      code={`{\n  "x402Version": 2,\n  "scheme": "exact",\n  "network": "algorand-mainnet",\n  "accepted": { /* selected Algorand accept from PAYMENT-REQUIRED */ },\n  "payload": {\n    "paymentGroup": ["<base64-signed-txn>"],\n    "paymentIndex": 0\n  },\n  "paymentRequired": { /* decoded PAYMENT-REQUIRED */ }\n}`}
+    />
+    <h3>Base</h3>
+    <CodeBlock
+      code={`{\n  "x402Version": 2,\n  "scheme": "exact",\n  "network": "eip155:8453",\n  "accepted": { /* selected Base accept from PAYMENT-REQUIRED */ },\n  "payload": {\n    "signature": "0x<65-byte EIP-712 signature>",\n    "authorization": {\n      "from": "0x<payer>",\n      "to": "0x<payTo>",\n      "value": "10000",\n      "validAfter": "<unix seconds>",\n      "validBefore": "<unix seconds>",\n      "nonce": "0x<32 bytes>"\n    }\n  },\n  "paymentRequired": { /* decoded PAYMENT-REQUIRED */ }\n}`}
     />
   </section>
 
@@ -270,6 +284,16 @@ const swapsQuoteCurl = `curl -i ${config.gatewayBaseUrl}/swaps/quote \\\n  -H 'c
     </p>
     <CodeBlock
       code={`curl -i ${config.gatewayBaseUrl}/execution/quotes \\\n  -H 'content-type: application/json' \\\n  -H 'PAYMENT-SIGNATURE: <base64-json-payload>' \\\n  -d '{\n    "quotes": [{\n      "shapeKey": "mainnet:tinyman:v2:removeLiquidity:multipleAssetsOut",\n      "input": {\n        "userAddress": "YOUR_ALGORAND_ADDRESS",\n        "poolId": "1002541853",\n        "assetAId": 0,\n        "assetBId": 31566704,\n        "poolTokenAmount": "1250000",\n        "maxSlippageBps": 50\n      }\n    }]\n  }'`}
+    />
+    <h3>4) Morpho vault deposit on Base (optional)</h3>
+    <p>
+      Use this only when the agent is acting on Base. <code>userAddress</code> is a Base
+      <code>0x</code> address. The response is unsigned calldata (<code>encodedTransactions</code> hex
+      and <code>transactions[].evmCall</code>). An Algorand-only agent can skip this call. Pay the
+      same 0.1 USDC on either rail. The payment signature is not the vault calldata.
+    </p>
+    <CodeBlock
+      code={`curl -i ${config.gatewayBaseUrl}/execution/quotes \\\n  -H 'content-type: application/json' \\\n  -H 'PAYMENT-SIGNATURE: <base64-json-payload>' \\\n  -d '{\n    "quotes": [{\n      "shapeKey": "base:morpho:vault:deposit:erc4626",\n      "input": {\n        "userAddress": "0xYOUR_BASE_ADDRESS",\n        "vaultAddress": "0xef417a2512C5a41f69AE4e021648b69a7CdE5D03",\n        "amount": "1000000"\n      }\n    }]\n  }'`}
     />
     <h3>Sample response (200)</h3>
     <CodeBlock code={format(executionQuotesSample)} />

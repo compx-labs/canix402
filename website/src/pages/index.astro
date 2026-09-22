@@ -24,7 +24,7 @@ const productSignals = [
   "Remote MCP",
   "OpenAPI / discovery",
   "Wallet-personalized APYs",
-  "Algorand USDC"
+  "Algorand or Base USDC"
 ];
 
 const withoutCanix = [
@@ -35,7 +35,7 @@ const withoutCanix = [
 ];
 
 const withCanix = [
-  "One normalized API across all supported Algorand DeFi protocols.",
+  "One normalized API across Algorand protocols and Morpho on Base. Use either chain, or both.",
   "Stable schemas, ranked APY data, and consistent field semantics every call.",
   "Discover endpoints and pricing through /discovery and /openapi.json.",
   "Connect via remote MCP tools or direct HTTP with x402 at the gateway."
@@ -65,7 +65,7 @@ const agentCapabilities = [
   {
     title: "Pay and proceed",
     description:
-      "Hit a paid route, receive 402 with PAYMENT-REQUIRED, sign USDC via x402, retry — your agent keeps executing without human intervention."
+      "Hit a paid route, receive 402 with PAYMENT-REQUIRED, sign Algorand or Base USDC, and retry. An Algorand payment is complete on its own."
   }
 ];
 
@@ -83,7 +83,7 @@ const howItWorks = [
   {
     step: "3",
     title: "Pay",
-    description: "Agent wallet signs the USDC transfer payload and retries with PAYMENT-SIGNATURE."
+    description: "Agent signs the selected USDC accept — Algorand, Base, or either — and retries with PAYMENT-SIGNATURE."
   },
   {
     step: "4",
@@ -118,17 +118,17 @@ const caseStudyResults = [
 
 <BaseLayout
   title="CANIX402 | Hunting down the best yields"
-  description="Canix402 gives autonomous agents a single x402-paid data rail for Algorand DeFi. Discover endpoints, pay in USDC, and fetch normalized APY data — including wallet-personalized yield recommendations."
-  keywords="Canix402, Algorand DeFi API, x402 payments, autonomous agents, APY, yield hunting, wallet personalization, OpenAPI"
+  description="Canix402 gives autonomous agents a single x402-paid data rail for DeFi. Discover endpoints, pay in USDC, and fetch normalized APY data — including wallet-personalized yield recommendations."
+  keywords="Canix402, Algorand DeFi API, Base, Morpho, x402 payments, autonomous agents, APY, yield hunting, wallet personalization, OpenAPI"
 >
   <!-- Hero -->
   <section class="landing-hero">
     <div class="landing-hero-grid">
       <div class="hero-copy">
-        <span class="eyebrow">x402 paid Algorand DeFi data API</span>
+        <span class="eyebrow">x402 paid DeFi data API</span>
         <h1>Hunting down the best yields</h1>
         <p class="hero-lead">
-          Canix402 gives autonomous agents a single, paid data rail for Algorand DeFi opportunities.
+          Canix402 gives autonomous agents a single, paid data rail for DeFi opportunities.
           No per-protocol scrapers. No shape-shifting schemas. Just discoverable endpoints, x402
           payments, and normalized APY data ready for agent reasoning.
         </p>
@@ -158,11 +158,12 @@ const caseStudyResults = [
   <section class="landing-section">
     <div class="section-header">
       <span class="eyebrow">What it is</span>
-      <h2>One API for Algorand DeFi yield intelligence</h2>
+      <h2>One API for Algorand and Base yield intelligence</h2>
       <p class="section-lead muted">
         Canix402 normalizes APR/APY opportunities across Tinyman, Pact, Folks Finance, CompX,
-        Dork.fi, Myth Finance, Haystack, Réti, and Alpha Arcade — then exposes them through agent-discoverable, x402-paid API routes at the Caddy
-        gateway. Builders get stable contracts. Agents get data they can trust and act on.
+        Dork.fi, Myth Finance, Haystack, Réti, Alpha Arcade, and Morpho on Base — then exposes them through agent-discoverable, x402-paid API routes at the Caddy
+        gateway. Agents may use Algorand, Base, or both. An Algorand-only agent does not supply a Base address.
+        Builders get stable contracts. Agents get data they can trust and act on.
       </p>
     </div>
     <div class="value-grid">
@@ -348,7 +349,7 @@ const caseStudyResults = [
   <section class="landing-section">
     <div class="section-header">
       <span class="eyebrow">Coverage</span>
-      <h2>Algorand DeFi, normalized</h2>
+      <h2>Algorand and Base, normalized</h2>
       <p class="section-lead muted">
         Canix402 aggregates opportunity data from every supported protocol into one consistent
         schema — so your agent never has to know how each source structures its response.

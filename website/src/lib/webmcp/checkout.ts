@@ -1,3 +1,10 @@
+import {
+  baseTransferTypedData,
+  encodeBasePaymentSignature,
+  type BaseTransferTypedData
+} from "@canix402/x402-client/base";
+import type { Hex } from "viem";
+
 import { executeCanixWebMcpToolValue, type ExecuteCanixToolOptions } from "./execute";
 import type { PaymentRequest } from "./payment";
 import { receiptFromToolResult, type WebMcpSessionStore } from "./session-store";
@@ -5,21 +12,34 @@ import type { SessionReceipt } from "./types";
 import {
   assemblePaymentSignature,
   buildUnsignedPaymentGroup,
+  selectBasePaymentAccept,
   selectPaymentAccept,
   type SignTransactionsFn,
   type SuggestedTxnParams
 } from "./x402-wallet-payment";
 
 export type SessionCheckoutMode = "create" | "refresh";
+export type SignBaseTypedDataFn = (typed: BaseTransferTypedData) => Promise<Hex>;
 
-export interface BuyPrepaidSessionOptions extends ExecuteCanixToolOptions {
+interface BuyPrepaidSessionShared extends ExecuteCanixToolOptions {
   sender: string;
-  signTransactions: SignTransactionsFn;
-  fetchSuggestedParams: () => Promise<SuggestedTxnParams>;
   sessionStore: WebMcpSessionStore;
   mode?: SessionCheckoutMode;
   execute?: typeof executeCanixWebMcpToolValue;
 }
+
+export interface BuyAlgorandPrepaidSessionOptions extends BuyPrepaidSessionShared {
+  rail?: "algorand";
+  signTransactions: SignTransactionsFn;
+  fetchSuggestedParams: () => Promise<SuggestedTxnParams>;
+}
+
+export interface BuyBasePrepaidSessionOptions extends BuyPrepaidSessionShared {
+  rail: "base";
+  signTypedData: SignBaseTypedDataFn;
+}
+
+export type BuyPrepaidSessionOptions = BuyAlgorandPrepaidSessionOptions | BuyBasePrepaidSessionOptions;
 
 export async function buyPrepaidSession(
   options: BuyPrepaidSessionOptions
@@ -47,15 +67,19 @@ export async function buyPrepaidSession(
   }
 
   const paymentRequired = readPaymentRequired(preflight);
-  const accepted = selectPaymentAccept(paymentRequired);
-  if ("error" in accepted) {
-    return accepted;
-  }
   if (!paymentRequired) {
     return {
       error: "PAYMENT_INVALID",
       message: "Create session preflight did not include paymentRequired."
     };
+  }
+  if (options.rail === "base") {
+    return completeBaseCheckout(options, toolName, baseArgs, execute, paymentRequired);
+  }
+
+  const accepted = selectPaymentAccept(paymentRequired);
+  if ("error" in accepted) {
+    return accepted;
   }
 
   let suggestedParams: SuggestedTxnParams;
@@ -125,6 +149,83 @@ export async function buyPrepaidSession(
     return paid;
   }
 
+  return persistCheckoutResult(paid, options.sessionStore);
+}
+
+async function completeBaseCheckout(
+  options: BuyBasePrepaidSessionOptions,
+  toolName: "canix_create_session" | "canix_refresh_session",
+  baseArgs: Record<string, unknown>,
+  execute: typeof executeCanixWebMcpToolValue,
+  paymentRequired: PaymentRequest
+): Promise<unknown> {
+  const accepted = selectBasePaymentAccept(paymentRequired);
+  if ("error" in accepted) {
+    return accepted;
+  }
+
+  let typed: BaseTransferTypedData;
+  try {
+    typed = baseTransferTypedData({
+      paymentRequest: paymentRequired,
+      from: options.sender
+    });
+  } catch (error) {
+    return {
+      error: "PAYMENT_INVALID",
+      message: error instanceof Error ? error.message : "Could not build the Base USDC authorization."
+    };
+  }
+
+  let signature: Hex;
+  try {
+    signature = await options.signTypedData(typed);
+  } catch (error) {
+    return {
+      error: "PAYMENT_REJECTED",
+      message: error instanceof Error ? error.message : "Wallet rejected the USDC payment."
+    };
+  }
+
+  const requestUrl =
+    typeof paymentRequired.resource?.url === "string" && paymentRequired.resource.url.length > 0
+      ? paymentRequired.resource.url
+      : options.gatewayBaseUrl;
+  let paymentSignature: string;
+  try {
+    paymentSignature = encodeBasePaymentSignature({
+      paymentRequest: paymentRequired,
+      requestUrl,
+      typed,
+      signature
+    });
+  } catch (error) {
+    return {
+      error: "PAYMENT_REJECTED",
+      message: error instanceof Error ? error.message : "Could not encode the Base USDC payment."
+    };
+  }
+
+  const paid = await execute(
+    toolName,
+    { ...baseArgs, paymentSignature },
+    {
+      gatewayBaseUrl: options.gatewayBaseUrl,
+      fetchImpl: options.fetchImpl,
+      signal: options.signal
+    }
+  );
+  const paidError = toolError(paid);
+  if (paidError) {
+    if (paidError.error === "PAYMENT_REQUIRED") {
+      return {
+        ...paidError,
+        error: "PAYMENT_FAILED",
+        message: "USDC payment was not accepted. Session was not minted."
+      };
+    }
+    return paid;
+  }
   return persistCheckoutResult(paid, options.sessionStore);
 }
 

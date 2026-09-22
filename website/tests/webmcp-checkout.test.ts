@@ -259,3 +259,103 @@ test("read remaining uses canix_get_session and fail-closes when expired", async
   assert.equal((expired as { error: string }).error, "SESSION_EXPIRED");
   assert.equal(sessionStore.get()?.status, "expired");
 });
+
+test("base checkout signs the eip155 accept instead of the Algorand payment group", async () => {
+  const sessionStore = createSessionStore(memorySessionStorage());
+  const payer = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
+  const payToBase = "0x1111111111111111111111111111111111111111";
+  const required = dualRailPayment(payToBase);
+  let sawTypedData = false;
+  const result = await buyPrepaidSession({
+    rail: "base",
+    gatewayBaseUrl: "https://gateway.example",
+    sender: payer,
+    sessionStore,
+    signTypedData: async (typed) => {
+      sawTypedData = true;
+      assert.equal(typed.authorization.from, payer);
+      assert.equal(typed.authorization.to, payToBase);
+      assert.equal(typed.message.value, 250_000n);
+      assert.equal(typed.domain.chainId, 8453);
+      return `0x${"ab".repeat(65)}`;
+    },
+    execute: async (_name, rawArgs) => {
+      const args = rawArgs as Record<string, unknown>;
+      if (!args.paymentSignature) {
+        return {
+          error: "PAYMENT_REQUIRED",
+          message: "pay",
+          mcpPayment: { required: true, paymentRequired: required }
+        };
+      }
+      const decoded = JSON.parse(Buffer.from(String(args.paymentSignature), "base64").toString("utf8")) as {
+        network: string;
+        payload: { paymentGroup?: unknown; signature: string; authorization: { from: string } };
+      };
+      assert.equal(decoded.network, "eip155:8453");
+      assert.equal(decoded.payload.paymentGroup, undefined);
+      assert.equal(decoded.payload.signature, `0x${"ab".repeat(65)}`);
+      assert.equal(decoded.payload.authorization.from, payer);
+      return receiptBody();
+    }
+  });
+  assert.equal(sawTypedData, true);
+  assert.equal((result as { error?: string }).error, undefined);
+  assert.equal(sessionStore.get()?.sessionId, "csess_live");
+});
+
+test("algorand checkout still uses the first accept when Base is also offered", async () => {
+  const sessionStore = createSessionStore(memorySessionStorage());
+  const result = await buyPrepaidSession({
+    gatewayBaseUrl: "https://gateway.example",
+    sender: sender.addr.toString(),
+    sessionStore,
+    fetchSuggestedParams: async () => suggestedParams,
+    signTransactions: async (group) => group.map(() => new Uint8Array([1, 2, 3, 4])),
+    execute: async (_name, rawArgs) => {
+      const args = rawArgs as Record<string, unknown>;
+      if (!args.paymentSignature) {
+        return {
+          error: "PAYMENT_REQUIRED",
+          message: "pay",
+          mcpPayment: {
+            required: true,
+            paymentRequired: dualRailPayment("0x1111111111111111111111111111111111111111")
+          }
+        };
+      }
+      const decoded = JSON.parse(Buffer.from(String(args.paymentSignature), "base64").toString("utf8")) as {
+        network: string;
+        payload: { paymentGroup?: unknown };
+      };
+      assert.equal(decoded.network, "algorand-mainnet");
+      assert.ok(Array.isArray(decoded.payload.paymentGroup));
+      return receiptBody();
+    }
+  });
+  assert.equal((result as { error?: string }).error, undefined);
+  assert.equal(sessionStore.get()?.sessionId, "csess_live");
+});
+
+function dualRailPayment(payToBase: string): PaymentRequest {
+  return {
+    x402Version: 2,
+    accepts: [
+      {
+        scheme: "exact",
+        network: "algorand-mainnet",
+        asset: "31566704",
+        payTo: payTo.addr.toString(),
+        amount: "250000"
+      },
+      {
+        scheme: "exact",
+        network: "eip155:8453",
+        asset: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        payTo: payToBase,
+        maxAmountRequired: "250000"
+      }
+    ],
+    resource: { url: "https://gateway.example/sessions" }
+  };
+}

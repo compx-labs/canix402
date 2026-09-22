@@ -5,8 +5,8 @@ import { config } from "../lib/config";
 
 <BaseLayout
   title="FAQ | CANIX402"
-  description="Answers to common Canix402 questions: gateway vs upstream API, 402 preflight behavior, client-side payment signing, USDC asset metadata, and API-only data access."
-  keywords="Canix402 FAQ, x402 questions, agent integration, USDC asset id, gateway, payment signing"
+  description="Answers to common Canix402 questions: Algorand or Base agents, gateway vs upstream API, 402 preflight behavior, client-side payment signing, USDC asset metadata, and API-only data access."
+  keywords="Canix402 FAQ, x402 questions, agent integration, Algorand, Base, USDC asset id, gateway, payment signing"
 >
   <h1 class="page-title">FAQ</h1>
 
@@ -37,10 +37,34 @@ import { config } from "../lib/config";
     </article>
 
     <article class="faq-item">
-      <h2>Which USDC asset id should I expect?</h2>
+      <h2>Can my agent use Algorand, Base, or both?</h2>
       <p>
-        Use the asset id published in discovery/OpenAPI x402 metadata for the target network. On
-        Algorand mainnet the default documented id is <code>31566704</code>.
+        Yes. An agent may pay and act on Algorand only, on Base only, or on both. Nothing in
+        ranking, eligibility, pricing, or access requires a second chain. Select the payment accept
+        by <code>network</code>. Algorand stays first. Filter the catalog with
+        <code>chain=algorand</code> or <code>chain=base</code> when you want one chain's rows.
+      </p>
+    </article>
+
+    <article class="faq-item">
+      <h2>Do I have to supply a Base address?</h2>
+      <p>
+        No. An Algorand-only agent is not penalized for omitting a Base address. Wallet routes
+        (<code>/positions</code>, <code>/opportunities/personalized</code>, <code>/eligibility</code>,
+        <code>/plans</code>, Algorand quotes, and swaps) take an Algorand address and nothing else.
+        Leaving out a <code>0x</code> address does not lower rank, fail the request, or block
+        payment. A Base address is required only on the call that needs it: a Morpho quote
+        (<code>userAddress</code> is <code>0x…</code>) or a payment signed against the Base accept.
+      </p>
+    </article>
+
+    <article class="faq-item">
+      <h2>Which USDC asset should I expect?</h2>
+      <p>
+        Use the asset published on the accept you select. On Algorand mainnet the USDC ASA id is
+        <code>31566704</code>. On Base the asset is Circle USDC
+        <code>0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913</code>. Confirm both against live
+        discovery before signing.
       </p>
     </article>
 

@@ -1,4 +1,13 @@
 import { displayWalletLabel, lookupNfdName } from "../nfd";
+import {
+  connectBaseWallet,
+  disconnectBaseWallet,
+  getBaseWalletAddress,
+  listBaseWalletButtons,
+  resumeBaseWallet,
+  signBaseTransferAuthorization,
+  watchBaseWallet
+} from "./base-wallet";
 import { getWebMcpTool } from "./catalog";
 import { buyPrepaidSession, refreshSessionRemaining } from "./checkout";
 import { executeAsHuman as executeHumanTool } from "./human-execute";
@@ -102,30 +111,34 @@ export async function mountWebmcpPage(options: {
 
   const render = (): void => {
     if (checkoutRoot) {
-      const address = getActiveWalletAddress();
+      const checkoutWallet = getCheckoutWallet();
+      const address = checkoutWallet?.address ?? null;
       const receipt = sessionStore.get();
       const statusEl = checkoutRoot.querySelector<HTMLElement>("[data-wallet-status]");
-      paintWalletAddress(address, address ? nfdCache.get(address) : null);
-      if (address) {
-        void resolveWalletNfd(address);
+      const nfdName = checkoutWallet?.rail === "algorand" ? nfdCache.get(checkoutWallet.address) : null;
+      paintWalletAddress(address, nfdName);
+      if (checkoutWallet?.rail === "algorand") {
+        void resolveWalletNfd(checkoutWallet.address);
       }
       if (statusEl) {
-        statusEl.textContent = address ? "Connected (checkout only)" : "Disconnected";
+        statusEl.textContent = checkoutWallet
+          ? `Connected on ${checkoutWallet.rail === "base" ? "Base" : "Algorand"} (checkout only)`
+          : "Disconnected";
       }
-      checkoutRoot.querySelectorAll<HTMLButtonElement>("[data-connect]").forEach((button) => {
-        button.disabled = Boolean(address);
+      checkoutRoot.querySelectorAll<HTMLButtonElement>("[data-connect], [data-connect-base]").forEach((button) => {
+        button.disabled = Boolean(checkoutWallet);
       });
       const disconnectBtn = checkoutRoot.querySelector<HTMLButtonElement>("[data-disconnect]");
       if (disconnectBtn) {
-        disconnectBtn.hidden = !address;
+        disconnectBtn.hidden = !checkoutWallet;
       }
       const buyBtn = checkoutRoot.querySelector<HTMLButtonElement>("[data-buy-session]");
       const refreshBtn = checkoutRoot.querySelector<HTMLButtonElement>("[data-refresh-session]");
       if (buyBtn) {
-        buyBtn.disabled = !address;
+        buyBtn.disabled = !checkoutWallet;
       }
       if (refreshBtn) {
-        refreshBtn.disabled = !address;
+        refreshBtn.disabled = !checkoutWallet;
       }
       setAllText("[data-remaining-research]", receipt ? String(quotaFromReceipt(receipt).remainingResearch) : "—");
       setAllText("[data-remaining-quotes]", receipt ? String(quotaFromReceipt(receipt).remainingQuotes) : "—");
@@ -178,6 +191,53 @@ export async function mountWebmcpPage(options: {
   const errorEl = checkoutRoot.querySelector<HTMLElement>("[data-checkout-error]");
   const noteEl = checkoutRoot.querySelector<HTMLElement>("[data-checkout-note]");
 
+  const paintBaseWalletButtons = (): void => {
+    const host = checkoutRoot.querySelector<HTMLElement>("[data-base-wallets]");
+    if (!host) {
+      return;
+    }
+    host.replaceChildren();
+    for (const wallet of listBaseWalletButtons()) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "button";
+      button.dataset.connectBase = wallet.uid;
+      button.disabled = Boolean(getCheckoutWallet());
+      if (wallet.icon) {
+        const icon = document.createElement("img");
+        icon.src = wallet.icon;
+        icon.alt = "";
+        icon.width = 20;
+        icon.height = 20;
+        button.append(icon);
+      }
+      const label = document.createElement("span");
+      label.textContent = `Connect ${wallet.name}`;
+      button.append(label);
+      button.addEventListener("click", () => {
+        void (async () => {
+          hideBox(errorEl);
+          hideBox(noteEl);
+          try {
+            await disconnectWebmcpWallet();
+            await connectBaseWallet(wallet.uid);
+            if (isMockedSessionReceipt(sessionStore.get())) {
+              sessionStore.clear();
+            }
+            showText(noteEl, `Connected ${wallet.name}. Wallet is only used to pay for this session.`);
+          } catch (error) {
+            showJson(errorEl, {
+              error: "WALLET_CONNECT_FAILED",
+              message: error instanceof Error ? error.message : "Wallet connect was rejected."
+            });
+          }
+          render();
+        })();
+      });
+      host.append(button);
+    }
+  };
+
   try {
     const manager = await resumeWebmcpWallet();
     const wallets = listWebmcpWallets();
@@ -211,6 +271,28 @@ export async function mountWebmcpPage(options: {
     });
   }
 
+  try {
+    await resumeBaseWallet();
+    if (getActiveWalletAddress() && getBaseWalletAddress()) {
+      await disconnectBaseWallet();
+    }
+    paintBaseWalletButtons();
+    watchBaseWallet({
+      onConnection: () => {
+        render();
+      },
+      onConnectors: () => {
+        paintBaseWalletButtons();
+        render();
+      }
+    });
+  } catch (error) {
+    showJson(errorEl, {
+      error: "WALLET_UNAVAILABLE",
+      message: error instanceof Error ? error.message : "Base wallet failed to start."
+    });
+  }
+
   checkoutRoot.querySelectorAll<HTMLButtonElement>("[data-connect]").forEach((button) => {
     button.addEventListener("click", async () => {
       const walletId = button.dataset.connect as WebmcpWalletId | undefined;
@@ -220,6 +302,7 @@ export async function mountWebmcpPage(options: {
       hideBox(errorEl);
       hideBox(noteEl);
       try {
+        await disconnectBaseWallet();
         await connectWebmcpWallet(walletId);
         if (isMockedSessionReceipt(sessionStore.get())) {
           sessionStore.clear();
@@ -239,6 +322,7 @@ export async function mountWebmcpPage(options: {
     hideBox(errorEl);
     hideBox(noteEl);
     await disconnectWebmcpWallet();
+    await disconnectBaseWallet();
     render();
   });
 
@@ -260,6 +344,18 @@ export async function mountWebmcpPage(options: {
   return handles;
 }
 
+function getCheckoutWallet(): { rail: "algorand" | "base"; address: string } | null {
+  const algorandAddress = getActiveWalletAddress();
+  if (algorandAddress) {
+    return { rail: "algorand", address: algorandAddress };
+  }
+  const baseAddress = getBaseWalletAddress();
+  if (baseAddress) {
+    return { rail: "base", address: baseAddress };
+  }
+  return null;
+}
+
 async function runCheckout(
   sessionStore: WebMcpSessionStore,
   gatewayBaseUrl: string,
@@ -270,22 +366,32 @@ async function runCheckout(
 ): Promise<void> {
   hideBox(errorEl);
   hideBox(noteEl);
-  const sender = getActiveWalletAddress();
-  if (!sender) {
+  const checkoutWallet = getCheckoutWallet();
+  if (!checkoutWallet) {
     showJson(errorEl, {
       error: "WALLET_REQUIRED",
-      message: "Connect Pera or Defly with use-wallet before paying USDC."
+      message: "Connect Pera, Defly, or a Base wallet before paying USDC."
     });
     return;
   }
-  const result = await buyPrepaidSession({
-    gatewayBaseUrl,
-    sender,
-    sessionStore,
-    mode,
-    signTransactions: webmcpWalletSignTransactions(),
-    fetchSuggestedParams: fetchSuggestedParamsFromWallet
-  });
+  const result =
+    checkoutWallet.rail === "base"
+      ? await buyPrepaidSession({
+          rail: "base",
+          gatewayBaseUrl,
+          sender: checkoutWallet.address,
+          sessionStore,
+          mode,
+          signTypedData: signBaseTransferAuthorization
+        })
+      : await buyPrepaidSession({
+          gatewayBaseUrl,
+          sender: checkoutWallet.address,
+          sessionStore,
+          mode,
+          signTransactions: webmcpWalletSignTransactions(),
+          fetchSuggestedParams: fetchSuggestedParamsFromWallet
+        });
   if (isToolError(result)) {
     showJson(errorEl, result);
   } else {
