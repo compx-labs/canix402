@@ -1,0 +1,11 @@
+node_modules/
+*.tsbuildinfo
+.npm/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.mnemonic
+*.secret
+npm-debug.log*

@@ -333,6 +333,16 @@ sample `protocol/docs/policy-brownie.sample.json`).
    not sign. Canix does not re-quote on-chain when a field is missing.
 4. Optionally simulate, then sign only user legs locally.
 
+## Opening a Mallow perps limit
+
+Mallow orders are execution shapes, not yield opportunities. Read `GET /protocols/mallow/markets` (free) for the ALGO/USD and BTC/USD index and max leverage, then compile with `canix_get_execution_quote`.
+
+Shape key: `mainnet:mallow:v1:openLimit:attached`.
+
+Ask for USDC margin (`collateralUsd`) even when the user only names leverage, entry, take-profit, and stop-loss. `market` is `ALGO` or `BTC`. `side` is `long` or `short`. `takeProfitPct` and `stopLossPct` are return on margin: pass `20` and `25` for “take profit at 20% and stop loss at −25%”, not a 20% price move. `stopLossPct` is a positive number.
+
+If the quote fails with `not-opted-in`, compile `mainnet:mallow:v1:optIn:usdc`, have the user sign that group, then quote the order again. A limit already through the index is rejected. Do not rewrite it as a market order. Positions settle on People's Exchange. The group includes Mallow's 3 bps builder fee. Canix does not sign or submit.
+
 ## Signing an execution quote
 
 For `canix_get_execution_quote`:

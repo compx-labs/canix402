@@ -34,7 +34,8 @@ const PROTOCOLS = [
   "STAMM",
   "Morpho",
   "Aave",
-  "Aerodrome"
+  "Aerodrome",
+  "Mallow"
 ] as const;
 
 interface DiscoveryEndpoint {
@@ -302,12 +303,13 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 - \`GET /positions\` — requires \`address\` (Algorand account or Base \`0x\` address). An Algorand address returns Algorand positions only. A Base address returns Aave V3 supplied and variable-debt rows plus staked Aerodrome basic-pool LP. Exactly 0.005 USDC. Morpho holdings and unclaimed AERO are not in this snapshot.
 - \`GET /positions/claimable\` — requires \`address\`; claim desk with USD, fee/worth-claiming hints, and \`claimAllQuotes\` for exactly 0.001 USDC. Compile via \`POST /execution/quotes\` (~0.1 USDC flat; groups never merged).
 - \`GET /execution/shapes\` — free catalog of verified shape keys and requiredInputs (metadata only). \`meta.caveatsDocsPath\` is \`protocol/docs/execution-shapes/protocol-caveats.md\` (pool discovery, opt-ins, min-balance, slippage, liquidity limits, app upgrades). Do not guess those details.
-- \`POST /execution/quotes\` — batch unsigned groups for verified shapes; flat ~0.1 USDC per request, payable on Algorand or Base. Algorand shapes take an Algorand \`userAddress\` and return Algorand groups. Morpho shapes (\`base:morpho:vault:*\`), Aave shapes (\`base:aave:v3:*\`), and Aerodrome shapes (\`base:aerodrome:v2:*\`) take a Base \`0x\` \`userAddress\` and return unsigned Base calldata (\`encodedTransactions\` hex, \`transactions[].evmCall\`). Skipping Base shapes is complete for an Algorand agent. Canix never signs or submits. Read each shape's \`docsPath\` plus the protocol caveats doc before filling inputs.
+- \`GET /protocols/mallow/markets\` — free ALGO/USD and BTC/USD index, max leverage, and USDC collateral for \`mainnet:mallow:v1:openLimit:attached\`. \`collateralUsd\` is margin. \`takeProfitPct\` / \`stopLossPct\` are return on margin. Positions settle on People's Exchange with a 3 bps Mallow builder fee.
+- \`POST /execution/quotes\` — batch unsigned groups for verified shapes; flat ~0.1 USDC per request, payable on Algorand or Base. Algorand shapes take an Algorand \`userAddress\` and return Algorand groups. Morpho shapes (\`base:morpho:vault:*\`), Aave shapes (\`base:aave:v3:*\`), and Aerodrome shapes (\`base:aerodrome:v2:*\`) take a Base \`0x\` \`userAddress\` and return unsigned Base calldata (\`encodedTransactions\` hex, \`transactions[].evmCall\`). Mallow shapes (\`mainnet:mallow:v1:openLimit:attached\`, \`mainnet:mallow:v1:optIn:usdc\`) return unsigned Algorand groups. Skipping Base shapes is complete for an Algorand agent. Canix never signs or submits. Read each shape's \`docsPath\` plus the protocol caveats doc before filling inputs.
 - Multi-router swaps — call free \`POST /swaps/quote\` (parallel compare unless \`router\` is set), sign and submit any group from free \`POST /swaps/optin\`, refresh the short-lived quote, then call paid \`POST /swaps/transactions\` for 0.005 USDC. Amounts are asset base units. Pass the quote object unchanged; do not edit \`payload\`.
 - Walletless handoff — sign only the returned \`userSignIndexes\`, preserve any pre-signed members and group order, and submit the complete group through the caller's Algod client.
 - Swap costs — the 0.005 USDC x402 access charge is separate from router fees, DEX fees, price impact, and Algorand network fees.
 
-Free routes: \`/health\`, \`/metadata\`, \`/discovery\`, \`/openapi.json\`, \`/.well-known/x402.json\`, \`GET /execution/shapes\`, \`POST /swaps/quote\`, \`POST /swaps/optin\`.
+Free routes: \`/health\`, \`/metadata\`, \`/discovery\`, \`/openapi.json\`, \`/.well-known/x402.json\`, \`GET /execution/shapes\`, \`GET /protocols/mallow/markets\`, \`POST /swaps/quote\`, \`POST /swaps/optin\`.
 
 ## Error catalog
 

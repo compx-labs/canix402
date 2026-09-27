@@ -7,6 +7,7 @@ import { registerExecutionRoutes } from "./execution.js";
 import { registerPlanRoutes } from "./plans.js";
 import { registerPolicyRoutes } from "./policy.js";
 import { registerHealthRoutes } from "./health.js";
+import { registerMallowRoutes } from "./mallow.js";
 import { registerOpportunityRoutes } from "./opportunities.js";
 import { registerPositionRoutes } from "./positions.js";
 import { registerPricingRoutes } from "./pricing.js";
@@ -19,6 +20,7 @@ import { registerWatchRoutes } from "./watch.js";
 export function registerRoutes(app: FastifyInstance) {
   registerAssetRoutes(app);
   registerHealthRoutes(app);
+  registerMallowRoutes(app);
   registerDiscoveryRoutes(app);
   registerEligibilityRoutes(app);
   registerExecutionRoutes(app);

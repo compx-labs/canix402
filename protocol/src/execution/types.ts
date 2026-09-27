@@ -26,6 +26,7 @@ export type ExecutionProtocol =
   | "alpha-arcade"
   | "stamm"
   | "hogswap"
+  | "mallow"
   | "morpho"
   | "aave"
   | "aerodrome"

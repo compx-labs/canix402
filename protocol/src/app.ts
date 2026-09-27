@@ -15,6 +15,7 @@ import {
 import { setAppLogger } from "./observability/logger.js";
 import { recordHttpRequest } from "./observability/metrics.js";
 import { AccountAssetsError } from "./services/account-assets.js";
+import { MallowUpstreamError } from "./execution/shapes/mallow/book.js";
 import { AllPositionSourcesUnavailableError } from "./services/aggregate-positions.js";
 import { WalletSnapshotError } from "./services/wallet-snapshot.js";
 import { ApiError } from "./types/index.js";
@@ -32,6 +33,7 @@ function isUpstreamAdapterError(error: unknown): boolean {
     error instanceof HaystackAdapterError ||
     error instanceof RetiAdapterError ||
     error instanceof AlphaArcadeAdapterError ||
+    error instanceof MallowUpstreamError ||
     error instanceof AccountAssetsError ||
     error instanceof WalletSnapshotError ||
     error instanceof AllPositionSourcesUnavailableError
