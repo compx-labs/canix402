@@ -238,6 +238,7 @@ test("compiles an unsigned ALGO long with attached take-profit and stop-loss", a
     buildContext()
   );
 
+  assert.equal(MALLOW_OPEN_LIMIT_SHAPE_KEY, "mainnet:mallow:v1:openLimit:attached");
   assert.equal(quote.shapeKey, MALLOW_OPEN_LIMIT_SHAPE_KEY);
   assert.equal(quote.metadata.market, "ALGO");
   assert.equal(quote.metadata.marketId, "424242");
@@ -398,6 +399,7 @@ test("compiles a zero-amount USDC opt-in", async () => {
     { userAddress: USER_ADDRESS },
     buildContext()
   );
+  assert.equal(MALLOW_USDC_OPT_IN_SHAPE_KEY, "mainnet:mallow:v1:optIn:usdc");
   assert.equal(quote.shapeKey, MALLOW_USDC_OPT_IN_SHAPE_KEY);
   assert.equal(quote.transactions.length, 1);
   assert.equal(quote.transactions[0]?.type, "axfer");

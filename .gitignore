@@ -81,6 +81,9 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
+# Vendored @pdex/sdk ships its build; the package has no published registry tarball.
+!protocol/vendor/pdex-sdk/dist/
+!protocol/vendor/pdex-sdk/dist/**
 .bin
 .output
 

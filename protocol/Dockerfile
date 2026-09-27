@@ -9,6 +9,7 @@ FROM node:22-alpine AS build
 WORKDIR /app
 
 COPY package.json ./
+COPY vendor/pdex-sdk ./vendor/pdex-sdk/
 RUN npm install --include=dev --legacy-peer-deps
 
 COPY tsconfig.json ./
@@ -26,6 +27,7 @@ ENV NODE_ENV=production
 ENV PORT=3000
 
 COPY package.json ./
+COPY vendor/pdex-sdk ./vendor/pdex-sdk/
 RUN npm install --omit=dev --legacy-peer-deps
 
 COPY --from=build /app/dist ./dist
