@@ -380,6 +380,7 @@ test("source never relaxes document.domain", () => {
     "src/lib/webmcp/register.ts",
     "src/lib/webmcp/human-execute.ts",
     "src/lib/webmcp/page-app.ts",
+    "src/lib/webmcp/wallet-modal.ts",
     "src/lib/webmcp/opportunities.ts",
     "src/lib/webmcp/tool-forms.ts",
     "src/lib/webmcp/tool-groups.ts",

@@ -1,4 +1,5 @@
-import { WEBMCP_TOOLS } from "./catalog";
+import { getWebMcpTool, WEBMCP_TOOLS } from "./catalog";
+import { sessionBucketForPath } from "./human-execute";
 import { TABLE_FILLING_TOOLS } from "./opportunities";
 import type { WebMcpToolSpec } from "./types";
 
@@ -82,4 +83,135 @@ export function toolsInGroup(group: WebMcpToolGroup): WebMcpToolSpec[] {
 
 export function toolFillsTable(name: string): boolean {
   return TABLE_FILLING_TOOLS.has(name);
+}
+
+export type HumanToolGroupId = "opportunities" | "wallet" | "plans";
+
+export interface HumanToolEntry {
+  name: string;
+  title: string;
+  blurb: string;
+  group: HumanToolGroupId;
+}
+
+export const HUMAN_TOOL_GROUPS: Array<{ id: HumanToolGroupId; label: string }> = [
+  { id: "opportunities", label: "Opportunities" },
+  { id: "wallet", label: "My wallet" },
+  { id: "plans", label: "Plans and quotes" }
+];
+
+export const HUMAN_TOOL_CATALOG: HumanToolEntry[] = [
+  {
+    name: "canix_search_opportunities",
+    title: "Search opportunities",
+    blurb: "Filter by protocol, type, APY, TVL, chain, or assets.",
+    group: "opportunities"
+  },
+  {
+    name: "canix_list_opportunities",
+    title: "Top opportunities",
+    blurb: "Ranked by risk, then APY.",
+    group: "opportunities"
+  },
+  {
+    name: "canix_get_personalized_opportunities",
+    title: "Personalised for my wallet",
+    blurb: "Opportunities matched to assets this wallet holds.",
+    group: "opportunities"
+  },
+  {
+    name: "canix_get_protocol_opportunities",
+    title: "Protocol opportunities",
+    blurb: "Everything listed for one protocol.",
+    group: "opportunities"
+  },
+  {
+    name: "canix_get_opportunity_history",
+    title: "Opportunity history",
+    blurb: "APY and TVL history for one opportunity.",
+    group: "opportunities"
+  },
+  {
+    name: "canix_get_positions",
+    title: "Positions",
+    blurb: "DeFi positions held by a wallet.",
+    group: "wallet"
+  },
+  {
+    name: "canix_list_claimable",
+    title: "Claimable rewards",
+    blurb: "Rewards that are ready to claim.",
+    group: "wallet"
+  },
+  {
+    name: "canix_check_eligibility",
+    title: "Check eligibility",
+    blurb: "Whether a wallet can enter the selected opportunities.",
+    group: "wallet"
+  },
+  {
+    name: "canix_get_plan",
+    title: "Build a plan",
+    blurb: "Turn a budget into an unsigned allocation plan.",
+    group: "plans"
+  },
+  {
+    name: "canix_get_execution_quote",
+    title: "Execution quote",
+    blurb: "Unsigned transactions to enter or claim.",
+    group: "plans"
+  },
+  {
+    name: "canix_get_quote",
+    title: "Swap quote",
+    blurb: "Best route and expected output for a swap.",
+    group: "plans"
+  },
+  {
+    name: "canix_swap",
+    title: "Swap transactions",
+    blurb: "Unsigned swap transactions for a quote.",
+    group: "plans"
+  },
+  {
+    name: "canix_optin",
+    title: "Opt-in transactions",
+    blurb: "Opt-ins a swap still needs before it can be signed.",
+    group: "plans"
+  }
+];
+
+export function humanToolsInGroup(groupId: HumanToolGroupId): HumanToolEntry[] {
+  return HUMAN_TOOL_CATALOG.filter((entry) => entry.group === groupId);
+}
+
+export function advancedToolGroups(): WebMcpToolGroup[] {
+  const human = new Set(HUMAN_TOOL_CATALOG.map((entry) => entry.name));
+  return WEBMCP_TOOL_GROUPS.map((group) => ({
+    ...group,
+    names: group.names.filter((name) => !human.has(name))
+  })).filter((group) => group.names.length > 0);
+}
+
+export function toolPriceLabel(name: string): string {
+  const tool = getWebMcpTool(name);
+  if (!tool || tool.access === "free" || !tool.fallbackPriceUsdc) {
+    return "Free";
+  }
+  return `${tool.fallbackPriceUsdc} USDC`;
+}
+
+export function sessionUseLabel(name: string): string | null {
+  const tool = getWebMcpTool(name);
+  if (!tool || tool.access !== "paid" || !tool.allowSessionReceipt) {
+    return null;
+  }
+  const bucket = sessionBucketForPath(tool.http.path);
+  if (bucket === "research") {
+    return "Uses 1 research call";
+  }
+  if (bucket === "quotes") {
+    return "Uses 1 quote";
+  }
+  return null;
 }

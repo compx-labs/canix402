@@ -88,7 +88,7 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `POST /plans` (0.25 USDC) — Compile an allocation intent into an ordered unsigned plan.  # pragma: allowlist secret
 - `POST /plans/rebalance` (0.25 USDC) — Compile a delta rebalance plan of unsigned groups.  # pragma: allowlist secret
 - `POST /policy/validate` (0.25 USDC) — Validate a compiled plan or quotes[] against an operator policy document.  # pragma: allowlist secret
-- `GET /positions` (0.005 USDC) — Algorand DeFi positions held by a wallet. Params: address=.
+- `GET /positions` (0.005 USDC) — DeFi positions held by an Algorand or Base wallet. Params: address=.
 - `GET /positions/claimable` (0.001 USDC) — Claimable DeFi rewards across supported protocols. Params: address=.
 - `GET /public/agents/brownie/positions` (Free) — Public DeFi positions for the Brownie Bot showcase wallet.
 - `POST /swaps/transactions` (0.005 USDC) — Build a walletless swap transaction group from the winning quote.

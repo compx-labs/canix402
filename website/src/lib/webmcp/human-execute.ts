@@ -144,7 +144,7 @@ function toolErrorCode(result: unknown): string | undefined {
   return typeof error === "string" ? error : undefined;
 }
 
-function sessionBucketForPath(path: string): "research" | "quotes" | null {
+export function sessionBucketForPath(path: string): "research" | "quotes" | null {
   if (path.startsWith("/plans") || path.startsWith("/execution") || path.startsWith("/swaps/transactions")) {
     return "quotes";
   }
