@@ -24,8 +24,42 @@ const GENERIC_INJECTED_ID = "injected";
 
 export interface BaseWalletChoice {
   uid: string;
+  connectorId: string;
   name: string;
   icon?: string;
+}
+
+export interface KnownBaseWallet {
+  id: string;
+  name: string;
+  installUrl: string;
+  match: (connectorId: string, connectorName: string) => boolean;
+}
+
+export const KNOWN_BASE_WALLETS: KnownBaseWallet[] = [
+  {
+    id: "metaMask",
+    name: "MetaMask",
+    installUrl: "https://metamask.io/download/",
+    match: (connectorId, connectorName) => /metamask/i.test(connectorId) || /metamask/i.test(connectorName)
+  },
+  {
+    id: "rabby",
+    name: "Rabby",
+    installUrl: "https://rabby.io/",
+    match: (connectorId, connectorName) => /rabby/i.test(connectorId) || /rabby/i.test(connectorName)
+  },
+  {
+    id: "coinbase",
+    name: "Coinbase Wallet",
+    installUrl: "https://www.coinbase.com/wallet/downloads",
+    match: (connectorId, connectorName) => /coinbase/i.test(connectorId) || /coinbase/i.test(connectorName)
+  }
+];
+
+export interface BaseWalletChoiceRow extends BaseWalletChoice {
+  detected: boolean;
+  installUrl?: string;
 }
 
 let config: Config | null = null;
@@ -65,6 +99,7 @@ export function listBaseWalletButtons(): BaseWalletChoice[] {
   return [...discovered, ...fallback, ...coinbase].map((connector) => {
     const choice: BaseWalletChoice = {
       uid: connector.uid,
+      connectorId: connector.id,
       name: connector.id === GENERIC_INJECTED_ID ? "Browser wallet" : connector.name
     };
     if (connector.icon) {
@@ -72,6 +107,43 @@ export function listBaseWalletButtons(): BaseWalletChoice[] {
     }
     return choice;
   });
+}
+
+export function listBaseWalletChoices(): BaseWalletChoiceRow[] {
+  const detected = listBaseWalletButtons();
+  const claimed = new Set<string>();
+  const rows: BaseWalletChoiceRow[] = [];
+
+  for (const known of KNOWN_BASE_WALLETS) {
+    const match = detected.find(
+      (wallet) => !claimed.has(wallet.uid) && known.match(wallet.connectorId, wallet.name)
+    );
+    if (match) {
+      claimed.add(match.uid);
+      rows.push({ ...match, name: known.name, detected: true });
+      continue;
+    }
+    rows.push({
+      uid: "",
+      connectorId: known.id,
+      name: known.name,
+      detected: false,
+      installUrl: known.installUrl
+    });
+  }
+
+  for (const wallet of detected) {
+    if (claimed.has(wallet.uid)) {
+      continue;
+    }
+    const alreadyKnown = KNOWN_BASE_WALLETS.some((known) => known.match(wallet.connectorId, wallet.name));
+    if (alreadyKnown) {
+      continue;
+    }
+    rows.push({ ...wallet, detected: true });
+  }
+
+  return rows;
 }
 
 export async function resumeBaseWallet(): Promise<void> {
@@ -84,6 +156,24 @@ export function getBaseWalletAddress(): string | null {
   }
   const connection = getConnection(config);
   return connection.status === "connected" ? connection.address : null;
+}
+
+export function getBaseWalletMeta(): { name: string; icon?: string; address: string } | null {
+  if (!config) {
+    return null;
+  }
+  const connection = getConnection(config);
+  if (connection.status !== "connected") {
+    return null;
+  }
+  const meta: { name: string; icon?: string; address: string } = {
+    name: connection.connector.name,
+    address: connection.address
+  };
+  if (connection.connector.icon) {
+    meta.icon = connection.connector.icon;
+  }
+  return meta;
 }
 
 export async function connectBaseWallet(uid: string): Promise<string> {

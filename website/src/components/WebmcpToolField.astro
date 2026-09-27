@@ -8,6 +8,17 @@ interface Props {
 
 const { field, toolName } = Astro.props;
 const id = `webmcp-${toolName}-${field.name.replaceAll(".", "-")}`;
+const hint = firstSentence(field.description);
+const isAddress = field.name === "address" || field.name.toLowerCase().endsWith("address");
+const isOpportunityIds = field.name === "opportunityIds";
+
+function firstSentence(text: string | undefined): string | undefined {
+  if (!text) {
+    return undefined;
+  }
+  const match = text.match(/^.*?[.!?](?:\s|$)/);
+  return (match?.[0] ?? text).trim();
+}
 ---
 
 <div class="webmcp-field">
@@ -17,16 +28,28 @@ const id = `webmcp-${toolName}-${field.name.replaceAll(".", "-")}`;
         <input id={id} name={field.name} type="checkbox" />
         <span>
           {field.label}
-          {field.description ? <small class="muted">{field.description}</small> : null}
+          {hint ? <small class="muted">{hint}</small> : null}
         </span>
       </label>
     ) : (
       <>
-        <label for={id}>
-          {field.label}
-          {field.required ? <span class="webmcp-required">*</span> : null}
-        </label>
-        {field.description ? <p class="muted webmcp-field-hint">{field.description}</p> : null}
+        <div class="webmcp-field-label-row">
+          <label for={id}>
+            {field.label}
+            {field.required ? <span class="webmcp-required">*</span> : null}
+          </label>
+          {isAddress ? (
+            <button type="button" class="button button-ghost button-small" data-use-wallet>
+              Use connected wallet
+            </button>
+          ) : null}
+          {isOpportunityIds ? (
+            <button type="button" class="button button-ghost button-small" data-use-selected disabled>
+              Use selected rows
+            </button>
+          ) : null}
+        </div>
+        {hint ? <p class="muted webmcp-field-hint">{hint}</p> : null}
         {field.kind === "select" ? (
           <select id={id} name={field.name} required={field.required}>
             <option value="">{field.required ? "Select…" : "Any"}</option>
@@ -48,6 +71,7 @@ const id = `webmcp-${toolName}-${field.name.replaceAll(".", "-")}`;
             id={id}
             name={field.name}
             type={field.kind === "number" ? "number" : "text"}
+            inputmode={field.kind === "number" ? "decimal" : undefined}
             required={field.required}
             min={field.min}
             max={field.max}

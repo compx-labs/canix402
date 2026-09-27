@@ -52,6 +52,20 @@ export function getActiveWalletAddress(): string | null {
   return manager?.activeAddress ?? null;
 }
 
+export function getActiveAlgorandWallet(): { id: string; name: string; icon: string; address: string } | null {
+  const active = manager?.activeWallet;
+  const address = manager?.activeAddress;
+  if (!active || !address) {
+    return null;
+  }
+  return {
+    id: active.id,
+    name: active.metadata.name,
+    icon: active.metadata.icon,
+    address
+  };
+}
+
 export function webmcpWalletSignTransactions(): SignTransactionsFn {
   return async (txnGroup, indexesToSign) => {
     const instance = getWebmcpWalletManager();

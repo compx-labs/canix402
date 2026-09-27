@@ -36,6 +36,13 @@ test("webmcp page is an empty opportunities table with a tools drawer", () => {
   assert.match(source, /Get top 25/);
   assert.match(source, /data-webmcp-tools-drawer/);
   assert.match(source, /data-open-tools/);
+  assert.match(source, /data-open-connect/);
+  assert.match(source, /WebmcpConnectModal/);
+  assert.match(source, /data-check-eligibility/);
+  assert.match(source, /data-get-plan/);
+  assert.match(source, /data-clear-opportunities/);
+  assert.equal(source.includes("Connect Pera"), false);
+  assert.equal(source.includes("Connect Defly"), false);
   assert.equal(source.includes("Registered tools"), false);
   assert.equal(source.includes("webmcp-status-strip"), false);
   assert.equal(source.includes("data-webmcp-api"), false);

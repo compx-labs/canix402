@@ -1,0 +1,31 @@
+<dialog class="webmcp-modal" data-connect-modal aria-labelledby="webmcp-connect-title">
+  <div class="webmcp-modal-card">
+    <div class="webmcp-modal-head">
+      <h2 id="webmcp-connect-title" data-modal-title>Connect a wallet</h2>
+      <button type="button" class="button button-ghost button-small" data-modal-close>Close</button>
+    </div>
+
+    <div data-modal-step="network">
+      <p class="muted">Choose the network you want to pay USDC on.</p>
+      <div class="webmcp-network-grid">
+        <button type="button" class="webmcp-network-card" data-network="algorand">
+          <strong>Algorand</strong>
+          <span class="muted">USDC on Algorand. Pera or Defly.</span>
+        </button>
+        <button type="button" class="webmcp-network-card" data-network="base">
+          <strong>Base</strong>
+          <span class="muted">USDC on Base. MetaMask, Rabby, or Coinbase Wallet.</span>
+        </button>
+      </div>
+    </div>
+
+    <div data-modal-step="wallet" hidden>
+      <button type="button" class="button button-ghost button-small webmcp-modal-back" data-modal-back>
+        Back
+      </button>
+      <p class="muted" data-wallet-step-copy></p>
+      <div class="webmcp-wallet-list" data-wallet-list></div>
+      <p class="webmcp-alert webmcp-alert-error" data-modal-error hidden></p>
+    </div>
+  </div>
+</dialog>
