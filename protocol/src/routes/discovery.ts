@@ -523,7 +523,7 @@ function buildLlmsText(includeAllEndpoints = false): string {
 
   lines.push(
     "",
-    "Unpaid paid-route requests return HTTP 402 with PAYMENT-REQUIRED. Agents may use Algorand, Base, or both. Select an accept by network (Algorand stays first and is a complete payment). Sign that USDC payment client-side — an Algorand ASA transfer, or a Base EIP-3009 authorization when that accept is listed — and retry with PAYMENT-SIGNATURE. An Algorand-only agent omits a Base address. That does not change rank, eligibility, price, or access. A Base address is required only for a Morpho quote or a Base payment. Canix never receives wallet keys or submits transactions.",
+    "Unpaid paid-route requests return HTTP 402 with PAYMENT-REQUIRED. Agents may use Algorand, Base, or both. Select an accept by network (Algorand stays first and is a complete payment). Sign that USDC payment client-side — an Algorand ASA transfer, or a Base EIP-3009 authorization when that accept is listed — and retry with PAYMENT-SIGNATURE. An Algorand-only agent omits a Base address. That does not change rank, eligibility, price, or access. A Base address is required only for a Morpho, Aave, or Aerodrome quote, or a Base payment. Canix never receives wallet keys or submits transactions.",
     "Do not guess execution construction (pool discovery, opt-ins, min-balance, slippage, liquidity limits, app upgrades). Read protocol/docs/execution-shapes/protocol-caveats.md and GET /execution/shapes meta.caveatsDocsPath."
   );
 

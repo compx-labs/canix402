@@ -6,6 +6,15 @@ import (
 	"github.com/GoPlausible/x402-avm/go/extensions/bazaar"
 )
 
+// Brownie Bot treasury. Same wallet as BROWNIE_BOT_WALLET in
+// protocol/src/constants/public-agents.ts. Not used on position examples:
+// GET /public/agents/brownie/positions is a free showcase of this wallet.
+const brownieBotAddress = "KPEZM2DSFHOOHG7RPDECCBTD6FRN2LPSSRJMMFVCFSIHGES4BXBJHPUBVQ"
+
+// NFD owner of nf.algo. Paid position examples use this wallet so probes do
+// not target the free Brownie showcase.
+const nfAlgoAddress = "5YCWR662A5HIOFYYS2CTIHHYBCIXESVLAOVLZ7CL27PK5SKBROCSRFIJMA"
+
 // buildBazaarExtension returns the SDK bazaar discovery extension for a named profile.
 // Profiles stay compact so PAYMENT-REQUIRED headers remain within CDN limits.
 func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
@@ -56,7 +65,7 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 		return bazaar.DeclareDiscoveryExtension(
 			bazaar.MethodGET,
 			map[string]interface{}{
-				"address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+				"address": brownieBotAddress,
 			},
 			bazaar.JSONSchema{
 				"properties": map[string]interface{}{
@@ -103,7 +112,7 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 		return bazaar.DeclareDiscoveryExtension(
 			bazaar.MethodPOST,
 			map[string]interface{}{
-				"address":        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+				"address":        brownieBotAddress,
 				"opportunityIds": []interface{}{"reti-staking-1"},
 			},
 			bazaar.JSONSchema{
@@ -130,7 +139,7 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 		return bazaar.DeclareDiscoveryExtension(
 			bazaar.MethodPOST,
 			map[string]interface{}{
-				"address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+				"address": brownieBotAddress,
 				"budget": map[string]interface{}{
 					"assetId": 0,
 					"amount":  "1000000",
@@ -208,7 +217,7 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 		return bazaar.DeclareDiscoveryExtension(
 			bazaar.MethodGET,
 			map[string]interface{}{
-				"address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+				"address": nfAlgoAddress,
 			},
 			bazaar.JSONSchema{
 				"properties": map[string]interface{}{
@@ -228,7 +237,7 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 		return bazaar.DeclareDiscoveryExtension(
 			bazaar.MethodGET,
 			map[string]interface{}{
-				"address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+				"address": nfAlgoAddress,
 			},
 			bazaar.JSONSchema{
 				"properties": map[string]interface{}{
@@ -265,8 +274,15 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 			map[string]interface{}{
 				"quotes": []interface{}{
 					map[string]interface{}{
-						"shapeKey": "tinyman-v2:lp:add:flexible",
-						"input":    map[string]interface{}{},
+						"shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+						"input": map[string]interface{}{
+							"userAddress":    brownieBotAddress,
+							"assetAId":       31566704, // pragma: allowlist secret
+							"assetAAmount":   "1000000",
+							"assetBId":       0,
+							"assetBAmount":   "2000000",
+							"maxSlippageBps": 50,
+						},
 					},
 				},
 			},
@@ -298,18 +314,15 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 	case "haystack_swap":
 		return bazaar.DeclareDiscoveryExtension(
 			bazaar.MethodPOST,
-			map[string]interface{}{
-				"fromAssetId": 0,
-				"toAssetId":   31566704, // pragma: allowlist secret
-				"amount":      "1000000",
-			},
+			exampleSwapTransactionsBody(),
 			bazaar.JSONSchema{
 				"type": "object",
 				"properties": map[string]interface{}{
-					"fromAssetId": map[string]interface{}{"type": "number"},
-					"toAssetId":   map[string]interface{}{"type": "number"},
-					"amount":      map[string]interface{}{"type": "string"},
+					"address":  map[string]interface{}{"type": "string"},
+					"quote":    map[string]interface{}{"type": "object"},
+					"slippage": map[string]interface{}{"type": "number"},
 				},
+				"required": []string{"address", "quote", "slippage"},
 			},
 			bazaar.BodyTypeJSON,
 			&bazaar.OutputConfig{
@@ -325,7 +338,7 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 		return bazaar.DeclareDiscoveryExtension(
 			bazaar.MethodPOST,
 			map[string]interface{}{
-				"address":     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+				"address":     brownieBotAddress,
 				"harvestIdle": true,
 			},
 			bazaar.JSONSchema{
@@ -353,7 +366,7 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 		return bazaar.DeclareDiscoveryExtension(
 			bazaar.MethodPOST,
 			map[string]interface{}{
-				"address":       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+				"address":       brownieBotAddress,
 				"opportunityId": "reti-staking-12",
 				"fromAssetId":   0,
 				"amount":        "1000000",
@@ -382,7 +395,7 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 		return bazaar.DeclareDiscoveryExtension(
 			bazaar.MethodPOST,
 			map[string]interface{}{
-				"address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+				"address": brownieBotAddress,
 				"groups": []interface{}{
 					map[string]interface{}{
 						"encodedTransactions": []interface{}{},
@@ -457,7 +470,7 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 		return bazaar.DeclareDiscoveryExtension(
 			bazaar.MethodPOST,
 			map[string]interface{}{
-				"address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+				"address": brownieBotAddress,
 				"thresholds": map[string]interface{}{
 					"healthFactor": 1.2,
 				},
@@ -511,6 +524,40 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 
 	default:
 		return bazaar.DiscoveryExtension{}, fmt.Errorf("unknown bazaar_profile %q", profile)
+	}
+}
+
+// exampleSwapTransactionsBody is a schema-valid POST /swaps/transactions body.
+// The quote is illustrative: live quotes expire in about 30 seconds and payload
+// is opaque winner state, so this example is not a durable successful swap.
+func exampleSwapTransactionsBody() map[string]interface{} {
+	return map[string]interface{}{
+		"address":  brownieBotAddress,
+		"slippage": 1,
+		"quote": map[string]interface{}{
+			"router":               "tinyman",
+			"address":              brownieBotAddress,
+			"fromAssetId":          "0",
+			"toAssetId":            "31566704", // pragma: allowlist secret
+			"amount":               "1000000",
+			"type":                 "fixed-input",
+			"quotedAmount":         "1000000",
+			"minOut":               "990000",
+			"networkFeeMicroAlgos": "2000",
+			"slippageBps":          100,
+			"createdAt":            "2026-09-27T00:00:00.000Z",
+			"expiresAt":            "2026-09-27T00:00:30.000Z",
+			"score": map[string]interface{}{
+				"expectedNetOut":       "1000000",
+				"minOut":               "990000",
+				"expectedIn":           "1000000",
+				"networkFeeMicroAlgos": "2000",
+				"feeAlreadyNetted":     true,
+			},
+			"alternatives": []interface{}{},
+			"legs":         []interface{}{},
+			"payload":      map[string]interface{}{},
+		},
 	}
 }
 

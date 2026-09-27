@@ -130,6 +130,8 @@ test("protocol execution caveats doc covers construction topics for fixture prot
     "STAMM",
     "HOGSWAP",
     "Morpho Vaults",
+    "Aave V3",
+    "Aerodrome",
     "Pool discovery",
     "Opt-ins",
     "Slippage math",

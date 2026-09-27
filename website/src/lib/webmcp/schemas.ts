@@ -54,7 +54,9 @@ const protocol = {
     "reti",
     "alpha-arcade",
     "stamm",
-    "morpho"
+    "morpho",
+    "aave",
+    "aerodrome"
   ]
 };
 

@@ -1,4 +1,7 @@
 import type { Protocol } from "../routes/schemas.js";
+import { isEvmAddress, normalizeEvmAddress } from "../execution/evm.js";
+import { collectAavePositions } from "./aave-positions.js";
+import { collectAerodromePositions } from "./aerodrome-positions.js";
 import type {
   ProtocolPositionResult,
   WalletPositionTotals,
@@ -43,8 +46,12 @@ export const SUPPORTED_POSITION_PROTOCOLS = [
   "alpha-arcade",
   "stamm",
   "algofi",
-  "humble"
+  "humble",
+  "aave",
+  "aerodrome"
 ] as const satisfies readonly Protocol[];
+
+const BASE_POSITION_PROTOCOLS = ["aave", "aerodrome"] as const satisfies readonly Protocol[];
 
 export class AllPositionSourcesUnavailableError extends Error {
   public constructor() {
@@ -69,11 +76,31 @@ export function setPositionCollectorsForTests(
 export async function fetchWalletPositions(
   address: string
 ): Promise<WalletPositionsResponse> {
+  if (isEvmAddress(address)) {
+    return collectWalletPositions(
+      normalizeEvmAddress(address),
+      [...BASE_POSITION_PROTOCOLS],
+      true
+    );
+  }
+  return collectWalletPositions(
+    address,
+    SUPPORTED_POSITION_PROTOCOLS.filter(
+      (protocol) => !(BASE_POSITION_PROTOCOLS as readonly string[]).includes(protocol)
+    ),
+    false
+  );
+}
+
+async function collectWalletPositions(
+  address: string,
+  protocolList: readonly (typeof SUPPORTED_POSITION_PROTOCOLS)[number][],
+  baseWallet: boolean
+): Promise<WalletPositionsResponse> {
   const collectors = resolveCollectors();
-  const snapshot =
-    collectorOverrides === undefined
-      ? await fetchWalletSnapshot(address)
-      : emptyWalletSnapshot(address);
+  const snapshot = baseWallet || collectorOverrides !== undefined
+    ? emptyWalletSnapshot(address)
+    : await fetchWalletSnapshot(address);
   const context: PositionCollectionContext = {
     algodRequestGate: createRequestGate({
       concurrency: readPositiveInteger(
@@ -85,9 +112,9 @@ export async function fetchWalletPositions(
   };
   const settled: Array<
     PromiseSettledResult<ProtocolPositionsCollection> | undefined
-  > = new Array(SUPPORTED_POSITION_PROTOCOLS.length);
+  > = new Array(protocolList.length);
   await mapWithThrottle(
-    SUPPORTED_POSITION_PROTOCOLS.map((protocol, index) => ({
+    protocolList.map((protocol, index) => ({
       protocol,
       index
     })),
@@ -121,13 +148,14 @@ export async function fetchWalletPositions(
     if (result === undefined) {
       throw new Error(`Positions collector ${index} returned no result.`);
     }
-    const protocol = SUPPORTED_POSITION_PROTOCOLS[index]!;
+    const protocol = protocolList[index]!;
     if (result.status === "rejected") {
       coverage.suppliedUsdComplete = false;
       if (
         protocol === "folks-finance" ||
         protocol === "compx" ||
-        protocol === "dorkfi"
+        protocol === "dorkfi" ||
+        protocol === "aave"
       ) {
         // Debt-capable collectors: missing liabilities must null borrowedUsd.
         coverage.borrowedUsdComplete = false;
@@ -247,6 +275,8 @@ function resolveCollectors(): PositionCollectors {
     stamm: collectStammPositions,
     algofi: collectAlgofiPositions,
     humble: collectHumblePositions,
+    aave: async (address) => collectAavePositions(address),
+    aerodrome: async (address) => collectAerodromePositions(address),
     ...collectorOverrides
   };
 }

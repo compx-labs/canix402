@@ -11,7 +11,7 @@ signing. Groups from a batch request are never merged.
 
 This page covers the protocols whose golden/integration fixtures exist today:
 Tinyman, Folks Finance, Pact, CompX, Dork.fi, Myth Finance, Haystack, Réti,
-Alpha Arcade, STAMM, HOGSWAP, and Morpho Vaults (Base). Per-shape group layouts
+Alpha Arcade, STAMM, HOGSWAP, Morpho Vaults (Base), and Aave V3 (Base). Per-shape group layouts
 stay in the sibling markdown files.
 
 ## Tinyman
@@ -489,4 +489,64 @@ to CompX deposit/withdraw without borrow.
 
 - Morpho Blue borrow, Public Allocator, Vault V2 force-withdraw, native wrap.
 - `/positions` and `/opportunities/personalized` remain Algorand snapshots.
+
+## Aave V3
+
+Aave V3 reserves on Base (`chainId` 8453). One lending row per underlying. Analogue to CompX/Folks supply, withdraw, borrow, and repay without Folks escrow setup.
+
+### Reserve discovery
+
+- Underlying ERC-20 is `inputHints.poolId` and `inputHints.assetAddress`. Do not put `0x` into integer `assetIds`.
+- Pool is `0xA238Dd80C259a72e81d7e4664a9801593F98d1c5`. Quotes do not take a pool address input.
+- Catalog drops frozen, paused, non-positive TVL, and zero-APY collateral-only reserves.
+
+### Actions
+
+- Enter: `base:aave:v3:supply:erc20`. Optional `approve` to the Pool, then `supply`. Referral code is `0`.
+- Exit: `base:aave:v3:withdraw:erc20`. Receiver is `userAddress`.
+- Manage on a supplied position: `base:aave:v3:borrow:variable`. Interest-rate mode is variable (`2`).
+- Exit on a variable-debt position: `base:aave:v3:repay:variable`. Optional approve, then `repay` at mode `2`.
+- `onBehalfOf`, `receiver`, and `owner` must equal `userAddress`.
+
+### Positions
+
+- A Base `0x` address on `GET /positions` reads aToken and variable-debt balances.
+- Health factor is Pool `getUserAccountData`, wad `1e18` scaled to a ratio. Omitted when the account has no debt.
+- Algorand addresses do not query Aave.
+
+### Out of scope
+
+- Stable-rate borrow, eMode, flash loans, isolation-mode ceilings, credit delegation, Permit/Permit2, native ETH wrapping.
+
+## Aerodrome
+
+Basic volatile and stable pools on Base (`chainId` 8453) with a live gauge. One farm row per pool. Analogue to a Pact farm: two-sided liquidity plus stake, as unsigned Router and Gauge calls.
+
+### Pool discovery
+
+- Pool address is `inputHints.poolId`. Token addresses are `assetAddresses`. Do not put `0x` into integer `assetIds`.
+- Catalog keeps voter-whitelisted pools (`LpSugar` filter `1`) whose `type` is `0` (stable) or `-1` (volatile), with a live gauge and positive emissions.
+- Headline APY is AERO emissions on staked liquidity. Trading fees accrue to voters, not stakers. Fee APR is not added.
+- Pools below `AERODROME_MIN_TVL_USD` (default 50000) are dropped. A missing token price drops the pool.
+
+### Actions
+
+- Enter: `base:aerodrome:v2:deposit:gauge`. Optional approves of token0 and token1 to the Router, `addLiquidity`, optional LP approve to the gauge, `Gauge.deposit`.
+- Exit: `base:aerodrome:v2:withdraw:gauge`. `Gauge.withdraw`, optional LP approve to the Router, `removeLiquidity`.
+- `to`, `receiver`, and `owner` must equal `userAddress`.
+- `slippageBps` defaults to 50 and is rejected above 1000. Mins come from `quoteAddLiquidity` / `quoteRemoveLiquidity`.
+- Calldata includes a 20-minute `deadline`. Quote TTL still applies.
+- Broadcast each group in order. The stake or remove leg spends LP created by the previous call.
+
+### Positions
+
+- A Base `0x` address on `GET /positions` reads `Gauge.balanceOf` for catalogued pools and emits `staked` rows.
+- USD value is that stake's share of pool reserves. Positions outside the catalog filter are omitted.
+- Unstaked LP and unclaimed AERO are omitted. There is no health factor.
+- Algorand addresses do not query Aerodrome.
+
+### Out of scope
+
+- Slipstream concentrated liquidity, swaps, veAERO lock and vote, bribes, reward claims, native ETH, and Permit.
+
 

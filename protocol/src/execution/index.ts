@@ -8,6 +8,8 @@ import { mythFinanceShapes } from "./shapes/myth-finance/index.js";
 import { pactShapes } from "./shapes/pact/index.js";
 import { retiShapes } from "./shapes/reti/index.js";
 import { hogswapShapes } from "./shapes/hogswap/index.js";
+import { aaveShapes } from "./shapes/aave/index.js";
+import { aerodromeShapes } from "./shapes/aerodrome/index.js";
 import { morphoShapes } from "./shapes/morpho/index.js";
 import { stammShapes } from "./shapes/stamm/index.js";
 import { tinymanShapes } from "./shapes/tinyman/index.js";
@@ -126,6 +128,33 @@ export type {
   MorphoVaultPreviewState
 } from "./shapes/morpho/index.js";
 export {
+  aaveSupplyShape,
+  aaveWithdrawShape,
+  aaveBorrowShape,
+  aaveRepayShape,
+  aaveShapes,
+  setAaveStateDependenciesForTests,
+  AAVE_SUPPLY_SHAPE_KEY,
+  AAVE_WITHDRAW_SHAPE_KEY,
+  AAVE_BORROW_SHAPE_KEY,
+  AAVE_REPAY_SHAPE_KEY
+} from "./shapes/aave/index.js";
+export type { AavePoolActionInput, AavePoolActionState } from "./shapes/aave/index.js";
+export {
+  aerodromeDepositShape,
+  aerodromeWithdrawShape,
+  aerodromeShapes,
+  setAerodromeStateDependenciesForTests,
+  AERODROME_DEPOSIT_SHAPE_KEY,
+  AERODROME_WITHDRAW_SHAPE_KEY
+} from "./shapes/aerodrome/index.js";
+export type {
+  AerodromeDepositInput,
+  AerodromeWithdrawInput,
+  AerodromeDepositState,
+  AerodromeWithdrawState
+} from "./shapes/aerodrome/index.js";
+export {
   createBaseEvmClient,
   attachEvmContextIfNeeded,
   BASE_CHAIN_ID,
@@ -151,7 +180,9 @@ export function createExecutionRegistry(): TransactionShapeRegistry {
     ...alphaArcadeShapes,
     ...stammShapes,
     ...hogswapShapes,
-    ...morphoShapes
+    ...morphoShapes,
+    ...aaveShapes,
+    ...aerodromeShapes
   ]) {
     registry.register(shape);
   }

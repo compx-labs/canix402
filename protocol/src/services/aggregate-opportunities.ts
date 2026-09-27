@@ -4,6 +4,8 @@ import {
   fetchDorkFiOpportunities,
   fetchFolksFinanceOpportunities,
   fetchHaystackOpportunities,
+  fetchAaveOpportunities,
+  fetchAerodromeOpportunities,
   fetchMorphoOpportunities,
   fetchMythFinanceOpportunities,
   fetchPactOpportunities,
@@ -41,10 +43,12 @@ export const SUPPORTED_AGGREGATE_PROTOCOLS = [
   "reti",
   "alpha-arcade",
   "stamm",
-  "morpho"
+  "morpho",
+  "aave",
+  "aerodrome"
 ] as const;
 
-const BASE_AGGREGATE_PROTOCOLS = new Set<Protocol>(["morpho"]);
+const BASE_AGGREGATE_PROTOCOLS = new Set<Protocol>(["morpho", "aave", "aerodrome"]);
 
 export function protocolsForOpportunityQuery(options: {
   protocol?: Protocol | undefined;
@@ -314,6 +318,12 @@ async function fetchOpportunitiesForProtocolUncachedInner(
   }
   if (protocol === "morpho") {
     return await fetchMorphoOpportunities();
+  }
+  if (protocol === "aave") {
+    return await fetchAaveOpportunities();
+  }
+  if (protocol === "aerodrome") {
+    return await fetchAerodromeOpportunities();
   }
 
   return [];

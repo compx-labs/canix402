@@ -65,7 +65,7 @@ export function decodeAddress(hex: string): string {
 export function requireEvmClient(context: ShapeBuildContext): EvmRpcClient {
   if (!context.evm) {
     throw new ShapeStateError(
-      "Base RPC client is required for Morpho quotes. Set BASE_RPC_URL."
+      "Base RPC client is required for Base quotes. Set BASE_RPC_URL."
     );
   }
   return context.evm;

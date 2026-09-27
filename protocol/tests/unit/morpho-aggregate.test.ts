@@ -12,10 +12,22 @@ test("default aggregate protocol set includes Morpho alongside Algorand venues",
   assert.deepEqual(protocolsForOpportunityQuery({}), [...SUPPORTED_AGGREGATE_PROTOCOLS]);
 });
 
-test("chain=base selects only Morpho; chain=algorand excludes it", () => {
-  assert.deepEqual(protocolsForOpportunityQuery({ chain: "base" }), ["morpho"]);
+test("chain=base selects Morpho, Aave, and Aerodrome; chain=algorand excludes them", () => {
+  assert.deepEqual(protocolsForOpportunityQuery({ chain: "base" }), [
+    "morpho",
+    "aave",
+    "aerodrome"
+  ]);
   assert.equal(
     protocolsForOpportunityQuery({ chain: "algorand" }).includes("morpho"),
+    false
+  );
+  assert.equal(
+    protocolsForOpportunityQuery({ chain: "algorand" }).includes("aave"),
+    false
+  );
+  assert.equal(
+    protocolsForOpportunityQuery({ chain: "algorand" }).includes("aerodrome"),
     false
   );
   assert.deepEqual(protocolsForOpportunityQuery({ protocol: "tinyman", chain: "base" }), []);
@@ -23,4 +35,5 @@ test("chain=base selects only Morpho; chain=algorand excludes it", () => {
   assert.deepEqual(protocolsForOpportunityQuery({ protocol: "morpho", chain: "base" }), [
     "morpho"
   ]);
+  assert.deepEqual(protocolsForOpportunityQuery({ protocol: "aave", chain: "base" }), ["aave"]);
 });

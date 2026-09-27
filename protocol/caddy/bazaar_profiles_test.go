@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/GoPlausible/x402-avm/go/extensions/bazaar"
@@ -61,6 +62,93 @@ func TestBuildBazaarExtensionAllProfiles(t *testing.T) {
 			t.Fatalf("profile %q extension JSON too large: %d bytes", profile, len(raw))
 		}
 	}
+}
+
+func TestBazaarExamplesUseRealWallets(t *testing.T) {
+	positionProfiles := map[string]struct{}{
+		"positions":           {},
+		"positions_claimable": {},
+	}
+	brownieProfiles := []string{
+		"opportunities_personalized",
+		"eligibility",
+		"plans",
+		"plans_rebalance",
+		"execution_compose",
+		"execution_simulate",
+		"watch",
+	}
+	const zeroAddress = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+
+	for _, profile := range knownBazaarProfiles() {
+		ext := mustBazaarExtension(t, profile)
+		encoded := mustJSON(t, ext.Info.Input)
+		if strings.Contains(encoded, zeroAddress) {
+			t.Errorf("%s: still advertises the zero address", profile)
+		}
+		_, isPosition := positionProfiles[profile]
+		if isPosition {
+			if !strings.Contains(encoded, nfAlgoAddress) {
+				t.Errorf("%s: expected nf.algo address", profile)
+			}
+			if strings.Contains(encoded, brownieBotAddress) {
+				t.Errorf("%s: position examples must not use the Brownie showcase wallet", profile)
+			}
+			continue
+		}
+		if strings.Contains(encoded, nfAlgoAddress) {
+			t.Errorf("%s: nf.algo is only for position profiles", profile)
+		}
+	}
+
+	for _, profile := range brownieProfiles {
+		ext := mustBazaarExtension(t, profile)
+		encoded := mustJSON(t, ext.Info.Input)
+		if !strings.Contains(encoded, brownieBotAddress) {
+			t.Errorf("%s: expected Brownie address", profile)
+		}
+	}
+
+	quotes := mustBazaarExtension(t, "execution_quotes")
+	body := quotes.Info.Input.(bazaar.BodyInput).Body.(map[string]interface{})
+	items := body["quotes"].([]interface{})
+	first := items[0].(map[string]interface{})
+	if first["shapeKey"] != "mainnet:tinyman:v2:addLiquidity:flexible" {
+		t.Fatalf("execution_quotes shapeKey = %#v", first["shapeKey"])
+	}
+	input := first["input"].(map[string]interface{})
+	if input["userAddress"] != brownieBotAddress {
+		t.Fatalf("execution_quotes userAddress = %#v", input["userAddress"])
+	}
+
+	swap := mustBazaarExtension(t, "haystack_swap")
+	swapBody := swap.Info.Input.(bazaar.BodyInput).Body.(map[string]interface{})
+	for _, key := range []string{"address", "quote", "slippage"} {
+		if _, ok := swapBody[key]; !ok {
+			t.Errorf("haystack_swap example missing %s", key)
+		}
+	}
+	if swapBody["address"] != brownieBotAddress {
+		t.Fatalf("haystack_swap address = %#v", swapBody["address"])
+	}
+}
+
+func mustBazaarExtension(t *testing.T, profile string) bazaar.DiscoveryExtension {
+	t.Helper()
+	ext, err := buildBazaarExtension(profile)
+	if err != nil {
+		t.Fatalf("profile %q: %v", profile, err)
+	}
+	return ext
+}
+
+func mustJSON(t *testing.T, value interface{}) string {
+	t.Helper()
+	raw, err := json.Marshal(value)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	return string(raw)
 }
 
 func TestBuildBazaarExtensionUnknown(t *testing.T) {

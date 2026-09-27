@@ -77,7 +77,12 @@ test("GET /public/agents/brownie/positions returns hardcoded treasury wallet", a
       meta: { address: string; agentId?: string; fetchedAt: string };
     };
     assert.deepEqual(body.data, []);
-    assert.equal(body.protocols.length, SUPPORTED_POSITION_PROTOCOLS.length);
+    assert.equal(
+      body.protocols.length,
+      SUPPORTED_POSITION_PROTOCOLS.filter(
+        (protocol) => protocol !== "aave" && protocol !== "aerodrome"
+      ).length
+    );
     assert.equal(body.meta.address, BROWNIE_BOT_WALLET);
     assert.equal(body.meta.agentId, BROWNIE_BOT_AGENT_ID);
     assert.ok(typeof body.meta.fetchedAt === "string");

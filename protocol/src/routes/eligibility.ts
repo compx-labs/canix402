@@ -1,7 +1,7 @@
-import algosdk from "algosdk";
 import type { FastifyInstance } from "fastify";
 
 import { fetchEligibility } from "../services/eligibility.js";
+import { parseWalletAddress, WALLET_ADDRESS_ERROR } from "../services/wallet-address.js";
 import type { ApiError } from "../types/errors.js";
 import type { EligibilityRequest, EligibilityResponse } from "../types/eligibility.js";
 import {
@@ -25,11 +25,11 @@ export function registerEligibilityRoutes(app: FastifyInstance): void {
     },
     async (request, reply) => {
       const { address } = request.body;
-      if (!algosdk.isValidAddress(address)) {
+      if (!parseWalletAddress(address)) {
         return reply.status(400).send({
           error: {
             code: "VALIDATION_ERROR",
-            message: "Body field 'address' is not a valid Algorand address."  // pragma: allowlist secret
+            message: `Body field 'address' is invalid. ${WALLET_ADDRESS_ERROR}`
           }
         });
       }

@@ -88,6 +88,22 @@ export const protocols: readonly SupportedProtocol[] = [
     notes:
       "Supply-only deposit/withdraw/redeem as unsigned calldata. Vault address in inputHints.poolId; ERC-20 in assetAddresses. chain=base on every row.",
     logo: "/protocols/morpho.svg"
+  },
+  {
+    slug: "aave",
+    name: "Aave",
+    summary: "Aave V3 reserves on Base — supply, withdraw, variable borrow, and repay.",
+    notes:
+      "One lending row per underlying. Supply is the catalog enter shape; borrow is manage on a supplied position. Unsigned Pool calldata. chain=base on every row.",
+    logo: "/protocols/aave.svg"
+  },
+  {
+    slug: "aerodrome",
+    name: "Aerodrome",
+    summary: "Basic volatile and stable pools on Base with a live gauge.",
+    notes:
+      "Farm rows. Enter is add liquidity then gauge stake; exit is unstake then remove liquidity. APY is AERO emissions on staked liquidity. Trading fees accrue to voters. chain=base on every row.",
+    logo: "/protocols/aerodrome.svg"
   }
 ];
 

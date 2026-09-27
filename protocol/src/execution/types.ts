@@ -27,6 +27,8 @@ export type ExecutionProtocol =
   | "stamm"
   | "hogswap"
   | "morpho"
+  | "aave"
+  | "aerodrome"
   /** Synthetic identity for multi-router compose opt-in/swap legs. Winner is `metadata.router`. */
   | "swap";
 

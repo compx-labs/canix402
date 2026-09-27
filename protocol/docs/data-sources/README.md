@@ -15,6 +15,8 @@ This section tracks protocol-specific source contracts and normalization rules.
 - [Alpha Arcade](alpha-arcade.md)
 - [STAMM](stamm.md) (LiquiHog multi-tier AMM; HOGSWAP discovery + unsigned mint/redeem)
 - [Morpho Vaults](morpho.md) (Base listed ERC-4626 earn; unsigned deposit/withdraw/redeem)
+- [Aave V3](aave.md) (Base reserves; unsigned supply, withdraw, variable borrow, and repay)
+- [Aerodrome](aerodrome.md) (Base basic volatile and stable pools with a live gauge; unsigned add-and-stake / unstake-and-remove)
 - [HOGSWAP LP valuation](hogswap-lp.md) (STAMM, AlgoFi, Humble positions; Tinyman/Pact overlap)
 - [HOGSWAP swap router](hogswap-swap.md) (unsigned SWAP quote + execute; included in `/swaps/*` compare)
 - [Folks Router V2](folks-router.md) (internal DEX aggregator adapter; included in `/swaps/*` compare; no public Folks HTTP)
@@ -39,9 +41,10 @@ Dork.fi live next to the shape specs in
 ## Normalization unit tests
 
 Adapter `normalize*` transforms for Tinyman, Folks Finance, Pact, CompX,
-Dork.fi, Myth Finance, Haystack, Réti, Alpha Arcade, STAMM, and Morpho Vaults
-are covered by fixture-based tests in `protocol/tests/unit/` (recorded SDK/API
-shapes or mocked SDK dependencies; no live chain, no paid x402). Run
+Dork.fi, Myth Finance, Haystack, Réti, Alpha Arcade, STAMM, Morpho Vaults,
+Aave V3, and Aerodrome are covered by fixture-based tests in
+`protocol/tests/unit/` (recorded SDK/API shapes or mocked SDK dependencies; no
+live chain, no paid x402). Run
 `npm run test:unit` from repo root. See `docs/testing.md`.
 
 ## Asset ID Enrichment
@@ -55,6 +58,8 @@ on-chain Algorand asset ids:
 - Folks Finance: the lending pool `assetId` from the SDK.
 - CompX: lending `baseTokenId`/`lstTokenId` and staking `stakedAssetId`/`rewardAssetId` from the SDK.
 - Morpho: ERC-20 `assetAddresses` (not Algorand `assetIds`); vault address in `inputHints.poolId`.
+- Aave: ERC-20 `assetAddresses`; underlying in `inputHints.poolId`.
+- Aerodrome: both ERC-20s in `assetAddresses`; pool address in `inputHints.poolId`. Yield basis is `apy` (emissions on staked liquidity; trading fees are not included).
 
 Asset ids are emitted only when present; opportunities without resolvable ids simply do
 not match any wallet holdings. Native ALGO is represented as asset id `0`.
