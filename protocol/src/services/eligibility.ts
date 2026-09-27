@@ -1,5 +1,6 @@
 import type { AccountHoldings } from "./account-assets.js";
 import { fetchAccountHoldings } from "./account-assets.js";
+import { parseWalletAddress } from "./wallet-address.js";
 import {
   fetchOpportunitiesResult,
   SUPPORTED_AGGREGATE_PROTOCOLS
@@ -498,7 +499,11 @@ export function matchesPersonalizedFromEligibility(
 export async function fetchEligibility(
   request: EligibilityRequest
 ): Promise<EligibilityResponse> {
-  const holdings = await fetchAccountHoldings(request.address);
+  const wallet = parseWalletAddress(request.address);
+  const holdings =
+    wallet?.family === "base"
+      ? { heldAssetIds: new Set<number>() }
+      : await fetchAccountHoldings(request.address);
   const { data } = await fetchOpportunitiesResult(SUPPORTED_AGGREGATE_PROTOCOLS, {
     refresh: request.refresh === true
   });

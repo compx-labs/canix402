@@ -47,6 +47,8 @@ const ALPHA_ARCADE_CLAIM_REWARDS = "mainnet:alpha-arcade:v1:claimRewards:usdc";
 const STAMM_MINT_LP = "mainnet:stamm:v1:mint:lp";
 const STAMM_REDEEM_LP = "mainnet:stamm:v1:redeem:lp";
 const MORPHO_DEPOSIT_ERC4626 = "base:morpho:vault:deposit:erc4626";
+const AAVE_SUPPLY_ERC20 = "base:aave:v3:supply:erc20";
+const AAVE_WITHDRAW_ERC20 = "base:aave:v3:withdraw:erc20";
 const MORPHO_WITHDRAW_ERC4626 = "base:morpho:vault:withdraw:erc4626";
 const MORPHO_REDEEM_ERC4626 = "base:morpho:vault:redeem:erc4626";
 
@@ -180,6 +182,26 @@ const MORPHO_VAULT_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
 const MORPHO_VAULT_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
   { shapeKey: MORPHO_WITHDRAW_ERC4626, order: 0 },
   { shapeKey: MORPHO_REDEEM_ERC4626, order: 0 }
+];
+
+/** Exclusive enter path for Aave V3 supply. Borrow is a position manage shape. */
+const AAVE_LENDING_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: AAVE_SUPPLY_ERC20, order: 0 }
+];
+
+/** Exit path for Aave V3 withdraw. Repay attaches on debt positions. */
+const AAVE_LENDING_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: AAVE_WITHDRAW_ERC20, order: 0 }
+];
+
+/** Exclusive enter path for Aerodrome add-liquidity plus gauge stake. */
+const AERODROME_FARM_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: "base:aerodrome:v2:deposit:gauge", order: 0 }
+];
+
+/** Exit path for Aerodrome gauge withdraw plus remove-liquidity. */
+const AERODROME_FARM_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: "base:aerodrome:v2:withdraw:gauge", order: 0 }
 ];
 
 export function attachExecutionShapesToOpportunity(
@@ -339,6 +361,18 @@ function orderEnterShapes(
     });
   }
 
+  if (isAaveLendingOpportunity(record)) {
+    return orderBySteps(shapes, AAVE_LENDING_ENTER_STEPS, {
+      exclusive: true
+    });
+  }
+
+  if (isAerodromeFarmOpportunity(record)) {
+    return orderBySteps(shapes, AERODROME_FARM_ENTER_STEPS, {
+      exclusive: true
+    });
+  }
+
   return shapes.map((shape) => ({ shape, order: 0 }));
 }
 
@@ -412,6 +446,12 @@ function resolveExitSteps(
   }
   if (isMorphoVaultOpportunity(record)) {
     return MORPHO_VAULT_EXIT_STEPS;
+  }
+  if (isAaveLendingOpportunity(record)) {
+    return AAVE_LENDING_EXIT_STEPS;
+  }
+  if (isAerodromeFarmOpportunity(record)) {
+    return AERODROME_FARM_EXIT_STEPS;
   }
   return [];
 }
@@ -565,6 +605,14 @@ function buildInputHints(
 
   if (record.protocol === "morpho") {
     return buildMorphoVaultInputHints(record);
+  }
+
+  if (record.protocol === "aave") {
+    return buildAaveLendingInputHints(record);
+  }
+
+  if (record.protocol === "aerodrome") {
+    return buildAerodromeFarmInputHints(record);
   }
 
   if (record.protocol === "tinyman" || record.protocol === "pact") {
@@ -758,6 +806,9 @@ function buildExitInputHints(
   if (isMorphoVaultOpportunity(record)) {
     return buildMorphoVaultInputHints(record);
   }
+  if (isAerodromeFarmOpportunity(record)) {
+    return buildAerodromeFarmInputHints(record);
+  }
   return {};
 }
 
@@ -802,6 +853,46 @@ function isStammLpOpportunity(record: OpportunityMarketRecord): boolean {
 
 function isMorphoVaultOpportunity(record: OpportunityMarketRecord): boolean {
   return record.protocol === "morpho" && record.opportunityType === "lending";
+}
+
+function isAaveLendingOpportunity(record: OpportunityMarketRecord): boolean {
+  return record.protocol === "aave" && record.opportunityType === "lending";
+}
+
+function isAerodromeFarmOpportunity(record: OpportunityMarketRecord): boolean {
+  return record.protocol === "aerodrome" && record.opportunityType === "farm";
+}
+
+function buildAerodromeFarmInputHints(
+  record: OpportunityMarketRecord
+): OpportunityExecutionInputHints {
+  const hints: OpportunityExecutionInputHints = {};
+  const pool =
+    record.poolId ??
+    (record.opportunityId.startsWith("aerodrome-farm-")
+      ? record.opportunityId.slice("aerodrome-farm-".length)
+      : undefined);
+  if (pool !== undefined && pool.length > 0) {
+    hints.poolId = pool;
+  }
+  return hints;
+}
+
+function buildAaveLendingInputHints(
+  record: OpportunityMarketRecord
+): OpportunityExecutionInputHints {
+  const hints: OpportunityExecutionInputHints = {};
+  const underlying =
+    record.poolId ??
+    record.assetAddresses?.[0] ??
+    (record.opportunityId.startsWith("aave-lending-")
+      ? record.opportunityId.slice("aave-lending-".length)
+      : undefined);
+  if (underlying !== undefined && underlying.length > 0) {
+    hints.poolId = underlying;
+    hints.assetAddress = underlying;
+  }
+  return hints;
 }
 
 function buildMorphoVaultInputHints(

@@ -12,7 +12,9 @@ export const SupportedOpportunityProtocolValues = [
   "reti",
   "alpha-arcade",
   "stamm",
-  "morpho"
+  "morpho",
+  "aave",
+  "aerodrome"
 ] as const;
 
 /** LP valuation on `/positions` only — no opportunity adapter. */

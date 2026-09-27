@@ -1,7 +1,7 @@
-import algosdk from "algosdk";
 import { FastifyInstance } from "fastify";
 
 import { fetchAccountHoldings } from "../services/account-assets.js";
+import { fetchWalletPositions } from "../services/aggregate-positions.js";
 import {
   cacheMetaForResponse,
   fetchOpportunitiesResult,
@@ -14,6 +14,7 @@ import { formatDecimalForAgent, formatOpportunitiesForAgent } from "../services/
 import { selectPersonalizedOpportunities } from "../services/personalized-opportunities.js";
 import {
   attachOpportunityRisk,
+  indexHealthFactorsFromPositions,
   loadWalletHealthFactors
 } from "../services/opportunity-risk.js";
 import {
@@ -24,6 +25,7 @@ import {
   windowSeconds
 } from "../services/opportunity-history.js";
 import { evaluateOpportunityEligibility } from "../services/eligibility.js";
+import { parseWalletAddress, WALLET_ADDRESS_ERROR } from "../services/wallet-address.js";
 import { ApiError, ApiSuccess } from "../types/index.js";
 import { OpportunityRecordV1 } from "../types/opportunity.js";
 import {
@@ -130,7 +132,7 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
 
       const requested = parseProtocolFilters(platform);
       const platforms = requested.filter((entry) =>
-        chain === "base" ? entry === "morpho" : chain === "algorand" ? entry !== "morpho" : true
+        protocolsForOpportunityQuery({ protocol: entry, chain }).includes(entry)
       );
       const types = parseOpportunityTypeFilters(type);
       const assetIds = parseAssetIdFilters(assetIdsRaw);
@@ -211,11 +213,64 @@ export function registerOpportunityRoutes(app: FastifyInstance) {
         refresh = false
       } = request.query;
 
-      if (!algosdk.isValidAddress(address)) {
+      if (!parseWalletAddress(address)) {
         return reply.status(400).send({
           error: {
             code: "VALIDATION_ERROR",
-            message: "Query parameter 'address' is not a valid Algorand address."
+            message: `Query parameter 'address' is invalid. ${WALLET_ADDRESS_ERROR}`
+          }
+        });
+      }
+
+      if (parseWalletAddress(address)?.family === "base") {
+        const { data: fetched, cache } = await fetchOpportunitiesResult(
+          protocolsForOpportunityQuery({ chain: "base" }),
+          { refresh }
+        );
+        const catalog = filterOpportunitiesByActivity(fetched, includeInactive);
+        let positionRows: Awaited<ReturnType<typeof fetchWalletPositions>>["data"] = [];
+        try {
+          positionRows = (await fetchWalletPositions(address)).data;
+        } catch {
+          positionRows = [];
+        }
+        const healthFactors = indexHealthFactorsFromPositions(positionRows);
+        const heldIds = new Set(
+          positionRows.flatMap((row) =>
+            typeof row.opportunityId === "string" ? [row.opportunityId] : []
+          )
+        );
+        const withRisk = attachOpportunityRisk(await attachHistoryStability(catalog), {
+          healthFactors
+        });
+        const personalized = withRisk
+          .filter((row) => heldIds.has(row.opportunityId))
+          .slice(offset, offset + limit);
+        const emptyHoldings = { heldAssetIds: new Set<number>() };
+        const formatted = formatOpportunitiesForAgent(personalized).map((row, index) => {
+          const eligibility = evaluateOpportunityEligibility(
+            personalized[index],
+            row.opportunityId,
+            emptyHoldings
+          );
+          return {
+            ...row,
+            canEnter: eligibility.canEnter,
+            eligibilityFullyCheckable: eligibility.eligibilityFullyCheckable
+          };
+        });
+        return reply.send({
+          data: formatted,
+          meta: {
+            limit,
+            offset,
+            includeInactive,
+            paymentRequired: true,
+            address,
+            heldAssetCount: heldIds.size,
+            eligibilityApplied: true,
+            eligibilityEndpoint: "/eligibility",
+            ...cacheMetaForResponse(cache)
           }
         });
       }

@@ -1,6 +1,6 @@
 {
   "name": "protocol",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "private": true,
   "description": "x402-gated Algorand DeFi opportunities data API",
   "type": "module",
@@ -41,6 +41,7 @@
     "test:myth-production": "tsx --test tests/live/myth-finance-production-test.test.ts",
     "test:myth-execution-live": "npm run test:myth-production",
     "test:x402-production": "tsx --test tests/live/x402-production.test.ts",
+    "test:x402-census-unclear": "tsx --test tests/live/x402-census-unclear.test.ts",
     "test:haystack-production": "tsx --test tests/live/haystack-production-swap.test.ts",
     "test:live:haystack-swap": "npm run test:haystack-production",
     "test:meta-swap-production": "tsx --test tests/live/meta-swap-production-swap.test.ts",

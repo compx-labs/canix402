@@ -9,7 +9,9 @@ export type AdapterName =
   | "reti"
   | "alpha-arcade"
   | "stamm"
-  | "morpho";
+  | "morpho"
+  | "aave"
+  | "aerodrome";
 
 export {
   fetchTinymanOpportunities,
@@ -134,3 +136,35 @@ export {
   MorphoAdapterError
 } from "./morpho.js";
 export type { MorphoVaultItem } from "./morpho.js";
+export {
+  fetchAaveOpportunities,
+  fetchAaveReserveSnapshots,
+  normalizeAaveReserve,
+  setAaveAdapterDependenciesForTests,
+  aaveLendingOpportunityId,
+  parseAaveUnderlyingAddress,
+  AAVE_LENDING_OPPORTUNITY_ID_PREFIX,
+  AAVE_V3_BASE_POOL,
+  DEFAULT_AAVE_GRAPHQL_URL,
+  AaveAdapterError
+} from "./aave.js";
+export type { AaveReserveItem, AaveReserveSnapshot } from "./aave.js";
+export {
+  fetchAerodromeOpportunities,
+  fetchAerodromePoolSnapshots,
+  normalizeAerodromePool,
+  setAerodromeAdapterDependenciesForTests,
+  aerodromeFarmOpportunityId,
+  parseAerodromePoolAddress,
+  AERODROME_FARM_OPPORTUNITY_ID_PREFIX,
+  AERODROME_POOL_FACTORY,
+  AERODROME_ROUTER,
+  AERODROME_VOTER,
+  AERODROME_AERO,
+  DEFAULT_AERODROME_SUGAR_ADDRESS,
+  DEFAULT_AERODROME_PRICE_URL,
+  DEFAULT_AERODROME_MIN_TVL_USD,
+  AerodromeAdapterError
+} from "./aerodrome.js";
+export type { AerodromeLp } from "./aerodrome-sugar.js";
+export type { AerodromePoolSnapshot, AerodromeTokenPrice } from "./aerodrome.js";

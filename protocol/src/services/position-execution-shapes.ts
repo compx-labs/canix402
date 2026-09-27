@@ -31,6 +31,10 @@ const RETI_UNSTAKE_ALGO = "mainnet:reti:v1:unstake:algo";
 const COMPX_BORROW_ASA = "mainnet:compx:v1:borrow:asa";
 const COMPX_WITHDRAW_ASA = "mainnet:compx:v1:withdraw:asa";
 const COMPX_REPAY_ASA = "mainnet:compx:v1:repay:asa";
+const AAVE_WITHDRAW_ERC20 = "base:aave:v3:withdraw:erc20";
+const AAVE_BORROW_VARIABLE = "base:aave:v3:borrow:variable";
+const AAVE_REPAY_VARIABLE = "base:aave:v3:repay:variable";
+const AERODROME_WITHDRAW_GAUGE = "base:aerodrome:v2:withdraw:gauge";
 const DORKFI_WITHDRAW_ASA = "mainnet:dorkfi:v1:withdraw:asa";
 const DORKFI_BORROW_ASA = "mainnet:dorkfi:v1:borrow:asa";
 const DORKFI_REPAY_ASA = "mainnet:dorkfi:v1:repay:asa";
@@ -119,6 +123,32 @@ export function attachExecutionShapesToPosition(
         registry.get(key)
       ),
       compatibleManageShapeKeys: exclusiveFolks.manageKeys.filter((key) =>
+        registry.get(key)
+      )
+    };
+  }
+
+  const exclusiveAave = exclusiveAaveLendingShapes(record);
+  if (exclusiveAave !== null) {
+    return {
+      ...record,
+      compatibleExitShapeKeys: exclusiveAave.exitKeys.filter((key) =>
+        registry.get(key)
+      ),
+      compatibleManageShapeKeys: exclusiveAave.manageKeys.filter((key) =>
+        registry.get(key)
+      )
+    };
+  }
+
+  const exclusiveAerodrome = exclusiveAerodromeFarmShapes(record);
+  if (exclusiveAerodrome !== null) {
+    return {
+      ...record,
+      compatibleExitShapeKeys: exclusiveAerodrome.exitKeys.filter((key) =>
+        registry.get(key)
+      ),
+      compatibleManageShapeKeys: exclusiveAerodrome.manageKeys.filter((key) =>
         registry.get(key)
       )
     };
@@ -287,6 +317,47 @@ function exclusiveCompXLendingShapes(
     record.opportunityId.startsWith("compx-lending-")
   ) {
     return { exitKeys: [COMPX_REPAY_ASA], manageKeys: [] };
+  }
+  return null;
+}
+
+function exclusiveAaveLendingShapes(
+  record: PositionMarketRecord
+): { exitKeys: string[]; manageKeys: string[] } | null {
+  if (record.protocol !== "aave") {
+    return null;
+  }
+  if (
+    record.positionType === "supplied" &&
+    typeof record.opportunityId === "string" &&
+    record.opportunityId.startsWith("aave-lending-")
+  ) {
+    return {
+      exitKeys: [AAVE_WITHDRAW_ERC20],
+      manageKeys: [AAVE_BORROW_VARIABLE]
+    };
+  }
+  if (
+    record.positionType === "debt" &&
+    typeof record.opportunityId === "string" &&
+    record.opportunityId.startsWith("aave-lending-")
+  ) {
+    return { exitKeys: [AAVE_REPAY_VARIABLE], manageKeys: [] };
+  }
+  return null;
+}
+
+function exclusiveAerodromeFarmShapes(
+  record: PositionMarketRecord
+): { exitKeys: string[]; manageKeys: string[] } | null {
+  if (record.protocol !== "aerodrome" || record.positionType !== "staked") {
+    return null;
+  }
+  if (
+    typeof record.opportunityId === "string" &&
+    record.opportunityId.startsWith("aerodrome-farm-")
+  ) {
+    return { exitKeys: [AERODROME_WITHDRAW_GAUGE], manageKeys: [] };
   }
   return null;
 }

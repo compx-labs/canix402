@@ -167,7 +167,9 @@ test("aggregate bounds concurrent protocol collectors and preserves protocol ord
     const response = await responsePromise;
     assert.deepEqual(
       response.protocols.map(({ protocol }) => protocol),
-      [...SUPPORTED_POSITION_PROTOCOLS]
+      SUPPORTED_POSITION_PROTOCOLS.filter(
+        (protocol) => protocol !== "aave" && protocol !== "aerodrome"
+      )
     );
   } finally {
     if (originalConcurrency === undefined) {
@@ -205,7 +207,12 @@ test("GET /positions returns 200 for a valid empty wallet", async () => {
       meta: { address: string };
     };
     assert.deepEqual(body.data, []);
-    assert.equal(body.protocols.length, SUPPORTED_POSITION_PROTOCOLS.length);
+    assert.equal(
+      body.protocols.length,
+      SUPPORTED_POSITION_PROTOCOLS.filter(
+        (protocol) => protocol !== "aave" && protocol !== "aerodrome"
+      ).length
+    );
     assert.ok(body.protocols.every(({ status }) => status === "ok"));
     assert.deepEqual(body.totals, {
       suppliedUsd: 0,

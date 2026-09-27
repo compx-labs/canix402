@@ -32,7 +32,9 @@ const PROTOCOLS = [
   "Réti",
   "Alpha Arcade",
   "STAMM",
-  "Morpho"
+  "Morpho",
+  "Aave",
+  "Aerodrome"
 ] as const;
 
 interface DiscoveryEndpoint {
@@ -252,7 +254,7 @@ Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: \`${
 
 An agent may pay and act on Algorand only, on Base only, or on both. Nothing in ranking, eligibility, pricing, or access requires a second chain.
 
-Algorand wallet routes (\`/positions\`, \`/opportunities/personalized\`, \`/eligibility\`, \`/plans\`, Algorand quotes, and swaps) take an Algorand address and nothing else. Omitting a Base \`0x\` address does not lower rank, fail the request, or block payment. A Base address is required only on the call that needs it: a Morpho quote (\`userAddress\` is \`0x…\`) or a payment signed against the Base accept. Filter catalog rows with \`chain=algorand\` or \`chain=base\`.
+Algorand wallet routes (\`/positions\`, \`/opportunities/personalized\`, \`/eligibility\`, \`/plans\`, Algorand quotes, and swaps) take an Algorand address and nothing else. Omitting a Base \`0x\` address does not lower rank, fail the request, or block payment. A Base address is required only on the call that needs it: a Morpho, Aave, or Aerodrome quote (\`userAddress\` is \`0x…\`) or a payment signed against the Base accept. Filter catalog rows with \`chain=algorand\` or \`chain=base\`.
 
 1. **Discover** — \`GET ${GATEWAY}/discovery\` and \`GET ${GATEWAY}/openapi.json\` (free).
 2. **Preflight** — call a paid route without \`PAYMENT-SIGNATURE\`; expect HTTP **402** with \`PAYMENT-REQUIRED\`.
@@ -285,9 +287,9 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 ### Route notes
 
 - \`GET /opportunities\` — top aggregated opportunities ranked by risk then APY (default limit 10).
-- \`GET /protocols/:protocol/opportunities\` — protocol slug e.g. \`tinyman\`, \`pact\`, \`folks-finance\`, \`compx\`, \`dorkfi\`, \`myth-finance\`, \`haystack\`, \`reti\`, \`alpha-arcade\`, \`stamm\`, \`morpho\`. AlgoFi and Humble LP holdings are \`GET /positions\` only.
+- \`GET /protocols/:protocol/opportunities\` — protocol slug e.g. \`tinyman\`, \`pact\`, \`folks-finance\`, \`compx\`, \`dorkfi\`, \`myth-finance\`, \`haystack\`, \`reti\`, \`alpha-arcade\`, \`stamm\`, \`morpho\`, \`aave\`, \`aerodrome\`. AlgoFi and Humble LP holdings are \`GET /positions\` only.
 - \`GET /opportunities/search\` — filter by \`platform\`, \`chain\` (\`algorand|base\`), \`type\`, \`minApy\`, \`maxApy\`, \`minTvlUsd\`, \`assetIds\` (comma-separated ASA ids; 0 = ALGO; ANY intersection with opportunity.assetIds).
-- \`GET /opportunities/personalized\` — requires \`address\` (Algorand account only; no Base address). Omitting a Base address does not change rank or price. Premium price; matches opportunities to wallet-held assets using eligibility rules (full/gated venues are not recommended as enterable). Filter the mixed catalog with \`chain=algorand|base\` on list and search.  // pragma: allowlist secret
+- \`GET /opportunities/personalized\` — requires \`address\` (Algorand account or Base \`0x\` address). A Base address matches Aave positions and attaches health factor. Aerodrome farm rows are not matched from wallet ERC-20 balances. Omitting a Base address does not change rank or price. Premium price; matches opportunities to wallet-held assets using eligibility rules (full/gated venues are not recommended as enterable). Filter the mixed catalog with \`chain=algorand|base\` on list and search.  // pragma: allowlist secret
 - \`GET /opportunities/:id/history\` — bounded APY/TVL series (\`window=1d|7d|30d\`, default 30d); empty until snapshots exist; includes a stability signal so snapshot APY cannot dominate plan sizing. Research SKU ~0.01 USDC.
 - \`POST /eligibility\` — requires \`address\` and \`opportunityIds\`; 0.01 USDC; returns \`canEnter\`, \`missingAssets\`, \`gates\`, \`capacity\`, \`suggestedSwap\`. NFD/creator gates stay unresolved (\`eligibilityFullyCheckable: false\`). Quote-time checks remain authoritative.  // pragma: allowlist secret
 - \`POST /plans\` — requires \`address\` and \`budget { assetId, amount }\`; 0.25 USDC compiler SKU; returns ordered eligibility/setup/enter steps with unsigned groups, live multi-router opt-in → swap compose when \`requiredAssetIds\` differ from the budget asset, \`quotes[]\`, expected position delta, and fee totals. Brownie should consume this rather than forking a compiler.  // pragma: allowlist secret
@@ -297,10 +299,10 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 - \`POST /policy/validate\` — requires a versioned \`policy\` document plus a compiled \`plan\` and/or proposed \`quotes[]\`; 0.25 USDC; machine-readable \`pass\` / \`reasons[]\` (protocol weight, ALGO reserve, TVL/freshness, no-new-borrows, execution-ready). Fails closed when a required field is missing. Canix does not sign.  // pragma: allowlist secret
 - \`POST /sessions\` — 0.25 USDC; mints a walletless prepaid receipt that unlocks N research + M quotes/plans for a TTL. One-shots remain the default.  // pragma: allowlist secret
 - \`POST /watch\` — 0.25 USDC recurring retainer; address + thresholds (health factor, claimable USD, APY drop, Réti capacity) and optional HTTPS webhook. Signed, idempotent deliveries. HMAC secret shown once. No wallet keys.  // pragma: allowlist secret
-- \`GET /positions\` — requires \`address\` (Algorand account only). An Algorand-only agent is not penalized for omitting a Base address. Returns normalized Algorand wallet DeFi positions for exactly 0.005 USDC. Morpho holdings are not in this snapshot.
+- \`GET /positions\` — requires \`address\` (Algorand account or Base \`0x\` address). An Algorand address returns Algorand positions only. A Base address returns Aave V3 supplied and variable-debt rows plus staked Aerodrome basic-pool LP. Exactly 0.005 USDC. Morpho holdings and unclaimed AERO are not in this snapshot.
 - \`GET /positions/claimable\` — requires \`address\`; claim desk with USD, fee/worth-claiming hints, and \`claimAllQuotes\` for exactly 0.001 USDC. Compile via \`POST /execution/quotes\` (~0.1 USDC flat; groups never merged).
 - \`GET /execution/shapes\` — free catalog of verified shape keys and requiredInputs (metadata only). \`meta.caveatsDocsPath\` is \`protocol/docs/execution-shapes/protocol-caveats.md\` (pool discovery, opt-ins, min-balance, slippage, liquidity limits, app upgrades). Do not guess those details.
-- \`POST /execution/quotes\` — batch unsigned groups for verified shapes; flat ~0.1 USDC per request, payable on Algorand or Base. Algorand shapes take an Algorand \`userAddress\` and return Algorand groups. Morpho shapes (\`base:morpho:vault:*\`) take a Base \`0x\` \`userAddress\` and return unsigned Base calldata (\`encodedTransactions\` hex, \`transactions[].evmCall\`). Skipping Base shapes is complete for an Algorand agent. Canix never signs or submits. Read each shape's \`docsPath\` plus the protocol caveats doc before filling inputs.
+- \`POST /execution/quotes\` — batch unsigned groups for verified shapes; flat ~0.1 USDC per request, payable on Algorand or Base. Algorand shapes take an Algorand \`userAddress\` and return Algorand groups. Morpho shapes (\`base:morpho:vault:*\`), Aave shapes (\`base:aave:v3:*\`), and Aerodrome shapes (\`base:aerodrome:v2:*\`) take a Base \`0x\` \`userAddress\` and return unsigned Base calldata (\`encodedTransactions\` hex, \`transactions[].evmCall\`). Skipping Base shapes is complete for an Algorand agent. Canix never signs or submits. Read each shape's \`docsPath\` plus the protocol caveats doc before filling inputs.
 - Multi-router swaps — call free \`POST /swaps/quote\` (parallel compare unless \`router\` is set), sign and submit any group from free \`POST /swaps/optin\`, refresh the short-lived quote, then call paid \`POST /swaps/transactions\` for 0.005 USDC. Amounts are asset base units. Pass the quote object unchanged; do not edit \`payload\`.
 - Walletless handoff — sign only the returned \`userSignIndexes\`, preserve any pre-signed members and group order, and submit the complete group through the caller's Algod client.
 - Swap costs — the 0.005 USDC x402 access charge is separate from router fees, DEX fees, price impact, and Algorand network fees.

@@ -490,6 +490,23 @@ Wallet requirements for paid settlement:
 This suite is not part of `test`, `test:ci`, or default GitHub Actions. The daily
 `Production Smoke` workflow runs `test:production-smoke` (preflight only).
 
+## Census UNCLEAR replay
+
+[`tests/live/x402-census-unclear.test.ts`](../tests/live/x402-census-unclear.test.ts)
+replays the four `canix402-api.compx.io` resources marked UNCLEAR on the
+2026-09-27 vet402 census, using the Bazaar examples in
+`protocol/caddy/bazaar_profiles.go` (nf.algo on claimable, Brownie Bot on the
+other three) and the same 20s abort.
+
+```sh
+X402_CENSUS_UNCLEAR_PAID_TEST=1 npm run test:x402-census-unclear -w protocol
+```
+
+The run is skipped unless that flag is set. A full pass spends **0.156 USDC**
+(0.001 + 0.005 + 0.05 + 0.10) and refuses to sign if a route advertises a
+different price. It logs each status and does not lock a delivery outcome
+until those examples are live on the gateway. It is not part of `test` or CI.
+
 ## Haystack production swap test
 
 The opt-in test in

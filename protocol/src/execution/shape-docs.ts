@@ -139,6 +139,18 @@ export const EXECUTION_SHAPE_DOCS_PATHS: Readonly<Record<string, string>> = {
     "protocol/docs/execution-shapes/morpho-withdraw-erc4626.md",
   "base:morpho:vault:redeem:erc4626":
     "protocol/docs/execution-shapes/morpho-redeem-erc4626.md",
+  "base:aave:v3:supply:erc20":
+    "protocol/docs/execution-shapes/aave-supply-erc20.md",
+  "base:aave:v3:withdraw:erc20":
+    "protocol/docs/execution-shapes/aave-withdraw-erc20.md",
+  "base:aave:v3:borrow:variable":
+    "protocol/docs/execution-shapes/aave-borrow-variable.md",
+  "base:aave:v3:repay:variable":
+    "protocol/docs/execution-shapes/aave-repay-variable.md",
+  "base:aerodrome:v2:deposit:gauge":
+    "protocol/docs/execution-shapes/aerodrome-deposit-gauge.md",
+  "base:aerodrome:v2:withdraw:gauge":
+    "protocol/docs/execution-shapes/aerodrome-withdraw-gauge.md",
   "mainnet:hogswap:v1:swap:fixed-input":
     "protocol/docs/execution-shapes/hogswap-swap-fixed-input.md",
   "mainnet:hogswap:v1:swap:fixed-output":

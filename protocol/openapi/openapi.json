@@ -9,7 +9,7 @@
       "email": "kieran@neonforge.ltd",
       "url": "https://canix402.compx.io"
     },
-    "x-guidance": "Use the gateway base URL in servers[0]. Fetch /discovery and /openapi.json before integrating. Prefer the remote canix402 MCP server at https://canix402-mcp.compx.io/mcp (streamable-http, walletless pass-through) for agent tool access. Agents may use Algorand, Base, or both. Paid routes return HTTP 402 with PAYMENT-REQUIRED. Select an accept by network. Algorand is first and a complete payment (USDC ASA transfer). Base (eip155:8453) is optional EIP-3009 USDC at the same price. Omitting a Base address does not change rank, eligibility, price, or access. A Base address is required only for a Morpho quote or a Base payment. Retry with PAYMENT-SIGNATURE. Best price swaps follow quote -> opt-in if needed -> fresh quote -> paid transaction generation -> local signing/submission. Human and LLM docs: https://canix402.compx.io/llms.txt pragma: allowlist secret",
+    "x-guidance": "Use the gateway base URL in servers[0]. Fetch /discovery and /openapi.json before integrating. Prefer the remote canix402 MCP server at https://canix402-mcp.compx.io/mcp (streamable-http, walletless pass-through) for agent tool access. Agents may use Algorand, Base, or both. Paid routes return HTTP 402 with PAYMENT-REQUIRED. Select an accept by network. Algorand is first and a complete payment (USDC ASA transfer). Base (eip155:8453) is optional EIP-3009 USDC at the same price. Omitting a Base address does not change rank, eligibility, price, or access. A Base address is required only for a Morpho, Aave, or Aerodrome quote, or a Base payment. Retry with PAYMENT-SIGNATURE. Best price swaps follow quote -> opt-in if needed -> fresh quote -> paid transaction generation -> local signing/submission. Human and LLM docs: https://canix402.compx.io/llms.txt pragma: allowlist secret",
     "x-precision": {
       "fields": [
         "apy",
@@ -543,7 +543,7 @@
     "/opportunities": {
       "get": {
         "summary": "Top 10 aggregated DeFi opportunities ranked by risk then APY",
-        "description": "Returns ranked DeFi yield opportunities across supported chains (Algorand and Base). Each row includes chain. Default list mixes Algorand venues with listed Morpho Vaults on Base. Filter with protocol= or chain=algorand|base. This endpoint provides normalized market data only; it does not build or submit transactions.",
+        "description": "Returns ranked DeFi yield opportunities across supported chains (Algorand and Base). Each row includes chain. Default list mixes Algorand venues with Morpho Vaults, Aave V3 reserves, and Aerodrome basic-pool farms on Base. Filter with protocol= or chain=algorand|base. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": [
           "defi",
           "opportunities"
@@ -677,7 +677,7 @@
     "/opportunities/search": {
       "get": {
         "summary": "Caller-filtered opportunities across supported platforms",
-        "description": "Returns DeFi opportunities filtered by platform, chain (algorand|base), opportunity type, APY range, TVL threshold, and optional ASA assetIds. Base Morpho rows use assetAddresses instead of assetIds. This endpoint provides normalized market data only; it does not build or submit transactions.",
+        "description": "Returns DeFi opportunities filtered by platform, chain (algorand|base), opportunity type, APY range, TVL threshold, and optional ASA assetIds. Base Morpho, Aave, and Aerodrome rows use assetAddresses instead of assetIds. This endpoint provides normalized market data only; it does not build or submit transactions.",
         "tags": [
           "defi",
           "opportunities",
@@ -1519,8 +1519,8 @@
     },
     "/positions": {
       "get": {
-        "summary": "Algorand DeFi positions held by a wallet",
-        "description": "Returns normalized DeFi positions associated with a supplied Algorand wallet address across supported protocols. LP tokens indexed by HOGSWAP (STAMM, AlgoFi, Humble) are valued via GET /lp/{asset_id}?amount= \u2014 proportional NAV, null rather than guessed. Tinyman and Pact LP collectors remain canonical for those venues (no double-count by LP ASA). This endpoint provides position data only; it does not build or submit transactions.",
+        "summary": "DeFi positions held by an Algorand or Base wallet",
+        "description": "Returns normalized DeFi positions for a wallet. An Algorand address is read across Algorand protocols. LP tokens indexed by HOGSWAP (STAMM, AlgoFi, Humble) are valued via GET /lp/{asset_id}?amount= — proportional NAV, null rather than guessed. Tinyman and Pact LP collectors remain canonical for those venues (no double-count by LP ASA). A Base 0x address returns Aave V3 supply and variable debt plus staked Aerodrome basic-pool LP. Unclaimed AERO is omitted. This endpoint provides position data only; it does not build or submit transactions.",
         "x-pragma": "pragma: allowlist secret",
         "tags": [
           "defi",
@@ -1743,7 +1743,7 @@
     "/protocols/{protocol}/opportunities": {
       "get": {
         "summary": "Top 25 DeFi opportunities for a single protocol ranked by risk then APY",
-        "description": "Returns ranked DeFi opportunities for one protocol including morpho (Base listed Morpho Vaults). This endpoint provides normalized market data only; it does not build or submit transactions.",
+        "description": "Returns ranked DeFi opportunities for one protocol including morpho (Base listed Morpho Vaults), aave (Aave V3 Base reserves), and aerodrome (basic volatile and stable pools with a live gauge). This endpoint provides normalized market data only; it does not build or submit transactions.",
         "x-pragma": "pragma: allowlist secret",
         "tags": [
           "defi",
@@ -1768,7 +1768,9 @@
                 "reti",
                 "alpha-arcade",
                 "stamm",
-                "morpho"
+                "morpho",
+                "aave",
+                "aerodrome"
               ]
             }
           },
@@ -3697,7 +3699,9 @@
               "reti",
               "alpha-arcade",
               "stamm",
-              "morpho"
+              "morpho",
+              "aave",
+              "aerodrome"
             ]
           },
           "opportunityType": {
@@ -3992,6 +3996,8 @@
               "reti",
               "alpha-arcade",
               "stamm",
+              "aave",
+              "aerodrome",
               "algofi",
               "humble"
             ]
@@ -4117,6 +4123,8 @@
               "reti",
               "alpha-arcade",
               "stamm",
+              "aave",
+              "aerodrome",
               "algofi",
               "humble"
             ]
@@ -4293,6 +4301,8 @@
               "reti",
               "alpha-arcade",
               "stamm",
+              "aave",
+              "aerodrome",
               "algofi",
               "humble"
             ]
@@ -6685,7 +6695,9 @@
                   "reti",
                   "alpha-arcade",
                   "stamm",
-                  "morpho"
+                  "morpho",
+                  "aave",
+                  "aerodrome"
                 ]
               },
               {
@@ -7330,7 +7342,9 @@
               "reti",
               "alpha-arcade",
               "stamm",
-              "morpho"
+              "morpho",
+              "aave",
+              "aerodrome"
             ]
           },
           "opportunityType": {
@@ -7641,7 +7655,9 @@
               "reti",
               "alpha-arcade",
               "stamm",
-              "morpho"
+              "morpho",
+              "aave",
+              "aerodrome"
             ]
           },
           "opportunityType": {
