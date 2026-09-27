@@ -11,7 +11,7 @@ signing. Groups from a batch request are never merged.
 
 This page covers the protocols whose golden/integration fixtures exist today:
 Tinyman, Folks Finance, Pact, CompX, Dork.fi, Myth Finance, Haystack, Réti,
-Alpha Arcade, STAMM, HOGSWAP, Morpho Vaults (Base), and Aave V3 (Base). Per-shape group layouts
+Alpha Arcade, STAMM, HOGSWAP, Mallow, Morpho Vaults (Base), and Aave V3 (Base). Per-shape group layouts
 stay in the sibling markdown files.
 
 ## Tinyman
@@ -548,5 +548,32 @@ Basic volatile and stable pools on Base (`chainId` 8453) with a live gauge. One 
 ### Out of scope
 
 - Slipstream concentrated liquidity, swaps, veAERO lock and vote, bribes, reward claims, native ETH, and Permit.
+
+## Mallow
+
+Mallow is the public name. Orders settle on People's Exchange (PEX). Canix reads markets and quotes through the Mallow API proxy and builds unsigned groups with the PEX SDK. It does not ask Mallow to assemble or submit transactions.
+
+### Markets
+
+- `GET /protocols/mallow/markets` is free. It returns ALGO/USD and BTC/USD. A missing pair fails that row only.
+- `market` on `mainnet:mallow:v1:openLimit:attached` is `ALGO` or `BTC`. Other symbols are rejected.
+- Collateral is mainnet USDC (`31566704`). `collateralUsd` is margin, not notional. Notional is `collateralUsd × leverage`.
+- `takeProfitPct` and `stopLossPct` are return on that margin. A 10× long with take-profit 20 moves price about 2%, not 20%. Pass `25` for a −25% stop.
+- Leverage above the market maximum is rejected. It is not clamped.
+
+### Orders
+
+- A limit already through the signed index is rejected. Canix does not convert it into a market fill.
+- Take-profit or stop-loss already through the index is rejected. A stop at or beyond liquidation is rejected.
+- The wallet must be opted into USDC. If it is not, compile `mainnet:mallow:v1:optIn:usdc` first. Do not put the opt-in inside the order group.
+- The order group pays its own storage minimum balance and keeper fees. Do not add a separate funding transaction.
+- Every quote and group includes Mallow's 3 bps builder fee when `MALLOW_BUILDER_ADDRESS` is set. Production refuses to compile without it.
+- Prices stay on PEX price12 integers. Do not convert a BTC mark through a JavaScript number before it is a decimal string.
+
+### Out of scope
+
+- Close, cancel, and position reads.
+- Markets other than ALGO and BTC.
+- Market orders.
 
 

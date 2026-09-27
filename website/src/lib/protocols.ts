@@ -104,6 +104,14 @@ export const protocols: readonly SupportedProtocol[] = [
     notes:
       "Farm rows. Enter is add liquidity then gauge stake; exit is unstake then remove liquidity. APY is AERO emissions on staked liquidity. Trading fees accrue to voters. chain=base on every row.",
     logo: "/protocols/aerodrome.svg"
+  },
+  {
+    slug: "mallow",
+    name: "Mallow",
+    summary: "ALGO and BTC perpetuals — limit orders with leverage, take-profit, and stop-loss.",
+    notes:
+      "Unsigned groups via mainnet:mallow:v1:openLimit:attached. USDC margin. Percents are return on margin. Positions settle on People's Exchange, with a 3 bps Mallow builder fee.",
+    logo: "/protocols/mallow.svg"
   }
 ];
 

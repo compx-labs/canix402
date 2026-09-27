@@ -154,7 +154,11 @@ export const EXECUTION_SHAPE_DOCS_PATHS: Readonly<Record<string, string>> = {
   "mainnet:hogswap:v1:swap:fixed-input":
     "protocol/docs/execution-shapes/hogswap-swap-fixed-input.md",
   "mainnet:hogswap:v1:swap:fixed-output":
-    "protocol/docs/execution-shapes/hogswap-swap-fixed-output.md"
+    "protocol/docs/execution-shapes/hogswap-swap-fixed-output.md",
+  "mainnet:mallow:v1:openLimit:attached":
+    "protocol/docs/execution-shapes/mallow-open-limit.md",
+  "mainnet:mallow:v1:optIn:usdc":
+    "protocol/docs/execution-shapes/mallow-opt-in-usdc.md"
 };
 
 export function getExecutionShapeDocsPath(shapeKey: string): string | undefined {

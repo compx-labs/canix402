@@ -8,6 +8,7 @@ import { mythFinanceShapes } from "./shapes/myth-finance/index.js";
 import { pactShapes } from "./shapes/pact/index.js";
 import { retiShapes } from "./shapes/reti/index.js";
 import { hogswapShapes } from "./shapes/hogswap/index.js";
+import { mallowShapes } from "./shapes/mallow/index.js";
 import { aaveShapes } from "./shapes/aave/index.js";
 import { aerodromeShapes } from "./shapes/aerodrome/index.js";
 import { morphoShapes } from "./shapes/morpho/index.js";
@@ -107,6 +108,13 @@ export {
   hogswapSwapFixedOutputShape,
   hogswapShapes
 } from "./shapes/hogswap/index.js";
+export {
+  mallowOpenLimitShape,
+  mallowUsdcOptInShape,
+  mallowShapes,
+  MALLOW_OPEN_LIMIT_SHAPE_KEY,
+  MALLOW_USDC_OPT_IN_SHAPE_KEY
+} from "./shapes/mallow/index.js";
 export type {
   HogswapSwapInput,
   HogswapSwapState
@@ -180,6 +188,7 @@ export function createExecutionRegistry(): TransactionShapeRegistry {
     ...alphaArcadeShapes,
     ...stammShapes,
     ...hogswapShapes,
+    ...mallowShapes,
     ...morphoShapes,
     ...aaveShapes,
     ...aerodromeShapes
