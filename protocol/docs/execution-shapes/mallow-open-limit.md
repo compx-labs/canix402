@@ -17,11 +17,9 @@ For an ALGO/USD or BTC/USD limit:
 2. Resolves the pair, max leverage, and signed index.
 3. Quotes the limit on the Mallow proxy.
 4. Places take-profit and stop-loss from return-on-margin percents.
-5. Builds one unsigned group: the resting limit plus both attached orders, storage funding, and keeper fees.
+5. Builds one unsigned group. A limit still beyond the index rests, with both attached orders, storage funding, and keeper fees. A limit already through the index opens at market, with the same take-profit and stop-loss. Quote metadata `openedAsMarket` is true in that case.
 
 `collateralUsd` is USDC margin. Notional is `collateralUsd × leverage`. `takeProfitPct: 20` and `stopLossPct: 25` mean +20% and −25% on that margin. At 10×, those are about a 2% and 2.5% price move.
-
-A limit already through the index is rejected. Canix does not turn it into a market order.
 
 ## Required inputs
 

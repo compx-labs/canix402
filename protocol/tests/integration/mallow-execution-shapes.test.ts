@@ -63,6 +63,10 @@ setProtocolManifest(
       PDexV2Math: { method_specs: { noop: methodSpec("noop()void", []) } },
       PDexV2Trading: {
         method_specs: {
+          open_or_increase: methodSpec(
+            "open_or_increase(uint64,uint64,uint64,uint64,(address,uint64),byte[],byte[])void",
+            ["uint64", "uint64", "uint64", "uint64", "(address,uint64)", "byte[]", "byte[]"]
+          ),
           decrease_or_close: methodSpec(
             `decrease_or_close(${[
               ...Array.from({ length: 8 }, () => "uint64"),
@@ -437,6 +441,7 @@ test("compiles an unsigned ALGO long with attached take-profit and stop-loss", a
 
   assert.equal(MALLOW_OPEN_LIMIT_SHAPE_KEY, "mainnet:mallow:v1:openLimit:attached");
   assert.equal(quote.shapeKey, MALLOW_OPEN_LIMIT_SHAPE_KEY);
+  assert.equal(quote.metadata.openedAsMarket, false);
   assert.equal(quote.metadata.market, "ALGO");
   assert.equal(quote.metadata.marketId, "424242");
   assert.equal(quote.metadata.builderAddress, BUILDER);
@@ -534,38 +539,59 @@ test("refuses leverage above the market maximum", async () => {
   );
 });
 
-test("refuses a limit that is already through the index", async () => {
+test("compiles a market open when a long limit is already through the index", async () => {
+  const indexMin = numberToPrice12(0.132);
+  const indexMax = numberToPrice12(0.133);
   const crossed = preparedMarket({
     market: "ALGO",
     marketId: "424242",
-    index: numberToPrice12(0.05),
-    indexMin: numberToPrice12(0.04),
-    indexMax: numberToPrice12(0.05)
+    index: numberToPrice12(0.1325),
+    indexMin,
+    indexMax
   });
-  installOrderDependencies(bookFor([crossed]));
-  await assert.rejects(
-    () =>
-      compileExecutableQuote(
-        registry(),
-        mallowOpenLimitShape.key,
-        {
-          userAddress: USER_ADDRESS,
-          market: "ALGO",
-          side: "long",
-          collateralUsd: 25,
-          leverage: 10,
-          entryPriceUsd: 0.1,
-          takeProfitPct: 20,
-          stopLossPct: 25
-        },
-        buildContext()
-      ),
-    (error: unknown) => {
-      assert.ok(error instanceof ShapeStateError);
-      assert.equal((error.details as { reason?: string }).reason, "limit-crossed");
-      return true;
-    }
+  const oracleFor = (targetAppId: bigint) => ({
+    message: restingOracle({
+      marketId: 424242n,
+      indexMin,
+      indexMax,
+      targetAppId
+    }),
+    signature: new Uint8Array(64)
+  });
+  installOrderDependencies(
+    bookFor([crossed], {
+      orderOracle: async () => oracleFor(2006n),
+      tradingOracle: async () => oracleFor(2002n)
+    })
   );
+  const quote = await compileExecutableQuote(
+    registry(),
+    mallowOpenLimitShape.key,
+    {
+      userAddress: USER_ADDRESS,
+      market: "ALGO",
+      side: "long",
+      collateralUsd: 6,
+      leverage: 2,
+      entryPriceUsd: 0.15,
+      takeProfitPct: 20,
+      stopLossPct: 25
+    },
+    buildContext()
+  );
+
+  assert.equal(quote.metadata.openedAsMarket, true);
+  assert.equal(quote.metadata.entryPriceUsd, "0.15");
+  assert.equal(quote.metadata.marketId, "424242");
+  assert.equal(quote.metadata.builderAddress, BUILDER);
+  assert.equal(quote.metadata.executionSubmitted, false);
+  assert.ok(quote.warnings.some((warning) => /opens at market/i.test(warning)));
+  assert.ok(quote.encodedTransactions.length > 1);
+  assertMallowOrderEncodes({
+    transactions: quote.transactions,
+    marketId: 424242n,
+    builderAddress: BUILDER
+  });
 });
 
 test("rejects a market other than ALGO or BTC", () => {

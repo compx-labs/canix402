@@ -565,7 +565,7 @@ Mallow is the public name. Orders settle on People's Exchange (PEX). Canix reads
 
 ### Orders
 
-- A limit already through the signed index is rejected. Canix does not convert it into a market fill.
+- A limit already through the signed index opens at market. Quote metadata `openedAsMarket` is true. Take-profit and stop-loss stay attached.
 - Take-profit or stop-loss already through the index is rejected. A stop at or beyond liquidation is rejected.
 - The wallet must be opted into USDC. If it is not, compile `mainnet:mallow:v1:optIn:usdc` first. Do not put the opt-in inside the order group.
 - The order group pays its own storage minimum balance and keeper fees. Do not add a separate funding transaction.

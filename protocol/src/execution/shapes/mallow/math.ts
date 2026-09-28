@@ -191,6 +191,21 @@ export function acceptablePriceForLimit(side: MallowSide, triggerPrice: bigint):
   return (triggerPrice * (V2_BPS - OPEN_SLIPPAGE_BPS)) / V2_BPS;
 }
 
+/** 1% worse than the signed index. A long may fill higher; a short may fill lower. */
+export function acceptablePriceForOpen(
+  side: MallowSide,
+  prices: { index?: bigint; indexMin?: bigint; indexMax?: bigint }
+): bigint {
+  const positive = (value: bigint | undefined): bigint | undefined =>
+    value !== undefined && value > 0n ? value : undefined;
+  if (side === "long") {
+    const base = positive(prices.indexMax) ?? positive(prices.index) ?? 0n;
+    return (base * (V2_BPS + OPEN_SLIPPAGE_BPS)) / V2_BPS;
+  }
+  const base = positive(prices.indexMin) ?? positive(prices.index) ?? 0n;
+  return (base * (V2_BPS - OPEN_SLIPPAGE_BPS)) / V2_BPS;
+}
+
 export function acceptablePriceForDecrease(side: MallowSide, triggerPrice: bigint): bigint {
   if (triggerPrice <= 0n) {
     return 0n;
