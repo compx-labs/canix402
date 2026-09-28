@@ -2,7 +2,10 @@ import algosdk, { Algodv2, type SuggestedParams, type Transaction } from "algosd
 import { pdexBigInt } from "@pdex/sdk";
 import { SIDE, V2_ORDER_BOX_MBR_MICRO_ALGO, V2_ORDER_TARGET, V2_OPEN_ORDER_EXECUTION_STORAGE_ESCROW_MICRO_ALGO } from "@pdex/sdk/constants";
 import { decodeV2OracleSnapshotMessage } from "@pdex/sdk/oracle";
-import { buildV2OpenLimitWithAttachedOrdersTransactions } from "@pdex/sdk/transactions";
+import {
+  buildV2MarketOpenWithAttachedOrdersTransactions,
+  buildV2OpenLimitWithAttachedOrdersTransactions
+} from "@pdex/sdk/transactions";
 
 import { InvalidShapeInputError, ShapeBuildError, ShapeStateError } from "../../errors.js";
 import {
@@ -23,6 +26,7 @@ import {
   V2_ORDER_KIND,
   acceptablePriceForDecrease,
   acceptablePriceForLimit,
+  acceptablePriceForOpen,
   collateralForOpenTrade,
   dollarsToAmount6,
   firstUsd6,
@@ -76,8 +80,11 @@ export interface MallowOpenLimitState {
   liquidationUsd: number | null;
   keeperFeeAmount: bigint;
   storageMicroAlgo: bigint;
+  openedAsMarket: boolean;
   oracleMessage: Uint8Array;
   oracleSignature: Uint8Array;
+  childOracleMessage: Uint8Array;
+  childOracleSignature: Uint8Array;
   pexFeeUsd: number | null;
   mallowFeeUsd: number;
 }
@@ -278,7 +285,7 @@ export const mallowOpenLimitShape: TransactionShapeSpec<MallowOpenLimitInput, Ma
     "Compiles an unsigned Mallow limit order on ALGO/USD or BTC/USD with leverage and attached take-profit and stop-loss. " +
     "collateralUsd is USDC margin. takeProfitPct and stopLossPct are return on that margin, not the price move. " +
     "Positions settle on People's Exchange. Canix attaches Mallow's 3 bps builder fee and does not sign or submit. " +
-    "A limit already through the index is rejected rather than filled as a market order.",
+    "A limit already through the index opens at market, with the same take-profit and stop-loss.",
   supportedOpportunityTypes: ["perps"],
   opportunityRole: "enter",
   requiredInputs: [
@@ -344,12 +351,8 @@ export const mallowOpenLimitShape: TransactionShapeSpec<MallowOpenLimitInput, Ma
     }
 
     const triggerPrice = numberToPrice12(input.entryPriceUsd);
-    const acceptablePrice = acceptablePriceForLimit(input.side, triggerPrice);
-    if (openLimitCrossed(input.side, triggerPrice, indexMin, indexMax)) {
-      refuse("That limit is already through the market and would fill immediately.", "limit-crossed", {
-        entryPriceUsd: input.entryPriceUsd
-      });
-    }
+    const acceptableLimit = acceptablePriceForLimit(input.side, triggerPrice);
+    let openedAsMarket = openLimitCrossed(input.side, triggerPrice, indexMin, indexMax);
 
     const sizeUsdDelta = dollarsToAmount6(input.collateralUsd * input.leverage);
     const equityUsd = dollarsToAmount6(input.collateralUsd);
@@ -371,7 +374,7 @@ export const mallowOpenLimitShape: TransactionShapeSpec<MallowOpenLimitInput, Ma
       collateral_amount: collateralAmount,
       size_usd_delta: sizeUsdDelta,
       trigger_price: triggerPrice,
-      acceptable_price: acceptablePrice,
+      acceptable_price: acceptableLimit,
       keeper_fee_asset_id: row.collateralAssetId,
       keeper_fee_amount: OPEN_LIMIT_KEEPER_FEE,
       time_in_force: TIME_IN_FORCE.GTC,
@@ -383,10 +386,10 @@ export const mallowOpenLimitShape: TransactionShapeSpec<MallowOpenLimitInput, Ma
       refuse("Mallow rejected this limit quote.", "quote-rejected", { reasons: blocked });
     }
     if (quote.submission_result === "execute_immediately" || quote.crossed === true) {
-      refuse("That limit is already through the market and would fill immediately.", "limit-crossed");
+      openedAsMarket = true;
     }
-    const quotedAcceptable = pdexBigInt(quote.acceptable_price, acceptablePrice);
-    if (quotedAcceptable <= 0n) {
+    const quotedAcceptable = pdexBigInt(quote.acceptable_price, acceptableLimit);
+    if (!openedAsMarket && quotedAcceptable <= 0n) {
       refuse("Mallow did not return an acceptable price for this limit.", "quote-rejected");
     }
 
@@ -435,13 +438,43 @@ export const mallowOpenLimitShape: TransactionShapeSpec<MallowOpenLimitInput, Ma
       });
     }
     if (openLimitCrossed(input.side, triggerPrice, snapshot.indexMinPrice, snapshot.indexMaxPrice)) {
-      refuse("That limit is already through the signed index and would fill immediately.", "limit-crossed");
+      openedAsMarket = true;
     }
     if (reduceOrderCrossed(input.side, "takeProfit", takeProfitPrice, snapshot.indexMinPrice, snapshot.indexMaxPrice)) {
       refuse("That take-profit is already through the signed index.", "take-profit-crossed");
     }
     if (reduceOrderCrossed(input.side, "stopLoss", stopLossPrice, snapshot.indexMinPrice, snapshot.indexMaxPrice)) {
       refuse("That stop-loss is already through the signed index.", "stop-loss-crossed");
+    }
+
+    let parentOracle = oracle;
+    let acceptablePrice = quotedAcceptable;
+    if (openedAsMarket) {
+      parentOracle = await book.tradingOracle(row.marketId, row.appRefs.v2TradingAppId);
+      let trading;
+      try {
+        trading = decodeV2OracleSnapshotMessage(parentOracle.message);
+      } catch (error) {
+        throw new ShapeStateError("Mallow could not read a signed trading oracle for this order.", {
+          details: { reason: "oracle-unavailable" },
+          cause: error
+        });
+      }
+      if (
+        trading.marketId !== BigInt(row.marketId) ||
+        trading.targetAppId !== BigInt(row.appRefs.v2TradingAppId)
+      ) {
+        refuse("Mallow's trading oracle does not match this market.", "oracle-unavailable", {
+          market: input.market
+        });
+      }
+      acceptablePrice = acceptablePriceForOpen(input.side, {
+        indexMin: trading.indexMinPrice,
+        indexMax: trading.indexMaxPrice
+      });
+    }
+    if (acceptablePrice <= 0n) {
+      refuse("Mallow did not return an acceptable price for this limit.", "quote-rejected");
     }
 
     const quotedStorage = pdexBigInt(quote.required_storage_payment_microalgo, 0n);
@@ -452,7 +485,8 @@ export const mallowOpenLimitShape: TransactionShapeSpec<MallowOpenLimitInput, Ma
       collateralAmount,
       sizeUsdDelta,
       triggerPrice,
-      acceptablePrice: quotedAcceptable,
+      acceptablePrice,
+      openedAsMarket,
       ownerOrderId,
       takeProfitPrice,
       takeProfitAcceptable: acceptablePriceForDecrease(input.side, takeProfitPrice),
@@ -464,8 +498,10 @@ export const mallowOpenLimitShape: TransactionShapeSpec<MallowOpenLimitInput, Ma
       keeperFeeAmount: keeperFeeFromOracle(oracle.message, row.collateralAssetId),
       storageMicroAlgo:
         quotedStorage > 0n ? quotedStorage : BigInt(V2_OPEN_ORDER_EXECUTION_STORAGE_ESCROW_MICRO_ALGO),
-      oracleMessage: oracle.message,
-      oracleSignature: oracle.signature,
+      oracleMessage: parentOracle.message,
+      oracleSignature: parentOracle.signature,
+      childOracleMessage: oracle.message,
+      childOracleSignature: oracle.signature,
       pexFeeUsd: firstUsd6(quote, ["platform_fee_amount", "open_fee_usd", "trading_fee_usd", "fee_usd"]),
       mallowFeeUsd: mallowFeeUsd(quote, sizeUsdDelta, builder)
     };
@@ -475,55 +511,60 @@ export const mallowOpenLimitShape: TransactionShapeSpec<MallowOpenLimitInput, Ma
     const dependencies = resolveDependencies();
     const suggestedParams = await dependencies.getSuggestedParams(context.algod);
     const childOracle = {
+      oracleMessage: state.childOracleMessage,
+      oracleSignature: state.childOracleSignature
+    };
+    const attached = {
+      ...state.market.appRefs,
+      ...state.market.assetRefs,
+      ...(state.book.marketYieldRegistry
+        ? { marketYieldRegistry: state.book.marketYieldRegistry }
+        : {}),
+      v2OrderOpsAppId: state.market.orderOpsAppId,
+      sender: input.userAddress,
+      baseOrderId: state.ownerOrderId,
+      targetKind: V2_ORDER_TARGET.PAIR,
+      marketId: state.market.marketId,
+      side: input.side === "long" ? SIDE.LONG : SIDE.SHORT,
+      collateralAssetId: state.market.collateralAssetId,
+      collateralAmount: state.collateralAmount,
+      sizeUsdDelta: state.sizeUsdDelta,
+      acceptablePrice: state.acceptablePrice,
       oracleMessage: state.oracleMessage,
-      oracleSignature: state.oracleSignature
+      oracleSignature: state.oracleSignature,
+      childKeeperFeeAmount: state.keeperFeeAmount,
+      childTimeInForce: TIME_IN_FORCE.GTC,
+      childStoragePaymentMicroAlgo: BigInt(V2_ORDER_BOX_MBR_MICRO_ALGO),
+      ...(state.builder ? { builderFee: state.builder } : {}),
+      takeProfit: {
+        triggerPrice: state.takeProfitPrice,
+        acceptablePrice: state.takeProfitAcceptable,
+        ...childOracle
+      },
+      stopLoss: {
+        triggerPrice: state.stopLossPrice,
+        acceptablePrice: state.stopLossAcceptable,
+        ...childOracle
+      }
     };
     let transactions: Transaction[];
     try {
       transactions = rehydrate(
-        buildV2OpenLimitWithAttachedOrdersTransactions(
-          {
-            ...state.market.appRefs,
-            ...state.market.assetRefs,
-            ...(state.book.marketYieldRegistry
-              ? { marketYieldRegistry: state.book.marketYieldRegistry }
-              : {}),
-            v2OrderOpsAppId: state.market.orderOpsAppId,
-            sender: input.userAddress,
-            ownerOrderId: state.ownerOrderId,
-            baseOrderId: state.ownerOrderId,
-            orderKind: V2_ORDER_KIND.OPEN_LIMIT,
-            targetKind: V2_ORDER_TARGET.PAIR,
-            marketId: state.market.marketId,
-            side: input.side === "long" ? SIDE.LONG : SIDE.SHORT,
-            collateralAssetId: state.market.collateralAssetId,
-            collateralAmount: state.collateralAmount,
-            sizeUsdDelta: state.sizeUsdDelta,
-            triggerPrice: state.triggerPrice,
-            acceptablePrice: state.acceptablePrice,
-            keeperFeeAssetId: state.market.collateralAssetId,
-            keeperFeeAmount: state.keeperFeeAmount,
-            timeInForce: TIME_IN_FORCE.GTC,
-            oracleMessage: state.oracleMessage,
-            oracleSignature: state.oracleSignature,
-            storagePaymentMicroAlgo: state.storageMicroAlgo,
-            childKeeperFeeAmount: state.keeperFeeAmount,
-            childTimeInForce: TIME_IN_FORCE.GTC,
-            childStoragePaymentMicroAlgo: BigInt(V2_ORDER_BOX_MBR_MICRO_ALGO),
-            ...(state.builder ? { builderFee: state.builder } : {}),
-            takeProfit: {
-              triggerPrice: state.takeProfitPrice,
-              acceptablePrice: state.takeProfitAcceptable,
-              ...childOracle
-            },
-            stopLoss: {
-              triggerPrice: state.stopLossPrice,
-              acceptablePrice: state.stopLossAcceptable,
-              ...childOracle
-            }
-          },
-          suggestedParams
-        )
+        state.openedAsMarket
+          ? buildV2MarketOpenWithAttachedOrdersTransactions(attached, suggestedParams)
+          : buildV2OpenLimitWithAttachedOrdersTransactions(
+              {
+                ...attached,
+                ownerOrderId: state.ownerOrderId,
+                orderKind: V2_ORDER_KIND.OPEN_LIMIT,
+                triggerPrice: state.triggerPrice,
+                keeperFeeAssetId: state.market.collateralAssetId,
+                keeperFeeAmount: state.keeperFeeAmount,
+                timeInForce: TIME_IN_FORCE.GTC,
+                storagePaymentMicroAlgo: state.storageMicroAlgo
+              },
+              suggestedParams
+            )
       );
     } catch (error) {
       if (error instanceof ShapeBuildError || error instanceof ShapeStateError) {
@@ -548,6 +589,9 @@ export const mallowOpenLimitShape: TransactionShapeSpec<MallowOpenLimitInput, Ma
       transactions,
       warnings: [
         feeNote,
+        ...(state.openedAsMarket
+          ? ["This limit is already through the index, so the position opens at market."]
+          : []),
         "Take-profit and stop-loss percents are return on margin, not the price move.",
         "Positions settle on People's Exchange. Canix does not sign or submit."
       ],
@@ -576,6 +620,7 @@ export const mallowOpenLimitShape: TransactionShapeSpec<MallowOpenLimitInput, Ma
         builderAddress: state.builder?.builderAddress ?? null,
         builderFeeBps: state.builder ? Number(state.builder.builderFeeBps) : 0,
         ownerOrderId: state.ownerOrderId.toString(),
+        openedAsMarket: state.openedAsMarket,
         signed: false,
         submitted: false,
         executionSubmitted: false

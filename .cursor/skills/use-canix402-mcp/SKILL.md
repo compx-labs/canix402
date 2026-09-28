@@ -341,7 +341,7 @@ Shape key: `mainnet:mallow:v1:openLimit:attached`.
 
 Ask for USDC margin (`collateralUsd`) even when the user only names leverage, entry, take-profit, and stop-loss. `market` is `ALGO` or `BTC`. `side` is `long` or `short`. `takeProfitPct` and `stopLossPct` are return on margin: pass `20` and `25` for “take profit at 20% and stop loss at −25%”, not a 20% price move. `stopLossPct` is a positive number.
 
-If the quote fails with `not-opted-in`, compile `mainnet:mallow:v1:optIn:usdc`, have the user sign that group, then quote the order again. A limit already through the index is rejected. Do not rewrite it as a market order. Positions settle on People's Exchange. The group includes Mallow's 3 bps builder fee. Canix does not sign or submit.
+If the quote fails with `not-opted-in`, compile `mainnet:mallow:v1:optIn:usdc`, have the user sign that group, then quote the order again. A limit already through the index opens at market. `metadata.openedAsMarket` is true, and the same take-profit and stop-loss stay attached. Positions settle on People's Exchange. The group includes Mallow's 3 bps builder fee. Canix does not sign or submit.
 
 ## Closing a Mallow position
 
