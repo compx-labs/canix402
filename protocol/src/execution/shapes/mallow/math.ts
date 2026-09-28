@@ -24,6 +24,16 @@ export function dollarsToAmount6(dollars: number): bigint {
   return BigInt(Math.round(dollars * Number(AMOUNT6_SCALE)));
 }
 
+/** Amount6 base units as a USD decimal string, without trailing zeros. */
+export function amount6ToDecimal(value: bigint): string {
+  const negative = value < 0n;
+  const absolute = negative ? -value : value;
+  const whole = absolute / AMOUNT6_SCALE;
+  const fraction = (absolute % AMOUNT6_SCALE).toString().padStart(6, "0").replace(/0+$/, "");
+  const text = fraction.length > 0 ? `${whole.toString()}.${fraction}` : whole.toString();
+  return negative ? `-${text}` : text;
+}
+
 /**
  * Human dollars to Price12. Always goes through the SDK decimal parser so a
  * BTC-scale mark is not rounded through a JavaScript number.

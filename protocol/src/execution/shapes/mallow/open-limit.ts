@@ -603,6 +603,7 @@ export const mallowOpenLimitShape: TransactionShapeSpec<MallowOpenLimitInput, Ma
 export function assertMallowOrderEncodes(input: {
   transactions: readonly SerializedTransaction[];
   marketId: bigint;
+  positionId?: bigint;
   builderAddress?: string;
 }): void {
   const blob = Buffer.concat(
@@ -614,6 +615,13 @@ export function assertMallowOrderEncodes(input: {
   marketBytes.writeBigUInt64BE(input.marketId);
   if (!blob.includes(marketBytes)) {
     throw new Error(`Order group is missing market id ${input.marketId.toString()}.`);
+  }
+  if (input.positionId !== undefined) {
+    const positionBytes = Buffer.alloc(8);
+    positionBytes.writeBigUInt64BE(input.positionId);
+    if (!blob.includes(positionBytes)) {
+      throw new Error(`Order group is missing position id ${input.positionId.toString()}.`);
+    }
   }
   if (input.builderAddress) {
     const addressBytes = Buffer.from(algosdk.decodeAddress(input.builderAddress).publicKey);

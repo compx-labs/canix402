@@ -1,6 +1,7 @@
 import type { Protocol } from "../routes/schemas.js";
 import { isEvmAddress, normalizeEvmAddress } from "../execution/evm.js";
 import { collectAavePositions } from "./aave-positions.js";
+import { collectMallowPositions } from "./mallow-positions.js";
 import { collectAerodromePositions } from "./aerodrome-positions.js";
 import type {
   ProtocolPositionResult,
@@ -47,6 +48,7 @@ export const SUPPORTED_POSITION_PROTOCOLS = [
   "stamm",
   "algofi",
   "humble",
+  "mallow",
   "aave",
   "aerodrome"
 ] as const satisfies readonly Protocol[];
@@ -275,6 +277,7 @@ function resolveCollectors(): PositionCollectors {
     stamm: collectStammPositions,
     algofi: collectAlgofiPositions,
     humble: collectHumblePositions,
+    mallow: async (address) => collectMallowPositions(address),
     aave: async (address) => collectAavePositions(address),
     aerodrome: async (address) => collectAerodromePositions(address),
     ...collectorOverrides

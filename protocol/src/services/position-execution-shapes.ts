@@ -38,6 +38,8 @@ const AERODROME_WITHDRAW_GAUGE = "base:aerodrome:v2:withdraw:gauge";
 const DORKFI_WITHDRAW_ASA = "mainnet:dorkfi:v1:withdraw:asa";
 const DORKFI_BORROW_ASA = "mainnet:dorkfi:v1:borrow:asa";
 const DORKFI_REPAY_ASA = "mainnet:dorkfi:v1:repay:asa";
+const MALLOW_CLOSE_MARKET = "mainnet:mallow:v1:close:market";
+const MALLOW_CANCEL_ORDER = "mainnet:mallow:v1:cancelOrder:resting";
 
 export function attachExecutionShapesToPosition(
   record: PositionMarketRecord,
@@ -149,6 +151,19 @@ export function attachExecutionShapesToPosition(
         registry.get(key)
       ),
       compatibleManageShapeKeys: exclusiveAerodrome.manageKeys.filter((key) =>
+        registry.get(key)
+      )
+    };
+  }
+
+  const exclusiveMallow = exclusiveMallowShapes(record);
+  if (exclusiveMallow !== null) {
+    return {
+      ...record,
+      compatibleExitShapeKeys: exclusiveMallow.exitKeys.filter((key) =>
+        registry.get(key)
+      ),
+      compatibleManageShapeKeys: exclusiveMallow.manageKeys.filter((key) =>
         registry.get(key)
       )
     };
@@ -360,6 +375,26 @@ function exclusiveAerodromeFarmShapes(
     return { exitKeys: [AERODROME_WITHDRAW_GAUGE], manageKeys: [] };
   }
   return null;
+}
+
+/**
+ * Mallow shapes use opportunity type `perps`, which the generic position
+ * matcher does not know. Open perps exit through the market close. Resting
+ * orders, including orphaned take-profit and stop-loss orders, exit through cancel.
+ */
+function exclusiveMallowShapes(
+  record: PositionMarketRecord
+): { exitKeys: string[]; manageKeys: string[] } | null {
+  if (record.protocol !== "mallow") {
+    return null;
+  }
+  if (record.positionId.startsWith("mallow:order:")) {
+    return { exitKeys: [MALLOW_CANCEL_ORDER], manageKeys: [] };
+  }
+  if (record.positionId.startsWith("mallow:position:")) {
+    return { exitKeys: [MALLOW_CLOSE_MARKET], manageKeys: [] };
+  }
+  return { exitKeys: [], manageKeys: [] };
 }
 
 /**

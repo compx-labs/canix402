@@ -343,6 +343,18 @@ Ask for USDC margin (`collateralUsd`) even when the user only names leverage, en
 
 If the quote fails with `not-opted-in`, compile `mainnet:mallow:v1:optIn:usdc`, have the user sign that group, then quote the order again. A limit already through the index is rejected. Do not rewrite it as a market order. Positions settle on People's Exchange. The group includes Mallow's 3 bps builder fee. Canix does not sign or submit.
 
+## Closing a Mallow position
+
+Read `GET /protocols/mallow/positions?address=` (free) and copy `positionId`, `market`, and `side` from the row to close. Then compile `mainnet:mallow:v1:close:market` with `canix_get_execution_quote`.
+
+The shape closes that position in full at the signed index, with 1% of slippage against the close. It does not take a size. A missing id is `position-not-found`. A different open position on that market and side is `position-replaced`. Read positions again and use the new id. Do not rewrite a failed close into a new order. Attached take-profit and stop-loss orders are not cancelled. Canix does not sign or submit.
+
+## Cancelling a Mallow order
+
+Paid `GET /positions?address=` includes Mallow. An open perpetual is a supplied row whose exit key is `mainnet:mallow:v1:close:market`. Copy `mallowMarket`, `mallowSide`, and `pexPositionId` from `inputHints`. A resting order is its own row whose exit key is `mainnet:mallow:v1:cancelOrder:resting`. Copy `ownerOrderId` from `inputHints`.
+
+A caveat that says the order is orphaned means a close left the take-profit or stop-loss behind. Compile `mainnet:mallow:v1:cancelOrder:resting` with that `ownerOrderId`. An open limit with attached children cancels the bracket together. A lone child cancels by its own id. Do not rewrite a failed cancel into a new order. Canix does not sign or submit.
+
 ## Signing an execution quote
 
 For `canix_get_execution_quote`:

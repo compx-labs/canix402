@@ -359,6 +359,11 @@ test("GET /positions/claimable returns 200 for empty mocked wallet", async () =>
       suppliedUsdComplete: true,
       borrowedUsdComplete: true,
       rewardsUsdComplete: true
+    } }),
+    mallow: async () => ({ positions: [], warnings: [], coverage: {
+      suppliedUsdComplete: true,
+      borrowedUsdComplete: true,
+      rewardsUsdComplete: true
     } })
   });
 

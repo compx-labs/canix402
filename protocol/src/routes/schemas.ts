@@ -18,7 +18,7 @@ export const SupportedOpportunityProtocolValues = [
 ] as const;
 
 /** LP valuation on `/positions` only — no opportunity adapter. */
-export const SupportedPositionOnlyProtocolValues = ["algofi", "humble"] as const;
+export const SupportedPositionOnlyProtocolValues = ["algofi", "humble", "mallow"] as const;
 
 export const SupportedProtocolValues = [
   ...SupportedOpportunityProtocolValues,

@@ -1520,7 +1520,7 @@
     "/positions": {
       "get": {
         "summary": "DeFi positions held by an Algorand or Base wallet",
-        "description": "Returns normalized DeFi positions for a wallet. An Algorand address is read across Algorand protocols. LP tokens indexed by HOGSWAP (STAMM, AlgoFi, Humble) are valued via GET /lp/{asset_id}?amount= — proportional NAV, null rather than guessed. Tinyman and Pact LP collectors remain canonical for those venues (no double-count by LP ASA). A Base 0x address returns Aave V3 supply and variable debt plus staked Aerodrome basic-pool LP. Unclaimed AERO is omitted. This endpoint provides position data only; it does not build or submit transactions.",
+        "description": "Returns normalized DeFi positions for a wallet. An Algorand address is read across Algorand protocols, including Mallow open perps (close with mainnet:mallow:v1:close:market) and resting orders (cancel with mainnet:mallow:v1:cancelOrder:resting, including an orphaned take-profit or stop-loss). LP tokens indexed by HOGSWAP (STAMM, AlgoFi, Humble) are valued via GET /lp/{asset_id}?amount= — proportional NAV, null rather than guessed. Tinyman and Pact LP collectors remain canonical for those venues (no double-count by LP ASA). A Base 0x address returns Aave V3 supply and variable debt plus staked Aerodrome basic-pool LP. Unclaimed AERO is omitted. This endpoint provides position data only; it does not build or submit transactions.",
         "x-pragma": "pragma: allowlist secret",
         "tags": [
           "defi",
@@ -1931,6 +1931,60 @@
         }
       }
     },
+    "/protocols/mallow/positions": {
+      "get": {
+        "summary": "Mallow ALGO and BTC perpetual positions for one wallet",
+        "description": "Returns open ALGO/USD and BTC/USD positions that post USDC, including positionId for mainnet:mallow:v1:close:market. Other markets are omitted. An unknown address returns an empty list. Compile the unsigned close with POST /execution/quotes.",
+        "tags": ["mallow", "perps", "discovery", "agents"],
+        "security": [],
+        "parameters": [
+          {
+            "name": "address",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Open ALGO and BTC positions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": ["positions", "collateralAssetId", "shapeKey"],
+                      "properties": {
+                        "positions": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": ["positionId", "market", "side", "sizeUsd", "collateralAmount", "shapeKey"],
+                            "properties": {
+                              "positionId": { "type": "string" },
+                              "market": { "type": "string", "enum": ["ALGO", "BTC"] },
+                              "side": { "type": "string", "enum": ["long", "short"] },
+                              "sizeUsd": { "type": "string" },
+                              "collateralAmount": { "type": "string" },
+                              "shapeKey": { "type": "string" }
+                            }
+                          }
+                        },
+                        "collateralAssetId": { "type": "integer" },
+                        "shapeKey": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/execution/shapes": {
       "get": {
         "summary": "List verified execution shape catalog metadata",
@@ -1958,7 +2012,7 @@
     "/execution/quotes": {
       "post": {
         "summary": "Compile verified transaction shapes into unsigned Algorand groups or Base calldata",
-        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman v2 swap shapes (swap:fixedInput / swap:fixedOutput via Tinyman Swap Router, falling back to a single Tinyman pool when the router is not better; Tinyman-pool only, never a cross-DEX aggregator), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, Pact Smart Router unsigned swap (`mainnet:pact:smart-router:swap:fixed-input`; local graph + Pool.prepareSwap, not Haystack), CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), R\u00e9ti v1 ALGO staking shapes (stake/unstake), Alpha Arcade v1 ALPHA staking shapes (stake/unstake/claim USDC), and STAMM v1 LP mint/redeem via HOGSWAP (unsigned groups; do not hardcode router app ids), and HOGSWAP v1 swap shapes (fixed-input / fixed-output; unsigned groups; routing fee already netted into expectedOut; do not hardcode router app ids), and Mallow v1 perps shapes (`mainnet:mallow:v1:openLimit:attached` for ALGO/USD or BTC/USD limit orders with leverage and attached take-profit and stop-loss; `mainnet:mallow:v1:optIn:usdc`). Read `GET /protocols/mallow/markets` for the live index and max leverage. Canix does not sign or submit transactions in this endpoint. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
+        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman v2 swap shapes (swap:fixedInput / swap:fixedOutput via Tinyman Swap Router, falling back to a single Tinyman pool when the router is not better; Tinyman-pool only, never a cross-DEX aggregator), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, Pact Smart Router unsigned swap (`mainnet:pact:smart-router:swap:fixed-input`; local graph + Pool.prepareSwap, not Haystack), CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), R\u00e9ti v1 ALGO staking shapes (stake/unstake), Alpha Arcade v1 ALPHA staking shapes (stake/unstake/claim USDC), and STAMM v1 LP mint/redeem via HOGSWAP (unsigned groups; do not hardcode router app ids), and HOGSWAP v1 swap shapes (fixed-input / fixed-output; unsigned groups; routing fee already netted into expectedOut; do not hardcode router app ids), and Mallow v1 perps shapes (`mainnet:mallow:v1:openLimit:attached` for ALGO/USD or BTC/USD limit orders with leverage and attached take-profit and stop-loss; `mainnet:mallow:v1:close:market` to close an open ALGO or BTC position in full; `mainnet:mallow:v1:cancelOrder:resting` to cancel a resting order, including an orphaned take-profit or stop-loss; `mainnet:mallow:v1:optIn:usdc`). Read `GET /protocols/mallow/markets` for the live index and max leverage, `GET /protocols/mallow/positions` for a position id, and paid `GET /positions` for the wallet snapshot that includes Mallow perps and resting orders. Canix does not sign or submit transactions in this endpoint. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
         "tags": [
           "execution",
           "transactions",
@@ -4050,7 +4104,8 @@
               "aave",
               "aerodrome",
               "algofi",
-              "humble"
+              "humble",
+              "mallow"
             ]
           },
           "positionType": {
@@ -4177,7 +4232,8 @@
               "aave",
               "aerodrome",
               "algofi",
-              "humble"
+              "humble",
+              "mallow"
             ]
           },
           "status": {
@@ -4355,7 +4411,8 @@
               "aave",
               "aerodrome",
               "algofi",
-              "humble"
+              "humble",
+              "mallow"
             ]
           },
           "positionId": {
@@ -6160,6 +6217,26 @@
             "type": "string",
             "minLength": 1,
             "description": "Underlying ERC-20 address for EVM venues. Amounts never appear."
+          },
+          "mallowMarket": {
+            "type": "string",
+            "enum": ["ALGO", "BTC"],
+            "description": "Mallow market symbol for a close or cancel."
+          },
+          "mallowSide": {
+            "type": "string",
+            "enum": ["long", "short"],
+            "description": "Mallow position side for a close or cancel."
+          },
+          "pexPositionId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "People's Exchange position id for mainnet:mallow:v1:close:market."
+          },
+          "ownerOrderId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Resting Mallow order id for mainnet:mallow:v1:cancelOrder:resting."
           }
         }
       },

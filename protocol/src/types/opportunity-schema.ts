@@ -44,7 +44,15 @@ export const OpportunityExecutionInputHintsSchema = Type.Object(
     /** STAMM fee-tier index (0–5) when the LP ASA is a STAMM tier token. */
     tierIndex: Type.Optional(Type.Integer({ minimum: 0 })),
     /** Underlying ERC-20 address for EVM venues. Never an Algorand asset id. */
-    assetAddress: Type.Optional(Type.String({ minLength: 1 }))
+    assetAddress: Type.Optional(Type.String({ minLength: 1 })),
+    /** Mallow market symbol for a close or cancel. */
+    mallowMarket: Type.Optional(Type.Union([Type.Literal("ALGO"), Type.Literal("BTC")])),
+    /** Mallow position side for a close or cancel. */
+    mallowSide: Type.Optional(Type.Union([Type.Literal("long"), Type.Literal("short")])),
+    /** People's Exchange position id for mainnet:mallow:v1:close:market. */
+    pexPositionId: Type.Optional(Type.String({ minLength: 1 })),
+    /** Resting Mallow order id for mainnet:mallow:v1:cancelOrder:resting. */
+    ownerOrderId: Type.Optional(Type.String({ minLength: 1 }))
   },
   { additionalProperties: false }
 );
