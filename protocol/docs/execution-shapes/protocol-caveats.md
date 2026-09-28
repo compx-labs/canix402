@@ -556,7 +556,9 @@ Mallow is the public name. Orders settle on People's Exchange (PEX). Canix reads
 ### Markets
 
 - `GET /protocols/mallow/markets` is free. It returns ALGO/USD and BTC/USD. A missing pair fails that row only.
-- `market` on `mainnet:mallow:v1:openLimit:attached` is `ALGO` or `BTC`. Other symbols are rejected.
+- `GET /protocols/mallow/positions?address=` is free. It returns open ALGO and BTC positions that post USDC, with `positionId` for a close. Other markets are omitted. An unknown address returns an empty list.
+- Paid `GET /positions?address=` includes those same positions plus resting orders. An open perpetual uses `mainnet:mallow:v1:close:market`. A resting order uses `mainnet:mallow:v1:cancelOrder:resting`. Copy `mallowMarket`, `mallowSide`, `pexPositionId`, and `ownerOrderId` from `inputHints`.
+- `market` on `mainnet:mallow:v1:openLimit:attached` and `mainnet:mallow:v1:close:market` is `ALGO` or `BTC`. Other symbols are rejected.
 - Collateral is mainnet USDC (`31566704`). `collateralUsd` is margin, not notional. Notional is `collateralUsd × leverage`.
 - `takeProfitPct` and `stopLossPct` are return on that margin. A 10× long with take-profit 20 moves price about 2%, not 20%. Pass `25` for a −25% stop.
 - Leverage above the market maximum is rejected. It is not clamped.
@@ -570,10 +572,24 @@ Mallow is the public name. Orders settle on People's Exchange (PEX). Canix reads
 - Every quote and group includes Mallow's 3 bps builder fee when `MALLOW_BUILDER_ADDRESS` is set. Production refuses to compile without it.
 - Prices stay on PEX price12 integers. Do not convert a BTC mark through a JavaScript number before it is a decimal string.
 
+### Closes
+
+- `mainnet:mallow:v1:close:market` closes the full `size_usd` of one position. It does not take a size.
+- Pass `positionId` from `GET /protocols/mallow/positions`. A missing id is `position-not-found`. A different open position on that market and side is `position-replaced`. Do not substitute another id.
+- The close uses the signed trading index, moved 1% against the position. A rejected decrease quote stays rejected.
+- Attached take-profit and stop-loss orders are not cancelled by the close. Cancel them with `mainnet:mallow:v1:cancelOrder:resting`.
+
+### Cancels
+
+- `mainnet:mallow:v1:cancelOrder:resting` takes `userAddress` and `ownerOrderId`.
+- An open limit with attached children cancels the bracket together. The group includes the take-profit and stop-loss box ids.
+- A lone child cancels by its own id. A take-profit or stop-loss whose lifecycle cleanup reason is `position_missing`, `position_replaced`, or `legacy_retired` is orphaned. `GET /positions` marks that row so it can be cancelled after the position is gone.
+- The builder fee is not part of a cancel.
+
 ### Out of scope
 
-- Close, cancel, and position reads.
+- Partial closes, margin deposits, and margin withdrawals.
 - Markets other than ALGO and BTC.
-- Market orders.
+- Market orders that open a position.
 
 

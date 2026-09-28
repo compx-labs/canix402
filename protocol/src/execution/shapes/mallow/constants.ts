@@ -11,6 +11,8 @@ export const MALLOW_PDEX_ARTIFACT_URL_DEFAULT =
   "https://pub-1e72beea87f04ebfafce248132310425.r2.dev/mainnet";
 
 export const MALLOW_OPEN_LIMIT_SHAPE_KEY = "mainnet:mallow:v1:openLimit:attached";
+export const MALLOW_CLOSE_MARKET_SHAPE_KEY = "mainnet:mallow:v1:close:market";
+export const MALLOW_CANCEL_ORDER_SHAPE_KEY = "mainnet:mallow:v1:cancelOrder:resting";
 export const MALLOW_USDC_OPT_IN_SHAPE_KEY = "mainnet:mallow:v1:optIn:usdc";
 
 export const MALLOW_MARKETS = ["ALGO", "BTC"] as const;

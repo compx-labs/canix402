@@ -108,9 +108,9 @@ export const protocols: readonly SupportedProtocol[] = [
   {
     slug: "mallow",
     name: "Mallow",
-    summary: "ALGO and BTC perpetuals — limit orders with leverage, take-profit, and stop-loss.",
+    summary: "ALGO and BTC perpetuals — limit orders with leverage, take-profit, stop-loss, and a full close.",
     notes:
-      "Unsigned groups via mainnet:mallow:v1:openLimit:attached. USDC margin. Percents are return on margin. Positions settle on People's Exchange, with a 3 bps Mallow builder fee.",
+      "Unsigned groups via mainnet:mallow:v1:openLimit:attached and mainnet:mallow:v1:close:market. USDC margin. Percents are return on margin. Positions settle on People's Exchange, with a 3 bps Mallow builder fee.",
     logo: "/protocols/mallow.svg"
   }
 ];

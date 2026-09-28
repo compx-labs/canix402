@@ -88,6 +88,11 @@ test("aggregate returns every protocol status and preserves safe amounts", async
       positions: [],
       warnings: [],
       coverage: COMPLETE_COVERAGE
+    }),
+    mallow: async () => ({
+      positions: [],
+      warnings: [],
+      coverage: COMPLETE_COVERAGE
     })
   });
 
@@ -120,7 +125,8 @@ test("aggregate returns every protocol status and preserves safe amounts", async
       { protocol: "alpha-arcade", status: "ok" },
       { protocol: "stamm", status: "ok" },
       { protocol: "algofi", status: "ok" },
-      { protocol: "humble", status: "ok" }
+      { protocol: "humble", status: "ok" },
+      { protocol: "mallow", status: "ok" }
     ]
   );
 });
@@ -154,7 +160,8 @@ test("aggregate bounds concurrent protocol collectors and preserves protocol ord
     "myth-finance": collector("myth-finance"),
     haystack: collector("haystack"),
     reti: collector("reti"),
-    "alpha-arcade": collector("alpha-arcade")
+    "alpha-arcade": collector("alpha-arcade"),
+    mallow: collector("mallow")
   });
 
   try {
@@ -265,7 +272,8 @@ test("aggregate calculates complete supplied, borrowed, reward, and net totals",
     "myth-finance": emptyCollector,
     haystack: emptyCollector,
     reti: emptyCollector,
-    "alpha-arcade": emptyCollector
+    "alpha-arcade": emptyCollector,
+    mallow: emptyCollector
   });
 
   const response = await fetchWalletPositions(VALID_ADDRESS);
@@ -346,7 +354,8 @@ test("complete Tinyman/CompX coverage does not hard-null wallet totals", async (
     "myth-finance": emptyCollector,
     haystack: emptyCollector,
     reti: emptyCollector,
-    "alpha-arcade": emptyCollector
+    "alpha-arcade": emptyCollector,
+    mallow: emptyCollector
   });
 
   const response = await fetchWalletPositions(VALID_ADDRESS);
@@ -405,7 +414,8 @@ test("rewards-only incomplete coverage nulls rewardsUsd and netUsd only", async 
     "myth-finance": emptyCollector,
     haystack: emptyCollector,
     reti: emptyCollector,
-    "alpha-arcade": emptyCollector
+    "alpha-arcade": emptyCollector,
+    mallow: emptyCollector
   });
 
   const response = await fetchWalletPositions(VALID_ADDRESS);
@@ -456,7 +466,8 @@ test("collector warnings without coverage no longer hard-null borrowed/rewards",
     "myth-finance": emptyCollector,
     haystack: emptyCollector,
     reti: emptyCollector,
-    "alpha-arcade": emptyCollector
+    "alpha-arcade": emptyCollector,
+    mallow: emptyCollector
   });
 
   const response = await fetchWalletPositions(VALID_ADDRESS);

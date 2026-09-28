@@ -1,9 +1,13 @@
 import type { TransactionShapeSpec } from "../../types.js";
+import { mallowCancelOrderShape } from "./cancel-order.js";
+import { mallowCloseMarketShape } from "./close.js";
 import { mallowOpenLimitShape } from "./open-limit.js";
 import { mallowUsdcOptInShape } from "./opt-in.js";
 
 export {
   MALLOW_BUILDER_FEE_BPS,
+  MALLOW_CANCEL_ORDER_SHAPE_KEY,
+  MALLOW_CLOSE_MARKET_SHAPE_KEY,
   MALLOW_MARKETS,
   MALLOW_OPEN_LIMIT_SHAPE_KEY,
   MALLOW_USDC_ASSET_ID,
@@ -17,10 +21,18 @@ export {
   loadMallowBookForRequest,
   prepareMallowBook,
   readyMarket,
+  selectMallowOrders,
+  selectMallowPositions,
   setMallowBookLoaderForTests,
   MallowUpstreamError
 } from "./book.js";
-export type { MallowBook, MallowMarketRow, MallowPreparedMarket } from "./book.js";
+export type {
+  MallowAccountOrder,
+  MallowAccountPosition,
+  MallowBook,
+  MallowMarketRow,
+  MallowPreparedMarket
+} from "./book.js";
 export { selectMallowMarket } from "./markets.js";
 export {
   numberToPrice12,
@@ -36,10 +48,21 @@ export {
   setMallowOpenLimitDependenciesForTests
 } from "./open-limit.js";
 export type { MallowOpenLimitInput, MallowOpenLimitState } from "./open-limit.js";
+export { mallowCloseMarketShape, setMallowCloseMarketDependenciesForTests } from "./close.js";
+export {
+  assertMallowCancelEncodes,
+  mallowCancelAttachments,
+  mallowCancelOrderShape,
+  setMallowCancelOrderDependenciesForTests
+} from "./cancel-order.js";
+export type { MallowCancelOrderInput, MallowCancelOrderState } from "./cancel-order.js";
+export type { MallowCloseMarketInput, MallowCloseMarketState } from "./close.js";
 export { mallowUsdcOptInShape, setMallowUsdcOptInDependenciesForTests } from "./opt-in.js";
 export type { MallowUsdcOptInInput } from "./opt-in.js";
 
 export const mallowShapes: readonly TransactionShapeSpec[] = [
   mallowOpenLimitShape,
+  mallowCloseMarketShape,
+  mallowCancelOrderShape,
   mallowUsdcOptInShape
 ];

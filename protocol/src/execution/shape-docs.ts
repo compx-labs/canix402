@@ -157,6 +157,10 @@ export const EXECUTION_SHAPE_DOCS_PATHS: Readonly<Record<string, string>> = {
     "protocol/docs/execution-shapes/hogswap-swap-fixed-output.md",
   "mainnet:mallow:v1:openLimit:attached":
     "protocol/docs/execution-shapes/mallow-open-limit.md",
+  "mainnet:mallow:v1:close:market":
+    "protocol/docs/execution-shapes/mallow-close-market.md",
+  "mainnet:mallow:v1:cancelOrder:resting":
+    "protocol/docs/execution-shapes/mallow-cancel-order.md",
   "mainnet:mallow:v1:optIn:usdc":
     "protocol/docs/execution-shapes/mallow-opt-in-usdc.md"
 };

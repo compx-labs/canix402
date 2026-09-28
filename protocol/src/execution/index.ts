@@ -110,9 +110,13 @@ export {
 } from "./shapes/hogswap/index.js";
 export {
   mallowOpenLimitShape,
+  mallowCloseMarketShape,
+  mallowCancelOrderShape,
   mallowUsdcOptInShape,
   mallowShapes,
   MALLOW_OPEN_LIMIT_SHAPE_KEY,
+  MALLOW_CLOSE_MARKET_SHAPE_KEY,
+  MALLOW_CANCEL_ORDER_SHAPE_KEY,
   MALLOW_USDC_OPT_IN_SHAPE_KEY
 } from "./shapes/mallow/index.js";
 export type {
