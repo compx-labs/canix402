@@ -1,10 +1,20 @@
 import algosdk, { Algodv2, type SuggestedParams, type Transaction } from "algosdk";
 import { pdexBigInt } from "@pdex/sdk";
-import { SIDE, V2_ORDER_BOX_MBR_MICRO_ALGO, V2_ORDER_TARGET, V2_OPEN_ORDER_EXECUTION_STORAGE_ESCROW_MICRO_ALGO } from "@pdex/sdk/constants";
+import { v2TraderBoxKey } from "@pdex/sdk/boxes";
+import {
+  SIDE,
+  V2_ORDER_BOX_MBR_MICRO_ALGO,
+  V2_ORDER_TARGET,
+  V2_OPEN_ORDER_EXECUTION_STORAGE_ESCROW_MICRO_ALGO,
+  V2_POSITION_BOX_MBR_MICRO_ALGO,
+  V2_TRADER_BOX_MBR_MICRO_ALGO
+} from "@pdex/sdk/constants";
 import { decodeV2OracleSnapshotMessage } from "@pdex/sdk/oracle";
 import {
   buildV2MarketOpenWithAttachedOrdersTransactions,
-  buildV2OpenLimitWithAttachedOrdersTransactions
+  buildV2OpenLimitWithAttachedOrdersTransactions,
+  buildV2OpenOrIncreaseTransactions,
+  buildV2OpenOrIncreaseWithStorageTransactions
 } from "@pdex/sdk/transactions";
 
 import { InvalidShapeInputError, ShapeBuildError, ShapeStateError } from "../../errors.js";
@@ -548,6 +558,7 @@ export const mallowOpenLimitShape: TransactionShapeSpec<MallowOpenLimitInput, Ma
       }
     };
     let transactions: Transaction[];
+    let protectAttached = true;
     try {
       transactions = rehydrate(
         state.openedAsMarket
@@ -567,19 +578,57 @@ export const mallowOpenLimitShape: TransactionShapeSpec<MallowOpenLimitInput, Ma
             )
       );
     } catch (error) {
-      if (error instanceof ShapeBuildError || error instanceof ShapeStateError) {
+      if (state.openedAsMarket && error instanceof Error && /group_too_large/i.test(error.message)) {
+        const tradingAppId = Number(state.market.appRefs.v2TradingAppId);
+        let fundStorage = true;
+        try {
+          await context.algod.getApplicationBoxByName(tradingAppId, v2TraderBoxKey(input.userAddress)).do();
+          fundStorage = false;
+        } catch {
+          fundStorage = true;
+        }
+        const open = {
+          ...state.market.appRefs,
+          ...state.market.assetRefs,
+          ...(state.book.marketYieldRegistry
+            ? { marketYieldRegistry: state.book.marketYieldRegistry }
+            : {}),
+          sender: input.userAddress,
+          marketId: state.market.marketId,
+          side: input.side === "long" ? SIDE.LONG : SIDE.SHORT,
+          collateralAssetId: state.market.collateralAssetId,
+          collateralAmount: state.collateralAmount,
+          sizeUsdDelta: state.sizeUsdDelta,
+          acceptablePrice: state.acceptablePrice,
+          oracleMessage: state.oracleMessage,
+          oracleSignature: state.oracleSignature,
+          ...(state.builder ? { builderFee: state.builder } : {}),
+          ...(fundStorage
+            ? {
+                storagePaymentMicroAlgo:
+                  BigInt(V2_TRADER_BOX_MBR_MICRO_ALGO) + BigInt(V2_POSITION_BOX_MBR_MICRO_ALGO)
+              }
+            : {})
+        };
+        transactions = rehydrate(
+          fundStorage
+            ? buildV2OpenOrIncreaseWithStorageTransactions(open, suggestedParams)
+            : buildV2OpenOrIncreaseTransactions(open, suggestedParams)
+        );
+        protectAttached = false;
+      } else if (error instanceof ShapeBuildError || error instanceof ShapeStateError) {
         throw error;
-      }
-      if (error instanceof Error && /group_too_large/i.test(error.message)) {
+      } else if (error instanceof Error && /group_too_large/i.test(error.message)) {
         throw new ShapeBuildError("The Mallow order group does not fit in one Algorand group.", {
           details: { reason: "group-too-large" },
           cause: error
         });
+      } else {
+        throw new ShapeBuildError(
+          error instanceof Error ? error.message : "Failed to build the Mallow limit order.",
+          { cause: error }
+        );
       }
-      throw new ShapeBuildError(
-        error instanceof Error ? error.message : "Failed to build the Mallow limit order.",
-        { cause: error }
-      );
     }
 
     const feeNote = state.builder
@@ -592,6 +641,9 @@ export const mallowOpenLimitShape: TransactionShapeSpec<MallowOpenLimitInput, Ma
         ...(state.openedAsMarket
           ? ["This limit is already through the index, so the position opens at market."]
           : []),
+        ...(protectAttached
+          ? []
+          : ["Take-profit and stop-loss do not fit in this market-open group, so they are not attached."]),
         "Take-profit and stop-loss percents are return on margin, not the price move.",
         "Positions settle on People's Exchange. Canix does not sign or submit."
       ],
@@ -621,6 +673,7 @@ export const mallowOpenLimitShape: TransactionShapeSpec<MallowOpenLimitInput, Ma
         builderFeeBps: state.builder ? Number(state.builder.builderFeeBps) : 0,
         ownerOrderId: state.ownerOrderId.toString(),
         openedAsMarket: state.openedAsMarket,
+        protectAttached,
         signed: false,
         submitted: false,
         executionSubmitted: false
