@@ -7,6 +7,7 @@ import { v2OrderLinkBase, v2OrderLinkMode, type PdexV2AppRefs, type V2MarketAsse
 
 import { MALLOW_MARKETS, MALLOW_USDC_ASSET_ID, type MallowMarketSymbol, type MallowSide } from "./constants.js";
 import { mallowPdexConfig } from "./config.js";
+import { readMallowOrderRecordsFromBoxes, readMallowPositionsFromBoxes } from "./chain.js";
 import {
   closeFeeBpsFromRaw,
   collateralPrice12,
@@ -209,8 +210,12 @@ export function prepareMallowBook(context: PdexContext): MallowBook {
     },
     positions: async (address) => {
       try {
-        const payload = await context.client.v2Positions(address);
-        return selectMallowPositions(rows, payload);
+        return await readMallowPositionsFromBoxes({
+          markets: rows,
+          protocol: context.protocol,
+          tradingAppId: context.appRefs.v2TradingAppId,
+          address
+        });
       } catch (error) {
         if (error instanceof MallowUpstreamError) {
           throw error;
@@ -220,13 +225,22 @@ export function prepareMallowBook(context: PdexContext): MallowBook {
     },
     orders: async (address) => {
       try {
-        const payload = await context.client.v2AccountOrders(address);
-        return selectMallowOrders(rows, payload);
+        const records = await readMallowOrderRecordsFromBoxes({
+          markets: rows,
+          protocol: context.protocol,
+          orderOpsAppId,
+          address
+        });
+        return selectMallowOrders(rows, records);
       } catch (error) {
         if (error instanceof MallowUpstreamError) {
           throw error;
         }
-        throw new MallowUpstreamError("Mallow orders are unavailable.", { cause: error });
+        const message =
+          error instanceof Error && /Mallow orders are unavailable/i.test(error.message)
+            ? error.message
+            : "Mallow orders are unavailable.";
+        throw new MallowUpstreamError(message, { cause: error });
       }
     },
     recallClient: context.client

@@ -171,28 +171,51 @@ export function mallowWalletRows(
 }
 
 /**
- * Open Mallow perps and resting orders for one wallet. A proxy failure is a
- * warning with no rows. Coverage stays complete so the rest of the wallet
- * snapshot keeps its USD totals.
+ * Open Mallow perps and resting orders for one wallet. Positions and orders
+ * are read separately from chain boxes. A failed order scan does not drop
+ * positions already read. Coverage stays complete so the rest of the wallet
+ * snapshot keeps its USD totals. An empty book is not a warning.
  */
 export async function collectMallowPositions(address: string): Promise<ProtocolPositionsCollection> {
+  let book;
   try {
-    const book = await loadMallowBookForRequest();
-    const [positions, orders] = await Promise.all([book.positions(address), book.orders(address)]);
-    return {
-      positions: mallowWalletRows(positions, orders),
-      warnings: [],
-      coverage: COMPLETE_COVERAGE
-    };
+    book = await loadMallowBookForRequest();
   } catch (error) {
-    const detail =
-      error instanceof MallowUpstreamError || error instanceof Error
-        ? error.message
-        : "Mallow positions are unavailable.";
     return {
       positions: [],
-      warnings: [`Mallow positions are unavailable: ${detail}`],
+      warnings: [`Mallow positions are unavailable: ${errorDetail(error)}`],
       coverage: COMPLETE_COVERAGE
     };
   }
+
+  const warnings: string[] = [];
+  let positions: MallowAccountPosition[] = [];
+  let orders: MallowAccountOrder[] = [];
+  try {
+    positions = await book.positions(address);
+  } catch (error) {
+    warnings.push(readWarning(error, "Mallow positions are unavailable."));
+  }
+  try {
+    orders = await book.orders(address);
+  } catch (error) {
+    warnings.push(readWarning(error, "Mallow orders are unavailable."));
+  }
+  return {
+    positions: mallowWalletRows(positions, orders),
+    warnings,
+    coverage: COMPLETE_COVERAGE
+  };
+}
+
+function readWarning(error: unknown, fallback: string): string {
+  if (error instanceof MallowUpstreamError) {
+    return error.message;
+  }
+  const detail = errorDetail(error);
+  return detail === fallback ? fallback : `${fallback}: ${detail}`;
+}
+
+function errorDetail(error: unknown): string {
+  return error instanceof Error ? error.message : "Mallow positions are unavailable.";
 }
