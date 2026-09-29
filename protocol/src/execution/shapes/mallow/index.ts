@@ -26,6 +26,13 @@ export {
   setMallowBookLoaderForTests,
   MallowUpstreamError
 } from "./book.js";
+export {
+  orderOwnerPrefix,
+  readMallowOrderRecordsFromBoxes,
+  readMallowPositionsFromBoxes,
+  setMallowAlgodForTests
+} from "./chain.js";
+export type { MallowBoxAlgod, MallowBoxPage, MallowBoxQuery } from "./chain.js";
 export type {
   MallowAccountOrder,
   MallowAccountPosition,
