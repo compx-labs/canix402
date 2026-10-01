@@ -4,7 +4,8 @@ import test from "node:test";
 import algosdk from "algosdk";
 
 import { InvalidShapeInputError, ShapeStateError } from "../../src/execution/errors.js";
-import type { ShapeBuildContext } from "../../src/execution/types.js";
+import { serializeTransaction } from "../../src/execution/types.js";
+import type { SerializedTransaction, ShapeBuildContext } from "../../src/execution/types.js";
 import {
   assetIdBoxName,
   pactManagedWeightedAddLiquidityShape,
@@ -94,6 +95,12 @@ function installPoolState(globalState = poolGlobalState()): void {
   });
 }
 
+function serializedGroup(
+  transactions: readonly algosdk.Transaction[]
+): SerializedTransaction[] {
+  return transactions.map((txn) => serializeTransaction(txn));
+}
+
 function clearOverrides(): void {
   setPactManagedWeightedStateDependenciesForTests(undefined);
   setPactManagedWeightedAddLiquidityDependenciesForTests(undefined);
@@ -139,7 +146,7 @@ test("managed-weighted add deposits to the vault and refs asset boxes", async ()
     });
     const state = await pactManagedWeightedAddLiquidityShape.resolveState(buildContext(), input);
     const built = await pactManagedWeightedAddLiquidityShape.build(buildContext(), input, state);
-    const group = built.transactions;
+    const group = serializedGroup(built.transactions);
     const vaultAddress = algosdk.getApplicationAddress(VAULT_APP_ID).toString();
 
     assert.equal(group.length, 4);
@@ -170,7 +177,7 @@ test("managed-weighted add deposits to the vault and refs asset boxes", async ()
     assert.ok(call.boxes.every((box) => box.appIndex === String(VAULT_APP_ID)));
     assert.equal(group[3]?.fee, "3000");
     assert.ok(group.every((txn) => txn.groupPresent));
-    assert.equal(built.metadata.expectedMintedLiquidityTokens, "500");
+    assert.equal(built.metadata.expectedMintedLiquidityTokens, "500000");
     assert.equal(built.metadata.includedLpOptIn, true);
 
     const valid = pactManagedWeightedAddLiquidityShape.validate(group, input, state);
@@ -199,14 +206,11 @@ test("managed-weighted add skips the LP opt-in when the wallet already holds it"
     });
     const state = await pactManagedWeightedAddLiquidityShape.resolveState(buildContext(), input);
     const built = await pactManagedWeightedAddLiquidityShape.build(buildContext(), input, state);
-    assert.equal(built.transactions.length, 3);
-    assert.equal(built.transactions[0]?.type, "pay");
+    const group = serializedGroup(built.transactions);
+    assert.equal(group.length, 3);
+    assert.equal(group[0]?.type, "pay");
     assert.equal(built.metadata.includedLpOptIn, false);
-    const valid = pactManagedWeightedAddLiquidityShape.validate(
-      built.transactions,
-      input,
-      state
-    );
+    const valid = pactManagedWeightedAddLiquidityShape.validate(group, input, state);
     assert.equal(valid.valid, true);
   } finally {
     clearOverrides();
@@ -250,7 +254,8 @@ test("managed-weighted remove sends LP to the pool and encodes both minimums", a
     });
     const state = await pactManagedWeightedRemoveLiquidityShape.resolveState(buildContext(), input);
     const built = await pactManagedWeightedRemoveLiquidityShape.build(buildContext(), input, state);
-    const [lpTxn, appTxn] = built.transactions;
+    const group = serializedGroup(built.transactions);
+    const [lpTxn, appTxn] = group;
     const poolAddress = algosdk.getApplicationAddress(POOL_APP_ID).toString();
     const mins = proportionalMinimumOuts({
       liquidityAmount: 1_000_000n,
@@ -260,7 +265,7 @@ test("managed-weighted remove sends LP to the pool and encodes both minimums", a
       maxSlippageBps: 50
     });
 
-    assert.equal(built.transactions.length, 2);
+    assert.equal(group.length, 2);
     assert.equal(lpTxn?.type, "axfer");
     assert.equal(lpTxn?.assetTransfer?.receiver, poolAddress);
     assert.equal(lpTxn?.assetTransfer?.assetIndex, String(LP_ASSET_ID));
@@ -274,15 +279,11 @@ test("managed-weighted remove sends LP to the pool and encodes both minimums", a
     assert.deepEqual(call.foreignApps, [String(VAULT_APP_ID)]);
     assert.deepEqual(call.foreignAssets, [String(USDC_ID)]);
     assert.equal(appTxn?.fee, "3000");
-    assert.ok(built.transactions.every((txn) => txn.groupPresent));
+    assert.ok(group.every((txn) => txn.groupPresent));
     assert.equal(built.metadata.minimumAssetAOut, mins.minA.toString());
     assert.equal(built.metadata.minimumAssetBOut, mins.minB.toString());
 
-    const valid = pactManagedWeightedRemoveLiquidityShape.validate(
-      built.transactions,
-      input,
-      state
-    );
+    const valid = pactManagedWeightedRemoveLiquidityShape.validate(group, input, state);
     assert.deepEqual(valid.errors, []);
     assert.equal(valid.valid, true);
   } finally {
