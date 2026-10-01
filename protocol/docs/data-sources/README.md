@@ -54,7 +54,7 @@ populate the optional `assetIds` field on `OpportunityRecordV1` with the underly
 on-chain Algorand asset ids:
 
 - Tinyman: `asset_1.id` and `asset_2.id` from the pools API.
-- Pact: `primary_asset.algoid` and `secondary_asset.algoid` from the pools API.
+- Pact: `primary_asset.algoid` or `primary_asset.on_chain_id`, and the same fields on `secondary_asset`, from the pools API.
 - Folks Finance: the lending pool `assetId` from the SDK.
 - CompX: lending `baseTokenId`/`lstTokenId` and staking `stakedAssetId`/`rewardAssetId` from the SDK.
 - Morpho: ERC-20 `assetAddresses` (not Algorand `assetIds`); vault address in `inputHints.poolId`.

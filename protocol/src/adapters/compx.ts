@@ -15,6 +15,7 @@ import {
   mapWithThrottle,
   withAlgodRequestGate
 } from "../services/request-throttle.js";
+import { getAppLogger } from "../observability/logger.js";
 import { buildSourceMetadata } from "../services/source-metadata.js";
 import { skipLiveCatalogInTests } from "./offline-test-runtime.js";
 
@@ -119,10 +120,30 @@ async function fetchCompXOpportunitiesFromSource(
           ) as Algodv2);
     const sdk = dependencies.createSdk(algodClient);
 
-    const [markets, pools] = await Promise.all([
+    const [marketsOutcome, poolsOutcome] = await Promise.allSettled([
       dependencies.getAllMarketsFn.call(sdk.lending),
       dependencies.getAllPoolsFn.call(sdk.staking)
     ]);
+    if (marketsOutcome.status === "rejected") {
+      getAppLogger().warn(
+        {
+          event: "compx_markets_degraded",
+          err: describeCompxFailure(marketsOutcome.reason)
+        },
+        "CompX lending markets failed; omitting those rows"
+      );
+    }
+    if (poolsOutcome.status === "rejected") {
+      getAppLogger().warn(
+        {
+          event: "compx_pools_degraded",
+          err: describeCompxFailure(poolsOutcome.reason)
+        },
+        "CompX staking pools failed; omitting those rows"
+      );
+    }
+    const markets = marketsOutcome.status === "fulfilled" ? marketsOutcome.value : [];
+    const pools = poolsOutcome.status === "fulfilled" ? poolsOutcome.value : [];
 
     const assetIds = collectUniqueAssetIds(markets, pools);
     const priceableStakingAssetIds = collectOraclePriceableAssetIds(markets, pools);
@@ -159,48 +180,59 @@ async function fetchCompXOpportunitiesFromSource(
         delayMs: 0
       },
       async ({ pool, index }) => {
-        const stakedDecimals = decimalsByAssetId.get(pool.stakedAssetId);
-        const rewardDecimals = decimalsByAssetId.get(pool.rewardAssetId);
-        // Both staked and reward decimals must come from chain: staked
-        // decimals drive TVL, reward decimals drive the APR estimate.
-        // Guessing either produces materially wrong yields, so drop the row.
-        if (stakedDecimals === undefined || rewardDecimals === undefined) {
-          return;
-        }
+        try {
+          const stakedDecimals = decimalsByAssetId.get(pool.stakedAssetId);
+          const rewardDecimals = decimalsByAssetId.get(pool.rewardAssetId);
+          // Both staked and reward decimals must come from chain: staked
+          // decimals drive TVL, reward decimals drive the APR estimate.
+          // Guessing either produces materially wrong yields, so drop the row.
+          if (stakedDecimals === undefined || rewardDecimals === undefined) {
+            return;
+          }
 
-        const stakedAsset = assetById.get(pool.stakedAssetId);
-        const rewardAsset = assetById.get(pool.rewardAssetId);
-        const stakedAssetPriceUsd = priceByAssetId.get(pool.stakedAssetId);
-        const rewardAssetPriceUsd = priceByAssetId.get(pool.rewardAssetId);
+          const stakedAsset = assetById.get(pool.stakedAssetId);
+          const rewardAsset = assetById.get(pool.rewardAssetId);
+          const stakedAssetPriceUsd = priceByAssetId.get(pool.stakedAssetId);
+          const rewardAssetPriceUsd = priceByAssetId.get(pool.rewardAssetId);
 
-        const aprOptions: Parameters<GetPoolAprFn>[1] = {
-          nowTimestamp: Math.floor(Date.now() / 1000),
-          stakedAssetDecimals: stakedDecimals,
-          rewardAssetDecimals: rewardDecimals
-        };
-        if (stakedAssetPriceUsd !== undefined) {
-          aprOptions.stakedAssetPriceUsd = stakedAssetPriceUsd;
-        }
-        if (rewardAssetPriceUsd !== undefined) {
-          aprOptions.rewardAssetPriceUsd = rewardAssetPriceUsd;
-        }
+          const aprOptions: Parameters<GetPoolAprFn>[1] = {
+            nowTimestamp: Math.floor(Date.now() / 1000),
+            stakedAssetDecimals: stakedDecimals,
+            rewardAssetDecimals: rewardDecimals
+          };
+          if (stakedAssetPriceUsd !== undefined) {
+            aprOptions.stakedAssetPriceUsd = stakedAssetPriceUsd;
+          }
+          if (rewardAssetPriceUsd !== undefined) {
+            aprOptions.rewardAssetPriceUsd = rewardAssetPriceUsd;
+          }
 
-        const apr = await dependencies.getPoolAprFn.call(
-          sdk.staking,
-          pool.appId,
-          aprOptions
-        );
-        const opportunity = normalizeCompxStakingOpportunity({
-          pool,
-          apr,
-          stakedAsset,
-          rewardAsset,
-          stakedAssetPriceUsd,
-          stakedDecimals,
-          fetchedAtIso: fetchedAt
-        });
-        if (opportunity !== null) {
-          stakingOpportunitiesByIndex[index] = opportunity;
+          const apr = await dependencies.getPoolAprFn.call(
+            sdk.staking,
+            pool.appId,
+            aprOptions
+          );
+          const opportunity = normalizeCompxStakingOpportunity({
+            pool,
+            apr,
+            stakedAsset,
+            rewardAsset,
+            stakedAssetPriceUsd,
+            stakedDecimals,
+            fetchedAtIso: fetchedAt
+          });
+          if (opportunity !== null) {
+            stakingOpportunitiesByIndex[index] = opportunity;
+          }
+        } catch (error) {
+          getAppLogger().warn(
+            {
+              event: "compx_staking_row_omitted",
+              appId: pool.appId,
+              err: describeCompxFailure(error)
+            },
+            "Omitting CompX staking row after upstream failure"
+          );
         }
       }
     );
@@ -223,6 +255,19 @@ async function fetchCompXOpportunitiesFromSource(
 
     throw new CompXAdapterError("CompX SDK request failed.", error);
   }
+}
+
+function describeCompxFailure(error: unknown): string {
+  if (error instanceof Error && error.message.length > 0) {
+    return error.message;
+  }
+  if (typeof error === "string" && error.length > 0) {
+    return error;
+  }
+  if (error === undefined || error === null) {
+    return "unknown failure";
+  }
+  return String(error);
 }
 
 interface NormalizeCompxLendingOpportunityInput {

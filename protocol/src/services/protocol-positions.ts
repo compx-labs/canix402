@@ -596,7 +596,8 @@ export async function collectPactPositions(
         decimals,
         parseNullableNonNegativeNumber(pool.pool_asset?.price)
       ),
-      notes: "LP-token claim; underlying reserve composition changes with pool state."
+      notes: "LP-token claim; underlying reserve composition changes with pool state.",
+      pactPoolDeprecated: pool.is_deprecated === true
     });
   }
 
@@ -834,6 +835,7 @@ interface PactPositionAsset {
 
 interface PactPositionPool {
   on_chain_id?: number | string;
+  is_deprecated?: boolean | null;
   primary_asset?: PactPositionAsset;
   secondary_asset?: PactPositionAsset;
   pool_asset?: PactPositionAsset;

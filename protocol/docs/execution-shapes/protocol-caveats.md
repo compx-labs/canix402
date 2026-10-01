@@ -164,10 +164,28 @@ for later escrow operations.
 
 ## Pact
 
+### Pool generations
+
+- Listed LP opportunities are version `201` `MANAGED_WEIGHTED` pools. Their
+  enter and exit shapes (`mainnet:pact:v201:addLiquidity:twoSided`,
+  `mainnet:pact:v201:removeLiquidity:proportional`) read pool global state
+  (`asset_a`, `asset_b`, reserves, `issued_lp`, `lp_asset`, `vault`,
+  `bootstrapped`) and do not use `@pactfi/pactsdk`. Deposits go to the vault
+  app address from global state.
+- v1 `ADDLIQ` / `REMLIQ` shapes remain registered for legacy pools a wallet
+  may still hold. They are not attached to listed opportunities.
+  `addLiquidityAndFarm:twoSided` calls `ADDLIQ` and is not offered on listed
+  farms. Farm deploy, stake, unstake, and claim stay on the version `101`
+  farm contract.
+- The v201 add call has no on-chain minimum LP. Slippage is checked against
+  reserves before the group is returned. The v201 remove call encodes both
+  minimum outputs.
+
 ### Pool discovery
 
-- Quotes fetch the pool with `@pactfi/pactsdk` `fetchPoolById(poolAppId)`.
-  Discovery `on_chain_id` is that application id.
+- v1 quotes fetch the pool with `@pactfi/pactsdk` `fetchPoolById(poolAppId)`.
+  Discovery `on_chain_id` is that application id. The SDK accepts
+  constant-product and stableswap pools only.
 - Caller `assetAId` / `assetBId` must match the resolved **primary** (lower
   asset id) and **secondary** (higher asset id) pair. ALGO/USDC therefore has
   primary ALGO (`0`). Shapes remap amounts; they do not swap the on-chain pool.
@@ -182,8 +200,9 @@ for later escrow operations.
 
 ### Opt-ins
 
-- Two-sided add does **not** opt the user into the LP token. Opt in first
-  (including ASA MBR) or the mint fails.
+- v1 two-sided add does **not** opt the user into the LP token. Opt in first
+  (including ASA MBR) or the mint fails. The v201 add includes a zero-amount
+  LP opt-in when the wallet is not already opted in.
 - Farm liquidity leaves the wallet into a **per-user farm escrow** (unlike
   Tinyman in-wallet commit). `farm:deployEscrow` must confirm before
   `farm:stake` or `addLiquidityAndFarm:twoSided` — the escrow app id is unknown
@@ -210,10 +229,11 @@ for later escrow operations.
 - Smart Router applies slippage only as `min_expected` on the **last** SWAP
   (`amountOut * (10000 - bps) / 10000`). Intermediate hops ignore min-out, per
   Pact router.md.
-- **Proportional remove does not encode slippage on chain.**
+- **v1 proportional remove does not encode slippage on chain.**
   `@pactfi/pactsdk` `buildRemoveLiquidityTxs` hard-codes `REMLIQ` minimum
   primary/secondary outputs as `0` / `0`. Review quote metadata and pool state
-  before signing; do not assume min-out protection.
+  before signing; do not assume min-out protection. v201 remove encodes both
+  minimums from reserves and `maxSlippageBps`.
 
 ### Liquidity limits
 

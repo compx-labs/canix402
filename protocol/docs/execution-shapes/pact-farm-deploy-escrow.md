@@ -35,7 +35,8 @@ Three outer transactions in order (from `@pactfi/pactsdk` `prepareDeployEscrowTx
 
 The escrow application id is unknown until the create transaction confirms, so
 stake cannot be atomic with deploy. After confirm, re-quote
-`mainnet:pact:v1:farm:stake` or `mainnet:pact:v1:addLiquidityAndFarm:twoSided`.
+`mainnet:pact:v1:farm:stake`. Listed farms do not offer
+`addLiquidityAndFarm:twoSided`; add LP with the v201 shape, then stake.
 
 ## Validation invariants
 
