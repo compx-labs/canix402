@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { normalizePactFarm, normalizePactPool } from "../../src/adapters/index.js";
+import { fetchPactOpportunities, normalizePactFarm, normalizePactPool } from "../../src/adapters/index.js";
 import { USDC_ASSET_ID } from "../../src/execution/shapes/haystack/constants.js";
 import { SOURCE_TIMESTAMP_FETCH_PROXY_NOTE } from "../../src/services/source-metadata.js";
 import {
@@ -9,8 +9,11 @@ import {
   pactAlgoUsdcLp,
   pactApr7dOnly,
   pactAverageAprOnlyFarm,
+  pactDeprecatedFarm,
+  pactDeprecatedPool,
   pactFarmTvlFallback,
   pactJoinedFarm,
+  pactManagedWeightedLp,
   pactMissingApy,
   pactMissingIdentifiers,
   pactMissingTvl,
@@ -32,6 +35,46 @@ test("normalizePactPool maps recorded 7d APR fractions into percentage points", 
   assert.deepEqual(record.assetIds, [0, USDC_ASSET_ID]);
   assert.equal(record.sourceTimestamp, PACT_FIXTURE_FETCHED_AT);
   assert.match(record.notes ?? "", new RegExp(SOURCE_TIMESTAMP_FETCH_PROXY_NOTE));
+});
+
+test("normalizePactPool reads live asset ids from on_chain_id", () => {
+  const record = normalizePactPool(pactManagedWeightedLp, PACT_FIXTURE_FETCHED_AT);
+  assertValidMarketRecord(record);
+  assert.equal(record.opportunityId, "3662410374:lp");
+  assert.equal(record.assetPair, "ALGO/USDC");
+  assert.deepEqual(record.assetIds, [0, USDC_ASSET_ID]);
+  assert.ok(Math.abs(record.apy - 10.2641) < 0.0001);
+});
+
+test("fetchPactOpportunities drops deprecated pools and their farms", async () => {
+  const previousBaseUrl = process.env.PACT_API_BASE_URL;
+  process.env.PACT_API_BASE_URL = "http://mock.pact.local";
+
+  try {
+    const opportunities = await fetchPactOpportunities(async (url) => {
+      const requestUrl = String(url);
+      if (requestUrl.includes("/pools/all")) {
+        return {
+          ok: true,
+          json: async () => [pactManagedWeightedLp, pactDeprecatedPool]
+        } as Response;
+      }
+      return {
+        ok: true,
+        json: async () => [pactDeprecatedFarm]
+      } as Response;
+    });
+
+    assert.equal(opportunities.length, 1);
+    assert.equal(opportunities[0]?.opportunityId, "3662410374:lp");
+    assert.deepEqual(opportunities[0]?.assetIds, [0, USDC_ASSET_ID]);
+  } finally {
+    if (previousBaseUrl === undefined) {
+      delete process.env.PACT_API_BASE_URL;
+    } else {
+      process.env.PACT_API_BASE_URL = previousBaseUrl;
+    }
+  }
 });
 
 test("normalizePactPool falls back to apr_7d and numeric pool id", () => {

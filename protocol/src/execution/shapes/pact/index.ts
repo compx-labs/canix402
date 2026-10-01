@@ -1,13 +1,23 @@
 import type { TransactionShapeSpec } from "../../types.js";
 import { pactAddLiquidityAndFarmTwoSidedShape } from "./add-liquidity-and-farm-two-sided.js";
+import { pactManagedWeightedAddLiquidityShape } from "./add-liquidity-managed-weighted.js";
 import { pactAddLiquidityTwoSidedShape } from "./add-liquidity-two-sided.js";
 import { pactFarmClaimRewardsShape } from "./farm-claim-rewards.js";
 import { pactFarmDeployEscrowShape } from "./farm-deploy-escrow.js";
 import { pactFarmStakeShape } from "./farm-stake.js";
 import { pactFarmUnstakeShape } from "./farm-unstake.js";
+import { pactManagedWeightedRemoveLiquidityShape } from "./remove-liquidity-managed-weighted.js";
 import { pactRemoveLiquidityProportionalShape } from "./remove-liquidity-proportional.js";
 import { pactSmartRouterSwapShape } from "./smart-router-swap.js";
 
+export {
+  pactManagedWeightedAddLiquidityShape,
+  setPactManagedWeightedAddLiquidityDependenciesForTests
+} from "./add-liquidity-managed-weighted.js";
+export type {
+  PactManagedWeightedAddLiquidityInput,
+  PactManagedWeightedAddLiquidityDependencies
+} from "./add-liquidity-managed-weighted.js";
 export {
   pactAddLiquidityTwoSidedShape,
   setPactAddLiquidityTwoSidedDependenciesForTests
@@ -25,6 +35,25 @@ export type {
   PactAddLiquidityAndFarmTwoSidedDependencies,
   PactAddLiquidityAndFarmState
 } from "./add-liquidity-and-farm-two-sided.js";
+export {
+  pactManagedWeightedRemoveLiquidityShape,
+  setPactManagedWeightedRemoveLiquidityDependenciesForTests
+} from "./remove-liquidity-managed-weighted.js";
+export type {
+  PactManagedWeightedRemoveLiquidityInput,
+  PactManagedWeightedRemoveLiquidityDependencies
+} from "./remove-liquidity-managed-weighted.js";
+export {
+  resolvePactManagedWeightedPoolState,
+  setPactManagedWeightedStateDependenciesForTests,
+  assertDepositMatchesReserves,
+  assetIdBoxName,
+  expectedProportionalMint,
+  proportionalMinimumOuts,
+  PACT_V201_ADD_LIQUIDITY_SELECTOR,
+  PACT_V201_REMOVE_LIQUIDITY_SELECTOR
+} from "./managed-weighted-state.js";
+export type { PactManagedWeightedPoolState } from "./managed-weighted-state.js";
 export {
   pactRemoveLiquidityProportionalShape,
   setPactRemoveLiquidityProportionalDependenciesForTests
@@ -105,6 +134,8 @@ export type { PactPoolState, PactPoolStateDependencies } from "./pool-state.js";
 
 /** All verified Pact transaction shapes. */
 export const pactShapes: readonly TransactionShapeSpec[] = [
+  pactManagedWeightedAddLiquidityShape,
+  pactManagedWeightedRemoveLiquidityShape,
   pactAddLiquidityTwoSidedShape,
   pactRemoveLiquidityProportionalShape,
   pactFarmDeployEscrowShape,

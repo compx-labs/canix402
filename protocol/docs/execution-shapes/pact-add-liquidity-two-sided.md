@@ -6,6 +6,11 @@
 - Supported opportunity types: `lp`
 - Paid API endpoint: `POST /execution/quotes` (0.1 USDC via x402)
 
+This shape builds the legacy `ADDLIQ` group for constant-product and stableswap
+pools. Listed opportunities are managed-weighted v201 pools and attach
+`mainnet:pact:v201:addLiquidity:twoSided` instead. Keep this shape for wallets
+that still hold legacy LP.
+
 ## Example request
 
 ```json

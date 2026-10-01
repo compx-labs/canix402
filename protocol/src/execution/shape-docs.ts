@@ -73,6 +73,10 @@ export const EXECUTION_SHAPE_DOCS_PATHS: Readonly<Record<string, string>> = {
     "protocol/docs/execution-shapes/myth-finance-mint-lst.md",
   "mainnet:myth-finance:dualstake-v1:redeem:lst":
     "protocol/docs/execution-shapes/myth-finance-redeem-lst.md",
+  "mainnet:pact:v201:addLiquidity:twoSided":
+    "protocol/docs/execution-shapes/pact-v201-add-liquidity-two-sided.md",
+  "mainnet:pact:v201:removeLiquidity:proportional":
+    "protocol/docs/execution-shapes/pact-v201-remove-liquidity-proportional.md",
   "mainnet:pact:v1:addLiquidity:twoSided":
     "protocol/docs/execution-shapes/pact-add-liquidity-two-sided.md",
   "mainnet:pact:v1:removeLiquidity:proportional":

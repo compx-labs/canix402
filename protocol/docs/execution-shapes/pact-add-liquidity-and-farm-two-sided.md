@@ -7,6 +7,9 @@
 - Opportunity role: `enter`
 - Paid API endpoint: `POST /execution/quotes` (0.1 USDC via x402)
 
+This shape calls `ADDLIQ` and is not attached to listed farms. Those farms
+use `farm:deployEscrow` then `farm:stake` after a separate v201 add.
+
 ## Example request
 
 ```json
