@@ -8,6 +8,11 @@ import {
   startOpportunityHistoryCron,
   stopOpportunityHistoryCron
 } from "./jobs/opportunity-history-cron.js";
+import {
+  runNfStatsJob,
+  startNfStatsCron,
+  stopNfStatsCron
+} from "./jobs/nf-stats-cron.js";
 import { closeRedisCache } from "./services/redis-cache.js";
 
 async function main() {
@@ -20,6 +25,7 @@ async function main() {
     stopWatchCron();
     stopFeeHarvestCron();
     stopOpportunityHistoryCron();
+    stopNfStatsCron();
     try {
       await app.close();
     } finally {
@@ -39,6 +45,8 @@ async function main() {
   startFeeHarvestCron();
   startWatchCron();
   startOpportunityHistoryCron();
+  startNfStatsCron();
+  void runNfStatsJob();
 }
 
 main().catch(async (error) => {
@@ -46,6 +54,7 @@ main().catch(async (error) => {
   stopWatchCron();
   stopFeeHarvestCron();
   stopOpportunityHistoryCron();
+  stopNfStatsCron();
   await closeRedisCache();
   process.exit(1);
 });

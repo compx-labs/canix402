@@ -1,0 +1,2697 @@
+{
+  "data": [
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0xef417a2512c5a41f69ae4e021648b69a7cde5d03",
+      "assetPair": "USDC",
+      "chain": "base",
+      "apy": 4.911522,
+      "yieldBasis": "apy",
+      "tvlUsd": 1589569.701412,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "high",
+        "apyStdev": 0.15479,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xef417a2512c5a41f69ae4e021648b69a7cde5d03",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xef417a2512c5a41f69ae4e021648b69a7cde5d03",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xef417a2512c5a41f69ae4e021648b69a7cde5d03",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+      ],
+      "apr": 5.471926,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Yearn OG USDC; curator fee 10%"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0x236919f11ff9ea9550a4287696c2fc9e18e6e890",
+      "assetPair": "USDC",
+      "chain": "base",
+      "apy": 4.871446,
+      "yieldBasis": "apy",
+      "tvlUsd": 66388.268127,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "high",
+        "apyStdev": 0.207996,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x236919f11ff9ea9550a4287696c2fc9e18e6e890",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x236919f11ff9ea9550a4287696c2fc9e18e6e890",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x236919f11ff9ea9550a4287696c2fc9e18e6e890",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+      ],
+      "apr": 5.42716,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Gauntlet USDC Frontier; curator fee 10%"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0xee8f4ec5672f09119b96ab6fb59c27e1b7e44b61",
+      "assetPair": "USDC",
+      "chain": "base",
+      "apy": 4.437496,
+      "yieldBasis": "apy",
+      "tvlUsd": 414562001.465659,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "high",
+        "apyStdev": 0.0919,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xee8f4ec5672f09119b96ab6fb59c27e1b7e44b61",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xee8f4ec5672f09119b96ab6fb59c27e1b7e44b61",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xee8f4ec5672f09119b96ab6fb59c27e1b7e44b61",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+      ],
+      "apr": 4.437496,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Gauntlet USDC Prime; curator fee 0%"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0xbeefe94c8ad530842bfe7d8b397938ffc1cb83b2",
+      "assetPair": "USDC",
+      "chain": "base",
+      "apy": 4.248424,
+      "yieldBasis": "apy",
+      "tvlUsd": 14946824.500342,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "high",
+        "apyStdev": 0.118857,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xbeefe94c8ad530842bfe7d8b397938ffc1cb83b2",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xbeefe94c8ad530842bfe7d8b397938ffc1cb83b2",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xbeefe94c8ad530842bfe7d8b397938ffc1cb83b2",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+      ],
+      "apr": 4.476959,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Steakhouse Prime USDC; curator fee 5%"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0xc0c5689e6f4d256e861f65465b691aeecc0deb12",
+      "assetPair": "USDC",
+      "chain": "base",
+      "apy": 4.000787,
+      "yieldBasis": "apy",
+      "tvlUsd": 1838587.77266,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "high",
+        "apyStdev": 0.146891,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xc0c5689e6f4d256e861f65465b691aeecc0deb12",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xc0c5689e6f4d256e861f65465b691aeecc0deb12",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xc0c5689e6f4d256e861f65465b691aeecc0deb12",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+      ],
+      "apr": 4.455085,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Gauntlet USDC Core; curator fee 10%"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0x1401d1271c47648ac70cbcdfa3776d4a87ce006b",
+      "assetPair": "USDC",
+      "chain": "base",
+      "apy": 3.996009,
+      "yieldBasis": "apy",
+      "tvlUsd": 12215536.97485,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "high",
+        "apyStdev": 0.07835,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x1401d1271c47648ac70cbcdfa3776d4a87ce006b",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x1401d1271c47648ac70cbcdfa3776d4a87ce006b",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x1401d1271c47648ac70cbcdfa3776d4a87ce006b",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+      ],
+      "apr": 4.449753,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Pangolins USDC; curator fee 10%"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0x7bfa7c4f149e7415b73bdedfe609237e29cbf34a",
+      "assetPair": "USDC",
+      "chain": "base",
+      "apy": 3.987086,
+      "yieldBasis": "apy",
+      "tvlUsd": 328975890.78181,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "high",
+        "apyStdev": 0.07632,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x7bfa7c4f149e7415b73bdedfe609237e29cbf34a",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x7bfa7c4f149e7415b73bdedfe609237e29cbf34a",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x7bfa7c4f149e7415b73bdedfe609237e29cbf34a",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+      ],
+      "apr": 4.439795,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Spark USDC Vault; curator fee 10%"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0xc1256ae5ff1cf2719d4937adb3bbccab2e00a2ca",
+      "assetPair": "USDC",
+      "chain": "base",
+      "apy": 3.874747,
+      "yieldBasis": "apy",
+      "tvlUsd": 3930162.710767,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "high",
+        "apyStdev": 0.139439,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xc1256ae5ff1cf2719d4937adb3bbccab2e00a2ca",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xc1256ae5ff1cf2719d4937adb3bbccab2e00a2ca",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xc1256ae5ff1cf2719d4937adb3bbccab2e00a2ca",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+      ],
+      "apr": 4.391996,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Moonwell Flagship USDC; curator fee 15%"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0xbeef010f9cb27031ad51e3333f9af9c6b1228183",
+      "assetPair": "USDC",
+      "chain": "base",
+      "apy": 3.321473,
+      "yieldBasis": "apy",
+      "tvlUsd": 124152045.50059,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "high",
+        "apyStdev": 0.066757,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xbeef010f9cb27031ad51e3333f9af9c6b1228183",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xbeef010f9cb27031ad51e3333f9af9c6b1228183",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xbeef010f9cb27031ad51e3333f9af9c6b1228183",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+      ],
+      "apr": 4.452968,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Steakhouse USDC; curator fee 25%"
+    },
+    {
+      "protocol": "aave",
+      "opportunityType": "lending",
+      "opportunityId": "aave-lending-0x60a3e35cc302bfa44cb288bc5a4f316fdb1adb42",
+      "assetPair": "EURC",
+      "chain": "base",
+      "apy": 2.131115,
+      "yieldBasis": "apy",
+      "tvlUsd": 7637435.778782,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "utilization": 53.024889,
+        "liquidationThreshold": 78,
+        "ltv": 0,
+        "borrowApr": 4.517816,
+        "sourceAgeSeconds": 25,
+        "stability": "high",
+        "apyStdev": 0.067699,
+        "historySampleCount": 91
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:aave:v3:supply:erc20",
+          "protocol": "aave",
+          "protocolVersion": "v3",
+          "action": "supply",
+          "variant": "erc20",
+          "title": "Aave V3 supply",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus Pool.supply on Aave V3 Base. onBehalfOf is the quoting wallet. No Permit.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x60a3e35cc302bfa44cb288bc5a4f316fdb1adb42",
+            "assetAddress": "0x60a3e35cc302bfa44cb288bc5a4f316fdb1adb42"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:aave:v3:withdraw:erc20",
+          "protocol": "aave",
+          "protocolVersion": "v3",
+          "action": "withdraw",
+          "variant": "erc20",
+          "title": "Aave V3 withdraw",
+          "summary": "Unsigned Pool.withdraw on Aave V3 Base. The receiver is the quoting wallet. No native unwrap.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAddress",
+            "amount"
+          ],
+          "requiredAssetIds": []
+        }
+      ],
+      "assetAddresses": [
+        "0x60a3e35cc302bfa44cb288bc5a4f316fdb1adb42"
+      ],
+      "borrowApr": 4.517816,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. EURC on Aave V3 Base"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0x5a32099837d89e3a794a44fb131cbbad41f87a8c",
+      "assetPair": "WETH",
+      "chain": "base",
+      "apy": 1.361699,
+      "yieldBasis": "apy",
+      "tvlUsd": 555581.453496,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "high",
+        "apyStdev": 0.029398,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x5a32099837d89e3a794a44fb131cbbad41f87a8c",
+            "assetAddress": "0x4200000000000000000000000000000000000006"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x5a32099837d89e3a794a44fb131cbbad41f87a8c",
+            "assetAddress": "0x4200000000000000000000000000000000000006"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x5a32099837d89e3a794a44fb131cbbad41f87a8c",
+            "assetAddress": "0x4200000000000000000000000000000000000006"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x4200000000000000000000000000000000000006"
+      ],
+      "apr": 1.514138,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Extrafi XLend WETH; curator fee 10%"
+    },
+    {
+      "protocol": "aave",
+      "opportunityType": "lending",
+      "opportunityId": "aave-lending-0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452",
+      "assetPair": "wstETH",
+      "chain": "base",
+      "apy": 0.000658,
+      "yieldBasis": "apy",
+      "tvlUsd": 34299236.999749,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "utilization": 3.365483,
+        "liquidationThreshold": 79,
+        "ltv": 75,
+        "sourceAgeSeconds": 25,
+        "stability": "high",
+        "apyStdev": 0.000006,
+        "historySampleCount": 91
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:aave:v3:supply:erc20",
+          "protocol": "aave",
+          "protocolVersion": "v3",
+          "action": "supply",
+          "variant": "erc20",
+          "title": "Aave V3 supply",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus Pool.supply on Aave V3 Base. onBehalfOf is the quoting wallet. No Permit.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452",
+            "assetAddress": "0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:aave:v3:withdraw:erc20",
+          "protocol": "aave",
+          "protocolVersion": "v3",
+          "action": "withdraw",
+          "variant": "erc20",
+          "title": "Aave V3 withdraw",
+          "summary": "Unsigned Pool.withdraw on Aave V3 Base. The receiver is the quoting wallet. No native unwrap.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAddress",
+            "amount"
+          ],
+          "requiredAssetIds": []
+        }
+      ],
+      "assetAddresses": [
+        "0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452"
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. wstETH on Aave V3 Base; borrowing disabled"
+    },
+    {
+      "protocol": "aave",
+      "opportunityType": "lending",
+      "opportunityId": "aave-lending-0x2ae3f1ec7f1f5012cfeab0185bfc7aa3cf0dec22",
+      "assetPair": "cbETH",
+      "chain": "base",
+      "apy": 0.000236,
+      "yieldBasis": "apy",
+      "tvlUsd": 143527481.041181,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "utilization": 0.422694,
+        "liquidationThreshold": 79,
+        "ltv": 75,
+        "sourceAgeSeconds": 25,
+        "stability": "high",
+        "apyStdev": 0.000003,
+        "historySampleCount": 91
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:aave:v3:supply:erc20",
+          "protocol": "aave",
+          "protocolVersion": "v3",
+          "action": "supply",
+          "variant": "erc20",
+          "title": "Aave V3 supply",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus Pool.supply on Aave V3 Base. onBehalfOf is the quoting wallet. No Permit.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x2ae3f1ec7f1f5012cfeab0185bfc7aa3cf0dec22",
+            "assetAddress": "0x2ae3f1ec7f1f5012cfeab0185bfc7aa3cf0dec22"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:aave:v3:withdraw:erc20",
+          "protocol": "aave",
+          "protocolVersion": "v3",
+          "action": "withdraw",
+          "variant": "erc20",
+          "title": "Aave V3 withdraw",
+          "summary": "Unsigned Pool.withdraw on Aave V3 Base. The receiver is the quoting wallet. No native unwrap.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAddress",
+            "amount"
+          ],
+          "requiredAssetIds": []
+        }
+      ],
+      "assetAddresses": [
+        "0x2ae3f1ec7f1f5012cfeab0185bfc7aa3cf0dec22"
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. cbETH on Aave V3 Base; borrowing disabled"
+    },
+    {
+      "protocol": "aave",
+      "opportunityType": "lending",
+      "opportunityId": "aave-lending-0x04c0599ae5a44757c0af6f9ec3b93da8976c150a",
+      "assetPair": "weETH",
+      "chain": "base",
+      "apy": 0.000095,
+      "yieldBasis": "apy",
+      "tvlUsd": 45453509.163674,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "utilization": 0.017147,
+        "liquidationThreshold": 77,
+        "ltv": 75,
+        "sourceAgeSeconds": 25,
+        "stability": "high",
+        "apyStdev": 4.1037e-8,
+        "historySampleCount": 91
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:aave:v3:supply:erc20",
+          "protocol": "aave",
+          "protocolVersion": "v3",
+          "action": "supply",
+          "variant": "erc20",
+          "title": "Aave V3 supply",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus Pool.supply on Aave V3 Base. onBehalfOf is the quoting wallet. No Permit.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x04c0599ae5a44757c0af6f9ec3b93da8976c150a",
+            "assetAddress": "0x04c0599ae5a44757c0af6f9ec3b93da8976c150a"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:aave:v3:withdraw:erc20",
+          "protocol": "aave",
+          "protocolVersion": "v3",
+          "action": "withdraw",
+          "variant": "erc20",
+          "title": "Aave V3 withdraw",
+          "summary": "Unsigned Pool.withdraw on Aave V3 Base. The receiver is the quoting wallet. No native unwrap.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAddress",
+            "amount"
+          ],
+          "requiredAssetIds": []
+        }
+      ],
+      "assetAddresses": [
+        "0x04c0599ae5a44757c0af6f9ec3b93da8976c150a"
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. weETH on Aave V3 Base; borrowing disabled"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0x5435bc53f2c61298167cdb11cdf0db2bfa259ca0",
+      "assetPair": "USDC",
+      "chain": "base",
+      "apy": 8.797147,
+      "yieldBasis": "apy",
+      "tvlUsd": 409927.390489,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "medium",
+        "apyStdev": 1.042626,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x5435bc53f2c61298167cdb11cdf0db2bfa259ca0",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x5435bc53f2c61298167cdb11cdf0db2bfa259ca0",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x5435bc53f2c61298167cdb11cdf0db2bfa259ca0",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+      ],
+      "apr": 8.797147,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. UltraYield USDC; curator fee 0%"
+    },
+    {
+      "protocol": "aave",
+      "opportunityType": "lending",
+      "opportunityId": "aave-lending-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "assetPair": "USDC",
+      "chain": "base",
+      "apy": 4.483775,
+      "yieldBasis": "apy",
+      "tvlUsd": 180366816.746545,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "utilization": 90.674721,
+        "liquidationThreshold": 78,
+        "ltv": 75,
+        "borrowApr": 5.521782,
+        "sourceAgeSeconds": 25,
+        "stability": "high",
+        "apyStdev": 0.190611,
+        "historySampleCount": 91
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:aave:v3:supply:erc20",
+          "protocol": "aave",
+          "protocolVersion": "v3",
+          "action": "supply",
+          "variant": "erc20",
+          "title": "Aave V3 supply",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus Pool.supply on Aave V3 Base. onBehalfOf is the quoting wallet. No Permit.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:aave:v3:withdraw:erc20",
+          "protocol": "aave",
+          "protocolVersion": "v3",
+          "action": "withdraw",
+          "variant": "erc20",
+          "title": "Aave V3 withdraw",
+          "summary": "Unsigned Pool.withdraw on Aave V3 Base. The receiver is the quoting wallet. No native unwrap.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAddress",
+            "amount"
+          ],
+          "requiredAssetIds": []
+        }
+      ],
+      "assetAddresses": [
+        "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+      ],
+      "borrowApr": 5.521782,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. USDC on Aave V3 Base"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0xbeefa7b88064feef0cee02aaebbd95d30df3878f",
+      "assetPair": "USDC",
+      "chain": "base",
+      "apy": 4.273934,
+      "yieldBasis": "apy",
+      "tvlUsd": 846319.367508,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "medium",
+        "apyStdev": 0.425276,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xbeefa7b88064feef0cee02aaebbd95d30df3878f",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xbeefa7b88064feef0cee02aaebbd95d30df3878f",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xbeefa7b88064feef0cee02aaebbd95d30df3878f",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+      ],
+      "apr": 4.273934,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Steakhouse High Yield USDC v1.1; curator fee 0%"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0xe74c499fa461af1844fca84204490877787ced56",
+      "assetPair": "USDC",
+      "chain": "base",
+      "apy": 4.104531,
+      "yieldBasis": "apy",
+      "tvlUsd": 700684.684504,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "medium",
+        "apyStdev": 0.225785,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xe74c499fa461af1844fca84204490877787ced56",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xe74c499fa461af1844fca84204490877787ced56",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xe74c499fa461af1844fca84204490877787ced56",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+      ],
+      "apr": 5.50981,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Yield Clearstar USDC; curator fee 25%"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0xbeef086b8807dc5e5a1740c5e3a7c4c366ea6ab5",
+      "assetPair": "EURC",
+      "chain": "base",
+      "apy": 2.540548,
+      "yieldBasis": "apy",
+      "tvlUsd": 889698.774069,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "medium",
+        "apyStdev": 0.156901,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xbeef086b8807dc5e5a1740c5e3a7c4c366ea6ab5",
+            "assetAddress": "0x60a3e35cc302bfa44cb288bc5a4f316fdb1adb42"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xbeef086b8807dc5e5a1740c5e3a7c4c366ea6ab5",
+            "assetAddress": "0x60a3e35cc302bfa44cb288bc5a4f316fdb1adb42"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xbeef086b8807dc5e5a1740c5e3a7c4c366ea6ab5",
+            "assetAddress": "0x60a3e35cc302bfa44cb288bc5a4f316fdb1adb42"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x60a3e35cc302bfa44cb288bc5a4f316fdb1adb42"
+      ],
+      "apr": 2.676035,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Steakhouse EURC; curator fee 5%"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0xf24608e0ccb972b0b0f4a6446a0bbf58c701a026",
+      "assetPair": "EURC",
+      "chain": "base",
+      "apy": 2.23144,
+      "yieldBasis": "apy",
+      "tvlUsd": 859822.052043,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "medium",
+        "apyStdev": 0.112695,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xf24608e0ccb972b0b0f4a6446a0bbf58c701a026",
+            "assetAddress": "0x60a3e35cc302bfa44cb288bc5a4f316fdb1adb42"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xf24608e0ccb972b0b0f4a6446a0bbf58c701a026",
+            "assetAddress": "0x60a3e35cc302bfa44cb288bc5a4f316fdb1adb42"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xf24608e0ccb972b0b0f4a6446a0bbf58c701a026",
+            "assetAddress": "0x60a3e35cc302bfa44cb288bc5a4f316fdb1adb42"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x60a3e35cc302bfa44cb288bc5a4f316fdb1adb42"
+      ],
+      "apr": 2.430445,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Moonwell Flagship EURC; curator fee 15%"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0x09832347586e238841f49149c84d121bc2191c53",
+      "assetPair": "WETH",
+      "chain": "base",
+      "apy": 1.704627,
+      "yieldBasis": "apy",
+      "tvlUsd": 106540.823793,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "medium",
+        "apyStdev": 0.096724,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x09832347586e238841f49149c84d121bc2191c53",
+            "assetAddress": "0x4200000000000000000000000000000000000006"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x09832347586e238841f49149c84d121bc2191c53",
+            "assetAddress": "0x4200000000000000000000000000000000000006"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x09832347586e238841f49149c84d121bc2191c53",
+            "assetAddress": "0x4200000000000000000000000000000000000006"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x4200000000000000000000000000000000000006"
+      ],
+      "apr": 1.854221,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Clearstar ETH Reactor; curator fee 8%"
+    },
+    {
+      "protocol": "aave",
+      "opportunityType": "lending",
+      "opportunityId": "aave-lending-0x4200000000000000000000000000000000000006",
+      "assetPair": "WETH",
+      "chain": "base",
+      "apy": 1.44832,
+      "yieldBasis": "apy",
+      "tvlUsd": 227026159.797727,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "utilization": 82.260198,
+        "liquidationThreshold": 83,
+        "ltv": 80,
+        "borrowApr": 2.077797,
+        "sourceAgeSeconds": 25,
+        "stability": "high",
+        "apyStdev": 0.017673,
+        "historySampleCount": 91
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:aave:v3:supply:erc20",
+          "protocol": "aave",
+          "protocolVersion": "v3",
+          "action": "supply",
+          "variant": "erc20",
+          "title": "Aave V3 supply",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus Pool.supply on Aave V3 Base. onBehalfOf is the quoting wallet. No Permit.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x4200000000000000000000000000000000000006",
+            "assetAddress": "0x4200000000000000000000000000000000000006"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:aave:v3:withdraw:erc20",
+          "protocol": "aave",
+          "protocolVersion": "v3",
+          "action": "withdraw",
+          "variant": "erc20",
+          "title": "Aave V3 withdraw",
+          "summary": "Unsigned Pool.withdraw on Aave V3 Base. The receiver is the quoting wallet. No native unwrap.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAddress",
+            "amount"
+          ],
+          "requiredAssetIds": []
+        }
+      ],
+      "assetAddresses": [
+        "0x4200000000000000000000000000000000000006"
+      ],
+      "borrowApr": 2.077797,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. WETH on Aave V3 Base"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0x6b13c060f13af1fdb319f52315bbbf3fb1d88844",
+      "assetPair": "WETH",
+      "chain": "base",
+      "apy": 1.431141,
+      "yieldBasis": "apy",
+      "tvlUsd": 603977.342568,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "medium",
+        "apyStdev": 0.192819,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x6b13c060f13af1fdb319f52315bbbf3fb1d88844",
+            "assetAddress": "0x4200000000000000000000000000000000000006"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x6b13c060f13af1fdb319f52315bbbf3fb1d88844",
+            "assetAddress": "0x4200000000000000000000000000000000000006"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x6b13c060f13af1fdb319f52315bbbf3fb1d88844",
+            "assetAddress": "0x4200000000000000000000000000000000000006"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x4200000000000000000000000000000000000006"
+      ],
+      "apr": 1.591416,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Gauntlet WETH Core; curator fee 10%"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0xa0e430870c4604ccfc7b38ca7845b1ff653d0ff1",
+      "assetPair": "WETH",
+      "chain": "base",
+      "apy": 1.319011,
+      "yieldBasis": "apy",
+      "tvlUsd": 4237439.682876,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "medium",
+        "apyStdev": 0.140219,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xa0e430870c4604ccfc7b38ca7845b1ff653d0ff1",
+            "assetAddress": "0x4200000000000000000000000000000000000006"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xa0e430870c4604ccfc7b38ca7845b1ff653d0ff1",
+            "assetAddress": "0x4200000000000000000000000000000000000006"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xa0e430870c4604ccfc7b38ca7845b1ff653d0ff1",
+            "assetAddress": "0x4200000000000000000000000000000000000006"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x4200000000000000000000000000000000000006"
+      ],
+      "apr": 1.403928,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Moonwell Flagship ETH; curator fee 15%"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0x543257ef2161176d7c8cd90ba65c2d4caef5a796",
+      "assetPair": "cbBTC",
+      "chain": "base",
+      "apy": 0.072491,
+      "yieldBasis": "apy",
+      "tvlUsd": 1454391.066934,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "medium",
+        "apyStdev": 0.007714,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x543257ef2161176d7c8cd90ba65c2d4caef5a796",
+            "assetAddress": "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x543257ef2161176d7c8cd90ba65c2d4caef5a796",
+            "assetAddress": "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x543257ef2161176d7c8cd90ba65c2d4caef5a796",
+            "assetAddress": "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf"
+      ],
+      "apr": 0.016612,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Moonwell Frontier cbBTC; curator fee 15%"
+    },
+    {
+      "protocol": "aave",
+      "opportunityType": "lending",
+      "opportunityId": "aave-lending-0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf",
+      "assetPair": "cbBTC",
+      "chain": "base",
+      "apy": 0.009946,
+      "yieldBasis": "apy",
+      "tvlUsd": 243956982.074725,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "utilization": 3.04873,
+        "liquidationThreshold": 78,
+        "ltv": 73,
+        "borrowApr": 0.65457,
+        "sourceAgeSeconds": 25,
+        "stability": "medium",
+        "apyStdev": 0.000708,
+        "historySampleCount": 91
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:aave:v3:supply:erc20",
+          "protocol": "aave",
+          "protocolVersion": "v3",
+          "action": "supply",
+          "variant": "erc20",
+          "title": "Aave V3 supply",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus Pool.supply on Aave V3 Base. onBehalfOf is the quoting wallet. No Permit.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf",
+            "assetAddress": "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:aave:v3:withdraw:erc20",
+          "protocol": "aave",
+          "protocolVersion": "v3",
+          "action": "withdraw",
+          "variant": "erc20",
+          "title": "Aave V3 withdraw",
+          "summary": "Unsigned Pool.withdraw on Aave V3 Base. The receiver is the quoting wallet. No native unwrap.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAddress",
+            "amount"
+          ],
+          "requiredAssetIds": []
+        }
+      ],
+      "assetAddresses": [
+        "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf"
+      ],
+      "borrowApr": 0.65457,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. cbBTC on Aave V3 Base"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0xbeef050a7485865a7a8d8ca0cc5f7536b7a3443e",
+      "assetPair": "WETH",
+      "chain": "base",
+      "apy": 0,
+      "yieldBasis": "apy",
+      "tvlUsd": 53608.736243,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xbeef050a7485865a7a8d8ca0cc5f7536b7a3443e",
+            "assetAddress": "0x4200000000000000000000000000000000000006"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xbeef050a7485865a7a8d8ca0cc5f7536b7a3443e",
+            "assetAddress": "0x4200000000000000000000000000000000000006"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0xbeef050a7485865a7a8d8ca0cc5f7536b7a3443e",
+            "assetAddress": "0x4200000000000000000000000000000000000006"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x4200000000000000000000000000000000000006"
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Steakhouse ETH; curator fee 5%"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0x1d3b1cd0a0f242d598834b3f2d126dc6bd774657",
+      "assetPair": "USDC",
+      "chain": "base",
+      "apy": 3.915011,
+      "yieldBasis": "apy",
+      "tvlUsd": 869884.426401,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "low",
+        "apyStdev": 1.061221,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x1d3b1cd0a0f242d598834b3f2d126dc6bd774657",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x1d3b1cd0a0f242d598834b3f2d126dc6bd774657",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x1d3b1cd0a0f242d598834b3f2d126dc6bd774657",
+            "assetAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+      ],
+      "apr": 5.253783,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Clearstar USDC Reactor; curator fee 25%"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0x6e6fcac197ee06d0164c0fba218c7bcb878f9b5c",
+      "assetPair": "VCHF",
+      "chain": "base",
+      "apy": 0.804224,
+      "yieldBasis": "apy",
+      "tvlUsd": 244923.136759,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "low",
+        "apyStdev": 0.207241,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x6e6fcac197ee06d0164c0fba218c7bcb878f9b5c",
+            "assetAddress": "0x1fca74d9ef54a6ac80ffe7d3b14e76c4330fd5d8"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x6e6fcac197ee06d0164c0fba218c7bcb878f9b5c",
+            "assetAddress": "0x1fca74d9ef54a6ac80ffe7d3b14e76c4330fd5d8"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x6e6fcac197ee06d0164c0fba218c7bcb878f9b5c",
+            "assetAddress": "0x1fca74d9ef54a6ac80ffe7d3b14e76c4330fd5d8"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x1fca74d9ef54a6ac80ffe7d3b14e76c4330fd5d8"
+      ],
+      "apr": 0.893981,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Apostro VNX Swiss Franc VCHF; curator fee 10%"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0x6770216ac60f634483ec073cbabc4011c94307cb",
+      "assetPair": "cbBTC",
+      "chain": "base",
+      "apy": 0.140648,
+      "yieldBasis": "apy",
+      "tvlUsd": 314898.596749,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "low",
+        "apyStdev": 0.103139,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x6770216ac60f634483ec073cbabc4011c94307cb",
+            "assetAddress": "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x6770216ac60f634483ec073cbabc4011c94307cb",
+            "assetAddress": "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x6770216ac60f634483ec073cbabc4011c94307cb",
+            "assetAddress": "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf"
+      ],
+      "apr": 0.156288,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Gauntlet cbBTC Core; curator fee 10%"
+    },
+    {
+      "protocol": "morpho",
+      "opportunityType": "lending",
+      "opportunityId": "morpho-vault-0x43cd00de63485618a5ceebe0de364cd6cbeb26e7",
+      "assetPair": "msETH",
+      "chain": "base",
+      "apy": 0.009624,
+      "yieldBasis": "apy",
+      "tvlUsd": 8430328.033323,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 25,
+        "stability": "low",
+        "apyStdev": 0.006922,
+        "historySampleCount": 233
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:morpho:vault:deposit:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "deposit",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 deposit",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus MetaMorpho vault deposit(assets, receiver) on Base. No Permit2, Bundler3, or wallet signatures.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x43cd00de63485618a5ceebe0de364cd6cbeb26e7",
+            "assetAddress": "0x7ba6f01772924a82d9626c126347a28299e98c98"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:morpho:vault:withdraw:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "withdraw",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 withdraw",
+          "summary": "Unsigned MetaMorpho vault withdraw(assets, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw, Permit2, or Blue borrow.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x43cd00de63485618a5ceebe0de364cd6cbeb26e7",
+            "assetAddress": "0x7ba6f01772924a82d9626c126347a28299e98c98"
+          }
+        },
+        {
+          "shapeKey": "base:morpho:vault:redeem:erc4626",
+          "protocol": "morpho",
+          "protocolVersion": "vault",
+          "action": "redeem",
+          "variant": "erc4626",
+          "title": "Morpho Vault ERC-4626 redeem",
+          "summary": "Unsigned MetaMorpho vault redeem(shares, receiver, owner) on Base. Owner must be the quoting wallet. No force-withdraw.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "vaultAddress",
+            "shares"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x43cd00de63485618a5ceebe0de364cd6cbeb26e7",
+            "assetAddress": "0x7ba6f01772924a82d9626c126347a28299e98c98"
+          }
+        }
+      ],
+      "assetAddresses": [
+        "0x7ba6f01772924a82d9626c126347a28299e98c98"
+      ],
+      "apr": 0.01013,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Metronome msETH Vault; curator fee 5%"
+    },
+    {
+      "protocol": "aave",
+      "opportunityType": "lending",
+      "opportunityId": "aave-lending-0x6bb7a212910682dcfdbd5bcbb3e28fb4e8da10ee",
+      "assetPair": "GHO",
+      "chain": "base",
+      "apy": 4.606839,
+      "yieldBasis": "apy",
+      "tvlUsd": 1427375.364973,
+      "sourceTimestamp": "2026-10-01T09:35:51.298Z",
+      "fetchedAt": "2026-10-01T09:35:51.298Z",
+      "risk": {
+        "confidence": "high",
+        "utilization": 90.209542,
+        "liquidationThreshold": 0,
+        "ltv": 0,
+        "borrowApr": 5.704183,
+        "sourceAgeSeconds": 25,
+        "stability": "low",
+        "apyStdev": 1.301927,
+        "historySampleCount": 91
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "base:aave:v3:supply:erc20",
+          "protocol": "aave",
+          "protocolVersion": "v3",
+          "action": "supply",
+          "variant": "erc20",
+          "title": "Aave V3 supply",
+          "summary": "Unsigned ERC-20 approve (when allowance is insufficient) plus Pool.supply on Aave V3 Base. onBehalfOf is the quoting wallet. No Permit.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [],
+          "inputHints": {
+            "poolId": "0x6bb7a212910682dcfdbd5bcbb3e28fb4e8da10ee",
+            "assetAddress": "0x6bb7a212910682dcfdbd5bcbb3e28fb4e8da10ee"
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "base:aave:v3:withdraw:erc20",
+          "protocol": "aave",
+          "protocolVersion": "v3",
+          "action": "withdraw",
+          "variant": "erc20",
+          "title": "Aave V3 withdraw",
+          "summary": "Unsigned Pool.withdraw on Aave V3 Base. The receiver is the quoting wallet. No native unwrap.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAddress",
+            "amount"
+          ],
+          "requiredAssetIds": []
+        }
+      ],
+      "assetAddresses": [
+        "0x6bb7a212910682dcfdbd5bcbb3e28fb4e8da10ee"
+      ],
+      "borrowApr": 5.704183,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. GHO on Aave V3 Base"
+    }
+  ],
+  "meta": {
+    "limit": 100,
+    "offset": 0,
+    "includeInactive": false,
+    "paymentRequired": true,
+    "cacheEnabled": true,
+    "cacheHit": true,
+    "cachedAt": "2026-10-01T09:35:51.691Z",
+    "cacheAgeMs": 24959,
+    "cacheTtlSec": 45
+  }
+}

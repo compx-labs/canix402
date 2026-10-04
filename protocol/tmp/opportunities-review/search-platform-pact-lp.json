@@ -1,0 +1,5601 @@
+{
+  "data": [
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3721816243:lp",
+      "assetPair": "ALGO/USDC",
+      "chain": "algorand",
+      "apy": 0.1286,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.001058,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "medium",
+        "apyStdev": 0.018505,
+        "historySampleCount": 106
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolId": "3721816243"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        31566704
+      ],
+      "apr": 0.1286,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3724095116:lp",
+      "assetPair": "ALGO/TALGO",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 315.086214,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 71
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            2537013734
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 2537013734,
+            "poolId": "3724095116"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        2537013734
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3684272714:lp",
+      "assetPair": "POW/D3",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 4.766216,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2994233666,
+            3425260793
+          ],
+          "inputHints": {
+            "assetAId": 2994233666,
+            "assetBId": 3425260793,
+            "poolId": "3684272714"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2994233666,
+        3425260793
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3684430660:lp",
+      "assetPair": "DARKCOIN/POW",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 4.336404,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            1088771340,
+            2994233666
+          ],
+          "inputHints": {
+            "assetAId": 1088771340,
+            "assetBId": 2994233666,
+            "poolId": "3684430660"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        1088771340,
+        2994233666
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3689826524:lp",
+      "assetPair": "ALGO/Choice",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 4.110922,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            297995609
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 297995609,
+            "poolId": "3689826524"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        297995609
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3684288353:lp",
+      "assetPair": "POW/FOLKS",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 2.063434,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2994233666,
+            3203964481
+          ],
+          "inputHints": {
+            "assetAId": 2994233666,
+            "assetBId": 3203964481,
+            "poolId": "3684288353"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2994233666,
+        3203964481
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3697630561:lp",
+      "assetPair": "ALGO/HOG",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 1.71885,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 568
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            3178895177
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 3178895177,
+            "poolId": "3697630561"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        3178895177
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3727180409:lp",
+      "assetPair": "NIKO/GONNA",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.521196,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 19
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            1265975021,
+            2582294183
+          ],
+          "inputHints": {
+            "assetAId": 1265975021,
+            "assetBId": 2582294183,
+            "poolId": "3727180409"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        1265975021,
+        2582294183
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3684282908:lp",
+      "assetPair": "TINY/POW",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.38466,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2200000000,
+            2994233666
+          ],
+          "inputHints": {
+            "assetAId": 2200000000,
+            "assetBId": 2994233666,
+            "poolId": "3684282908"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2200000000,
+        2994233666
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3689827061:lp",
+      "assetPair": "ALGO/ALGX",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.290042,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            724480511
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 724480511,
+            "poolId": "3689827061"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        724480511
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3689826200:lp",
+      "assetPair": "ALGO/DBD",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.260897,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            1131427236
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 1131427236,
+            "poolId": "3689826200"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        1131427236
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3682448828:lp",
+      "assetPair": "HOOP/POW",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.239945,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2687499040,
+            2994233666
+          ],
+          "inputHints": {
+            "assetAId": 2687499040,
+            "assetBId": 2994233666,
+            "poolId": "3682448828"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2687499040,
+        2994233666
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3685660336:lp",
+      "assetPair": "USDC/LTBX",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.024331,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            408898501
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 408898501,
+            "poolId": "3685660336"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        408898501
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3689826726:lp",
+      "assetPair": "ALGO/ALCH",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.018744,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            310014962
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 310014962,
+            "poolId": "3689826726"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        310014962
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3685530588:lp",
+      "assetPair": "ALGO/LTBX",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.008767,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            408898501
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 408898501,
+            "poolId": "3685530588"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        408898501
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3685243096:lp",
+      "assetPair": "COMPX/cAlgo",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.002801,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            1732165149,
+            2400334372
+          ],
+          "inputHints": {
+            "assetAId": 1732165149,
+            "assetBId": 2400334372,
+            "poolId": "3685243096"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        1732165149,
+        2400334372
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3682447412:lp",
+      "assetPair": "ALGO/MONEY",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.000002,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            3472453018
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 3472453018,
+            "poolId": "3682447412"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        3472453018
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3681849962:lp",
+      "assetPair": "Vote/POW",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            452399768,
+            2994233666
+          ],
+          "inputHints": {
+            "assetAId": 452399768,
+            "assetBId": 2994233666,
+            "poolId": "3681849962"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        452399768,
+        2994233666
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3682438721:lp",
+      "assetPair": "ALGO/MONEY",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            3472453018
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 3472453018,
+            "poolId": "3682438721"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        3472453018
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3684271791:lp",
+      "assetPair": "POW/D3",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2994233666,
+            3425260793
+          ],
+          "inputHints": {
+            "assetAId": 2994233666,
+            "assetBId": 3425260793,
+            "poolId": "3684271791"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2994233666,
+        3425260793
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3684283552:lp",
+      "assetPair": "POW/FOLKS",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2994233666,
+            3203964481
+          ],
+          "inputHints": {
+            "assetAId": 2994233666,
+            "assetBId": 3203964481,
+            "poolId": "3684283552"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2994233666,
+        3203964481
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3684287091:lp",
+      "assetPair": "POW/FOLKS",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2994233666,
+            3203964481
+          ],
+          "inputHints": {
+            "assetAId": 2994233666,
+            "assetBId": 3203964481,
+            "poolId": "3684287091"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2994233666,
+        3203964481
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3686953827:lp",
+      "assetPair": "USDC/MINE",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3045159053
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3045159053,
+            "poolId": "3686953827"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        3045159053
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3727178529:lp",
+      "assetPair": "NIKO/GONNA",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 19
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            1265975021,
+            2582294183
+          ],
+          "inputHints": {
+            "assetAId": 1265975021,
+            "assetBId": 2582294183,
+            "poolId": "3727178529"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        1265975021,
+        2582294183
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3727352692:lp",
+      "assetPair": "DBD/POW",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 14
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            1131427236,
+            2994233666
+          ],
+          "inputHints": {
+            "assetAId": 1131427236,
+            "assetBId": 2994233666,
+            "poolId": "3727352692"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        1131427236,
+        2994233666
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3670849361:lp",
+      "assetPair": "USDC/FOLKS",
+      "chain": "algorand",
+      "apy": 21.5417,
+      "yieldBasis": "apr",
+      "tvlUsd": 3057.476258,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 8.816332,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3203964481
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3203964481,
+            "poolId": "3670849361"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        3203964481
+      ],
+      "apr": 21.5417,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3693574268:lp",
+      "assetPair": "U/FOLKS",
+      "chain": "algorand",
+      "apy": 12.7714,
+      "yieldBasis": "apr",
+      "tvlUsd": 9676.128899,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 5.557512,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            3081853135,
+            3203964481
+          ],
+          "inputHints": {
+            "assetAId": 3081853135,
+            "assetBId": 3203964481,
+            "poolId": "3693574268"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        3081853135,
+        3203964481
+      ],
+      "apr": 12.7714,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3689461778:lp",
+      "assetPair": "COOP/FOLKS",
+      "chain": "algorand",
+      "apy": 12.6387,
+      "yieldBasis": "apr",
+      "tvlUsd": 182.643074,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 5.770286,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            796425061,
+            3203964481
+          ],
+          "inputHints": {
+            "assetAId": 796425061,
+            "assetBId": 3203964481,
+            "poolId": "3689461778"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        796425061,
+        3203964481
+      ],
+      "apr": 12.6387,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3670850526:lp",
+      "assetPair": "ALGO/FOLKS",
+      "chain": "algorand",
+      "apy": 11.5478,
+      "yieldBasis": "apr",
+      "tvlUsd": 562.793913,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 4.918622,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            3203964481
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 3203964481,
+            "poolId": "3670850526"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        3203964481
+      ],
+      "apr": 11.5478,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3662410374:lp",
+      "assetPair": "ALGO/USDC",
+      "chain": "algorand",
+      "apy": 10.2652,
+      "yieldBasis": "apr",
+      "tvlUsd": 111153.742486,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 2.338472,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolId": "3662410374"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        31566704
+      ],
+      "apr": 10.2652,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3669494177:lp",
+      "assetPair": "ALGO/HAY",
+      "chain": "algorand",
+      "apy": 8.3578,
+      "yieldBasis": "apr",
+      "tvlUsd": 1661.397702,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 2.153814,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            3160000000
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 3160000000,
+            "poolId": "3669494177"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        3160000000
+      ],
+      "apr": 8.3578,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3670832002:lp",
+      "assetPair": "ALGO/POW",
+      "chain": "algorand",
+      "apy": 6.7167,
+      "yieldBasis": "apr",
+      "tvlUsd": 10151.512168,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 1.258918,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            2994233666
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 2994233666,
+            "poolId": "3670832002"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        2994233666
+      ],
+      "apr": 6.7167,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3692640639:lp",
+      "assetPair": "U/HAY",
+      "chain": "algorand",
+      "apy": 6.2391,
+      "yieldBasis": "apr",
+      "tvlUsd": 963.966406,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 2.569732,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            3081853135,
+            3160000000
+          ],
+          "inputHints": {
+            "assetAId": 3081853135,
+            "assetBId": 3160000000,
+            "poolId": "3692640639"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        3081853135,
+        3160000000
+      ],
+      "apr": 6.2391,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3670830054:lp",
+      "assetPair": "USDC/POW",
+      "chain": "algorand",
+      "apy": 6.084,
+      "yieldBasis": "apr",
+      "tvlUsd": 715.562823,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 1.356893,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            2994233666
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 2994233666,
+            "poolId": "3670830054"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        2994233666
+      ],
+      "apr": 6.084,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3689981855:lp",
+      "assetPair": "ALGO/ALPHA",
+      "chain": "algorand",
+      "apy": 6.0504,
+      "yieldBasis": "apr",
+      "tvlUsd": 2669.507597,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 2.015196,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            2726252423
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 2726252423,
+            "poolId": "3689981855"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        2726252423
+      ],
+      "apr": 6.0504,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3681870845:lp",
+      "assetPair": "NIKO/POW",
+      "chain": "algorand",
+      "apy": 5.2776,
+      "yieldBasis": "apr",
+      "tvlUsd": 407.714883,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.826307,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            1265975021,
+            2994233666
+          ],
+          "inputHints": {
+            "assetAId": 1265975021,
+            "assetBId": 2994233666,
+            "poolId": "3681870845"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        1265975021,
+        2994233666
+      ],
+      "apr": 5.2776,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3670825514:lp",
+      "assetPair": "USDC/SILVER$",
+      "chain": "algorand",
+      "apy": 5.0222,
+      "yieldBasis": "apr",
+      "tvlUsd": 3482.417944,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 1.385328,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            246519683
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 246519683,
+            "poolId": "3670825514"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        246519683
+      ],
+      "apr": 5.0222,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3670140966:lp",
+      "assetPair": "USDC/Finite",
+      "chain": "algorand",
+      "apy": 4.2715,
+      "yieldBasis": "apr",
+      "tvlUsd": 462.788123,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 1.314504,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            400593267
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 400593267,
+            "poolId": "3670140966"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        400593267
+      ],
+      "apr": 4.2715,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3670817822:lp",
+      "assetPair": "USDC/GOLD$",
+      "chain": "algorand",
+      "apy": 4.1045,
+      "yieldBasis": "apr",
+      "tvlUsd": 1873.976059,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 1.177189,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            246516580
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 246516580,
+            "poolId": "3670817822"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        246516580
+      ],
+      "apr": 4.1045,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3670031730:lp",
+      "assetPair": "USDC/HAY",
+      "chain": "algorand",
+      "apy": 3.1998,
+      "yieldBasis": "apr",
+      "tvlUsd": 42447.550872,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 1.077782,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3160000000
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3160000000,
+            "poolId": "3670031730"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        3160000000
+      ],
+      "apr": 3.1998,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3681861752:lp",
+      "assetPair": "COSG/POW",
+      "chain": "algorand",
+      "apy": 2.821,
+      "yieldBasis": "apr",
+      "tvlUsd": 1533.246331,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.531518,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            1065092715,
+            2994233666
+          ],
+          "inputHints": {
+            "assetAId": 1065092715,
+            "assetBId": 2994233666,
+            "poolId": "3681861752"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        1065092715,
+        2994233666
+      ],
+      "apr": 2.821,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3693600164:lp",
+      "assetPair": "ALPHA/U",
+      "chain": "algorand",
+      "apy": 2.7786,
+      "yieldBasis": "apr",
+      "tvlUsd": 6023.24089,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 2.615803,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2726252423,
+            3081853135
+          ],
+          "inputHints": {
+            "assetAId": 2726252423,
+            "assetBId": 3081853135,
+            "poolId": "3693600164"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2726252423,
+        3081853135
+      ],
+      "apr": 2.7786,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3671345374:lp",
+      "assetPair": "ASASTATS/POW",
+      "chain": "algorand",
+      "apy": 2.7743,
+      "yieldBasis": "apr",
+      "tvlUsd": 737.304369,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.891966,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            393537671,
+            2994233666
+          ],
+          "inputHints": {
+            "assetAId": 393537671,
+            "assetBId": 2994233666,
+            "poolId": "3671345374"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        393537671,
+        2994233666
+      ],
+      "apr": 2.7743,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3681863748:lp",
+      "assetPair": "Vote/POW",
+      "chain": "algorand",
+      "apy": 2.7395,
+      "yieldBasis": "apr",
+      "tvlUsd": 1189.18262,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.830792,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            452399768,
+            2994233666
+          ],
+          "inputHints": {
+            "assetAId": 452399768,
+            "assetBId": 2994233666,
+            "poolId": "3681863748"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        452399768,
+        2994233666
+      ],
+      "apr": 2.7395,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3661371688:lp",
+      "assetPair": "ALGO/POW",
+      "chain": "algorand",
+      "apy": 2.6528,
+      "yieldBasis": "apr",
+      "tvlUsd": 255.082811,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.381718,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            2994233666
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 2994233666,
+            "poolId": "3661371688"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        2994233666
+      ],
+      "apr": 2.6528,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3685157200:lp",
+      "assetPair": "ALGO/COOP",
+      "chain": "algorand",
+      "apy": 2.6353,
+      "yieldBasis": "apr",
+      "tvlUsd": 2657.229622,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.746685,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            796425061
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 796425061,
+            "poolId": "3685157200"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        796425061
+      ],
+      "apr": 2.6353,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3681865135:lp",
+      "assetPair": "VEST/POW",
+      "chain": "algorand",
+      "apy": 2.5637,
+      "yieldBasis": "apr",
+      "tvlUsd": 447.452535,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.536635,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            700965019,
+            2994233666
+          ],
+          "inputHints": {
+            "assetAId": 700965019,
+            "assetBId": 2994233666,
+            "poolId": "3681865135"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        700965019,
+        2994233666
+      ],
+      "apr": 2.5637,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3670143394:lp",
+      "assetPair": "ALGO/goBTC",
+      "chain": "algorand",
+      "apy": 2.2329,
+      "yieldBasis": "apr",
+      "tvlUsd": 26750.640858,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.868281,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            386192725
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 386192725,
+            "poolId": "3670143394"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        386192725
+      ],
+      "apr": 2.2329,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3685661533:lp",
+      "assetPair": "USDC/LTBX",
+      "chain": "algorand",
+      "apy": 2.2191,
+      "yieldBasis": "apr",
+      "tvlUsd": 10.340786,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.9662,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            408898501
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 408898501,
+            "poolId": "3685661533"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        408898501
+      ],
+      "apr": 2.2191,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3689975004:lp",
+      "assetPair": "USDC/Vote",
+      "chain": "algorand",
+      "apy": 2.1492,
+      "yieldBasis": "apr",
+      "tvlUsd": 268.3574,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.540101,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            452399768
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 452399768,
+            "poolId": "3689975004"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        452399768
+      ],
+      "apr": 2.1492,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3687221360:lp",
+      "assetPair": "USDC/MINE",
+      "chain": "algorand",
+      "apy": 2.1295,
+      "yieldBasis": "apr",
+      "tvlUsd": 6283.652195,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.4615,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3045159053
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3045159053,
+            "poolId": "3687221360"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        3045159053
+      ],
+      "apr": 2.1295,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3689550006:lp",
+      "assetPair": "COOP/WBTC",
+      "chain": "algorand",
+      "apy": 1.8673,
+      "yieldBasis": "apr",
+      "tvlUsd": 3877.331106,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 1.215832,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            796425061,
+            3495558025
+          ],
+          "inputHints": {
+            "assetAId": 796425061,
+            "assetBId": 3495558025,
+            "poolId": "3689550006"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        796425061,
+        3495558025
+      ],
+      "apr": 1.8673,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3670138935:lp",
+      "assetPair": "ALGO/Finite",
+      "chain": "algorand",
+      "apy": 1.7809,
+      "yieldBasis": "apr",
+      "tvlUsd": 787.07277,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.598966,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            400593267
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 400593267,
+            "poolId": "3670138935"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        400593267
+      ],
+      "apr": 1.7809,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3689463330:lp",
+      "assetPair": "COOP/coopALGO",
+      "chain": "algorand",
+      "apy": 1.5772,
+      "yieldBasis": "apr",
+      "tvlUsd": 15634.415786,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.391594,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            796425061,
+            2933499000
+          ],
+          "inputHints": {
+            "assetAId": 796425061,
+            "assetBId": 2933499000,
+            "poolId": "3689463330"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        796425061,
+        2933499000
+      ],
+      "apr": 1.5772,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3689981273:lp",
+      "assetPair": "ALGO/goETH",
+      "chain": "algorand",
+      "apy": 1.5539,
+      "yieldBasis": "apr",
+      "tvlUsd": 3759.271921,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.537887,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            386195940
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 386195940,
+            "poolId": "3689981273"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        386195940
+      ],
+      "apr": 1.5539,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3684814876:lp",
+      "assetPair": "$monko/POW",
+      "chain": "algorand",
+      "apy": 1.1747,
+      "yieldBasis": "apr",
+      "tvlUsd": 13.305727,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.758118,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2494786278,
+            2994233666
+          ],
+          "inputHints": {
+            "assetAId": 2494786278,
+            "assetBId": 2994233666,
+            "poolId": "3684814876"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2494786278,
+        2994233666
+      ],
+      "apr": 1.1747,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3684799376:lp",
+      "assetPair": "POW/HOG",
+      "chain": "algorand",
+      "apy": 1.1593,
+      "yieldBasis": "apr",
+      "tvlUsd": 368.884722,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.368939,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2994233666,
+            3178895177
+          ],
+          "inputHints": {
+            "assetAId": 2994233666,
+            "assetBId": 3178895177,
+            "poolId": "3684799376"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2994233666,
+        3178895177
+      ],
+      "apr": 1.1593,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3689984373:lp",
+      "assetPair": "ALGO/DDAO",
+      "chain": "algorand",
+      "apy": 1.1577,
+      "yieldBasis": "apr",
+      "tvlUsd": 143.158085,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.283226,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            3214347764
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 3214347764,
+            "poolId": "3689984373"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        3214347764
+      ],
+      "apr": 1.1577,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3705352850:lp",
+      "assetPair": "goETH/WETH",
+      "chain": "algorand",
+      "apy": 1.1173,
+      "yieldBasis": "apr",
+      "tvlUsd": 274.122397,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.239114,
+        "historySampleCount": 419
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            386195940,
+            3495722210
+          ],
+          "inputHints": {
+            "assetAId": 386195940,
+            "assetBId": 3495722210,
+            "poolId": "3705352850"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        386195940,
+        3495722210
+      ],
+      "apr": 1.1173,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3684789224:lp",
+      "assetPair": "ALGO/HOG",
+      "chain": "algorand",
+      "apy": 1.0955,
+      "yieldBasis": "apr",
+      "tvlUsd": 43.000241,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.406159,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            3178895177
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 3178895177,
+            "poolId": "3684789224"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        3178895177
+      ],
+      "apr": 1.0955,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3681859773:lp",
+      "assetPair": "aVoi/POW",
+      "chain": "algorand",
+      "apy": 0.9963,
+      "yieldBasis": "apr",
+      "tvlUsd": 453.911971,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.661317,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2320775407,
+            2994233666
+          ],
+          "inputHints": {
+            "assetAId": 2320775407,
+            "assetBId": 2994233666,
+            "poolId": "3681859773"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2320775407,
+        2994233666
+      ],
+      "apr": 0.9963,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3681852402:lp",
+      "assetPair": "Finite/POW",
+      "chain": "algorand",
+      "apy": 0.9339,
+      "yieldBasis": "apr",
+      "tvlUsd": 285.698036,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.380811,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            400593267,
+            2994233666
+          ],
+          "inputHints": {
+            "assetAId": 400593267,
+            "assetBId": 2994233666,
+            "poolId": "3681852402"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        400593267,
+        2994233666
+      ],
+      "apr": 0.9339,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3692558822:lp",
+      "assetPair": "COMPX/U",
+      "chain": "algorand",
+      "apy": 0.8546,
+      "yieldBasis": "apr",
+      "tvlUsd": 4118.516597,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.648943,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            1732165149,
+            3081853135
+          ],
+          "inputHints": {
+            "assetAId": 1732165149,
+            "assetBId": 3081853135,
+            "poolId": "3692558822"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        1732165149,
+        3081853135
+      ],
+      "apr": 0.8546,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3704421803:lp",
+      "assetPair": "ALGO/coopALGO",
+      "chain": "algorand",
+      "apy": 0.6499,
+      "yieldBasis": "apr",
+      "tvlUsd": 10411.159446,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.790943,
+        "historySampleCount": 440
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            2933499000
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 2933499000,
+            "poolId": "3704421803"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        2933499000
+      ],
+      "apr": 0.6499,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3689979412:lp",
+      "assetPair": "ALGO/ALG*",
+      "chain": "algorand",
+      "apy": 0.6365,
+      "yieldBasis": "apr",
+      "tvlUsd": 134.420088,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.091622,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            3463680894
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 3463680894,
+            "poolId": "3689979412"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        3463680894
+      ],
+      "apr": 0.6365,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3685657934:lp",
+      "assetPair": "ALGO/LTBX",
+      "chain": "algorand",
+      "apy": 0.4841,
+      "yieldBasis": "apr",
+      "tvlUsd": 275.091087,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.434824,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            408898501
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 408898501,
+            "poolId": "3685657934"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        408898501
+      ],
+      "apr": 0.4841,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3726322908:lp",
+      "assetPair": "POW/WAD",
+      "chain": "algorand",
+      "apy": 0.4611,
+      "yieldBasis": "apr",
+      "tvlUsd": 1261.680597,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.11117,
+        "historySampleCount": 41
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2994233666,
+            3334160924
+          ],
+          "inputHints": {
+            "assetAId": 2994233666,
+            "assetBId": 3334160924,
+            "poolId": "3726322908"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2994233666,
+        3334160924
+      ],
+      "apr": 0.4611,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3727172370:lp",
+      "assetPair": "USDC/GONNA",
+      "chain": "algorand",
+      "apy": 0.425,
+      "yieldBasis": "apr",
+      "tvlUsd": 25.210775,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.137126,
+        "historySampleCount": 19
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            2582294183
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 2582294183,
+            "poolId": "3727172370"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        2582294183
+      ],
+      "apr": 0.425,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3727176686:lp",
+      "assetPair": "MARCUS/GONNA",
+      "chain": "algorand",
+      "apy": 0.3707,
+      "yieldBasis": "apr",
+      "tvlUsd": 158.072278,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.111259,
+        "historySampleCount": 19
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2466866698,
+            2582294183
+          ],
+          "inputHints": {
+            "assetAId": 2466866698,
+            "assetBId": 2582294183,
+            "poolId": "3727176686"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2466866698,
+        2582294183
+      ],
+      "apr": 0.3707,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3687635557:lp",
+      "assetPair": "goBTC/WBTC",
+      "chain": "algorand",
+      "apy": 0.3587,
+      "yieldBasis": "apr",
+      "tvlUsd": 4538.946328,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.397103,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            386192725,
+            1058926737
+          ],
+          "inputHints": {
+            "assetAId": 386192725,
+            "assetBId": 1058926737,
+            "poolId": "3687635557"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        386192725,
+        1058926737
+      ],
+      "apr": 0.3587,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3689998193:lp",
+      "assetPair": "ALGO/PHEZZIES",
+      "chain": "algorand",
+      "apy": 0.3496,
+      "yieldBasis": "apr",
+      "tvlUsd": 143.305395,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.156731,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            2155822658
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 2155822658,
+            "poolId": "3689998193"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        2155822658
+      ],
+      "apr": 0.3496,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3727144223:lp",
+      "assetPair": "ALGO/GONNA",
+      "chain": "algorand",
+      "apy": 0.3426,
+      "yieldBasis": "apr",
+      "tvlUsd": 206.208385,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.140415,
+        "historySampleCount": 20
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            2582294183
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 2582294183,
+            "poolId": "3727144223"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        2582294183
+      ],
+      "apr": 0.3426,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3689973907:lp",
+      "assetPair": "ALGO/Vote",
+      "chain": "algorand",
+      "apy": 0.3422,
+      "yieldBasis": "apr",
+      "tvlUsd": 689.333621,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.08216,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            452399768
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 452399768,
+            "poolId": "3689973907"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        452399768
+      ],
+      "apr": 0.3422,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3687212711:lp",
+      "assetPair": "ALGO/MINE",
+      "chain": "algorand",
+      "apy": 0.3071,
+      "yieldBasis": "apr",
+      "tvlUsd": 128768.545441,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.063297,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            3045159053
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 3045159053,
+            "poolId": "3687212711"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        3045159053
+      ],
+      "apr": 0.3071,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3689977479:lp",
+      "assetPair": "ALGO/MemO",
+      "chain": "algorand",
+      "apy": 0.2898,
+      "yieldBasis": "apr",
+      "tvlUsd": 78.226714,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.164719,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            885835936
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 885835936,
+            "poolId": "3689977479"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        885835936
+      ],
+      "apr": 0.2898,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3684454253:lp",
+      "assetPair": "GOLD$/mALGO",
+      "chain": "algorand",
+      "apy": 0.2617,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.021852,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.60201,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            246516580,
+            1185173782
+          ],
+          "inputHints": {
+            "assetAId": 246516580,
+            "assetBId": 1185173782,
+            "poolId": "3684454253"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        246516580,
+        1185173782
+      ],
+      "apr": 0.2617,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3684516902:lp",
+      "assetPair": "Max/COMPX",
+      "chain": "algorand",
+      "apy": 0.2082,
+      "yieldBasis": "apr",
+      "tvlUsd": 28.12858,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 1.737383,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            1390638935,
+            1732165149
+          ],
+          "inputHints": {
+            "assetAId": 1390638935,
+            "assetBId": 1732165149,
+            "poolId": "3684516902"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        1390638935,
+        1732165149
+      ],
+      "apr": 0.2082,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3684485528:lp",
+      "assetPair": "ALGO/ASASTATS",
+      "chain": "algorand",
+      "apy": 0.1813,
+      "yieldBasis": "apr",
+      "tvlUsd": 7172.420207,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.120071,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            393537671
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 393537671,
+            "poolId": "3684485528"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        393537671
+      ],
+      "apr": 0.1813,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3704396192:lp",
+      "assetPair": "TALGO/coopALGO",
+      "chain": "algorand",
+      "apy": 0.0853,
+      "yieldBasis": "apr",
+      "tvlUsd": 911.132545,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.167644,
+        "historySampleCount": 441
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2537013734,
+            2933499000
+          ],
+          "inputHints": {
+            "assetAId": 2537013734,
+            "assetBId": 2933499000,
+            "poolId": "3704396192"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2537013734,
+        2933499000
+      ],
+      "apr": 0.0853,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3671661945:lp",
+      "assetPair": "USDC/HOG",
+      "chain": "algorand",
+      "apy": 0.0297,
+      "yieldBasis": "apr",
+      "tvlUsd": 9.995282,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.035534,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3178895177
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3178895177,
+            "poolId": "3671661945"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        3178895177
+      ],
+      "apr": 0.0297,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3684513967:lp",
+      "assetPair": "COMPX/POW",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 5.017041,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.184016,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            1732165149,
+            2994233666
+          ],
+          "inputHints": {
+            "assetAId": 1732165149,
+            "assetBId": 2994233666,
+            "poolId": "3684513967"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        1732165149,
+        2994233666
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3690370515:lp",
+      "assetPair": "ALGO/PNET",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 4.182825,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 1.396867,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            3169177585
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 3169177585,
+            "poolId": "3690370515"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        3169177585
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3670863607:lp",
+      "assetPair": "USDC/goBTC",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.062094,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.029666,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            386192725
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 386192725,
+            "poolId": "3670863607"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        386192725
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3689550406:lp",
+      "assetPair": "coopALGO/WBTC",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.021946,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.357947,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2933499000,
+            3495558025
+          ],
+          "inputHints": {
+            "assetAId": 2933499000,
+            "assetBId": 3495558025,
+            "poolId": "3689550406"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2933499000,
+        3495558025
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3689539825:lp",
+      "assetPair": "ALGO/WBTC",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.021222,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 1.737113,
+        "historySampleCount": 633
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            3495558025
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 3495558025,
+            "poolId": "3689539825"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        3495558025
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3670819448:lp",
+      "assetPair": "ALGO/GOLD$",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.007153,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.040597,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            246516580
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 246516580,
+            "poolId": "3670819448"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        246516580
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3706066691:lp",
+      "assetPair": "COOP/WBTC",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.004778,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.036258,
+        "historySampleCount": 407
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            796425061,
+            3495558025
+          ],
+          "inputHints": {
+            "assetAId": 796425061,
+            "assetBId": 3495558025,
+            "poolId": "3706066691"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        796425061,
+        3495558025
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3703760421:lp",
+      "assetPair": "ALGO/WETH",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.00376,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.245168,
+        "historySampleCount": 456
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            3495722210
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 3495722210,
+            "poolId": "3703760421"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        3495722210
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3670821248:lp",
+      "assetPair": "ALGO/SILVER$",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.000967,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.025426,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            246519683
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 246519683,
+            "poolId": "3670821248"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        246519683
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3700137202:lp",
+      "assetPair": "USDC/CORN",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.000061,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 1.208065,
+        "historySampleCount": 524
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3121962516
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3121962516,
+            "poolId": "3700137202"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        3121962516
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3699427595:lp",
+      "assetPair": "CORN/HOG",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.000035,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.036279,
+        "historySampleCount": 534
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            3121962516,
+            3178895177
+          ],
+          "inputHints": {
+            "assetAId": 3121962516,
+            "assetBId": 3178895177,
+            "poolId": "3699427595"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        3121962516,
+        3178895177
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3700137559:lp",
+      "assetPair": "ALGO/CORN",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.000023,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.571706,
+        "historySampleCount": 524
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            0,
+            3121962516
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 3121962516,
+            "poolId": "3700137559"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        0,
+        3121962516
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3693107920:lp",
+      "assetPair": "USDC/COMPX",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.000011,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.021278,
+        "historySampleCount": 632
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            1732165149
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 1732165149,
+            "poolId": "3693107920"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        1732165149
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3700137794:lp",
+      "assetPair": "Finite/CORN",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.000001,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.042386,
+        "historySampleCount": 524
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            400593267,
+            3121962516
+          ],
+          "inputHints": {
+            "assetAId": 400593267,
+            "assetBId": 3121962516,
+            "poolId": "3700137794"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        400593267,
+        3121962516
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3700135154:lp",
+      "assetPair": "GPEPE/CORN",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 1.4e-7,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.153156,
+        "historySampleCount": 524
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            1098616344,
+            3121962516
+          ],
+          "inputHints": {
+            "assetAId": 1098616344,
+            "assetBId": 3121962516,
+            "poolId": "3700135154"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        1098616344,
+        3121962516
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3700138545:lp",
+      "assetPair": "ATARD/CORN",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 3e-8,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.049433,
+        "historySampleCount": 524
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2614577662,
+            3121962516
+          ],
+          "inputHints": {
+            "assetAId": 2614577662,
+            "assetBId": 3121962516,
+            "poolId": "3700138545"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2614577662,
+        3121962516
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3700138082:lp",
+      "assetPair": "DOD/CORN",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.368232,
+        "historySampleCount": 524
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2627627272,
+            3121962516
+          ],
+          "inputHints": {
+            "assetAId": 2627627272,
+            "assetBId": 3121962516,
+            "poolId": "3700138082"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2627627272,
+        3121962516
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "pact",
+      "opportunityType": "lp",
+      "opportunityId": "3719375014:lp",
+      "assetPair": "DERS/PNET",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0,
+      "sourceTimestamp": "2026-10-01T10:21:50.372Z",
+      "fetchedAt": "2026-10-01T10:21:50.372Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 1,
+        "stability": "low",
+        "apyStdev": 0.956516,
+        "historySampleCount": 151
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:pact:v1:addLiquidity:twoSided",
+          "protocol": "pact",
+          "protocolVersion": "v1",
+          "action": "addLiquidity",
+          "variant": "twoSided",
+          "title": "Pact v1 two-sided add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Pact AMM pool. Generates the documented 3-transaction group (primary asset deposit, secondary asset deposit, ADDLIQ app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            846652486,
+            3169177585
+          ],
+          "inputHints": {
+            "assetAId": 846652486,
+            "assetBId": 3169177585,
+            "poolId": "3719375014"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        846652486,
+        3169177585
+      ],
+      "apr": 0,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    }
+  ],
+  "meta": {
+    "limit": 100,
+    "offset": 0,
+    "includeInactive": false,
+    "paymentRequired": true,
+    "cacheEnabled": true,
+    "cacheHit": false,
+    "cachedAt": "2026-10-01T10:21:51.494Z",
+    "cacheAgeMs": 110,
+    "cacheTtlSec": 45
+  }
+}

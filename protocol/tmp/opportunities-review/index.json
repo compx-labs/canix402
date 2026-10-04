@@ -1,0 +1,106 @@
+{
+  "generatedAt": "2026-10-01T09:36:17.981Z",
+  "productionPath": true,
+  "refresh": false,
+  "findings": [
+    "duplicate dorkfi:algorand:3333688282:3514808410:lending in search-type-lending.json"
+  ],
+  "cases": [
+    {
+      "file": "list.json",
+      "url": "/opportunities?limit=100",
+      "status": 200,
+      "returnedCount": 100,
+      "cacheEnabled": true,
+      "cacheHit": false
+    },
+    {
+      "file": "search-unfiltered.json",
+      "url": "/opportunities/search?limit=100",
+      "status": 200,
+      "returnedCount": 100,
+      "cacheEnabled": true,
+      "cacheHit": true
+    },
+    {
+      "file": "search-platform-compx.json",
+      "url": "/opportunities/search?limit=100&platform=compx",
+      "status": 200,
+      "returnedCount": 4,
+      "cacheEnabled": true,
+      "cacheHit": true
+    },
+    {
+      "file": "search-platform-folks-tinyman.json",
+      "url": "/opportunities/search?limit=100&platform=folks-finance,tinyman",
+      "status": 200,
+      "returnedCount": 100,
+      "cacheEnabled": true,
+      "cacheHit": true
+    },
+    {
+      "file": "search-type-lending.json",
+      "url": "/opportunities/search?limit=100&type=lending",
+      "status": 200,
+      "returnedCount": 86,
+      "cacheEnabled": true,
+      "cacheHit": true
+    },
+    {
+      "file": "search-type-lp.json",
+      "url": "/opportunities/search?limit=100&type=lp",
+      "status": 200,
+      "returnedCount": 100,
+      "cacheEnabled": true,
+      "cacheHit": true
+    },
+    {
+      "file": "search-min-apy.json",
+      "url": "/opportunities/search?limit=100&minApy=5",
+      "status": 200,
+      "returnedCount": 100,
+      "cacheEnabled": true,
+      "cacheHit": true
+    },
+    {
+      "file": "search-max-apy.json",
+      "url": "/opportunities/search?limit=100&maxApy=20",
+      "status": 200,
+      "returnedCount": 100,
+      "cacheEnabled": true,
+      "cacheHit": true
+    },
+    {
+      "file": "search-min-tvl.json",
+      "url": "/opportunities/search?limit=100&minTvlUsd=50000",
+      "status": 200,
+      "returnedCount": 100,
+      "cacheEnabled": true,
+      "cacheHit": true
+    },
+    {
+      "file": "search-chain-algorand.json",
+      "url": "/opportunities/search?limit=100&chain=algorand",
+      "status": 200,
+      "returnedCount": 100,
+      "cacheEnabled": true,
+      "cacheHit": true
+    },
+    {
+      "file": "search-chain-base.json",
+      "url": "/opportunities/search?limit=100&chain=base",
+      "status": 200,
+      "returnedCount": 32,
+      "cacheEnabled": true,
+      "cacheHit": true
+    },
+    {
+      "file": "search-asset-usdc.json",
+      "url": "/opportunities/search?limit=100&assetIds=31566704",
+      "status": 200,
+      "returnedCount": 50,
+      "cacheEnabled": true,
+      "cacheHit": true
+    }
+  ]
+}

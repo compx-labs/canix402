@@ -99,7 +99,7 @@ test("Folks lending enter shapes are ordered with prerequisites", () => {
   assert.deepEqual(enriched.executionShapes[2]?.requiredAssetIds, [31566704]);
 });
 
-test("Pact farm enter shapes are ordered deploy then stake/addLiquidityAndFarm", () => {
+test("Pact farm enter shapes are ordered deploy then stake", () => {
   const record: OpportunityMarketRecord = {
     protocol: "pact",
     opportunityType: "farm",
@@ -116,35 +116,31 @@ test("Pact farm enter shapes are ordered deploy then stake/addLiquidityAndFarm",
 
   const enriched = attachExecutionShapesToOpportunity(record, executionRegistry);
   assert.equal(enriched.executionReady, true);
-  assert.equal(enriched.executionShapes.length, 3);
+  assert.equal(enriched.executionShapes.length, 2);
   assert.deepEqual(
     enriched.executionShapes.map((shape) => shape.shapeKey),
     [
       "mainnet:pact:v1:farm:deployEscrow",
-      "mainnet:pact:v1:farm:stake",
-      "mainnet:pact:v1:addLiquidityAndFarm:twoSided"
+      "mainnet:pact:v1:farm:stake"
     ]
   );
   assert.deepEqual(
     enriched.executionShapes.map((shape) => shape.order),
-    [0, 1, 1]
+    [0, 1]
   );
   assert.equal(enriched.executionShapes[0]?.prerequisiteShapeKeys, undefined);
   assert.deepEqual(enriched.executionShapes[1]?.prerequisiteShapeKeys, [
     "mainnet:pact:v1:farm:deployEscrow"
   ]);
-  assert.deepEqual(enriched.executionShapes[2]?.prerequisiteShapeKeys, [
-    "mainnet:pact:v1:farm:deployEscrow"
-  ]);
   assert.equal(enriched.executionShapes[0]?.inputHints?.farmAppId, 3625283323);
-  assert.equal(enriched.executionShapes[2]?.inputHints?.farmAppId, 3625283323);
-  assert.equal(enriched.executionShapes[2]?.inputHints?.poolAppId, 3495906641);
+  assert.equal(enriched.executionShapes[1]?.inputHints?.farmAppId, 3625283323);
+  assert.equal(enriched.executionShapes[1]?.inputHints?.poolAppId, 3495906641);
   assert.notEqual(
-    enriched.executionShapes[2]?.inputHints?.poolAppId,
-    enriched.executionShapes[2]?.inputHints?.farmAppId
+    enriched.executionShapes[1]?.inputHints?.poolAppId,
+    enriched.executionShapes[1]?.inputHints?.farmAppId
   );
-  // Farm id must not be overloaded into poolId; composite shapes need poolAppId.
-  assert.equal(enriched.executionShapes[2]?.inputHints?.poolId, undefined);
+  // Farm id must not be overloaded into poolId.
+  assert.equal(enriched.executionShapes[1]?.inputHints?.poolId, undefined);
   assert.equal(
     (enriched as { poolAppId?: number }).poolAppId,
     undefined
@@ -169,22 +165,29 @@ test("Pact ALGO/USDC farm 3585364727 hints include distinct AMM poolAppId", () =
   };
 
   const enriched = attachExecutionShapesToOpportunity(record, executionRegistry);
-  const addAndFarm = enriched.executionShapes.find(
-    (shape) => shape.shapeKey === "mainnet:pact:v1:addLiquidityAndFarm:twoSided"
+  assert.equal(
+    enriched.executionShapes.some(
+      (shape) => shape.shapeKey === "mainnet:pact:v1:addLiquidityAndFarm:twoSided"
+    ),
+    false
   );
-  assert.ok(addAndFarm);
-  assert.equal(addAndFarm?.inputHints?.farmAppId, farmAppId);
-  assert.equal(addAndFarm?.inputHints?.poolAppId, poolAppId);
-  assert.notEqual(addAndFarm?.inputHints?.poolAppId, addAndFarm?.inputHints?.farmAppId);
-  assert.equal(addAndFarm?.inputHints?.assetAId, 0);
-  assert.equal(addAndFarm?.inputHints?.assetBId, 31566704);
-  assert.ok(addAndFarm?.requiredInputs.includes("poolAppId"));
-  assert.ok(addAndFarm?.requiredInputs.includes("farmAppId"));
+  const stake = enriched.executionShapes.find(
+    (shape) => shape.shapeKey === "mainnet:pact:v1:farm:stake"
+  );
+  assert.ok(stake);
+  assert.equal(stake?.inputHints?.farmAppId, farmAppId);
+  assert.equal(stake?.inputHints?.poolAppId, poolAppId);
+  assert.notEqual(stake?.inputHints?.poolAppId, stake?.inputHints?.farmAppId);
+  assert.equal(stake?.inputHints?.assetAId, 0);
+  assert.equal(stake?.inputHints?.assetBId, 31566704);
 
   // Hints alone must satisfy poolAppId validation when merged into a quote input.
   const parsed = pactAddLiquidityAndFarmTwoSidedShape.parseInput({
     userAddress: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-    ...addAndFarm?.inputHints,
+    farmAppId,
+    poolAppId,
+    assetAId: 0,
+    assetBId: 31566704,
     assetAAmount: "1000000",
     assetBAmount: "1000000",
     maxSlippageBps: 50

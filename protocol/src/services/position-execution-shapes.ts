@@ -8,7 +8,16 @@ import type { PositionRecordV1 } from "../types/position.js";
 export type PositionMarketRecord = Omit<
   PositionRecordV1,
   "compatibleExitShapeKeys" | "compatibleManageShapeKeys"
->;
+> & {
+  /**
+   * Internal Pact LP flag. True for a deprecated v100 pool. Omitted from the
+   * public position so v1 and v201 exits are not both listed.
+   */
+  pactPoolDeprecated?: boolean;
+};
+
+const PACT_V1_REMOVE_LIQUIDITY = "mainnet:pact:v1:removeLiquidity:proportional";
+const PACT_V201_REMOVE_LIQUIDITY = "mainnet:pact:v201:removeLiquidity:proportional";
 
 const TINYMAN_TALGO_STAKING_OPPORTUNITY_ID = "tinyman-staking-talgo";
 const TINYMAN_STALGO_STAKING_OPPORTUNITY_ID = "tinyman-staking-stalgo";
@@ -166,6 +175,18 @@ export function attachExecutionShapesToPosition(
       compatibleManageShapeKeys: exclusiveMallow.manageKeys.filter((key) =>
         registry.get(key)
       )
+    };
+  }
+
+  if (record.protocol === "pact" && record.positionType === "lp") {
+    const { pactPoolDeprecated, ...publicRecord } = record;
+    const exitKey = pactPoolDeprecated
+      ? PACT_V1_REMOVE_LIQUIDITY
+      : PACT_V201_REMOVE_LIQUIDITY;
+    return {
+      ...publicRecord,
+      compatibleExitShapeKeys: registry.get(exitKey) ? [exitKey] : [],
+      compatibleManageShapeKeys: []
     };
   }
 

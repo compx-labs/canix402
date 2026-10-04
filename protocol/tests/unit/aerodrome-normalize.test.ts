@@ -132,3 +132,35 @@ test("fetchAerodromeOpportunities keeps listed basic pools and caches the page",
   assert.equal(second.length, 1);
   assert.equal(reads, 1);
 });
+
+test("an expired Aerodrome catalog stays available when the refresh fails", async () => {
+  let now = Date.parse(AERODROME_FIXTURE_FETCHED_AT);
+  let fail = false;
+  let reads = 0;
+  setAerodromeAdapterDependenciesForTests({
+    minTvlUsd: MIN_TVL,
+    catalogTtlMs: 1_000,
+    nowMs: () => now,
+    listPools: async () => {
+      reads += 1;
+      if (fail) {
+        throw new Error("Base RPC returned non-2xx status: 429.");
+      }
+      return [volatilePool()];
+    },
+    fetchPrices: async () => aerodromePrices
+  });
+
+  const first = await fetchAerodromeOpportunities();
+  fail = true;
+  now += 1_000;
+  const second = await fetchAerodromeOpportunities();
+  await new Promise((resolve) => setImmediate(resolve));
+  now += 1_000;
+  const third = await fetchAerodromeOpportunities();
+
+  assert.equal(first.length, 1);
+  assert.equal(second[0]?.opportunityId, first[0]?.opportunityId);
+  assert.equal(third[0]?.opportunityId, first[0]?.opportunityId);
+  assert.equal(reads, 2);
+});
