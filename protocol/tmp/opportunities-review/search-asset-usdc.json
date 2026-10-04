@@ -1,0 +1,4548 @@
+{
+  "data": [
+    {
+      "protocol": "dorkfi",
+      "opportunityType": "lending",
+      "opportunityId": "dorkfi:algorand:3333688282:31566704:lending",
+      "assetPair": "USDC",
+      "chain": "algorand",
+      "apy": 5.92106,
+      "yieldBasis": "apy",
+      "tvlUsd": 36446.405252,
+      "sourceTimestamp": "2026-10-01T09:35:51.290Z",
+      "fetchedAt": "2026-10-01T09:35:51.290Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 26,
+        "stability": "medium",
+        "apyStdev": 0.430747,
+        "historySampleCount": 647
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:dorkfi:v1:deposit:asa",
+          "protocol": "dorkfi",
+          "protocolVersion": "v1",
+          "action": "deposit",
+          "variant": "asa",
+          "title": "Dork.fi v1 ASA lending deposit",
+          "summary": "Deposits an ASA into a Dork.fi lending market by wrapping through nt200, approving the pool, and calling lending.deposit. Amount is underlying ASA base units.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "marketAppId",
+            "assetId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "poolAppId": 3333688282,
+            "marketAppId": 3210682240
+          }
+        },
+        {
+          "shapeKey": "mainnet:dorkfi:v1:borrow:asa",
+          "protocol": "dorkfi",
+          "protocolVersion": "v1",
+          "action": "borrow",
+          "variant": "asa",
+          "title": "Dork.fi v1 ASA lending borrow",
+          "summary": "Borrows an ASA from a Dork.fi lending market against existing collateral. Calls lending.borrow then unwraps nt200 to deliver underlying ASA. Amount is underlying ASA base units.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "marketAppId",
+            "assetId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "poolAppId": 3333688282,
+            "marketAppId": 3210682240
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "tinyman",
+      "opportunityType": "farm",
+      "opportunityId": "VVBWRAJ3YSZGXBGJ2K654J3WA2VZOJW5U4SJCZWLM634H572WTGWTT53EE:farm",
+      "assetPair": "TALGO/USDC",
+      "chain": "algorand",
+      "apy": 3.9649,
+      "yieldBasis": "apy",
+      "tvlUsd": 268480.889422,
+      "sourceTimestamp": "2026-10-01T09:35:51.269Z",
+      "fetchedAt": "2026-10-01T09:35:51.269Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26,
+        "stability": "medium",
+        "apyStdev": 0.326986,
+        "historySampleCount": 634
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:tinyman:staking-v1:farm:commit",
+          "protocol": "tinyman",
+          "protocolVersion": "staking-v1",
+          "action": "farm",
+          "variant": "commit",
+          "title": "Tinyman farm commit (existing LP position)",
+          "summary": "Commits an existing Tinyman LP-token position to a Tinyman farm (staking program). LP tokens never leave the wallet; the commit is a staking app call that records the committed amount, optionally followed by a log_balance call for a required asset.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "commitAmount"
+          ],
+          "requiredAssetIds": [
+            2537013734,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 2537013734,
+            "assetBId": 31566704,
+            "poolId": "VVBWRAJ3YSZGXBGJ2K654J3WA2VZOJW5U4SJCZWLM634H572WTGWTT53EE"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidityAndFarm:flexible",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidityAndFarm",
+          "variant": "flexible",
+          "title": "Tinyman v2 flexible add liquidity and farm commit",
+          "summary": "Adds two-sided flexible liquidity to a Tinyman AMM v2 pool and, in the same atomic group, commits the newly minted LP position to a Tinyman farm. LP tokens never leave the wallet; the farm commit is a staking app call. Returns the combined, regrouped unsigned transaction group.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2537013734,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 2537013734,
+            "assetBId": 31566704,
+            "poolId": "VVBWRAJ3YSZGXBGJ2K654J3WA2VZOJW5U4SJCZWLM634H572WTGWTT53EE"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidityAndFarm:singleAsset",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidityAndFarm",
+          "variant": "singleAsset",
+          "title": "Tinyman v2 single-asset add liquidity and farm commit",
+          "summary": "Adds one-sided liquidity to a Tinyman AMM v2 pool and, in the same atomic group, commits the newly minted LP position to a Tinyman farm. LP tokens never leave the wallet; the farm commit is a staking app call. Returns the combined, regrouped unsigned transaction group.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetBId",
+            "depositAssetId",
+            "depositAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2537013734,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 2537013734,
+            "assetBId": 31566704,
+            "poolId": "VVBWRAJ3YSZGXBGJ2K654J3WA2VZOJW5U4SJCZWLM634H572WTGWTT53EE"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2537013734,
+        31566704
+      ],
+      "apr": 3.8886,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3544789279:lp:1",
+      "assetPair": "USDC/HOG",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 618.997946,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3178895177
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3178895177,
+            "poolAppId": 3544789279,
+            "poolId": "3544789279",
+            "liquidityAssetId": 3544789286,
+            "tierIndex": 1
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3544789286
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3178895177,
+            "poolAppId": 3544789279,
+            "poolId": "3544789279",
+            "liquidityAssetId": 3544789286,
+            "tierIndex": 1
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3178895177
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 1 (pool 3544789279, lp_asset_id 3544789286, fee 10 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3544789279:lp:2",
+      "assetPair": "USDC/HOG",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 496.204285,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3178895177
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3178895177,
+            "poolAppId": 3544789279,
+            "poolId": "3544789279",
+            "liquidityAssetId": 3544789288,
+            "tierIndex": 2
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3544789288
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3178895177,
+            "poolAppId": 3544789279,
+            "poolId": "3544789279",
+            "liquidityAssetId": 3544789288,
+            "tierIndex": 2
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3178895177
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 2 (pool 3544789279, lp_asset_id 3544789288, fee 30 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3544789279:lp:3",
+      "assetPair": "USDC/HOG",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 344.128052,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3178895177
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3178895177,
+            "poolAppId": 3544789279,
+            "poolId": "3544789279",
+            "liquidityAssetId": 3544789290,
+            "tierIndex": 3
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3544789290
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3178895177,
+            "poolAppId": 3544789279,
+            "poolId": "3544789279",
+            "liquidityAssetId": 3544789290,
+            "tierIndex": 3
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3178895177
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 3 (pool 3544789279, lp_asset_id 3544789290, fee 100 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3716680054:lp:4",
+      "assetPair": "USDC/CORN",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 337.834891,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3121962516
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3121962516,
+            "poolAppId": 3716680054,
+            "poolId": "3716680054",
+            "liquidityAssetId": 3716680067,
+            "tierIndex": 4
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3716680067
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3121962516,
+            "poolAppId": 3716680054,
+            "poolId": "3716680054",
+            "liquidityAssetId": 3716680067,
+            "tierIndex": 4
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3121962516
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 4 (pool 3716680054, lp_asset_id 3716680067, fee 300 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3544791001:lp:1",
+      "assetPair": "ALGO/USDC",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 246.21011,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolAppId": 3544791001,
+            "poolId": "3544791001",
+            "liquidityAssetId": 3544791007,
+            "tierIndex": 1
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3544791007
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolAppId": 3544791001,
+            "poolId": "3544791001",
+            "liquidityAssetId": 3544791007,
+            "tierIndex": 1
+          }
+        }
+      ],
+      "assetIds": [
+        0,
+        31566704
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 1 (pool 3544791001, lp_asset_id 3544791007, fee 10 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3544791001:lp:3",
+      "assetPair": "ALGO/USDC",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 120.542342,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolAppId": 3544791001,
+            "poolId": "3544791001",
+            "liquidityAssetId": 3544791011,
+            "tierIndex": 3
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3544791011
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolAppId": 3544791001,
+            "poolId": "3544791001",
+            "liquidityAssetId": 3544791011,
+            "tierIndex": 3
+          }
+        }
+      ],
+      "assetIds": [
+        0,
+        31566704
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 3 (pool 3544791001, lp_asset_id 3544791011, fee 100 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3544791001:lp:2",
+      "assetPair": "ALGO/USDC",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 114.594435,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolAppId": 3544791001,
+            "poolId": "3544791001",
+            "liquidityAssetId": 3544791009,
+            "tierIndex": 2
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3544791009
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolAppId": 3544791001,
+            "poolId": "3544791001",
+            "liquidityAssetId": 3544791009,
+            "tierIndex": 2
+          }
+        }
+      ],
+      "assetIds": [
+        0,
+        31566704
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 2 (pool 3544791001, lp_asset_id 3544791009, fee 30 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3544789279:lp:0",
+      "assetPair": "USDC/HOG",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 7.007228,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3178895177
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3178895177,
+            "poolAppId": 3544789279,
+            "poolId": "3544789279",
+            "liquidityAssetId": 3544789284,
+            "tierIndex": 0
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3544789284
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3178895177,
+            "poolAppId": 3544789279,
+            "poolId": "3544789279",
+            "liquidityAssetId": 3544789284,
+            "tierIndex": 0
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3178895177
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 0 (pool 3544789279, lp_asset_id 3544789284, fee 3 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3544791001:lp:0",
+      "assetPair": "ALGO/USDC",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 3.481994,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolAppId": 3544791001,
+            "poolId": "3544791001",
+            "liquidityAssetId": 3544791005,
+            "tierIndex": 0
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3544791005
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolAppId": 3544791001,
+            "poolId": "3544791001",
+            "liquidityAssetId": 3544791005,
+            "tierIndex": 0
+          }
+        }
+      ],
+      "assetIds": [
+        0,
+        31566704
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 0 (pool 3544791001, lp_asset_id 3544791005, fee 3 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3544789279:lp:4",
+      "assetPair": "USDC/HOG",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 1.3924,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3178895177
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3178895177,
+            "poolAppId": 3544789279,
+            "poolId": "3544789279",
+            "liquidityAssetId": 3544789292,
+            "tierIndex": 4
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3544789292
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3178895177,
+            "poolAppId": 3544789279,
+            "poolId": "3544789279",
+            "liquidityAssetId": 3544789292,
+            "tierIndex": 4
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3178895177
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 4 (pool 3544789279, lp_asset_id 3544789292, fee 300 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3548043806:lp:1",
+      "assetPair": "USDC/FOLKS",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 1.367314,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3203964481
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3203964481,
+            "poolAppId": 3548043806,
+            "poolId": "3548043806",
+            "liquidityAssetId": 3548043813,
+            "tierIndex": 1
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3548043813
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3203964481,
+            "poolAppId": 3548043806,
+            "poolId": "3548043806",
+            "liquidityAssetId": 3548043813,
+            "tierIndex": 1
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3203964481
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 1 (pool 3548043806, lp_asset_id 3548043813, fee 10 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3716680054:lp:2",
+      "assetPair": "USDC/CORN",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.068669,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3121962516
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3121962516,
+            "poolAppId": 3716680054,
+            "poolId": "3716680054",
+            "liquidityAssetId": 3716680063,
+            "tierIndex": 2
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3716680063
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3121962516,
+            "poolAppId": 3716680054,
+            "poolId": "3716680054",
+            "liquidityAssetId": 3716680063,
+            "tierIndex": 2
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3121962516
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 2 (pool 3716680054, lp_asset_id 3716680063, fee 30 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3544791001:lp:4",
+      "assetPair": "ALGO/USDC",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.047395,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolAppId": 3544791001,
+            "poolId": "3544791001",
+            "liquidityAssetId": 3544791013,
+            "tierIndex": 4
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3544791013
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolAppId": 3544791001,
+            "poolId": "3544791001",
+            "liquidityAssetId": 3544791013,
+            "tierIndex": 4
+          }
+        }
+      ],
+      "assetIds": [
+        0,
+        31566704
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 4 (pool 3544791001, lp_asset_id 3544791013, fee 300 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3544789279:lp:5",
+      "assetPair": "USDC/HOG",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.017909,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3178895177
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3178895177,
+            "poolAppId": 3544789279,
+            "poolId": "3544789279",
+            "liquidityAssetId": 3544789294,
+            "tierIndex": 5
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3544789294
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3178895177,
+            "poolAppId": 3544789279,
+            "poolId": "3544789279",
+            "liquidityAssetId": 3544789294,
+            "tierIndex": 5
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3178895177
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 5 (pool 3544789279, lp_asset_id 3544789294, fee 0 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3571179413:lp:0",
+      "assetPair": "USDC/hogALGO",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.011563,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3344666000
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3344666000,
+            "poolAppId": 3571179413,
+            "poolId": "3571179413",
+            "liquidityAssetId": 3571179418,
+            "tierIndex": 0
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3571179418
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3344666000,
+            "poolAppId": 3571179413,
+            "poolId": "3571179413",
+            "liquidityAssetId": 3571179418,
+            "tierIndex": 0
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3344666000
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 0 (pool 3571179413, lp_asset_id 3571179418, fee 3 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3571179413:lp:2",
+      "assetPair": "USDC/hogALGO",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.010988,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3344666000
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3344666000,
+            "poolAppId": 3571179413,
+            "poolId": "3571179413",
+            "liquidityAssetId": 3571179422,
+            "tierIndex": 2
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3571179422
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3344666000,
+            "poolAppId": 3571179413,
+            "poolId": "3571179413",
+            "liquidityAssetId": 3571179422,
+            "tierIndex": 2
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3344666000
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 2 (pool 3571179413, lp_asset_id 3571179422, fee 30 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3716680054:lp:3",
+      "assetPair": "USDC/CORN",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.010736,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3121962516
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3121962516,
+            "poolAppId": 3716680054,
+            "poolId": "3716680054",
+            "liquidityAssetId": 3716680065,
+            "tierIndex": 3
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3716680065
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3121962516,
+            "poolAppId": 3716680054,
+            "poolId": "3716680054",
+            "liquidityAssetId": 3716680065,
+            "tierIndex": 3
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3121962516
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 3 (pool 3716680054, lp_asset_id 3716680065, fee 100 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3553005563:lp:2",
+      "assetPair": "USDC/WAD",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.010008,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3334160924
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3334160924,
+            "poolAppId": 3553005563,
+            "poolId": "3553005563",
+            "liquidityAssetId": 3553005572,
+            "tierIndex": 2
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3553005572
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3334160924,
+            "poolAppId": 3553005563,
+            "poolId": "3553005563",
+            "liquidityAssetId": 3553005572,
+            "tierIndex": 2
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3334160924
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 2 (pool 3553005563, lp_asset_id 3553005572, fee 30 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3553005563:lp:1",
+      "assetPair": "USDC/WAD",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.009475,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3334160924
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3334160924,
+            "poolAppId": 3553005563,
+            "poolId": "3553005563",
+            "liquidityAssetId": 3553005570,
+            "tierIndex": 1
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3553005570
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3334160924,
+            "poolAppId": 3553005563,
+            "poolId": "3553005563",
+            "liquidityAssetId": 3553005570,
+            "tierIndex": 1
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3334160924
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 1 (pool 3553005563, lp_asset_id 3553005570, fee 10 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3553005563:lp:0",
+      "assetPair": "USDC/WAD",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.00946,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3334160924
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3334160924,
+            "poolAppId": 3553005563,
+            "poolId": "3553005563",
+            "liquidityAssetId": 3553005568,
+            "tierIndex": 0
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3553005568
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3334160924,
+            "poolAppId": 3553005563,
+            "poolId": "3553005563",
+            "liquidityAssetId": 3553005568,
+            "tierIndex": 0
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3334160924
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 0 (pool 3553005563, lp_asset_id 3553005568, fee 3 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3544791001:lp:5",
+      "assetPair": "ALGO/USDC",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.008321,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            0,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolAppId": 3544791001,
+            "poolId": "3544791001",
+            "liquidityAssetId": 3544791015,
+            "tierIndex": 5
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3544791015
+          ],
+          "inputHints": {
+            "assetAId": 0,
+            "assetBId": 31566704,
+            "poolAppId": 3544791001,
+            "poolId": "3544791001",
+            "liquidityAssetId": 3544791015,
+            "tierIndex": 5
+          }
+        }
+      ],
+      "assetIds": [
+        0,
+        31566704
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 5 (pool 3544791001, lp_asset_id 3544791015, fee 0 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3548043806:lp:3",
+      "assetPair": "USDC/FOLKS",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.007298,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3203964481
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3203964481,
+            "poolAppId": 3548043806,
+            "poolId": "3548043806",
+            "liquidityAssetId": 3548043817,
+            "tierIndex": 3
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3548043817
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3203964481,
+            "poolAppId": 3548043806,
+            "poolId": "3548043806",
+            "liquidityAssetId": 3548043817,
+            "tierIndex": 3
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3203964481
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 3 (pool 3548043806, lp_asset_id 3548043817, fee 100 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3548043806:lp:4",
+      "assetPair": "USDC/FOLKS",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.007159,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3203964481
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3203964481,
+            "poolAppId": 3548043806,
+            "poolId": "3548043806",
+            "liquidityAssetId": 3548043819,
+            "tierIndex": 4
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3548043819
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3203964481,
+            "poolAppId": 3548043806,
+            "poolId": "3548043806",
+            "liquidityAssetId": 3548043819,
+            "tierIndex": 4
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3203964481
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 4 (pool 3548043806, lp_asset_id 3548043819, fee 300 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3716680054:lp:1",
+      "assetPair": "USDC/CORN",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.00624,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3121962516
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3121962516,
+            "poolAppId": 3716680054,
+            "poolId": "3716680054",
+            "liquidityAssetId": 3716680061,
+            "tierIndex": 1
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3716680061
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3121962516,
+            "poolAppId": 3716680054,
+            "poolId": "3716680054",
+            "liquidityAssetId": 3716680061,
+            "tierIndex": 1
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3121962516
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 1 (pool 3716680054, lp_asset_id 3716680061, fee 10 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3548043806:lp:0",
+      "assetPair": "USDC/FOLKS",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.005483,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3203964481
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3203964481,
+            "poolAppId": 3548043806,
+            "poolId": "3548043806",
+            "liquidityAssetId": 3548043811,
+            "tierIndex": 0
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3548043811
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3203964481,
+            "poolAppId": 3548043806,
+            "poolId": "3548043806",
+            "liquidityAssetId": 3548043811,
+            "tierIndex": 0
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3203964481
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 0 (pool 3548043806, lp_asset_id 3548043811, fee 3 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3553005563:lp:5",
+      "assetPair": "USDC/WAD",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.002373,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3334160924
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3334160924,
+            "poolAppId": 3553005563,
+            "poolId": "3553005563",
+            "liquidityAssetId": 3553005578,
+            "tierIndex": 5
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3553005578
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3334160924,
+            "poolAppId": 3553005563,
+            "poolId": "3553005563",
+            "liquidityAssetId": 3553005578,
+            "tierIndex": 5
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3334160924
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 5 (pool 3553005563, lp_asset_id 3553005578, fee 0 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3716680054:lp:5",
+      "assetPair": "USDC/CORN",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.00114,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3121962516
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3121962516,
+            "poolAppId": 3716680054,
+            "poolId": "3716680054",
+            "liquidityAssetId": 3716680069,
+            "tierIndex": 5
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3716680069
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3121962516,
+            "poolAppId": 3716680054,
+            "poolId": "3716680054",
+            "liquidityAssetId": 3716680069,
+            "tierIndex": 5
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3121962516
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 5 (pool 3716680054, lp_asset_id 3716680069, fee 0 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3548043806:lp:5",
+      "assetPair": "USDC/FOLKS",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.001069,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3203964481
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3203964481,
+            "poolAppId": 3548043806,
+            "poolId": "3548043806",
+            "liquidityAssetId": 3548043821,
+            "tierIndex": 5
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3548043821
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3203964481,
+            "poolAppId": 3548043806,
+            "poolId": "3548043806",
+            "liquidityAssetId": 3548043821,
+            "tierIndex": 5
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3203964481
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 5 (pool 3548043806, lp_asset_id 3548043821, fee 0 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3548043806:lp:2",
+      "assetPair": "USDC/FOLKS",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.00093,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3203964481
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3203964481,
+            "poolAppId": 3548043806,
+            "poolId": "3548043806",
+            "liquidityAssetId": 3548043815,
+            "tierIndex": 2
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3548043815
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3203964481,
+            "poolAppId": 3548043806,
+            "poolId": "3548043806",
+            "liquidityAssetId": 3548043815,
+            "tierIndex": 2
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3203964481
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 2 (pool 3548043806, lp_asset_id 3548043815, fee 30 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "stamm",
+      "opportunityType": "lp",
+      "opportunityId": "3553005563:lp:3",
+      "assetPair": "USDC/WAD",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 0.000082,
+      "sourceTimestamp": "2026-10-01T09:35:51.297Z",
+      "fetchedAt": "2026-10-01T09:35:51.297Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:mint:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "mint",
+          "variant": "lp",
+          "title": "STAMM v1 LP mint",
+          "summary": "Mints STAMM LP via HOGSWAP POST /quote (mode LP_MINT) then POST /execute. Accepts pool-asset amountA/amountB (single- or two-sided) or externalInputs (any asset, converted into the tier ratio). Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "amountA"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            3334160924
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3334160924,
+            "poolAppId": 3553005563,
+            "poolId": "3553005563",
+            "liquidityAssetId": 3553005574,
+            "tierIndex": 3
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:stamm:v1:redeem:lp",
+          "protocol": "stamm",
+          "protocolVersion": "v1",
+          "action": "redeem",
+          "variant": "lp",
+          "title": "STAMM v1 LP redeem",
+          "summary": "Burns STAMM LP via HOGSWAP POST /quote (mode LP_REDEEM) then POST /execute. targetAsset may be a pool underlying or any routable asset. Returns an unsigned group targeting the current router — never signed or broadcast. Wallet must already be opted into the LP ASA and the target asset. Prefer maxLegs when composing with other groups.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "tierIndex",
+            "lpAmount",
+            "targetAsset"
+          ],
+          "requiredAssetIds": [
+            3553005574
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 3334160924,
+            "poolAppId": 3553005563,
+            "poolId": "3553005563",
+            "liquidityAssetId": 3553005574,
+            "tierIndex": 3
+          }
+        }
+      ],
+      "assetIds": [
+        31566704,
+        3334160924
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. STAMM LP tier 3 (pool 3553005563, lp_asset_id 3553005574, fee 100 bps). APY is unknown (emitted as 0). Listings expose TVL and fee bps only; fee-APR is not inferred from incomplete volume. Wallet must already be opted into the LP ASA before mint/redeem execute. Router/registry app ids are not hardcoded — /execute targets the current HOGSWAP router."
+    },
+    {
+      "protocol": "tinyman",
+      "opportunityType": "farm",
+      "opportunityId": "UC4AUDFKY7KMFWABG2F47WAS32MBDIJ4HJ6RDCJHSZBOVVWGANCWWOGWGQ:farm",
+      "assetPair": "TINY/USDC",
+      "chain": "algorand",
+      "apy": 94.2354,
+      "yieldBasis": "apy",
+      "tvlUsd": 10557.703782,
+      "sourceTimestamp": "2026-10-01T09:35:51.269Z",
+      "fetchedAt": "2026-10-01T09:35:51.269Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26,
+        "stability": "low",
+        "apyStdev": 9.130532,
+        "historySampleCount": 634
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:tinyman:staking-v1:farm:commit",
+          "protocol": "tinyman",
+          "protocolVersion": "staking-v1",
+          "action": "farm",
+          "variant": "commit",
+          "title": "Tinyman farm commit (existing LP position)",
+          "summary": "Commits an existing Tinyman LP-token position to a Tinyman farm (staking program). LP tokens never leave the wallet; the commit is a staking app call that records the committed amount, optionally followed by a log_balance call for a required asset.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "commitAmount"
+          ],
+          "requiredAssetIds": [
+            2200000000,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 2200000000,
+            "assetBId": 31566704,
+            "poolId": "UC4AUDFKY7KMFWABG2F47WAS32MBDIJ4HJ6RDCJHSZBOVVWGANCWWOGWGQ"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidityAndFarm:flexible",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidityAndFarm",
+          "variant": "flexible",
+          "title": "Tinyman v2 flexible add liquidity and farm commit",
+          "summary": "Adds two-sided flexible liquidity to a Tinyman AMM v2 pool and, in the same atomic group, commits the newly minted LP position to a Tinyman farm. LP tokens never leave the wallet; the farm commit is a staking app call. Returns the combined, regrouped unsigned transaction group.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2200000000,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 2200000000,
+            "assetBId": 31566704,
+            "poolId": "UC4AUDFKY7KMFWABG2F47WAS32MBDIJ4HJ6RDCJHSZBOVVWGANCWWOGWGQ"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidityAndFarm:singleAsset",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidityAndFarm",
+          "variant": "singleAsset",
+          "title": "Tinyman v2 single-asset add liquidity and farm commit",
+          "summary": "Adds one-sided liquidity to a Tinyman AMM v2 pool and, in the same atomic group, commits the newly minted LP position to a Tinyman farm. LP tokens never leave the wallet; the farm commit is a staking app call. Returns the combined, regrouped unsigned transaction group.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetBId",
+            "depositAssetId",
+            "depositAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2200000000,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 2200000000,
+            "assetBId": 31566704,
+            "poolId": "UC4AUDFKY7KMFWABG2F47WAS32MBDIJ4HJ6RDCJHSZBOVVWGANCWWOGWGQ"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2200000000,
+        31566704
+      ],
+      "apr": 66.4505,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "tinyman",
+      "opportunityType": "lp",
+      "opportunityId": "2PIFZW53RHCSFSYMCFUBW4XOCXOMB7XOYQSQ6KGT3KVGJTL4HM6COZRNMM:lp",
+      "assetPair": "USDC/ALGO",
+      "chain": "algorand",
+      "apy": 30.5097,
+      "yieldBasis": "apy",
+      "tvlUsd": 1774470.476999,
+      "sourceTimestamp": "2026-10-01T09:35:51.269Z",
+      "fetchedAt": "2026-10-01T09:35:51.269Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26,
+        "stability": "low",
+        "apyStdev": 7.284635,
+        "historySampleCount": 634
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "flexible",
+          "title": "Tinyman v2 flexible add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Tinyman AMM v2 pool using flexible amounts. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            0
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 0,
+            "poolId": "2PIFZW53RHCSFSYMCFUBW4XOCXOMB7XOYQSQ6KGT3KVGJTL4HM6COZRNMM"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:initial",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "initial",
+          "title": "Tinyman v2 initial add liquidity",
+          "summary": "Adds the first liquidity to a bootstrapped but empty Tinyman AMM v2 pool. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_initial_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            0
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 0,
+            "poolId": "2PIFZW53RHCSFSYMCFUBW4XOCXOMB7XOYQSQ6KGT3KVGJTL4HM6COZRNMM"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:singleAsset",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "singleAsset",
+          "title": "Tinyman v2 single-asset add liquidity",
+          "summary": "Adds one-sided liquidity to an existing Tinyman AMM v2 pool. Tinyman performs an internal swap to balance the deposit and mints pool tokens. Generates the documented 2-transaction group (asset transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetBId",
+            "depositAssetId",
+            "depositAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            0
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 0,
+            "poolId": "2PIFZW53RHCSFSYMCFUBW4XOCXOMB7XOYQSQ6KGT3KVGJTL4HM6COZRNMM"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        0
+      ],
+      "apr": 26.6375,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "tinyman",
+      "opportunityType": "lp",
+      "opportunityId": "VVBWRAJ3YSZGXBGJ2K654J3WA2VZOJW5U4SJCZWLM634H572WTGWTT53EE:lp",
+      "assetPair": "TALGO/USDC",
+      "chain": "algorand",
+      "apy": 20.2288,
+      "yieldBasis": "apy",
+      "tvlUsd": 268480.889422,
+      "sourceTimestamp": "2026-10-01T09:35:51.269Z",
+      "fetchedAt": "2026-10-01T09:35:51.269Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26,
+        "stability": "low",
+        "apyStdev": 5.375731,
+        "historySampleCount": 634
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "flexible",
+          "title": "Tinyman v2 flexible add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Tinyman AMM v2 pool using flexible amounts. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2537013734,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 2537013734,
+            "assetBId": 31566704,
+            "poolId": "VVBWRAJ3YSZGXBGJ2K654J3WA2VZOJW5U4SJCZWLM634H572WTGWTT53EE"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:initial",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "initial",
+          "title": "Tinyman v2 initial add liquidity",
+          "summary": "Adds the first liquidity to a bootstrapped but empty Tinyman AMM v2 pool. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_initial_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2537013734,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 2537013734,
+            "assetBId": 31566704,
+            "poolId": "VVBWRAJ3YSZGXBGJ2K654J3WA2VZOJW5U4SJCZWLM634H572WTGWTT53EE"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:singleAsset",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "singleAsset",
+          "title": "Tinyman v2 single-asset add liquidity",
+          "summary": "Adds one-sided liquidity to an existing Tinyman AMM v2 pool. Tinyman performs an internal swap to balance the deposit and mints pool tokens. Generates the documented 2-transaction group (asset transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetBId",
+            "depositAssetId",
+            "depositAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2537013734,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 2537013734,
+            "assetBId": 31566704,
+            "poolId": "VVBWRAJ3YSZGXBGJ2K654J3WA2VZOJW5U4SJCZWLM634H572WTGWTT53EE"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2537013734,
+        31566704
+      ],
+      "apr": 18.4273,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "haystack",
+      "opportunityType": "staking",
+      "opportunityId": "haystack-staking-hay",
+      "assetPair": "HAY/USDC+HAY",
+      "chain": "algorand",
+      "apy": 18.818411,
+      "yieldBasis": "apr",
+      "tvlUsd": 131400.889234,
+      "sourceTimestamp": "2026-10-01T09:35:51.295Z",
+      "fetchedAt": "2026-10-01T09:35:51.295Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 26,
+        "stability": "low",
+        "apyStdev": 4.798495,
+        "historySampleCount": 645
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:haystack:v1:stake:hay",
+          "protocol": "haystack",
+          "protocolVersion": "v1",
+          "action": "stake",
+          "variant": "hay",
+          "title": "Haystack v1 HAY staking deposit",
+          "summary": "Stakes HAY into the Haystack staking pool. Builds stakeHay(axfer)void from the ARC-56 spec: an optional staker-box MBR payment (first stake only), the HAY asset transfer (the ABI arg), and the stakeHay app call.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            3160000000
+          ],
+          "inputHints": {
+            "assetId": 3160000000
+          }
+        }
+      ],
+      "compatibleExitShapes": [
+        {
+          "shapeKey": "mainnet:haystack:v1:unstake:hay",
+          "protocol": "haystack",
+          "protocolVersion": "v1",
+          "action": "unstake",
+          "variant": "hay",
+          "title": "Haystack v1 HAY staking withdraw",
+          "summary": "Unstakes HAY from the Haystack staking pool and claims pending USDC and HAY rewards via unstakeHayAndClaim(uint64)(uint64,uint64). Prefixes a USDC opt-in when the user is not yet opted into USDC.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            3160000000
+          ],
+          "inputHints": {
+            "assetId": 3160000000,
+            "depositAssetId": 3160000000
+          }
+        }
+      ],
+      "assetIds": [
+        3160000000,
+        31566704
+      ],
+      "apr": 18.818411,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp. Haystack single-token HAY staking (app 3321763884). APR combines on-chain emaAPRUsdc (18.40%) and emaAPRHay (0.42%) where 1e6 = 1%. Dual USDC+HAY rewards."
+    },
+    {
+      "protocol": "tinyman",
+      "opportunityType": "lp",
+      "opportunityId": "NDQE23CVD5R2ZE3VKAZK6JEJUGYGM7A2VARYEOOWXOVA4GYAOV74PS7ALI:lp",
+      "assetPair": "WAD/USDC",
+      "chain": "algorand",
+      "apy": 12.4238,
+      "yieldBasis": "apy",
+      "tvlUsd": 12655.076733,
+      "sourceTimestamp": "2026-10-01T09:35:51.269Z",
+      "fetchedAt": "2026-10-01T09:35:51.269Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26,
+        "stability": "low",
+        "apyStdev": 5.769155,
+        "historySampleCount": 634
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "flexible",
+          "title": "Tinyman v2 flexible add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Tinyman AMM v2 pool using flexible amounts. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            3334160924,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 3334160924,
+            "assetBId": 31566704,
+            "poolId": "NDQE23CVD5R2ZE3VKAZK6JEJUGYGM7A2VARYEOOWXOVA4GYAOV74PS7ALI"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:initial",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "initial",
+          "title": "Tinyman v2 initial add liquidity",
+          "summary": "Adds the first liquidity to a bootstrapped but empty Tinyman AMM v2 pool. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_initial_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            3334160924,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 3334160924,
+            "assetBId": 31566704,
+            "poolId": "NDQE23CVD5R2ZE3VKAZK6JEJUGYGM7A2VARYEOOWXOVA4GYAOV74PS7ALI"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:singleAsset",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "singleAsset",
+          "title": "Tinyman v2 single-asset add liquidity",
+          "summary": "Adds one-sided liquidity to an existing Tinyman AMM v2 pool. Tinyman performs an internal swap to balance the deposit and mints pool tokens. Generates the documented 2-transaction group (asset transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetBId",
+            "depositAssetId",
+            "depositAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            3334160924,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 3334160924,
+            "assetBId": 31566704,
+            "poolId": "NDQE23CVD5R2ZE3VKAZK6JEJUGYGM7A2VARYEOOWXOVA4GYAOV74PS7ALI"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        3334160924,
+        31566704
+      ],
+      "apr": 11.7124,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "tinyman",
+      "opportunityType": "lp",
+      "opportunityId": "UC4AUDFKY7KMFWABG2F47WAS32MBDIJ4HJ6RDCJHSZBOVVWGANCWWOGWGQ:lp",
+      "assetPair": "TINY/USDC",
+      "chain": "algorand",
+      "apy": 12.1783,
+      "yieldBasis": "apy",
+      "tvlUsd": 10557.703782,
+      "sourceTimestamp": "2026-10-01T09:35:51.269Z",
+      "fetchedAt": "2026-10-01T09:35:51.269Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26,
+        "stability": "low",
+        "apyStdev": 2.279714,
+        "historySampleCount": 634
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "flexible",
+          "title": "Tinyman v2 flexible add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Tinyman AMM v2 pool using flexible amounts. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2200000000,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 2200000000,
+            "assetBId": 31566704,
+            "poolId": "UC4AUDFKY7KMFWABG2F47WAS32MBDIJ4HJ6RDCJHSZBOVVWGANCWWOGWGQ"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:initial",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "initial",
+          "title": "Tinyman v2 initial add liquidity",
+          "summary": "Adds the first liquidity to a bootstrapped but empty Tinyman AMM v2 pool. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_initial_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2200000000,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 2200000000,
+            "assetBId": 31566704,
+            "poolId": "UC4AUDFKY7KMFWABG2F47WAS32MBDIJ4HJ6RDCJHSZBOVVWGANCWWOGWGQ"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:singleAsset",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "singleAsset",
+          "title": "Tinyman v2 single-asset add liquidity",
+          "summary": "Adds one-sided liquidity to an existing Tinyman AMM v2 pool. Tinyman performs an internal swap to balance the deposit and mints pool tokens. Generates the documented 2-transaction group (asset transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetBId",
+            "depositAssetId",
+            "depositAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2200000000,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 2200000000,
+            "assetBId": 31566704,
+            "poolId": "UC4AUDFKY7KMFWABG2F47WAS32MBDIJ4HJ6RDCJHSZBOVVWGANCWWOGWGQ"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2200000000,
+        31566704
+      ],
+      "apr": 11.4938,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "tinyman",
+      "opportunityType": "lp",
+      "opportunityId": "PYBMJED3BDYJMZZTI4KVESVW46ZDRQQWTEQZOOVTY5GFKWIYSWAKNJADTU:lp",
+      "assetPair": "PGOLD/USDC",
+      "chain": "algorand",
+      "apy": 7.9137,
+      "yieldBasis": "apy",
+      "tvlUsd": 9183.657017,
+      "sourceTimestamp": "2026-10-01T09:35:51.269Z",
+      "fetchedAt": "2026-10-01T09:35:51.269Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26,
+        "stability": "low",
+        "apyStdev": 1.676192,
+        "historySampleCount": 634
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "flexible",
+          "title": "Tinyman v2 flexible add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Tinyman AMM v2 pool using flexible amounts. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            1237529510,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 1237529510,
+            "assetBId": 31566704,
+            "poolId": "PYBMJED3BDYJMZZTI4KVESVW46ZDRQQWTEQZOOVTY5GFKWIYSWAKNJADTU"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:initial",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "initial",
+          "title": "Tinyman v2 initial add liquidity",
+          "summary": "Adds the first liquidity to a bootstrapped but empty Tinyman AMM v2 pool. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_initial_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            1237529510,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 1237529510,
+            "assetBId": 31566704,
+            "poolId": "PYBMJED3BDYJMZZTI4KVESVW46ZDRQQWTEQZOOVTY5GFKWIYSWAKNJADTU"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:singleAsset",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "singleAsset",
+          "title": "Tinyman v2 single-asset add liquidity",
+          "summary": "Adds one-sided liquidity to an existing Tinyman AMM v2 pool. Tinyman performs an internal swap to balance the deposit and mints pool tokens. Generates the documented 2-transaction group (asset transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetBId",
+            "depositAssetId",
+            "depositAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            1237529510,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 1237529510,
+            "assetBId": 31566704,
+            "poolId": "PYBMJED3BDYJMZZTI4KVESVW46ZDRQQWTEQZOOVTY5GFKWIYSWAKNJADTU"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        1237529510,
+        31566704
+      ],
+      "apr": 7.6169,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "tinyman",
+      "opportunityType": "lp",
+      "opportunityId": "ZC6BRSVD2YASAQTWGZVOWJDUOJL2FYFJXRSSC3KRWP4YTTP3XMFN2FTFYQ:lp",
+      "assetPair": "Finite/USDC",
+      "chain": "algorand",
+      "apy": 5.2287,
+      "yieldBasis": "apy",
+      "tvlUsd": 15884.685464,
+      "sourceTimestamp": "2026-10-01T09:35:51.269Z",
+      "fetchedAt": "2026-10-01T09:35:51.269Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26,
+        "stability": "low",
+        "apyStdev": 1.083133,
+        "historySampleCount": 634
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "flexible",
+          "title": "Tinyman v2 flexible add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Tinyman AMM v2 pool using flexible amounts. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            400593267,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 400593267,
+            "assetBId": 31566704,
+            "poolId": "ZC6BRSVD2YASAQTWGZVOWJDUOJL2FYFJXRSSC3KRWP4YTTP3XMFN2FTFYQ"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:initial",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "initial",
+          "title": "Tinyman v2 initial add liquidity",
+          "summary": "Adds the first liquidity to a bootstrapped but empty Tinyman AMM v2 pool. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_initial_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            400593267,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 400593267,
+            "assetBId": 31566704,
+            "poolId": "ZC6BRSVD2YASAQTWGZVOWJDUOJL2FYFJXRSSC3KRWP4YTTP3XMFN2FTFYQ"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:singleAsset",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "singleAsset",
+          "title": "Tinyman v2 single-asset add liquidity",
+          "summary": "Adds one-sided liquidity to an existing Tinyman AMM v2 pool. Tinyman performs an internal swap to balance the deposit and mints pool tokens. Generates the documented 2-transaction group (asset transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetBId",
+            "depositAssetId",
+            "depositAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            400593267,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 400593267,
+            "assetBId": 31566704,
+            "poolId": "ZC6BRSVD2YASAQTWGZVOWJDUOJL2FYFJXRSSC3KRWP4YTTP3XMFN2FTFYQ"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        400593267,
+        31566704
+      ],
+      "apr": 5.0969,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "tinyman",
+      "opportunityType": "lp",
+      "opportunityId": "JUGMBIB55LPSCDZHCJQDGOBDDTNZ2BGOG57337D3LLKDCRLYQ4KPI42MBQ:lp",
+      "assetPair": "EURS/USDC",
+      "chain": "algorand",
+      "apy": 4.7965,
+      "yieldBasis": "apy",
+      "tvlUsd": 7706.908611,
+      "sourceTimestamp": "2026-10-01T09:35:51.269Z",
+      "fetchedAt": "2026-10-01T09:35:51.269Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "stable",
+        "ilHint": "Tinyman marks this pool as stable; IL is typically low versus volatile pairs.",
+        "sourceAgeSeconds": 26,
+        "stability": "low",
+        "apyStdev": 1.220352,
+        "historySampleCount": 634
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "flexible",
+          "title": "Tinyman v2 flexible add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Tinyman AMM v2 pool using flexible amounts. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            227855942,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 227855942,
+            "assetBId": 31566704,
+            "poolId": "JUGMBIB55LPSCDZHCJQDGOBDDTNZ2BGOG57337D3LLKDCRLYQ4KPI42MBQ"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:initial",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "initial",
+          "title": "Tinyman v2 initial add liquidity",
+          "summary": "Adds the first liquidity to a bootstrapped but empty Tinyman AMM v2 pool. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_initial_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            227855942,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 227855942,
+            "assetBId": 31566704,
+            "poolId": "JUGMBIB55LPSCDZHCJQDGOBDDTNZ2BGOG57337D3LLKDCRLYQ4KPI42MBQ"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:singleAsset",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "singleAsset",
+          "title": "Tinyman v2 single-asset add liquidity",
+          "summary": "Adds one-sided liquidity to an existing Tinyman AMM v2 pool. Tinyman performs an internal swap to balance the deposit and mints pool tokens. Generates the documented 2-transaction group (asset transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetBId",
+            "depositAssetId",
+            "depositAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            227855942,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 227855942,
+            "assetBId": 31566704,
+            "poolId": "JUGMBIB55LPSCDZHCJQDGOBDDTNZ2BGOG57337D3LLKDCRLYQ4KPI42MBQ"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        227855942,
+        31566704
+      ],
+      "apr": 4.6853,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "tinyman",
+      "opportunityType": "lp",
+      "opportunityId": "J7CN6WTMUWXY2KODKAMM5BLZ42FEIQLM4D32FRQ23VOOJC2SEUHKE565T4:lp",
+      "assetPair": "ALPHA/USDC",
+      "chain": "algorand",
+      "apy": 4.6337,
+      "yieldBasis": "apy",
+      "tvlUsd": 97024.378208,
+      "sourceTimestamp": "2026-10-01T09:35:51.269Z",
+      "fetchedAt": "2026-10-01T09:35:51.269Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26,
+        "stability": "low",
+        "apyStdev": 2.442718,
+        "historySampleCount": 634
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "flexible",
+          "title": "Tinyman v2 flexible add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Tinyman AMM v2 pool using flexible amounts. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2726252423,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 2726252423,
+            "assetBId": 31566704,
+            "poolId": "J7CN6WTMUWXY2KODKAMM5BLZ42FEIQLM4D32FRQ23VOOJC2SEUHKE565T4"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:initial",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "initial",
+          "title": "Tinyman v2 initial add liquidity",
+          "summary": "Adds the first liquidity to a bootstrapped but empty Tinyman AMM v2 pool. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_initial_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2726252423,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 2726252423,
+            "assetBId": 31566704,
+            "poolId": "J7CN6WTMUWXY2KODKAMM5BLZ42FEIQLM4D32FRQ23VOOJC2SEUHKE565T4"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:singleAsset",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "singleAsset",
+          "title": "Tinyman v2 single-asset add liquidity",
+          "summary": "Adds one-sided liquidity to an existing Tinyman AMM v2 pool. Tinyman performs an internal swap to balance the deposit and mints pool tokens. Generates the documented 2-transaction group (asset transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetBId",
+            "depositAssetId",
+            "depositAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            2726252423,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 2726252423,
+            "assetBId": 31566704,
+            "poolId": "J7CN6WTMUWXY2KODKAMM5BLZ42FEIQLM4D32FRQ23VOOJC2SEUHKE565T4"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        2726252423,
+        31566704
+      ],
+      "apr": 4.5298,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "dorkfi",
+      "opportunityType": "lending",
+      "opportunityId": "dorkfi:algorand:3697602173:31566704:lending",
+      "assetPair": "USDC",
+      "chain": "algorand",
+      "apy": 3.847026,
+      "yieldBasis": "apy",
+      "tvlUsd": 766.179508,
+      "sourceTimestamp": "2026-10-01T09:35:51.290Z",
+      "fetchedAt": "2026-10-01T09:35:51.290Z",
+      "risk": {
+        "confidence": "high",
+        "sourceAgeSeconds": 26,
+        "stability": "low",
+        "apyStdev": 1.75251,
+        "historySampleCount": 562
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:dorkfi:v1:deposit:asa",
+          "protocol": "dorkfi",
+          "protocolVersion": "v1",
+          "action": "deposit",
+          "variant": "asa",
+          "title": "Dork.fi v1 ASA lending deposit",
+          "summary": "Deposits an ASA into a Dork.fi lending market by wrapping through nt200, approving the pool, and calling lending.deposit. Amount is underlying ASA base units.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "marketAppId",
+            "assetId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "poolAppId": 3697602173
+          }
+        },
+        {
+          "shapeKey": "mainnet:dorkfi:v1:borrow:asa",
+          "protocol": "dorkfi",
+          "protocolVersion": "v1",
+          "action": "borrow",
+          "variant": "asa",
+          "title": "Dork.fi v1 ASA lending borrow",
+          "summary": "Borrows an ASA from a Dork.fi lending market against existing collateral. Calls lending.borrow then unwraps nt200 to deliver underlying ASA. Amount is underlying ASA base units.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "poolAppId",
+            "marketAppId",
+            "assetId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "poolAppId": 3697602173
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704
+      ],
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "tinyman",
+      "opportunityType": "lp",
+      "opportunityId": "HHDWSEYBFMKLEUC6ZNHUK4AAKXJMSVK4NQFKO7JFB4OEHRAS4SJ32LOTVA:lp",
+      "assetPair": "HAY/USDC",
+      "chain": "algorand",
+      "apy": 3.6688,
+      "yieldBasis": "apy",
+      "tvlUsd": 44956.879798,
+      "sourceTimestamp": "2026-10-01T09:35:51.269Z",
+      "fetchedAt": "2026-10-01T09:35:51.269Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26,
+        "stability": "low",
+        "apyStdev": 0.959967,
+        "historySampleCount": 634
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "flexible",
+          "title": "Tinyman v2 flexible add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Tinyman AMM v2 pool using flexible amounts. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            3160000000,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 3160000000,
+            "assetBId": 31566704,
+            "poolId": "HHDWSEYBFMKLEUC6ZNHUK4AAKXJMSVK4NQFKO7JFB4OEHRAS4SJ32LOTVA"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:initial",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "initial",
+          "title": "Tinyman v2 initial add liquidity",
+          "summary": "Adds the first liquidity to a bootstrapped but empty Tinyman AMM v2 pool. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_initial_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            3160000000,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 3160000000,
+            "assetBId": 31566704,
+            "poolId": "HHDWSEYBFMKLEUC6ZNHUK4AAKXJMSVK4NQFKO7JFB4OEHRAS4SJ32LOTVA"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:singleAsset",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "singleAsset",
+          "title": "Tinyman v2 single-asset add liquidity",
+          "summary": "Adds one-sided liquidity to an existing Tinyman AMM v2 pool. Tinyman performs an internal swap to balance the deposit and mints pool tokens. Generates the documented 2-transaction group (asset transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetBId",
+            "depositAssetId",
+            "depositAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            3160000000,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 3160000000,
+            "assetBId": 31566704,
+            "poolId": "HHDWSEYBFMKLEUC6ZNHUK4AAKXJMSVK4NQFKO7JFB4OEHRAS4SJ32LOTVA"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        3160000000,
+        31566704
+      ],
+      "apr": 3.6033,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "tinyman",
+      "opportunityType": "lp",
+      "opportunityId": "P3OYRTHNLAL6E6IKVOGKHKQBUCKC2W3JHCL3ITYI2OULSXC6QQTJOONITA:lp",
+      "assetPair": "AETF/USDC",
+      "chain": "algorand",
+      "apy": 2.39,
+      "yieldBasis": "apy",
+      "tvlUsd": 18704.751698,
+      "sourceTimestamp": "2026-10-01T09:35:51.269Z",
+      "fetchedAt": "2026-10-01T09:35:51.269Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26,
+        "stability": "low",
+        "apyStdev": 0.533104,
+        "historySampleCount": 634
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "flexible",
+          "title": "Tinyman v2 flexible add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Tinyman AMM v2 pool using flexible amounts. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            3581842047,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 3581842047,
+            "assetBId": 31566704,
+            "poolId": "P3OYRTHNLAL6E6IKVOGKHKQBUCKC2W3JHCL3ITYI2OULSXC6QQTJOONITA"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:initial",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "initial",
+          "title": "Tinyman v2 initial add liquidity",
+          "summary": "Adds the first liquidity to a bootstrapped but empty Tinyman AMM v2 pool. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_initial_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            3581842047,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 3581842047,
+            "assetBId": 31566704,
+            "poolId": "P3OYRTHNLAL6E6IKVOGKHKQBUCKC2W3JHCL3ITYI2OULSXC6QQTJOONITA"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:singleAsset",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "singleAsset",
+          "title": "Tinyman v2 single-asset add liquidity",
+          "summary": "Adds one-sided liquidity to an existing Tinyman AMM v2 pool. Tinyman performs an internal swap to balance the deposit and mints pool tokens. Generates the documented 2-transaction group (asset transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetBId",
+            "depositAssetId",
+            "depositAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            3581842047,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 3581842047,
+            "assetBId": 31566704,
+            "poolId": "P3OYRTHNLAL6E6IKVOGKHKQBUCKC2W3JHCL3ITYI2OULSXC6QQTJOONITA"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        3581842047,
+        31566704
+      ],
+      "apr": 2.3619,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "tinyman",
+      "opportunityType": "lp",
+      "opportunityId": "5IJOMPITCFMBC5YJKYWOHRIZ3FOWLEAIDUTC6HEVIZRUCHJ6OGPZZ3LZHI:lp",
+      "assetPair": "ECHO/USDC",
+      "chain": "algorand",
+      "apy": 2.0209,
+      "yieldBasis": "apy",
+      "tvlUsd": 10280.794767,
+      "sourceTimestamp": "2026-10-01T09:35:51.269Z",
+      "fetchedAt": "2026-10-01T09:35:51.269Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26,
+        "stability": "low",
+        "apyStdev": 0.768018,
+        "historySampleCount": 325
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:flexible",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "flexible",
+          "title": "Tinyman v2 flexible add liquidity",
+          "summary": "Adds two-sided liquidity to an existing Tinyman AMM v2 pool using flexible amounts. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            3704451149,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 3704451149,
+            "assetBId": 31566704,
+            "poolId": "5IJOMPITCFMBC5YJKYWOHRIZ3FOWLEAIDUTC6HEVIZRUCHJ6OGPZZ3LZHI"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:initial",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "initial",
+          "title": "Tinyman v2 initial add liquidity",
+          "summary": "Adds the first liquidity to a bootstrapped but empty Tinyman AMM v2 pool. Generates the documented 3-transaction group (asset1 transfer, asset2 transfer/payment, add_initial_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            3704451149,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 3704451149,
+            "assetBId": 31566704,
+            "poolId": "5IJOMPITCFMBC5YJKYWOHRIZ3FOWLEAIDUTC6HEVIZRUCHJ6OGPZZ3LZHI"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidity:singleAsset",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidity",
+          "variant": "singleAsset",
+          "title": "Tinyman v2 single-asset add liquidity",
+          "summary": "Adds one-sided liquidity to an existing Tinyman AMM v2 pool. Tinyman performs an internal swap to balance the deposit and mints pool tokens. Generates the documented 2-transaction group (asset transfer/payment, add_liquidity app call) as unsigned transactions.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetBId",
+            "depositAssetId",
+            "depositAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            3704451149,
+            31566704
+          ],
+          "inputHints": {
+            "assetAId": 3704451149,
+            "assetBId": 31566704,
+            "poolId": "5IJOMPITCFMBC5YJKYWOHRIZ3FOWLEAIDUTC6HEVIZRUCHJ6OGPZZ3LZHI"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        3704451149,
+        31566704
+      ],
+      "apr": 2.0008,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks-lending-3184324594",
+      "assetPair": "ISOLATED_USDC",
+      "chain": "algorand",
+      "apy": 1.128068,
+      "yieldBasis": "apy",
+      "tvlUsd": 12812.329084,
+      "sourceTimestamp": "2026-10-01T09:31:02.000Z",
+      "fetchedAt": "2026-10-01T09:35:51.284Z",
+      "risk": {
+        "confidence": "high",
+        "utilization": 26.41,
+        "borrowApr": 5.82515,
+        "sourceAgeSeconds": 315,
+        "stability": "low",
+        "apyStdev": 0.575042,
+        "historySampleCount": 644
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "depositEscrow",
+          "title": "Folks Finance v2 add deposit escrow",
+          "summary": "Creates and funds a new Folks Finance deposit escrow for the user. Returns a 3-transaction group that must be signed by both the user and the generated escrow account.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "poolAppId": 3184324594
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "optEscrowAsset",
+          "title": "Folks Finance v2 opt deposit escrow into pool fAsset",
+          "summary": "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+          "order": 1,
+          "requiredInputs": [
+            "userAddress",
+            "escrowAddress"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:depositEscrow"
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "poolAppId": 3184324594
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "deposit",
+          "variant": "escrow",
+          "title": "Folks Finance v2 escrow deposit",
+          "summary": "Deposits an underlying asset into a Folks Finance lending pool via a deposit escrow. fAssets accrue in the escrow rather than the user's wallet. Generates the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
+          "order": 2,
+          "requiredInputs": [
+            "userAddress",
+            "assetAmount"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:optEscrowAsset"
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "poolAppId": 3184324594
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704
+      ],
+      "apr": 1.121753,
+      "borrowApr": 5.82515,
+      "notes": "Folks mainnet lending pool 3184324594; borrowApr is variable borrow yield."
+    },
+    {
+      "protocol": "tinyman",
+      "opportunityType": "farm",
+      "opportunityId": "2PIFZW53RHCSFSYMCFUBW4XOCXOMB7XOYQSQ6KGT3KVGJTL4HM6COZRNMM:farm",
+      "assetPair": "USDC/ALGO",
+      "chain": "algorand",
+      "apy": 0.5878,
+      "yieldBasis": "apy",
+      "tvlUsd": 1774470.476999,
+      "sourceTimestamp": "2026-10-01T09:35:51.269Z",
+      "fetchedAt": "2026-10-01T09:35:51.269Z",
+      "risk": {
+        "confidence": "high",
+        "volatilityBucket": "unknown",
+        "sourceAgeSeconds": 26,
+        "stability": "low",
+        "apyStdev": 0.05039,
+        "historySampleCount": 634
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:tinyman:staking-v1:farm:commit",
+          "protocol": "tinyman",
+          "protocolVersion": "staking-v1",
+          "action": "farm",
+          "variant": "commit",
+          "title": "Tinyman farm commit (existing LP position)",
+          "summary": "Commits an existing Tinyman LP-token position to a Tinyman farm (staking program). LP tokens never leave the wallet; the commit is a staking app call that records the committed amount, optionally followed by a log_balance call for a required asset.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "commitAmount"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            0
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 0,
+            "poolId": "2PIFZW53RHCSFSYMCFUBW4XOCXOMB7XOYQSQ6KGT3KVGJTL4HM6COZRNMM"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidityAndFarm:flexible",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidityAndFarm",
+          "variant": "flexible",
+          "title": "Tinyman v2 flexible add liquidity and farm commit",
+          "summary": "Adds two-sided flexible liquidity to a Tinyman AMM v2 pool and, in the same atomic group, commits the newly minted LP position to a Tinyman farm. LP tokens never leave the wallet; the farm commit is a staking app call. Returns the combined, regrouped unsigned transaction group.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetAAmount",
+            "assetBId",
+            "assetBAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            0
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 0,
+            "poolId": "2PIFZW53RHCSFSYMCFUBW4XOCXOMB7XOYQSQ6KGT3KVGJTL4HM6COZRNMM"
+          }
+        },
+        {
+          "shapeKey": "mainnet:tinyman:v2:addLiquidityAndFarm:singleAsset",
+          "protocol": "tinyman",
+          "protocolVersion": "v2",
+          "action": "addLiquidityAndFarm",
+          "variant": "singleAsset",
+          "title": "Tinyman v2 single-asset add liquidity and farm commit",
+          "summary": "Adds one-sided liquidity to a Tinyman AMM v2 pool and, in the same atomic group, commits the newly minted LP position to a Tinyman farm. LP tokens never leave the wallet; the farm commit is a staking app call. Returns the combined, regrouped unsigned transaction group.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "assetAId",
+            "assetBId",
+            "depositAssetId",
+            "depositAmount",
+            "maxSlippageBps"
+          ],
+          "requiredAssetIds": [
+            31566704,
+            0
+          ],
+          "inputHints": {
+            "assetAId": 31566704,
+            "assetBId": 0,
+            "poolId": "2PIFZW53RHCSFSYMCFUBW4XOCXOMB7XOYQSQ6KGT3KVGJTL4HM6COZRNMM"
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        0
+      ],
+      "apr": 0.5861,
+      "notes": "sourceTimestamp equals fetchedAt; upstream does not expose a per-row update timestamp."
+    },
+    {
+      "protocol": "compx",
+      "opportunityType": "lending",
+      "opportunityId": "compx-lending-3491050310",
+      "assetPair": "USDC",
+      "chain": "algorand",
+      "apy": 0.052042,
+      "yieldBasis": "apr",
+      "tvlUsd": 144.517165,
+      "sourceTimestamp": "2026-09-28T22:52:04.000Z",
+      "fetchedAt": "2026-10-01T09:35:51.288Z",
+      "risk": {
+        "confidence": "high",
+        "utilization": 4.16,
+        "liquidationThreshold": 55,
+        "ltv": 50,
+        "borrowApr": 1.39,
+        "sourceAgeSeconds": 211453,
+        "stability": "low",
+        "apyStdev": 0.444861,
+        "historySampleCount": 644
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:compx:v1:deposit:asa",
+          "protocol": "compx",
+          "protocolVersion": "v1",
+          "action": "deposit",
+          "variant": "asa",
+          "title": "CompX v1 ASA lending deposit",
+          "summary": "Deposits a base ASA into a CompX lending market and receives LST tokens. Wraps @compx/sdk buildDepositTransactions, including the optional leading LST opt-in when needed.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "marketAppId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "marketAppId": 3491050310
+          }
+        },
+        {
+          "shapeKey": "mainnet:compx:v1:borrow:asa",
+          "protocol": "compx",
+          "protocolVersion": "v1",
+          "action": "borrow",
+          "variant": "asa",
+          "title": "CompX v1 ASA lending borrow",
+          "summary": "Borrows a base ASA from a CompX lending market against accepted LST collateral. Wraps @compx/sdk buildBorrowTransactions: optional base opt-in, gas()void, LST collateral transfer, then borrow(axfer,uint64,uint64,uint64)void. collateralTokenId must be in the market's on-chain accepted_collaterals set (often a cross-market LST such as cUSDC); defaults to the market LST when omitted.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "marketAppId",
+            "borrowAmount",
+            "collateralAmount"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "marketAppId": 3491050310
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        3491050538
+      ],
+      "apr": 0.052042,
+      "borrowApr": 1.39,
+      "notes": "CompX lending market 3491050310; util=4.2%; ltv=50.0%; liqThreshold=55.0%; availableToBorrowUsd=109.59; APR-derived yields; borrowApr is the borrow cost."
+    },
+    {
+      "protocol": "folks-finance",
+      "opportunityType": "lending",
+      "opportunityId": "folks-lending-971372237",
+      "assetPair": "USDC",
+      "chain": "algorand",
+      "apy": 5.827842,
+      "yieldBasis": "apy",
+      "tvlUsd": 4545163.312708,
+      "sourceTimestamp": "2026-10-01T09:35:35.000Z",
+      "fetchedAt": "2026-10-01T09:35:51.284Z",
+      "risk": {
+        "confidence": "high",
+        "utilization": 84.84,
+        "borrowApr": 6.973304,
+        "sourceAgeSeconds": 42,
+        "stability": "low",
+        "apyStdev": 5.710012,
+        "historySampleCount": 645
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:depositEscrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "depositEscrow",
+          "title": "Folks Finance v2 add deposit escrow",
+          "summary": "Creates and funds a new Folks Finance deposit escrow for the user. Returns a 3-transaction group that must be signed by both the user and the generated escrow account.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "poolAppId": 971372237
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:setup:optEscrowAsset",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "setup",
+          "variant": "optEscrowAsset",
+          "title": "Folks Finance v2 opt deposit escrow into pool fAsset",
+          "summary": "Funds and opts an existing Folks Finance deposit escrow into a pool fAsset so it can receive deposits.",
+          "order": 1,
+          "requiredInputs": [
+            "userAddress",
+            "escrowAddress"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:depositEscrow"
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "poolAppId": 971372237
+          }
+        },
+        {
+          "shapeKey": "mainnet:folks-finance:v2:deposit:escrow",
+          "protocol": "folks-finance",
+          "protocolVersion": "v2",
+          "action": "deposit",
+          "variant": "escrow",
+          "title": "Folks Finance v2 escrow deposit",
+          "summary": "Deposits an underlying asset into a Folks Finance lending pool via a deposit escrow. fAssets accrue in the escrow rather than the user's wallet. Generates the SDK deposit group (asset transfer + deposit app call), optionally prefixed with OpUp.",
+          "order": 2,
+          "requiredInputs": [
+            "userAddress",
+            "assetAmount"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "prerequisiteShapeKeys": [
+            "mainnet:folks-finance:v2:setup:optEscrowAsset"
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "poolAppId": 971372237
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704
+      ],
+      "apr": 5.664364,
+      "borrowApr": 6.973304,
+      "notes": "Folks mainnet lending pool 971372237; borrowApr is variable borrow yield."
+    }
+  ],
+  "meta": {
+    "limit": 100,
+    "offset": 0,
+    "includeInactive": false,
+    "paymentRequired": true,
+    "cacheEnabled": true,
+    "cacheHit": true,
+    "cachedAt": "2026-10-01T09:35:51.691Z",
+    "cacheAgeMs": 26287,
+    "cacheTtlSec": 45
+  }
+}

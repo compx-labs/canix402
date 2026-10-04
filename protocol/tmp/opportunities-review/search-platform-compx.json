@@ -1,0 +1,331 @@
+{
+  "data": [
+    {
+      "protocol": "compx",
+      "opportunityType": "lending",
+      "opportunityId": "compx-lending-3607827540",
+      "assetPair": "U",
+      "chain": "algorand",
+      "apy": 0.00054,
+      "yieldBasis": "apr",
+      "tvlUsd": 2384.025454,
+      "sourceTimestamp": "2026-08-09T15:21:30.000Z",
+      "fetchedAt": "2026-10-01T09:35:51.288Z",
+      "risk": {
+        "confidence": "high",
+        "utilization": 0.06,
+        "liquidationThreshold": 70,
+        "ltv": 65,
+        "borrowApr": 1,
+        "sourceAgeSeconds": 4558478,
+        "stability": "high",
+        "apyStdev": 0,
+        "historySampleCount": 644
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:compx:v1:deposit:asa",
+          "protocol": "compx",
+          "protocolVersion": "v1",
+          "action": "deposit",
+          "variant": "asa",
+          "title": "CompX v1 ASA lending deposit",
+          "summary": "Deposits a base ASA into a CompX lending market and receives LST tokens. Wraps @compx/sdk buildDepositTransactions, including the optional leading LST opt-in when needed.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "marketAppId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            3081853135
+          ],
+          "inputHints": {
+            "assetId": 3081853135,
+            "marketAppId": 3607827540
+          }
+        },
+        {
+          "shapeKey": "mainnet:compx:v1:borrow:asa",
+          "protocol": "compx",
+          "protocolVersion": "v1",
+          "action": "borrow",
+          "variant": "asa",
+          "title": "CompX v1 ASA lending borrow",
+          "summary": "Borrows a base ASA from a CompX lending market against accepted LST collateral. Wraps @compx/sdk buildBorrowTransactions: optional base opt-in, gas()void, LST collateral transfer, then borrow(axfer,uint64,uint64,uint64)void. collateralTokenId must be in the market's on-chain accepted_collaterals set (often a cross-market LST such as cUSDC); defaults to the market LST when omitted.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "marketAppId",
+            "borrowAmount",
+            "collateralAmount"
+          ],
+          "requiredAssetIds": [
+            3081853135
+          ],
+          "inputHints": {
+            "assetId": 3081853135,
+            "marketAppId": 3607827540
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        3081853135,
+        3607827779
+      ],
+      "apr": 0.00054,
+      "borrowApr": 1,
+      "notes": "CompX lending market 3607827540; util=0.1%; ltv=65.0%; liqThreshold=70.0%; availableToBorrowUsd=1905.62; APR-derived yields; borrowApr is the borrow cost."
+    },
+    {
+      "protocol": "compx",
+      "opportunityType": "lending",
+      "opportunityId": "compx-lending-3491064319",
+      "assetPair": "SILVER$",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 445.703399,
+      "sourceTimestamp": "2026-08-18T02:17:22.000Z",
+      "fetchedAt": "2026-10-01T09:35:51.288Z",
+      "risk": {
+        "confidence": "high",
+        "utilization": 0,
+        "liquidationThreshold": 55,
+        "ltv": 50,
+        "borrowApr": 1,
+        "sourceAgeSeconds": 3827926,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 644
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:compx:v1:deposit:asa",
+          "protocol": "compx",
+          "protocolVersion": "v1",
+          "action": "deposit",
+          "variant": "asa",
+          "title": "CompX v1 ASA lending deposit",
+          "summary": "Deposits a base ASA into a CompX lending market and receives LST tokens. Wraps @compx/sdk buildDepositTransactions, including the optional leading LST opt-in when needed.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "marketAppId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            246519683
+          ],
+          "inputHints": {
+            "assetId": 246519683,
+            "marketAppId": 3491064319
+          }
+        },
+        {
+          "shapeKey": "mainnet:compx:v1:borrow:asa",
+          "protocol": "compx",
+          "protocolVersion": "v1",
+          "action": "borrow",
+          "variant": "asa",
+          "title": "CompX v1 ASA lending borrow",
+          "summary": "Borrows a base ASA from a CompX lending market against accepted LST collateral. Wraps @compx/sdk buildBorrowTransactions: optional base opt-in, gas()void, LST collateral transfer, then borrow(axfer,uint64,uint64,uint64)void. collateralTokenId must be in the market's on-chain accepted_collaterals set (often a cross-market LST such as cUSDC); defaults to the market LST when omitted.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "marketAppId",
+            "borrowAmount",
+            "collateralAmount"
+          ],
+          "requiredAssetIds": [
+            246519683
+          ],
+          "inputHints": {
+            "assetId": 246519683,
+            "marketAppId": 3491064319
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        246519683,
+        3491064540
+      ],
+      "apr": 0,
+      "borrowApr": 1,
+      "notes": "CompX lending market 3491064319; util=0.0%; ltv=50.0%; liqThreshold=55.0%; availableToBorrowUsd=356.56; APR-derived yields; borrowApr is the borrow cost."
+    },
+    {
+      "protocol": "compx",
+      "opportunityType": "lending",
+      "opportunityId": "compx-lending-3607871733",
+      "assetPair": "COMPX",
+      "chain": "algorand",
+      "apy": 0,
+      "yieldBasis": "apr",
+      "tvlUsd": 279.765434,
+      "sourceTimestamp": "2026-09-28T22:53:19.000Z",
+      "fetchedAt": "2026-10-01T09:35:51.288Z",
+      "risk": {
+        "confidence": "high",
+        "utilization": 0,
+        "liquidationThreshold": 50,
+        "ltv": 45,
+        "borrowApr": 1,
+        "sourceAgeSeconds": 211369,
+        "stability": "unknown",
+        "apyStdev": 0,
+        "historySampleCount": 644
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:compx:v1:deposit:asa",
+          "protocol": "compx",
+          "protocolVersion": "v1",
+          "action": "deposit",
+          "variant": "asa",
+          "title": "CompX v1 ASA lending deposit",
+          "summary": "Deposits a base ASA into a CompX lending market and receives LST tokens. Wraps @compx/sdk buildDepositTransactions, including the optional leading LST opt-in when needed.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "marketAppId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            1732165149
+          ],
+          "inputHints": {
+            "assetId": 1732165149,
+            "marketAppId": 3607871733
+          }
+        },
+        {
+          "shapeKey": "mainnet:compx:v1:borrow:asa",
+          "protocol": "compx",
+          "protocolVersion": "v1",
+          "action": "borrow",
+          "variant": "asa",
+          "title": "CompX v1 ASA lending borrow",
+          "summary": "Borrows a base ASA from a CompX lending market against accepted LST collateral. Wraps @compx/sdk buildBorrowTransactions: optional base opt-in, gas()void, LST collateral transfer, then borrow(axfer,uint64,uint64,uint64)void. collateralTokenId must be in the market's on-chain accepted_collaterals set (often a cross-market LST such as cUSDC); defaults to the market LST when omitted.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "marketAppId",
+            "borrowAmount",
+            "collateralAmount"
+          ],
+          "requiredAssetIds": [
+            1732165149
+          ],
+          "inputHints": {
+            "assetId": 1732165149,
+            "marketAppId": 3607871733
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        1732165149,
+        3607871927
+      ],
+      "apr": 0,
+      "borrowApr": 1,
+      "notes": "CompX lending market 3607871733; util=0.0%; ltv=45.0%; liqThreshold=50.0%; availableToBorrowUsd=223.81; APR-derived yields; borrowApr is the borrow cost."
+    },
+    {
+      "protocol": "compx",
+      "opportunityType": "lending",
+      "opportunityId": "compx-lending-3491050310",
+      "assetPair": "USDC",
+      "chain": "algorand",
+      "apy": 0.052042,
+      "yieldBasis": "apr",
+      "tvlUsd": 144.517165,
+      "sourceTimestamp": "2026-09-28T22:52:04.000Z",
+      "fetchedAt": "2026-10-01T09:35:51.288Z",
+      "risk": {
+        "confidence": "high",
+        "utilization": 4.16,
+        "liquidationThreshold": 55,
+        "ltv": 50,
+        "borrowApr": 1.39,
+        "sourceAgeSeconds": 211444,
+        "stability": "low",
+        "apyStdev": 0.444861,
+        "historySampleCount": 644
+      },
+      "executionReady": true,
+      "executionShapes": [
+        {
+          "shapeKey": "mainnet:compx:v1:deposit:asa",
+          "protocol": "compx",
+          "protocolVersion": "v1",
+          "action": "deposit",
+          "variant": "asa",
+          "title": "CompX v1 ASA lending deposit",
+          "summary": "Deposits a base ASA into a CompX lending market and receives LST tokens. Wraps @compx/sdk buildDepositTransactions, including the optional leading LST opt-in when needed.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "marketAppId",
+            "amount"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "marketAppId": 3491050310
+          }
+        },
+        {
+          "shapeKey": "mainnet:compx:v1:borrow:asa",
+          "protocol": "compx",
+          "protocolVersion": "v1",
+          "action": "borrow",
+          "variant": "asa",
+          "title": "CompX v1 ASA lending borrow",
+          "summary": "Borrows a base ASA from a CompX lending market against accepted LST collateral. Wraps @compx/sdk buildBorrowTransactions: optional base opt-in, gas()void, LST collateral transfer, then borrow(axfer,uint64,uint64,uint64)void. collateralTokenId must be in the market's on-chain accepted_collaterals set (often a cross-market LST such as cUSDC); defaults to the market LST when omitted.",
+          "order": 0,
+          "requiredInputs": [
+            "userAddress",
+            "marketAppId",
+            "borrowAmount",
+            "collateralAmount"
+          ],
+          "requiredAssetIds": [
+            31566704
+          ],
+          "inputHints": {
+            "assetId": 31566704,
+            "marketAppId": 3491050310
+          }
+        }
+      ],
+      "compatibleExitShapes": [],
+      "assetIds": [
+        31566704,
+        3491050538
+      ],
+      "apr": 0.052042,
+      "borrowApr": 1.39,
+      "notes": "CompX lending market 3491050310; util=4.2%; ltv=50.0%; liqThreshold=55.0%; availableToBorrowUsd=109.59; APR-derived yields; borrowApr is the borrow cost."
+    }
+  ],
+  "meta": {
+    "limit": 100,
+    "offset": 0,
+    "includeInactive": false,
+    "paymentRequired": true,
+    "cacheEnabled": true,
+    "cacheHit": true,
+    "cachedAt": "2026-10-01T09:35:54.456Z",
+    "cacheAgeMs": 14315,
+    "cacheTtlSec": 45
+  }
+}
