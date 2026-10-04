@@ -149,6 +149,10 @@ test("managed-weighted add deposits to the vault and refs asset boxes", async ()
     const group = serializedGroup(built.transactions);
     const vaultAddress = algosdk.getApplicationAddress(VAULT_APP_ID).toString();
 
+    assert.equal(
+      pactManagedWeightedAddLiquidityShape.key,
+      "mainnet:pact:v201:addLiquidity:twoSided"
+    );
     assert.equal(group.length, 4);
     assert.equal(group[0]?.type, "axfer");
     assert.equal(group[0]?.assetTransfer?.receiver, USER_ADDRESS);
