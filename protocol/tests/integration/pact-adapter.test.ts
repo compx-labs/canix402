@@ -159,15 +159,25 @@ test("GET /protocols/pact/opportunities returns Pact normalized LP and farm data
       body.data.some((row) => row.opportunityId.endsWith(":farm")),
       true
     );
+    const lp = body.data.find((row) => row.opportunityType === "lp");
+    assert.equal(
+      lp?.executionShapes?.[0]?.shapeKey,
+      "mainnet:pact:v201:addLiquidity:twoSided"
+    );
     const farm = body.data.find((row) => row.opportunityType === "farm");
     assert.ok(farm);
-    const addAndFarm = farm.executionShapes?.find(
-      (shape: { shapeKey: string }) =>
-        shape.shapeKey === "mainnet:pact:v1:addLiquidityAndFarm:twoSided"
+    const stake = farm.executionShapes?.find(
+      (shape: { shapeKey: string }) => shape.shapeKey === "mainnet:pact:v1:farm:stake"
     );
-    assert.equal(addAndFarm?.inputHints?.farmAppId, 999);
-    assert.equal(addAndFarm?.inputHints?.poolAppId, 123);
-    assert.notEqual(addAndFarm?.inputHints?.poolAppId, addAndFarm?.inputHints?.farmAppId);
+    assert.equal(stake?.inputHints?.farmAppId, 999);
+    assert.equal(stake?.inputHints?.poolAppId, 123);
+    assert.notEqual(stake?.inputHints?.poolAppId, stake?.inputHints?.farmAppId);
+    assert.equal(
+      farm.executionShapes?.some(
+        (shape) => shape.shapeKey === "mainnet:pact:v1:addLiquidityAndFarm:twoSided"
+      ),
+      false
+    );
   } finally {
     await app.close();
     await mockServer.close();

@@ -72,6 +72,7 @@
     "test:live:production": "tsx --test tests/live/x402-production.test.ts",
     "test:live:execution": "tsx --test tests/live/tinyman-production-test.test.ts",
     "test:live:folks-execution": "tsx --test tests/live/folks-finance-production-test.test.ts",
+    "test:opportunities-live": "CANIX_OPPORTUNITIES_LIVE=1 tsx --env-file-if-exists=.env tests/live/opportunities-live.test.ts",
     "snapshot:discovery": "tsx --env-file-if-exists=.env scripts/export-discovery-snapshot.ts",
     "snapshot:responses": "tsx --env-file-if-exists=.env scripts/export-opportunity-snapshots.ts"
   },

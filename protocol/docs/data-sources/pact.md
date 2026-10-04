@@ -14,6 +14,15 @@ This document defines the current Pact adapter contract used by canix402.
     (paginated; fallback `GET /pools/all`)
 - Pool/farm join key: `farm.pool` matches `pool.on_chain_id`
 - Verified filtering defaults to enabled (`PACT_ONLY_VERIFIED=true`)
+- Live pools are contract version `201` with `pool_type` `MANAGED_WEIGHTED`.
+  Legacy version `100` pools (`CONST`, `STBL`) are marked `is_deprecated`.
+- Upstream `deprecated=false` is not honored: `/pools/all` still returns
+  deprecated rows. The adapter drops `is_deprecated === true` client-side
+  before LP and farm normalization, so farms on legacy parents are omitted
+  with those pools.
+- Listed LP execution uses `mainnet:pact:v201:*` liquidity shapes. v1
+  `ADDLIQ` / `REMLIQ` shapes stay available for legacy LP a wallet still holds
+  and are not attached to opportunity rows.
 
 ## Environment Variables
 
@@ -57,6 +66,7 @@ One pool can emit multiple opportunities:
 | `on_chain_id` (farm) | `opportunityId` (`:farm`) | Farm ids are suffixed `:farm` |
 | `on_chain_id` (pool) / `farm.pool` | market `poolAppId` (internal) | Joined AMM pool app id; copied into `executionShapes[].inputHints.poolAppId` for `addLiquidityAndFarm` |
 | `primary_asset.unit_name` + `secondary_asset.unit_name` | `assetPair` | Falls back to `unknown/unknown` when missing |
+| `primary_asset.algoid` or `primary_asset.on_chain_id` (and secondary) | `assetIds` | `algoid` when present; live rows send `on_chain_id`. ALGO is `0`. |
 | `apr_7d_all` (or `apr_7d`) | `apy` (`lp`) | Decimal fraction -> percentage points; required for LP output |
 | (adapter policy) | `yieldBasis` | Always `apr` |
 | `apr_7d` (or `apr_7d_all`) | `apr` (`lp`) | Decimal fraction -> percentage points; optional |
@@ -72,6 +82,7 @@ One pool can emit multiple opportunities:
 - Non-2xx response from Pact pools/farms endpoints -> adapter throws `PactAdapterError`.
 - Invalid JSON/transport timeout -> adapter throws `PactAdapterError`.
 - LP rows missing APY or TVL (USD) are filtered out.
+- Pools with `is_deprecated === true` are filtered out, including joined farms.
 - Farm rows are emitted only when farm APR data indicates incentives.
 
 ## Rate-Limit and Reliability Notes

@@ -602,17 +602,16 @@ export const mallowOpenLimitShape: TransactionShapeSpec<MallowOpenLimitInput, Ma
           acceptablePrice: state.acceptablePrice,
           oracleMessage: state.oracleMessage,
           oracleSignature: state.oracleSignature,
-          ...(state.builder ? { builderFee: state.builder } : {}),
-          ...(fundStorage
-            ? {
-                storagePaymentMicroAlgo:
-                  BigInt(V2_TRADER_BOX_MBR_MICRO_ALGO) + BigInt(V2_POSITION_BOX_MBR_MICRO_ALGO)
-              }
-            : {})
+          ...(state.builder ? { builderFee: state.builder } : {})
         };
+        const storagePaymentMicroAlgo =
+          BigInt(V2_TRADER_BOX_MBR_MICRO_ALGO) + BigInt(V2_POSITION_BOX_MBR_MICRO_ALGO);
         transactions = rehydrate(
           fundStorage
-            ? buildV2OpenOrIncreaseWithStorageTransactions(open, suggestedParams)
+            ? buildV2OpenOrIncreaseWithStorageTransactions(
+                { ...open, storagePaymentMicroAlgo },
+                suggestedParams
+              )
             : buildV2OpenOrIncreaseTransactions(open, suggestedParams)
         );
         protectAttached = false;

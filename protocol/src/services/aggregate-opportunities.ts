@@ -129,40 +129,80 @@ export async function fetchOpportunitiesWithErrors(
   protocols: readonly Protocol[],
   options: FetchOpportunitiesOptions = {}
 ): Promise<AggregateFetchResult> {
-  const results = await Promise.allSettled(
-    protocols.map((protocol) => fetchOpportunitiesForProtocolResult(protocol, options))
-  );
-
-  const data: OpportunityMarketRecord[] = [];
-  const errors: Array<{ protocol: Protocol; message: string }> = [];
-  const fulfilled: ProtocolFetchResult[] = [];
-  const log = getAppLogger();
-
-  results.forEach((result, index) => {
-    const protocol = protocols[index] as Protocol;
-    if (result.status === "fulfilled") {
-      data.push(...result.value.data);
-      fulfilled.push(result.value);
-      return;
-    }
-    const message =
-      result.reason instanceof Error ? result.reason.message : String(result.reason);
-    errors.push({ protocol, message });
-    log.warn(
-      {
-        event: "adapter_degraded",
-        protocol,
-        err: message
-      },
-      "Opportunity adapter failed"
+  // SDKs that dry-run app calls sometimes reject a detached promise (often with
+  // no reason) in addition to throwing. That rejection would exit the process
+  // and drop every protocol. Hold it for the duration of this batch.
+  return containingUnhandledRejections(async () => {
+    const results = await Promise.allSettled(
+      protocols.map((protocol) => fetchOpportunitiesForProtocolResult(protocol, options))
     );
-  });
 
-  return {
-    data,
-    errors,
-    cache: summarizeCacheMeta(fulfilled)
+    const data: OpportunityMarketRecord[] = [];
+    const errors: Array<{ protocol: Protocol; message: string }> = [];
+    const fulfilled: ProtocolFetchResult[] = [];
+    const log = getAppLogger();
+
+    results.forEach((result, index) => {
+      const protocol = protocols[index] as Protocol;
+      if (result.status === "fulfilled") {
+        data.push(...result.value.data);
+        fulfilled.push(result.value);
+        return;
+      }
+      const message = describeFailure(result.reason);
+      errors.push({ protocol, message });
+      log.warn(
+        {
+          event: "adapter_degraded",
+          protocol,
+          err: message
+        },
+        "Opportunity adapter failed; omitting its rows"
+      );
+    });
+
+    return {
+      data,
+      errors,
+      cache: summarizeCacheMeta(fulfilled)
+    };
+  });
+}
+
+/**
+ * Run catalog work without letting a floating SDK rejection terminate the process.
+ * Listeners suppress Node's default unhandled-rejection crash for this call only.
+ */
+export async function containingUnhandledRejections<T>(work: () => Promise<T>): Promise<T> {
+  const onUnhandled = (reason: unknown): void => {
+    getAppLogger().warn(
+      {
+        event: "adapter_unhandled_rejection",
+        err: describeFailure(reason)
+      },
+      "Contained an unhandled rejection during opportunity aggregation"
+    );
   };
+  process.on("unhandledRejection", onUnhandled);
+  try {
+    return await work();
+  } finally {
+    await new Promise((resolve) => setImmediate(resolve));
+    process.removeListener("unhandledRejection", onUnhandled);
+  }
+}
+
+function describeFailure(error: unknown): string {
+  if (error instanceof Error && error.message.length > 0) {
+    return error.message;
+  }
+  if (typeof error === "string" && error.length > 0) {
+    return error;
+  }
+  if (error === undefined || error === null) {
+    return "unknown failure";
+  }
+  return String(error);
 }
 
 /** Single-protocol fetch that returns records plus cache stats for route meta. */

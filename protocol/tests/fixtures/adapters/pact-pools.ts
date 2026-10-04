@@ -12,6 +12,40 @@ export const pactAlgoUsdcLp = {
   secondary_asset: { algoid: USDC_ASSET_ID, unit_name: "USDC", name: "USD Coin" }
 };
 
+export const pactManagedWeightedLp = {
+  on_chain_id: "3662410374",
+  version: 201,
+  pool_type: "MANAGED_WEIGHTED",
+  is_verified: true,
+  is_deprecated: false,
+  apr_7d_all: "0.102641",
+  apr_7d: "0.102641",
+  tvl_usd: "111169.46830800",
+  primary_asset: { on_chain_id: "0", unit_name: "ALGO", name: "Algorand" },
+  secondary_asset: { on_chain_id: String(USDC_ASSET_ID), unit_name: "USDC", name: "USDC" }
+};
+
+export const pactDeprecatedPool = {
+  on_chain_id: "2757488616",
+  version: 100,
+  pool_type: "CONST",
+  is_verified: true,
+  is_deprecated: true,
+  apr_7d_all: "0.180527",
+  apr_7d: "0.180527",
+  tvl_usd: "57490.10313343",
+  primary_asset: { on_chain_id: "0", unit_name: "ALGO" },
+  secondary_asset: { on_chain_id: String(USDC_ASSET_ID), unit_name: "USDC" }
+};
+
+export const pactDeprecatedFarm = {
+  on_chain_id: "legacy-farm",
+  pool: "2757488616",
+  apr: 0.2,
+  average_apr: 0.22,
+  tvl_usd: 50000
+};
+
 export const pactApr7dOnly = {
   id: 999,
   is_verified: true,

@@ -6,6 +6,10 @@
 - Supported opportunity types: `lp`
 - Paid API endpoint: `POST /execution/quotes` (0.1 USDC via x402)
 
+This shape builds the legacy `REMLIQ` group. Listed LP rows and non-deprecated
+positions attach `mainnet:pact:v201:removeLiquidity:proportional`. Wallet
+positions on deprecated pools still use this shape.
+
 ## Example request
 
 ```json

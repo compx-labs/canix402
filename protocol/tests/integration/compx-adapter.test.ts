@@ -546,3 +546,102 @@ test("GET /protocols/compx/opportunities returns CompX normalized data", async (
     setAssetDecimalsDependenciesForTests(undefined);
   }
 });
+
+test("fetchCompXOpportunities omits a staking row whose read fails", async () => {
+  mockOnChainAssetDecimals();
+  const pool = {
+    stakedAssetId: 0,
+    rewardAssetId: 0,
+    totalStaked: 5_000_000_000n,
+    rewardPerToken: 0n,
+    startTime: 1_700_000_000,
+    endTime: 1_900_000_000,
+    lastUpdateTime: 1_750_000_000,
+    totalRewards: 1_000_000n,
+    accruedRewards: 0n,
+    rewardsPaid: 0n,
+    rewardsRemaining: 1_000_000n,
+    initialized: true,
+    rewardsFunded: true,
+    adminAddress: "ADMIN",
+    numStakers: 5,
+    contractState: 1,
+    masterRepoAppId: 3475071555,
+    platformFeeBps: 100
+  };
+  setCompXSdkDependenciesForTests({
+    createAlgodClient: () => ({}) as never,
+    createSdk: () => ({ lending: {}, staking: {}, pricing: {} }) as never,
+    getAllMarketsFn: async () => [
+      {
+        appId: 100,
+        baseTokenId: 31566704,
+        lstTokenId: 200,
+        oracleAppId: 3307588794,
+        buyoutTokenId: 0,
+        supplyApy: 4.25,
+        borrowApy: 8.5,
+        utilizationRate: 55,
+        totalDeposits: 1000,
+        totalBorrows: 550,
+        availableToBorrow: 250,
+        circulatingLST: 900,
+        baseTokenPrice: 1,
+        totalDepositsUSD: 1_250_000,
+        totalBorrowsUSD: 550_000,
+        availableToBorrowUSD: 250_000,
+        ltv: 7500,
+        liquidationThreshold: 8500,
+        liqBonusBps: 750,
+        originationFeeBps: 0,
+        baseTokenDecimals: 6,
+        lstTokenDecimals: 6,
+        rateModel: {
+          baseBps: 200,
+          utilCapBps: 8000,
+          kinkNormBps: 5000,
+          slope1Bps: 1000,
+          slope2Bps: 2000,
+          maxAprBps: 8000,
+          rateModelType: 0
+        },
+        contractState: 1,
+        protocolShareBps: 1000,
+        borrowIndexWad: 1_000_000_000_000_000_000n,
+        lastUpdateTimestamp: 1_700_000_000
+      }
+    ],
+    getAllPoolsFn: async () => [
+      { ...pool, appId: 300 },
+      { ...pool, appId: 301 }
+    ],
+    getAssetsInfoFn: async () => [
+      {
+        id: 31566704,
+        name: "USD Coin",
+        unitName: "USDC",
+        decimals: 6,
+        total: 0n,
+        frozen: false,
+        creator: "CREATOR"
+      }
+    ],
+    getPoolAprFn: async (appId) => {
+      if (appId === 301) {
+        throw new Error("inner tx 1 failed: logic eval error");
+      }
+      return 9.5;
+    },
+    getTokenPricesFn: async () => ({ "0": 0.2 })
+  });
+
+  try {
+    const opportunities = await fetchCompXOpportunities();
+    const ids = opportunities.map((row) => row.opportunityId);
+
+    assert.deepEqual(ids.sort(), ["compx-lending-100", "compx-staking-300"]);
+  } finally {
+    setCompXSdkDependenciesForTests(undefined);
+    setAssetDecimalsDependenciesForTests(undefined);
+  }
+});
