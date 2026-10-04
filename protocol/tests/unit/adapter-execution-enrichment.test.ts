@@ -105,6 +105,14 @@ test("normalized Pact LP/farm rows attach enter shapes and strip poolAppId", () 
   const lpPublic = attachExecutionShapesToOpportunity(lp);
   assertValidPublicOpportunity(lpPublic);
   assert.equal(lpPublic.executionReady, true);
+  assert.equal(
+    lpPublic.executionShapes[0]?.shapeKey,
+    "mainnet:pact:v201:addLiquidity:twoSided"
+  );
+  assert.equal(
+    lpPublic.compatibleExitShapes[0]?.shapeKey,
+    "mainnet:pact:v201:removeLiquidity:proportional"
+  );
 
   const farm = normalizePactFarm(pactAlgoUsdcLp, pactJoinedFarm, PACT_FIXTURE_FETCHED_AT);
   assertValidMarketRecord(farm);
@@ -112,11 +120,17 @@ test("normalized Pact LP/farm rows attach enter shapes and strip poolAppId", () 
   const farmPublic = attachExecutionShapesToOpportunity(farm);
   assertValidPublicOpportunity(farmPublic);
   assert.equal(farmPublic.executionReady, true);
-  const addAndFarm = farmPublic.executionShapes.find(
-    (shape) => shape.shapeKey === "mainnet:pact:v1:addLiquidityAndFarm:twoSided"
+  const stake = farmPublic.executionShapes.find(
+    (shape) => shape.shapeKey === "mainnet:pact:v1:farm:stake"
   );
-  assert.equal(addAndFarm?.inputHints?.farmAppId, 3625283323);
-  assert.equal(addAndFarm?.inputHints?.poolAppId, 1072843805);
+  assert.equal(stake?.inputHints?.farmAppId, 3625283323);
+  assert.equal(stake?.inputHints?.poolAppId, 1072843805);
+  assert.equal(
+    farmPublic.executionShapes.some(
+      (shape) => shape.shapeKey === "mainnet:pact:v1:addLiquidityAndFarm:twoSided"
+    ),
+    false
+  );
 });
 
 test("normalized Folks lending rows attach ordered escrow enter steps", () => {

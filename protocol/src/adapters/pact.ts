@@ -1,6 +1,13 @@
 import { buildSourceMetadata } from "../services/source-metadata.js";
 import { OpportunityMarketRecord } from "../types/opportunity.js";
 
+interface PactAssetApiRecord {
+  algoid?: number | string | null;
+  on_chain_id?: number | string | null;
+  unit_name?: string | null;
+  name?: string | null;
+}
+
 interface PactPoolApiRecord {
   id?: number | string;
   on_chain_id?: number | string;
@@ -8,16 +15,9 @@ interface PactPoolApiRecord {
   apr_7d?: number | string | null;
   apr_7d_all?: number | string | null;
   is_verified?: boolean | null;
-  primary_asset?: {
-    algoid?: number | string | null;
-    unit_name?: string | null;
-    name?: string | null;
-  };
-  secondary_asset?: {
-    algoid?: number | string | null;
-    unit_name?: string | null;
-    name?: string | null;
-  };
+  is_deprecated?: boolean | null;
+  primary_asset?: PactAssetApiRecord;
+  secondary_asset?: PactAssetApiRecord;
 }
 
 interface PactFarmApiRecord {
@@ -81,6 +81,7 @@ export async function fetchPactOpportunities(
     const farmsByPoolId = groupFarmsByPoolId(payload.farms);
 
     return payload.pools
+      .filter((record) => record.is_deprecated !== true)
       .filter((record) => (onlyVerified ? record.is_verified === true : true))
       .flatMap((record) =>
         normalizePactPoolOpportunities(
@@ -243,9 +244,12 @@ function trimTrailingSlash(value: string): string {
 }
 
 function buildAssetIds(record: PactPoolApiRecord): number[] {
-  return [record.primary_asset?.algoid, record.secondary_asset?.algoid]
-    .map((value) => toAssetId(value))
+  return [assetIdFromAsset(record.primary_asset), assetIdFromAsset(record.secondary_asset)]
     .filter((value): value is number => value !== null);
+}
+
+function assetIdFromAsset(asset: PactAssetApiRecord | undefined): number | null {
+  return toAssetId(asset?.algoid ?? asset?.on_chain_id);
 }
 
 function toAssetId(value: number | string | null | undefined): number | null {

@@ -20,8 +20,8 @@ const FOLKS_DEPOSIT_ESCROW = "mainnet:folks-finance:v2:deposit:escrow";
 
 const PACT_FARM_DEPLOY_ESCROW = "mainnet:pact:v1:farm:deployEscrow";
 const PACT_FARM_STAKE = "mainnet:pact:v1:farm:stake";
-const PACT_ADD_LIQUIDITY_AND_FARM =
-  "mainnet:pact:v1:addLiquidityAndFarm:twoSided";
+const PACT_V201_ADD_LIQUIDITY = "mainnet:pact:v201:addLiquidity:twoSided";
+const PACT_V201_REMOVE_LIQUIDITY = "mainnet:pact:v201:removeLiquidity:proportional";
 
 const TINYMAN_TALGO_STAKING_OPPORTUNITY_ID = "tinyman-staking-talgo";
 const FOLKS_XALGO_STAKING_OPPORTUNITY_ID = "folks-staking-xalgo";
@@ -81,8 +81,21 @@ const FOLKS_LENDING_ENTER_STEPS: ReadonlyArray<{
 ];
 
 /**
- * Pact farms require a per-user escrow before stake / addLiquidityAndFarm.
+ * Listed Pact pools are managed-weighted v201. The v1 ADDLIQ shape stays
+ * registered for legacy withdrawals but is not attached to opportunity rows.
+ */
+const PACT_LP_ENTER_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: PACT_V201_ADD_LIQUIDITY, order: 0 }
+];
+
+const PACT_LP_EXIT_STEPS: ReadonlyArray<ShapeStep> = [
+  { shapeKey: PACT_V201_REMOVE_LIQUIDITY, order: 0 }
+];
+
+/**
+ * Pact farms require a per-user escrow before stake.
  * Escrow app id is only known after deploy confirms, so deploy is a separate step.
+ * v1 addLiquidityAndFarm calls ADDLIQ and is not offered on listed farms.
  */
 const PACT_FARM_ENTER_STEPS: ReadonlyArray<{
   shapeKey: string;
@@ -92,11 +105,6 @@ const PACT_FARM_ENTER_STEPS: ReadonlyArray<{
   { shapeKey: PACT_FARM_DEPLOY_ESCROW, order: 0 },
   {
     shapeKey: PACT_FARM_STAKE,
-    order: 1,
-    prerequisiteShapeKeys: [PACT_FARM_DEPLOY_ESCROW]
-  },
-  {
-    shapeKey: PACT_ADD_LIQUIDITY_AND_FARM,
     order: 1,
     prerequisiteShapeKeys: [PACT_FARM_DEPLOY_ESCROW]
   }
@@ -303,8 +311,12 @@ function orderEnterShapes(
     });
   }
 
+  if (record.protocol === "pact" && record.opportunityType === "lp") {
+    return orderBySteps(shapes, PACT_LP_ENTER_STEPS, { exclusive: true });
+  }
+
   if (record.protocol === "pact" && record.opportunityType === "farm") {
-    return orderBySteps(shapes, PACT_FARM_ENTER_STEPS);
+    return orderBySteps(shapes, PACT_FARM_ENTER_STEPS, { exclusive: true });
   }
 
   if (
@@ -408,6 +420,9 @@ function orderExitShapes(
 function resolveExitSteps(
   record: OpportunityMarketRecord
 ): ReadonlyArray<ShapeStep> {
+  if (record.protocol === "pact" && record.opportunityType === "lp") {
+    return PACT_LP_EXIT_STEPS;
+  }
   if (
     record.protocol === "tinyman" &&
     record.opportunityType === "staking" &&
