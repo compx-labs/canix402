@@ -44,6 +44,8 @@
     "test:mcp-worker": "npm run test -w @canix402/mcp-worker",
     "typecheck:x402-client": "npm run typecheck -w @canix402/x402-client",
     "start:mcp": "npm run start -w @canix402/mcp",
+    "stats:dry": "npm run stats:dry -w protocol",
+    "stats:publish": "npm run stats:publish -w protocol",
     "check": "npm run typecheck:x402-client && npm run typecheck:protocol && npm run build:caddy-x402 && npm run test:protocol && npm run typecheck:mcp && npm run test:mcp && npm run typecheck:mcp-worker && npm run test:mcp-worker && npm run typecheck:website && npm run test:website && npm run build:website"
   },
   "dependencies": {

@@ -6,14 +6,18 @@ import {
   isNativeEthAsset,
   normalizeEvmAddress
 } from "../execution/evm.js";
+import { getAppLogger } from "../observability/logger.js";
 import { skipLiveCatalogInTests } from "./offline-test-runtime.js";
 import {
   AerodromeLp,
   AerodromeSugarDecodeError,
+  BASE_MULTICALL3,
   decodeLpSugarAll,
   decodeSugarCount,
+  decodeTryAggregate,
   encodeSugarAllCall,
-  encodeSugarCountCall
+  encodeSugarCountCall,
+  encodeTryAggregateCall
 } from "./aerodrome-sugar.js";
 
 export const DEFAULT_AERODROME_SUGAR_ADDRESS =
@@ -29,8 +33,16 @@ export const AERODROME_AERO =
 export const AERODROME_FARM_OPPORTUNITY_ID_PREFIX = "aerodrome-farm-";
 export const DEFAULT_AERODROME_PRICE_URL = "https://coins.llama.fi/prices/current";
 export const DEFAULT_AERODROME_MIN_TVL_USD = 50_000;
-export const DEFAULT_AERODROME_PAGE_SIZE = 100;
+export const DEFAULT_AERODROME_PAGE_SIZE = 200;
 export const DEFAULT_AERODROME_CATALOG_TTL_SEC = 600;
+export const DEFAULT_AERODROME_MULTICALL_PAGES = 8;
+
+/** How long a failed refresh keeps serving the previous snapshot before trying again. */
+const AERODROME_STALE_CATALOG_MS = 60_000;
+const SUGAR_CALL_TIMEOUT_MS = 20_000;
+const SUGAR_MAX_ATTEMPTS = 5;
+const SUGAR_RETRY_BASE_MS = 400;
+const SUGAR_PAGE_GAP_MS = 250;
 
 const SECONDS_PER_YEAR = 31_536_000n;
 const PRICE_BATCH = 30;
@@ -77,12 +89,14 @@ interface CatalogCache {
 
 let dependencyOverrides: Partial<AerodromeAdapterDependencies> | undefined;
 let catalogCache: CatalogCache | undefined;
+let catalogRefresh: Promise<CatalogCache> | undefined;
 
 export function setAerodromeAdapterDependenciesForTests(
   overrides?: Partial<AerodromeAdapterDependencies>
 ): void {
   dependencyOverrides = overrides;
   catalogCache = undefined;
+  catalogRefresh = undefined;
 }
 
 export function aerodromeFarmOpportunityId(pool: string): string {
@@ -145,7 +159,57 @@ async function loadCatalog(): Promise<CatalogCache> {
   if (catalogCache !== undefined && catalogCache.expiresAt > now) {
     return catalogCache;
   }
+  if (catalogRefresh !== undefined) {
+    return catalogRefresh;
+  }
 
+  const refresh = refreshCatalog(deps, now).finally(() => {
+    if (catalogRefresh === refresh) {
+      catalogRefresh = undefined;
+    }
+  });
+  catalogRefresh = refresh;
+  // A full Sugar scan takes long enough to trip request timeouts. Serve the
+  // previous snapshot immediately and let this refresh replace it.
+  if (catalogCache !== undefined) {
+    return catalogCache;
+  }
+  return refresh;
+}
+
+async function refreshCatalog(
+  deps: AerodromeAdapterDependencies,
+  now: number
+): Promise<CatalogCache> {
+  try {
+    const loaded = await buildCatalog(deps, now);
+    if (deps.catalogTtlMs > 0) {
+      catalogCache = loaded;
+    }
+    return loaded;
+  } catch (error) {
+    if (catalogCache !== undefined && deps.catalogTtlMs > 0) {
+      catalogCache = {
+        ...catalogCache,
+        expiresAt: deps.nowMs() + AERODROME_STALE_CATALOG_MS
+      };
+      getAppLogger().warn(
+        {
+          event: "aerodrome_catalog_stale",
+          err: error instanceof Error ? error.message : String(error)
+        },
+        "Aerodrome catalog refresh failed; serving the previous snapshot"
+      );
+      return catalogCache;
+    }
+    throw error;
+  }
+}
+
+async function buildCatalog(
+  deps: AerodromeAdapterDependencies,
+  now: number
+): Promise<CatalogCache> {
   const fetchedAt = new Date(now).toISOString();
   const pools = await deps.listPools();
   const candidates = pools.filter(isStructurallyListed);
@@ -162,15 +226,11 @@ async function loadCatalog(): Promise<CatalogCache> {
     snapshots.push(classified.snapshot);
   }
 
-  const loaded = {
+  return {
     expiresAt: now + deps.catalogTtlMs,
     records,
     snapshots
   };
-  if (deps.catalogTtlMs > 0) {
-    catalogCache = loaded;
-  }
-  return loaded;
 }
 
 function classifyAerodromePool(
@@ -297,32 +357,145 @@ function tokenUsd(amount: bigint, price: AerodromeTokenPrice): number {
   return (Number(whole) + Number(fraction) / Number(scale)) * price.usd;
 }
 
-async function listSugarPools(): Promise<AerodromeLp[]> {
-  const client = createBaseEvmClient();
-  const sugar = readSugarAddress();
-  const pageSize = BigInt(readPageSize());
+export interface SugarPoolReadOptions {
+  sugar: string;
+  pageSize: number;
+  pagesPerCall: number;
+  sleep?: (ms: number) => Promise<void>;
+}
+
+/**
+ * Walk `LpSugar.count()` and read `all(limit, offset, 1)` through Multicall3.
+ * A full scan is tens of thousands of pools. Batching keeps the public Base
+ * RPC under its rate limit, and a reverted page is split and retried.
+ */
+export async function readAerodromeSugarPools(
+  call: (to: string, data: string) => Promise<string>,
+  options: SugarPoolReadOptions
+): Promise<AerodromeLp[]> {
+  const sleep = options.sleep ?? delay;
+  const pageSize = BigInt(options.pageSize);
+  const pagesPerCall = options.pagesPerCall;
   let count: bigint;
   try {
-    count = decodeSugarCount(await client.call(sugar, encodeSugarCountCall()));
+    count = decodeSugarCount(
+      await withTransientRetries(() => call(options.sugar, encodeSugarCountCall()), sleep)
+    );
   } catch (error) {
-    throw new AerodromeAdapterError("Aerodrome Sugar count() failed.", error);
+    throw sugarFailure("Aerodrome Sugar count() failed.", error);
+  }
+
+  const offsets: bigint[] = [];
+  for (let offset = 0n; offset < count; offset += pageSize) {
+    offsets.push(offset);
   }
 
   const pools: AerodromeLp[] = [];
-  for (let offset = 0n; offset < count; offset += pageSize) {
-    let page: AerodromeLp[];
-    try {
-      const encoded = await client.call(sugar, encodeSugarAllCall(pageSize, offset));
-      page = decodeLpSugarAll(encoded);
-    } catch (error) {
-      if (error instanceof AerodromeSugarDecodeError) {
-        throw new AerodromeAdapterError(error.message, error);
-      }
-      throw new AerodromeAdapterError("Aerodrome Sugar all() failed.", error);
+  for (let index = 0; index < offsets.length; index += pagesPerCall) {
+    if (index > 0) {
+      await sleep(SUGAR_PAGE_GAP_MS);
     }
-    pools.push(...page);
+    const chunk = offsets.slice(index, index + pagesPerCall);
+    pools.push(...(await readSugarChunk(call, options.sugar, pageSize, chunk, sleep)));
   }
   return pools;
+}
+
+async function listSugarPools(): Promise<AerodromeLp[]> {
+  const client = createBaseEvmClient(undefined, fetch, { timeoutMs: SUGAR_CALL_TIMEOUT_MS });
+  return readAerodromeSugarPools((to, data) => client.call(to, data), {
+    sugar: readSugarAddress(),
+    pageSize: readPageSize(),
+    pagesPerCall: readMulticallPages()
+  });
+}
+
+async function readSugarChunk(
+  call: (to: string, data: string) => Promise<string>,
+  sugar: string,
+  pageSize: bigint,
+  offsets: readonly bigint[],
+  sleep: (ms: number) => Promise<void>
+): Promise<AerodromeLp[]> {
+  if (offsets.length === 1) {
+    return readSugarPage(call, sugar, pageSize, offsets[0] as bigint, sleep);
+  }
+
+  try {
+    const encoded = await withTransientRetries(
+      () =>
+        call(
+          BASE_MULTICALL3,
+          encodeTryAggregateCall(
+            offsets.map((offset) => ({
+              target: sugar,
+              data: encodeSugarAllCall(pageSize, offset)
+            }))
+          )
+        ),
+      sleep
+    );
+    const parts = decodeTryAggregate(encoded);
+    if (parts.length !== offsets.length) {
+      throw new AerodromeSugarDecodeError("Multicall page count did not match the request.");
+    }
+    const pools: AerodromeLp[] = [];
+    for (let index = 0; index < parts.length; index += 1) {
+      const part = parts[index];
+      const offset = offsets[index] as bigint;
+      if (part === undefined || !part.success) {
+        pools.push(...(await readSugarPage(call, sugar, pageSize, offset, sleep)));
+        continue;
+      }
+      try {
+        pools.push(...decodeLpSugarAll(part.returnData));
+      } catch (error) {
+        if (!(error instanceof AerodromeSugarDecodeError)) {
+          throw error;
+        }
+        pools.push(...(await readSugarPage(call, sugar, pageSize, offset, sleep)));
+      }
+    }
+    return pools;
+  } catch (error) {
+    if (error instanceof AerodromeAdapterError) {
+      throw error;
+    }
+    if (isTransientFailure(error)) {
+      throw sugarFailure("Aerodrome Sugar all() failed.", error);
+    }
+    const midpoint = Math.ceil(offsets.length / 2);
+    const left = await readSugarChunk(
+      call,
+      sugar,
+      pageSize,
+      offsets.slice(0, midpoint),
+      sleep
+    );
+    const right = await readSugarChunk(call, sugar, pageSize, offsets.slice(midpoint), sleep);
+    return [...left, ...right];
+  }
+}
+
+async function readSugarPage(
+  call: (to: string, data: string) => Promise<string>,
+  sugar: string,
+  pageSize: bigint,
+  offset: bigint,
+  sleep: (ms: number) => Promise<void>
+): Promise<AerodromeLp[]> {
+  try {
+    const encoded = await withTransientRetries(
+      () => call(sugar, encodeSugarAllCall(pageSize, offset)),
+      sleep
+    );
+    return decodeLpSugarAll(encoded);
+  } catch (error) {
+    if (error instanceof AerodromeSugarDecodeError) {
+      throw new AerodromeAdapterError(error.message, error);
+    }
+    throw sugarFailure("Aerodrome Sugar all() failed.", error);
+  }
 }
 
 async function fetchDefiLlamaPrices(
@@ -353,6 +526,10 @@ async function fetchDefiLlamaPrices(
 }
 
 async function getJson(url: string): Promise<Record<string, unknown>> {
+  return withTransientRetries(() => getJsonOnce(url));
+}
+
+async function getJsonOnce(url: string): Promise<Record<string, unknown>> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8_000);
   try {
@@ -371,7 +548,7 @@ async function getJson(url: string): Promise<Record<string, unknown>> {
     if (error instanceof AerodromeAdapterError) {
       throw error;
     }
-    throw new AerodromeAdapterError("Aerodrome price request failed.", error);
+    throw sugarFailure("Aerodrome price request failed.", error);
   } finally {
     clearTimeout(timeout);
   }
@@ -414,6 +591,69 @@ function readPageSize(): number {
     1,
     200
   );
+}
+
+function readMulticallPages(): number {
+  return readBoundedInteger(
+    process.env.AERODROME_SUGAR_MULTICALL_PAGES,
+    DEFAULT_AERODROME_MULTICALL_PAGES,
+    1,
+    DEFAULT_AERODROME_MULTICALL_PAGES
+  );
+}
+
+function sugarFailure(message: string, error: unknown): AerodromeAdapterError {
+  const detail = error instanceof Error ? error.message : String(error);
+  const text = detail.length > 0 && !message.includes(detail) ? `${message} ${detail}` : message;
+  return new AerodromeAdapterError(text, error);
+}
+
+function isTransientFailure(error: unknown): boolean {
+  return /\b(408|429|500|502|503|504)\b|timeout|timed out|aborted|rate limit|too many requests|ECONNRESET|fetch failed|EAI_AGAIN|socket|eth_call failed|no result/i.test(
+    failureText(error)
+  );
+}
+
+function failureText(error: unknown): string {
+  const parts: string[] = [];
+  const seen = new Set<unknown>();
+  let current: unknown = error;
+  while (current !== undefined && current !== null && !seen.has(current)) {
+    seen.add(current);
+    if (current instanceof Error) {
+      parts.push(current.message);
+      current = current.cause;
+      continue;
+    }
+    parts.push(String(current));
+    break;
+  }
+  return parts.join(" ");
+}
+
+async function withTransientRetries<T>(
+  work: () => Promise<T>,
+  sleep: (ms: number) => Promise<void> = delay
+): Promise<T> {
+  let last: unknown;
+  for (let attempt = 0; attempt < SUGAR_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      return await work();
+    } catch (error) {
+      last = error;
+      if (attempt === SUGAR_MAX_ATTEMPTS - 1 || !isTransientFailure(error)) {
+        throw error;
+      }
+      await sleep(SUGAR_RETRY_BASE_MS * 2 ** attempt);
+    }
+  }
+  throw last;
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 function readMinTvlUsd(): number {

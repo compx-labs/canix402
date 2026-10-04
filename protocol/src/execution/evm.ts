@@ -73,15 +73,17 @@ export function requireEvmClient(context: ShapeBuildContext): EvmRpcClient {
 
 export function createBaseEvmClient(
   rpcUrl: string = process.env.BASE_RPC_URL ?? DEFAULT_BASE_RPC_URL,
-  fetchImpl: typeof fetch = fetch
+  fetchImpl: typeof fetch = fetch,
+  options: { timeoutMs?: number } = {}
 ): EvmRpcClient {
   const endpoint = rpcUrl.trim() || DEFAULT_BASE_RPC_URL;
+  const timeoutMs = options.timeoutMs ?? 8_000;
 
   return {
     chainId: BASE_CHAIN_ID,
     async call(to: string, data: string): Promise<string> {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8_000);
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
       try {
         const response = await fetchImpl(endpoint, {
           method: "POST",

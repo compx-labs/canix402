@@ -15,6 +15,7 @@ Algorand analogue: Pact farm (two-sided LP plus stake) as unsigned Base calldata
 - Execution shapes: `src/execution/shapes/aerodrome/`
 - Catalog: `LpSugar.all(limit, offset, 1)` on `0x69dD9db6d8f8E7d83887A704f447b1a584b599A1`
 - The deployed method takes three arguments. The two-argument form reverts. Filter `1` keeps pools whose tokens are voter-whitelisted. Walk `offset` through `count()`. A short page is not the end of the list.
+- `count()` is tens of thousands of pools. Pages are batched through Multicall3 (`AERODROME_SUGAR_MULTICALL_PAGES`, default 8) so the public Base RPC is not asked for one `eth_call` per page. A 429, timeout, or dropped connection is retried. A batch that reverts is split. Once a snapshot exists, the next scan runs in the background and the previous rows stay available. A failed refresh waits 60 seconds before trying again.
 - Prices: `GET https://coins.llama.fi/prices/current/base:{token},...`
 - Network: Base (`chainId` 8453). Rows always carry `chain: "base"`.
 - Positions: staked LP via `Gauge.balanceOf` for catalogued pools on `GET /positions`. Unclaimed AERO and unstaked LP are omitted.
@@ -22,7 +23,8 @@ Algorand analogue: Pact farm (two-sided LP plus stake) as unsigned Base calldata
 ## Environment Variables
 
 - `AERODROME_SUGAR_ADDRESS` (optional; default `0x69dD9db6d8f8E7d83887A704f447b1a584b599A1`)
-- `AERODROME_SUGAR_PAGE_SIZE` (optional; default `100`, max `200`. `500` can exceed public Base RPC gas)
+- `AERODROME_SUGAR_PAGE_SIZE` (optional; default `200`, max `200`. `500` can exceed public Base RPC gas)
+- `AERODROME_SUGAR_MULTICALL_PAGES` (optional; default `8`, max `8`)
 - `AERODROME_MIN_TVL_USD` (optional; default `50000`)
 - `AERODROME_CATALOG_TTL_SEC` (optional; default `600`)
 - `AERODROME_PRICE_URL` (optional; default `https://coins.llama.fi/prices/current`)
@@ -69,7 +71,7 @@ Quote-time reads reject a dead gauge, a non-basic factory, and native ETH. Mins 
 
 ## Isolation
 
-A Sugar or price timeout must not fail the rest of `/opportunities`. `fetchOpportunitiesForProtocols` already degrades per adapter via `Promise.allSettled`. The normalized catalog is cached in-process for `AERODROME_CATALOG_TTL_SEC` because a full Sugar scan is many heavy `eth_call`s.
+A Sugar or price timeout must not fail the rest of `/opportunities`. `fetchOpportunitiesForProtocols` already degrades per adapter via `Promise.allSettled`. The normalized catalog is cached in-process for `AERODROME_CATALOG_TTL_SEC` because a full Sugar scan is many heavy `eth_call`s. When a later refresh fails, the previous snapshot stays in that cache for 60 seconds instead of omitting Aerodrome.
 
 ## Tests
 

@@ -15,6 +15,8 @@
     "positions": "tsx --env-file-if-exists=.env src/cli/positions.ts",
     "sweep:usdc": "tsx --env-file-if-exists=.env src/cli/sweep-usdc.ts",
     "harvest:fees": "tsx --env-file-if-exists=.env src/cli/harvest-fees.ts",
+    "stats:dry": "tsx --env-file-if-exists=.env src/cli/nf-stats.ts --dry-run",
+    "stats:publish": "tsx --env-file-if-exists=.env src/cli/nf-stats.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test:unit": "CANIX402_OFFLINE_CATALOG=1 NODE_ENV=test tsx --test tests/unit/*.test.ts",
     "test:api": "CANIX402_OFFLINE_CATALOG=1 NODE_ENV=test tsx --test tests/integration/*.test.ts",
