@@ -1,0 +1,80 @@
+---
+import { config } from "../lib/config";
+import { humanSetupPrompt } from "../lib/human-prompt";
+
+interface Props {
+  id?: string;
+}
+
+const { id = "human" } = Astro.props;
+const humanPrompt = humanSetupPrompt(config.mcpUrl);
+---
+
+<section class="human-prompt" id={id}>
+  <div class="human-prompt-head">
+    <h2>Get your agent a wallet and be Canix-ready in 5 minutes</h2>
+    <button type="button" class="button button-primary" data-copy-prompt>Copy prompt</button>
+  </div>
+  <p class="muted">
+    Copy this into your agent. It creates the Algorand wallet itself, tells you the address to fund,
+    and comes back with one yield recommendation. You never create a wallet and you never paste a
+    seed phrase.
+  </p>
+  <pre class="code-block human-prompt-text"><code data-prompt-source>{humanPrompt}</code></pre>
+</section>
+
+<script>
+  async function writeClipboard(text: string): Promise<boolean> {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.setAttribute("readonly", "");
+      area.style.position = "fixed";
+      area.style.left = "-9999px";
+      document.body.appendChild(area);
+      area.select();
+      const copied = document.execCommand("copy");
+      area.remove();
+      return copied;
+    }
+  }
+
+  const buttons = document.querySelectorAll<HTMLButtonElement>("[data-copy-prompt]");
+
+  buttons.forEach((button) => {
+    if (button.dataset.copyBound === "true") {
+      return;
+    }
+    button.dataset.copyBound = "true";
+
+    button.addEventListener("click", async () => {
+      const source = document.querySelector<HTMLElement>("[data-prompt-source]");
+      const text = source?.textContent?.trim() ?? "";
+      if (!text) {
+        return;
+      }
+
+      document.getElementById("human")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      const label = button.textContent ?? "Copy prompt";
+      const copied = await writeClipboard(text);
+      if (copied) {
+        button.textContent = "Copied";
+      } else if (source) {
+        const range = document.createRange();
+        range.selectNodeContents(source);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        button.textContent = "Select and copy";
+      }
+
+      window.setTimeout(() => {
+        button.textContent = label;
+      }, 1600);
+    });
+  });
+</script>

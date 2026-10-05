@@ -1,152 +1,39 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import BrandLogo from "../components/BrandLogo.astro";
-import EndpointTable from "../components/EndpointTable.astro";
-import { catalogEndpoints } from "../lib/catalog-endpoints";
+import CodeBlock from "../components/CodeBlock.astro";
+import HumanPrompt from "../components/HumanPrompt.astro";
 import { config } from "../lib/config";
 import { protocols } from "../lib/protocols";
-import { loadDiscovery } from "../lib/discovery";
 import { getLatestReleaseNote } from "../lib/release-notes";
 
-const loaded = await loadDiscovery(config.discoveryUrl);
 const latestRelease = await getLatestReleaseNote();
-const previewEndpoints = catalogEndpoints(loaded.document.endpoints)
-  .sort((a, b) => {
-    if (a.access === b.access) {
-      return a.path.localeCompare(b.path);
+const mcpConfig = `{
+  "mcpServers": {
+    "canix402": {
+      "url": "${config.mcpUrl}"
     }
-    return a.access === "paid" ? -1 : 1;
-  })
-  .slice(0, 6);
-
-const productSignals = [
-  "x402 payments",
-  "Remote MCP",
-  "OpenAPI / discovery",
-  "Wallet-personalized APYs",
-  "Algorand or Base USDC"
-];
-
-const withoutCanix = [
-  "Manually search each DeFi protocol — Tinyman, Pact, Folks, CompX, Dork.fi, Myth, Haystack, Réti — one at a time.",
-  "Parse different data shapes, field names, precision rules, and route semantics per source.",
-  "Build custom ranking, validation, and fallback logic before answering a user.",
-  "Handle fragmented payment and access patterns with no machine-readable contract."
-];
-
-const withCanix = [
-  "One normalized API across Algorand protocols and Morpho on Base. Use either chain, or both.",
-  "Stable schemas, ranked APY data, and consistent field semantics every call.",
-  "Discover endpoints and pricing through /discovery and /openapi.json.",
-  "Connect via remote MCP tools or direct HTTP with x402 at the gateway."
-];
-
-const agentCapabilities = [
-  {
-    title: "Discover contracts",
-    description:
-      "Fetch /discovery and /openapi.json to learn every free and paid route, pricing, and schema before writing a single integration."
-  },
-  {
-    title: "Compare APYs",
-    description:
-      "Pull ranked opportunities across all supported protocols in one call — no per-protocol scrapers or custom normalizers."
-  },
-  {
-    title: "Personalize by wallet",
-    description:
-      "Pass an Algorand address to /opportunities/personalized and get yield options matched to the assets the wallet actually holds."
-  },
-  {
-    title: "Use MCP tools",
-    description:
-      "Connect to the remote Streamable HTTP MCP endpoint for typed tools — walletless paid-tool preflight and client-side paymentSignature retry."
-  },
-  {
-    title: "Pay and proceed",
-    description:
-      "Hit a paid route, receive 402 with PAYMENT-REQUIRED, sign Algorand or Base USDC, and retry. An Algorand payment is complete on its own."
   }
-];
-
-const howItWorks = [
-  {
-    step: "1",
-    title: "Discover",
-    description: "Agent fetches /discovery and /openapi.json to learn available routes, schemas, and x402 pricing."
-  },
-  {
-    step: "2",
-    title: "Preflight",
-    description: "Agent calls a paid route without PAYMENT-SIGNATURE. Gateway returns 402 with payment requirements."
-  },
-  {
-    step: "3",
-    title: "Pay",
-    description: "Agent signs the selected USDC accept — Algorand, Base, or either — and retries with PAYMENT-SIGNATURE."
-  },
-  {
-    step: "4",
-    title: "Act",
-    description: "Gateway verifies and settles. Agent receives normalized, ranked opportunity data to reason over."
-  }
-];
-
-const caseStudyResults = [
-  {
-    label: "Best APY",
-    value: "12.5%",
-    detail: "Tinyman ALGO/USDC LP"
-  },
-  {
-    label: "Matching assets",
-    value: "ALGO, USDC",
-    detail: "Held by queried wallet"
-  },
-  {
-    label: "Protocol",
-    value: "tinyman",
-    detail: "Normalized opportunityId"
-  },
-  {
-    label: "Why this fits",
-    value: "Highest ranked",
-    detail: "Among wallet-held asset pairs"
-  }
-];
+}`;
 ---
 
 <BaseLayout
   title="CANIX402 | Hunting down the best yields"
-  description="Canix402 gives autonomous agents a single x402-paid data rail for DeFi. Discover endpoints, pay in USDC, and fetch normalized APY data — including wallet-personalized yield recommendations."
-  keywords="Canix402, Algorand DeFi API, Base, Morpho, x402 payments, autonomous agents, APY, yield hunting, wallet personalization, OpenAPI"
+  description="Canix402 is one paid API for normalized DeFi yield on Algorand and Base. Copy a prompt into your agent, or search live in the browser."
+  keywords="Canix402, Algorand DeFi API, Base, x402 payments, autonomous agents, APY, yield hunting, MCP"
 >
-  <!-- Hero -->
   <section class="landing-hero">
     <div class="landing-hero-grid">
       <div class="hero-copy">
         <span class="eyebrow">x402 paid DeFi data API</span>
         <h1>Hunting down the best yields</h1>
         <p class="hero-lead">
-          Canix402 gives autonomous agents a single, paid data rail for DeFi opportunities.
-          No per-protocol scrapers. No shape-shifting schemas. Just discoverable endpoints, x402
-          payments, and normalized APY data ready for agent reasoning.
+          One paid API for normalized DeFi yield on Algorand and Base, for an agent or in the browser.
         </p>
         <div class="cta-row">
-          <a class="button button-primary" href="/quickstart">Start quickstart</a>
-          <a class="button" href="/webmcp">Try it now</a>
-          <a class="button button-ghost" href="/endpoints">Explore endpoints</a>
+          <a class="button button-primary" href="#human">Copy prompt</a>
+          <a class="button" href="/webmcp">Open Live</a>
         </div>
-        <p class="hero-release">
-          Latest: <a href="/release-notes">protocol v{latestRelease.data.version} release notes</a>
-        </p>
-        <ul class="signal-strip" aria-label="Product highlights">
-          {
-            productSignals.map((signal) => (
-              <li class="signal-pill">{signal}</li>
-            ))
-          }
-        </ul>
       </div>
       <div class="hero-banner">
         <BrandLogo variant="mark" class="hero-mark" alt="CANIX402 wolf mark" />
@@ -154,248 +41,90 @@ const caseStudyResults = [
     </div>
   </section>
 
-  <!-- What Canix402 Is -->
+  <HumanPrompt />
+
+  <section class="landing-section">
+    <div class="section-header">
+      <span class="eyebrow">For agents</span>
+      <h2>Already have a host?</h2>
+      <p class="section-lead muted">
+        Connect the Canix MCP server, then follow the agent steps on
+        <a href="/quickstart#agent">Get started</a>.
+      </p>
+    </div>
+    <CodeBlock code={mcpConfig} />
+  </section>
+
   <section class="landing-section">
     <div class="section-header">
       <span class="eyebrow">What it is</span>
-      <h2>One API for Algorand and Base yield intelligence</h2>
+      <h2>What Canix does</h2>
       <p class="section-lead muted">
-        Canix402 normalizes APR/APY opportunities across Tinyman, Pact, Folks Finance, CompX,
-        Dork.fi, Myth Finance, Haystack, Réti, Alpha Arcade, and Morpho on Base — then exposes them through agent-discoverable, x402-paid API routes at the Caddy
-        gateway. Agents may use Algorand, Base, or both. An Algorand-only agent does not supply a Base address.
-        Builders get stable contracts. Agents get data they can trust and act on.
+        Normalized yield and unsigned execution across Algorand and Base, paid in USDC, signed by
+        the caller. One schema for every supported protocol.
       </p>
     </div>
-    <div class="value-grid">
-      <article class="value-card">
-        <h3>For builders</h3>
-        <p class="muted">
-          Ship agent integrations faster with OpenAPI schemas, discovery metadata, and a consistent
-          response envelope — instead of maintaining separate protocol adapters.
-        </p>
-      </article>
-      <article class="value-card">
-        <h3>For agents</h3>
-        <p class="muted">
-          Answer yield questions in seconds: compare APYs, filter by platform, or personalize to a
-          wallet — then pay per request and keep executing.
-        </p>
-      </article>
-      <article class="value-card">
-        <h3>For humans</h3>
-        <p class="muted">
-          Find and compare opportunities on the web, same endpoints as agents, paid by session.
-        </p>
-      </article>
-      <article class="value-card">
-        <h3>For agents on the web</h3>
-        <p class="muted">
-          Use WebMCP to work with humans in the web browser and call Canix402 endpoints.
-        </p>
-      </article>
-    </div>
   </section>
 
-  <!-- Endpoint preview -->
-  <section class="landing-section">
-    <div class="section-header-row">
-      <div class="section-header">
-        <span class="eyebrow">Live surface</span>
-        <h2>Core APIs agents can call today</h2>
-        <p class="section-lead muted">
-          Paid opportunity routes and free discovery endpoints, presented as cards with method,
-          pricing, and parameters — sourced from the same discovery metadata your agent will read.
-        </p>
-      </div>
-      <a class="button" href="/endpoints">View all endpoints →</a>
-    </div>
-    <div class="preview-endpoints">
-      <EndpointTable
-        endpoints={previewEndpoints}
-        showFilters={false}
-        actionHref="/endpoints"
-        actionLabel="Browse catalog"
-      />
-    </div>
-  </section>
-
-  <!-- Without / With Canix402 -->
   <section class="landing-section">
     <div class="section-header">
-      <span class="eyebrow">The problem</span>
-      <h2>What agents do today without Canix402</h2>
-      <p class="section-lead muted">
-        Every Algorand DeFi protocol speaks its own language. Agents that want the best yield have
-        to do the hard work themselves — and it doesn't scale.
-      </p>
+      <span class="eyebrow">Proof</span>
+      <h2>Already running</h2>
     </div>
-    <div class="compare-grid">
-      <article class="compare-panel compare-without">
-        <h3>Without Canix402</h3>
-        <ul class="compare-list">
-          {
-            withoutCanix.map((item) => (
-              <li>{item}</li>
-            ))
-          }
-        </ul>
-      </article>
-      <article class="compare-panel compare-with">
-        <h3>With Canix402</h3>
-        <ul class="compare-list">
-          {
-            withCanix.map((item) => (
-              <li>{item}</li>
-            ))
-          }
-        </ul>
-      </article>
-    </div>
+    <ul class="proof-list">
+      <li>
+        <a href="/user-agents">Brownie Bot</a> uses Canix on Algorand mainnet.
+      </li>
+      <li>
+        <a href="/transactions">Recent USDC payments</a> to the Canix pay-to wallet.
+      </li>
+    </ul>
   </section>
 
-  <!-- What Agents Can Do -->
-  <section class="landing-section">
-    <div class="section-header">
-      <span class="eyebrow">Capabilities</span>
-      <h2>What agents can do with it</h2>
-    </div>
-    <div class="feature-grid">
-      {
-        agentCapabilities.map((cap) => (
-          <article class="feature-card">
-            <h3>{cap.title}</h3>
-            <p class="muted">{cap.description}</p>
-          </article>
-        ))
-      }
-    </div>
-  </section>
-
-  <!-- Case Study -->
-  <section class="landing-section case-study">
-    <div class="section-header">
-      <span class="eyebrow">Case study</span>
-      <h2>Personalized yield recommendations in one call</h2>
-      <p class="section-lead muted">
-        A user asks their agent: "Where should I put my ALGO and USDC for the best yield?" Instead
-        of scraping eight protocols, the agent calls Canix402.
-      </p>
-    </div>
-    <div class="case-study-grid">
-      <div class="case-study-flow">
-        <div class="flow-step">
-          <strong>1. User request</strong>
-          Agent receives a personalized yield question tied to the user's Algorand wallet.
-        </div>
-        <div class="flow-step">
-          <strong>2. Canix402 call</strong>
-          Agent pays via x402 and hits the personalized endpoint with the wallet address.
-        </div>
-        <div class="flow-step">
-          <strong>3. Ranked results</strong>
-          Canix402 returns opportunities matched to held assets, ranked by APY.
-        </div>
-        <div class="flow-step">
-          <strong>4. Agent recommends</strong>
-          Agent surfaces the best match with protocol, APY, and reasoning — ready for user action.
-        </div>
-      </div>
-      <div class="case-study-demo">
-        <div class="demo-request">
-          <span class="demo-label">Agent request</span>
-          <pre class="code-block"><code>GET {config.gatewayBaseUrl}/opportunities/personalized?address=USER_WALLET</code></pre>
-        </div>
-        <div class="demo-results">
-          <span class="demo-label">Agent reads</span>
-          <div class="result-cards">
-            {
-              caseStudyResults.map((result) => (
-                <article class="result-card">
-                  <span class="result-label">{result.label}</span>
-                  <strong class="result-value">{result.value}</strong>
-                  <span class="result-detail muted">{result.detail}</span>
-                </article>
-              ))
-            }
-          </div>
-        </div>
-      </div>
-    </div>
-    <p class="case-study-foot muted">
-      See full sample payloads on the <a href="/examples#sample-responses">examples page</a>.
-    </p>
-  </section>
-
-  <!-- How It Works -->
-  <section class="landing-section">
-    <div class="section-header">
-      <span class="eyebrow">How it works</span>
-      <h2>From discovery to data in four steps</h2>
-    </div>
-    <div class="steps-grid">
-      {
-        howItWorks.map((item) => (
-          <article class="step-card">
-            <span class="step-number">{item.step}</span>
-            <h3>{item.title}</h3>
-            <p class="muted">{item.description}</p>
-          </article>
-        ))
-      }
-    </div>
-  </section>
-
-  <!-- Protocol Coverage -->
-  <section class="landing-section">
+  <section class="landing-section" id="protocols">
     <div class="section-header">
       <span class="eyebrow">Coverage</span>
-      <h2>Algorand and Base, normalized</h2>
-      <p class="section-lead muted">
-        Canix402 aggregates opportunity data from every supported protocol into one consistent
-        schema — so your agent never has to know how each source structures its response.
-      </p>
+      <h2>Protocols</h2>
     </div>
-    <div class="protocol-grid">
+    <ul class="protocol-strip">
       {
         protocols.map((protocol) => (
-          <article class="protocol-card">
-            <img
-              class:list={[
-                "protocol-logo protocol-logo--grid",
-                protocol.logoVariant === "wide" && "protocol-logo--wide"
-              ]}
-              src={protocol.logo}
-              alt=""
-              width="36"
-              height="36"
-              loading="lazy"
-              decoding="async"
-            />
-            <h3>{protocol.name}</h3>
-            <p class="muted">Normalized opportunities via paid API routes.</p>
-          </article>
+          <li>
+            <a href="/protocols">
+              <img
+                class:list={[
+                  "protocol-logo protocol-logo--grid",
+                  protocol.logoVariant === "wide" && "protocol-logo--wide"
+                ]}
+                src={protocol.logo}
+                alt=""
+                width="36"
+                height="36"
+                loading="lazy"
+                decoding="async"
+              />
+              <span>{protocol.name}</span>
+            </a>
+          </li>
         ))
       }
-    </div>
+    </ul>
     <p class="protocol-foot muted">
-      Full protocol list and route details in <a href="/protocols">protocols</a> and
+      Notes for each protocol are on <a href="/protocols">protocols</a>. Routes are on
       <a href="/endpoints">endpoints</a>.
     </p>
   </section>
 
-  <!-- Final CTA -->
+  <p class="hero-release">
+    Latest: <a href="/release-notes">protocol v{latestRelease.data.version} release notes</a>
+  </p>
+
   <section class="cta-band">
     <div class="cta-band-inner">
-      <h2>Give your agent a paid DeFi data rail</h2>
-      <p class="muted">
-        Connect to Canix402, discover the contracts, and start fetching normalized yield data —
-        personalized, ranked, and ready for autonomous execution.
-      </p>
+      <h2>Get your agent Canix-ready</h2>
       <div class="cta-row">
-        <a class="button button-primary" href="/quickstart">Start quickstart</a>
-        <a class="button" href="/webmcp">Try it now</a>
-        <a class="button" href="/endpoints">View endpoints</a>
-        <a class="button" href="/examples">See examples</a>
+        <a class="button button-primary" href="#human">Copy prompt</a>
+        <a class="button" href="/webmcp">Open Live</a>
       </div>
     </div>
   </section>

@@ -206,6 +206,106 @@ main {
   background: var(--color-primary-soft);
 }
 
+.nav-docs {
+  position: relative;
+}
+
+.nav-docs summary {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.4rem 0.65rem;
+  border-radius: 999px;
+  cursor: pointer;
+  list-style: none;
+  white-space: nowrap;
+}
+
+.nav-docs summary::-webkit-details-marker {
+  display: none;
+}
+
+.nav-docs summary:hover,
+.nav-docs[open] summary,
+.nav-docs.is-current summary {
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nav-docs.is-current summary {
+  color: #fff;
+  background: var(--color-primary-soft);
+}
+
+.nav-docs-menu {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  min-width: 11rem;
+  padding: 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-card);
+}
+
+.nav-docs-menu a {
+  display: block;
+}
+
+.human-prompt-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.human-prompt-head h2 {
+  margin: 0;
+}
+
+.human-prompt-text {
+  white-space: pre-wrap;
+  margin-top: 0.5rem;
+}
+
+.protocol-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.protocol-strip a {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text);
+}
+
+.protocol-strip a:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  color: var(--color-text);
+}
+
+.proof-list {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.proof-list li + li {
+  margin-top: 0.45rem;
+}
+
 /* ── Hero & landing ── */
 
 .hero {
@@ -280,6 +380,7 @@ main {
   justify-content: center;
   gap: 0.4rem;
   padding: 0.8rem 1.15rem;
+  cursor: pointer;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
@@ -1715,9 +1816,24 @@ main {
     display: flex;
   }
 
-  .site-nav a {
+  .site-nav a,
+  .nav-docs summary {
     padding: 0.75rem 0.9rem;
     white-space: normal;
+  }
+
+  .nav-docs-menu {
+    position: static;
+    min-width: 0;
+    margin-top: 0.15rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .human-prompt-head {
+    flex-direction: column;
   }
 
   .landing-hero-grid,
