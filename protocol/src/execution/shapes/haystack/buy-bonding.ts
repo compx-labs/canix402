@@ -418,7 +418,7 @@ async function buildRoutedBuy(
   const tail = atc.buildGroup().map((entry) => entry.txn);
   const combined = [...quote.legs.map((leg) => leg.txn), ...tail];
   for (const txn of combined) {
-    txn.group = undefined;
+    delete txn.group;
   }
   const grouped = algosdk.assignGroupID(combined);
   const groupTransactions: ExecutableQuoteGroupTransaction[] = [];
