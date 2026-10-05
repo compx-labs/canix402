@@ -21,7 +21,7 @@ const UPDATED_AT = "2026-10-04T10:15:00.000Z";
 
 function fixtureDocument(): NfStatsDocument {
   return buildNfStatsDocument({
-    version: "1.8.2",
+    version: "1.8.3",
     networks: ["mainnet", "base"],
     opportunities: 42,
     protocols: 13,
