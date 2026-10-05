@@ -125,6 +125,10 @@ export const EXECUTION_SHAPE_DOCS_PATHS: Readonly<Record<string, string>> = {
     "protocol/docs/execution-shapes/haystack-unstake-hay.md",
   "mainnet:haystack:v1:claim:rewards":
     "protocol/docs/execution-shapes/haystack-claim-rewards.md",
+  "mainnet:haystack:v1:launch:token":
+    "protocol/docs/execution-shapes/haystack-launch-token.md",
+  "mainnet:haystack:v1:buy:bonding":
+    "protocol/docs/execution-shapes/haystack-buy-bonding.md",
   "mainnet:reti:v1:stake:algo":
     "protocol/docs/execution-shapes/reti-stake-algo.md",
   "mainnet:reti:v1:unstake:algo":

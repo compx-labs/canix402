@@ -7,7 +7,8 @@ This document defines the Haystack staking adapter contract used by canix402.
 - Mode: on-chain first (HaystackStaking app `3321763884`)
 - Adapter file: `src/adapters/haystack.ts`
 - Positions collector: `src/services/protocol-positions.ts` (`collectHaystackPositions`)
-- Execution shapes: `src/execution/shapes/haystack/` (stake / unstake / claim)
+- Execution shapes: `src/execution/shapes/haystack/` (stake / unstake / claim, plus HayLaunch `launch:token` and `buy:bonding` on app `3452678093`)
+- Launch reads: paid `GET /protocols/haystack/launches`, free `GET /protocols/haystack/launches/:tokenNum`. Source of truth is the HayLaunch boxes and indexer `launchToken` round time, not `api.hay.app`.
 - HAY USD pricing: Tinyman Analytics `GET /assets/3160000000/`
 
 ## Normalized Opportunity

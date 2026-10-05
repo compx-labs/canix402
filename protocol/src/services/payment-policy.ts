@@ -374,13 +374,46 @@ export const endpointPolicyMatrix: readonly EndpointPolicyDefinition[] = [
     tags: ["mallow", "perps", "discovery", "agents"]
   },
   {
+    id: "haystackLaunches",
+    method: "GET",
+    pathPattern: "/protocols/haystack/launches",
+    access: "paid",
+    queryParams: [
+      "q",
+      "minProgress",
+      "maxProgress",
+      "order",
+      "launchedAfter",
+      "launchedBefore",
+      "limit",
+      "offset"
+    ],
+    summary: "Haystack tokens still on the bonding curve",
+    description:
+      "Returns HayLaunch tokens with bondingOn = 0 inside a launch-date window. The default window is the last 60 days when launchedAfter is omitted. q is a case-insensitive name or ticker substring. minProgress and maxProgress are inclusive bonding percents from 0 to 100. order is asc or desc on bonding percent (default desc). Each row includes the buy shape key mainnet:haystack:v1:buy:bonding. Compile that buy, or mainnet:haystack:v1:launch:token, with POST /execution/quotes.",
+    tags: ["haystack", "launch", "discovery", "x402", "agents", HACKATHON_TAG],
+    priceUsdc: process.env.X402_PRICE_HAYSTACK_LAUNCHES_USDC ?? "0.01",
+    sessionAccess: "research"
+  },
+  {
+    id: "haystackLaunch",
+    method: "GET",
+    pathPattern: "/protocols/haystack/launches/:tokenNum",
+    access: "free",
+    queryParams: ["assetId", "address"],
+    summary: "One Haystack launch bonding status",
+    description:
+      "Returns one HayLaunch token box: phase, progress, price, reserves, and pool ids after graduation. Pass tokenNum, or assetId once the asset map exists (after the first buy). Optional address adds that wallet's virtual userHoldings. A graduated token points at POST /swaps/quote instead of the bonding buy.",
+    tags: ["haystack", "launch", "discovery", "agents"]
+  },
+  {
     id: "executionQuote",
     method: "POST",
     pathPattern: "/execution/quotes",
     access: "paid",
     summary: "Compile verified transaction shapes into unsigned Algorand groups or Base calldata",
     description:
-      "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman v2 swap shapes (swap:fixedInput / swap:fixedOutput via Tinyman Swap Router, falling back to a single Tinyman pool when the router is not better; Tinyman-pool only, never a cross-DEX aggregator), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, Pact Smart Router unsigned swap (`mainnet:pact:smart-router:swap:fixed-input`; local graph + Pool.prepareSwap, not Haystack), CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), Réti v1 ALGO staking shapes (stake/unstake), Alpha Arcade v1 ALPHA staking shapes (stake/unstake/claim USDC), and STAMM v1 LP mint/redeem via HOGSWAP (unsigned groups; do not hardcode router app ids), and HOGSWAP v1 swap shapes (fixed-input / fixed-output; unsigned groups; routing fee already netted into expectedOut; do not hardcode router app ids), and Mallow v1 perps shapes (`mainnet:mallow:v1:openLimit:attached` for ALGO/USD or BTC/USD limit orders with leverage and attached take-profit and stop-loss; `mainnet:mallow:v1:close:market` to close an open ALGO or BTC position in full; `mainnet:mallow:v1:cancelOrder:resting` to cancel a resting order, including an orphaned take-profit or stop-loss; `mainnet:mallow:v1:optIn:usdc`). Read `GET /protocols/mallow/markets` for the live index and max leverage, `GET /protocols/mallow/positions` for a position id, and paid `GET /positions` for the wallet snapshot that includes Mallow perps and resting orders. Canix does not sign or submit transactions in this endpoint. " +
+      "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman v2 swap shapes (swap:fixedInput / swap:fixedOutput via Tinyman Swap Router, falling back to a single Tinyman pool when the router is not better; Tinyman-pool only, never a cross-DEX aggregator), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, Pact Smart Router unsigned swap (`mainnet:pact:smart-router:swap:fixed-input`; local graph + Pool.prepareSwap, not Haystack), CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), Haystack Launch shapes (`mainnet:haystack:v1:launch:token` creates a bonding-curve ASA from an existing ipfs:// or https:// URL; `mainnet:haystack:v1:buy:bonding` buys a token still on the curve, directly in the bonding asset or through the Haystack router — list bonding tokens with paid GET /protocols/haystack/launches and read one token free at GET /protocols/haystack/launches/{tokenNum}), Réti v1 ALGO staking shapes (stake/unstake), Alpha Arcade v1 ALPHA staking shapes (stake/unstake/claim USDC), and STAMM v1 LP mint/redeem via HOGSWAP (unsigned groups; do not hardcode router app ids), and HOGSWAP v1 swap shapes (fixed-input / fixed-output; unsigned groups; routing fee already netted into expectedOut; do not hardcode router app ids), and Mallow v1 perps shapes (`mainnet:mallow:v1:openLimit:attached` for ALGO/USD or BTC/USD limit orders with leverage and attached take-profit and stop-loss; `mainnet:mallow:v1:close:market` to close an open ALGO or BTC position in full; `mainnet:mallow:v1:cancelOrder:resting` to cancel a resting order, including an orphaned take-profit or stop-loss; `mainnet:mallow:v1:optIn:usdc`). Read `GET /protocols/mallow/markets` for the live index and max leverage, `GET /protocols/mallow/positions` for a position id, and paid `GET /positions` for the wallet snapshot that includes Mallow perps and resting orders. Canix does not sign or submit transactions in this endpoint. " +
       EXECUTION_PROTOCOL_CAVEATS_AGENT_HINT,
     tags: ["execution", "transactions", "x402", "agents", HACKATHON_TAG],
     priceUsdc: process.env.X402_PRICE_EXECUTION_QUOTE_USDC ?? "0.1",
@@ -694,6 +727,7 @@ const paidPathMatchers = [
   /^\/positions\/claimable$/,
   /^\/protocols\/[^/]+\/opportunities$/,
   /^\/swaps\/transactions$/,
+  /^\/protocols\/haystack\/launches$/,
   /^\/execution\/quotes$/,
   /^\/execution\/compose$/,
   /^\/execution\/simulate$/,
@@ -727,6 +761,7 @@ const freePathMatchers = [
   /^\/swaps\/optin$/,
   /^\/pricing$/,
   /^\/execution\/shapes$/,
+  /^\/protocols\/haystack\/launches\/[^/]+$/,
   /^\/public\/agents\/brownie\/positions$/
 ];
 
@@ -797,7 +832,8 @@ const researchSessionMatchers = [
   /^\/eligibility$/,
   /^\/positions$/,
   /^\/positions\/claimable$/,
-  /^\/protocols\/[^/]+\/opportunities$/
+  /^\/protocols\/[^/]+\/opportunities$/,
+  /^\/protocols\/haystack\/launches$/
 ];
 
 const quoteSessionMatchers = [

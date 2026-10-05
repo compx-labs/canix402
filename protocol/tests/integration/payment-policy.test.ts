@@ -30,6 +30,19 @@ test("Haystack swap policy advertises the dedicated 0.005 USDC price", () => {
   assert.equal(transactions?.priceUsdc, process.env.X402_PRICE_HAYSTACK_SWAP_USDC ?? "0.005");
 });
 
+test("Haystack launch list is paid research and one token is free", () => {
+  assert.equal(classifyEndpointAccess("/protocols/haystack/launches", "GET"), "paid");
+  assert.equal(classifyEndpointAccess("/protocols/haystack/launches/175", "GET"), "free");
+  assert.equal(classifySessionBucket("/protocols/haystack/launches", "GET"), "research");
+
+  const list = endpointPolicyMatrix.find((endpoint) => endpoint.id === "haystackLaunches");
+  const detail = endpointPolicyMatrix.find((endpoint) => endpoint.id === "haystackLaunch");
+  assert.equal(list?.access, "paid");
+  assert.equal(list?.priceUsdc, process.env.X402_PRICE_HAYSTACK_LAUNCHES_USDC ?? "0.01");
+  assert.equal(list?.sessionAccess, "research");
+  assert.equal(detail?.access, "free");
+});
+
 test("execution shapes catalog is free while quote compile remains paid", () => {
   assert.equal(classifyEndpointAccess("/execution/shapes", "GET"), "free");
   assert.equal(classifyEndpointAccess("/execution/quotes", "POST"), "paid");
