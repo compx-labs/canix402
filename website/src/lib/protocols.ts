@@ -61,7 +61,7 @@ export const protocols: readonly SupportedProtocol[] = [
     name: "Haystack",
     summary: "Single-token HAY staking with dual USDC + HAY rewards, plus HayLaunch bonding-curve token launches.",
     notes:
-      "On-chain EMA APR and TVL from staking app 3321763884; stake/unstake/claim via execution shapes. HayLaunch lists, one-token status, launch, and bonding buys are separate from yield positions.",
+      "On-chain EMA APR and TVL from staking app 3321763884; stake/unstake/claim via execution shapes. HayLaunch is separate from yield positions: paid GET /protocols/haystack/launches (0.01 USDC), free GET /protocols/haystack/launches/{tokenNum}, and execution quotes mainnet:haystack:v1:launch:token and mainnet:haystack:v1:buy:bonding at the 0.10 USDC quote price.",
     logo: "/protocols/haystack.png"
   },
   {

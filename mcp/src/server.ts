@@ -29,9 +29,10 @@ export function createCanixMcpServer(options: CreateServerOptions = {}): McpServ
         prompts: {}
       },
       instructions: [
-        "canix402 MCP server for DeFi opportunities, execution quotes, and best price swaps.",
+        "canix402 MCP server for DeFi opportunities, execution quotes, Haystack Launch, and best price swaps.",
         "Always use the Caddy gateway URL configured via CANIX402_API_URL.",
-        "Free tools: health, metadata, discovery, openapi, token prices, list_execution_shapes.",
+        "Free tools: health, metadata, discovery, openapi, token prices, list_execution_shapes, get_haystack_launch.",
+        "Haystack Launch: canix_list_haystack_launches is paid (~0.01 USDC). Launch a token with canix_get_execution_quote shape mainnet:haystack:v1:launch:token. Buy a token still bonding with mainnet:haystack:v1:buy:bonding. A bonding buy is not canix_swap.",
         "Paid tools are walletless passthrough wrappers: initial call returns PAYMENT-REQUIRED metadata, retry with paymentSignature.",
         `API URL: ${config.apiUrl}.`
       ].join(" ")

@@ -210,6 +210,8 @@ function buildLlmsFullTxt(discovery: DiscoveryDocument): string {
     positionsClaimable: loadSample("positions-claimable.sample.json"),
     executionShapes: loadSample("execution-shapes.sample.json"),
     executionQuotes: loadSample("execution-quotes.sample.json"),
+    haystackLaunches: loadSample("haystack-launches.sample.json"),
+    haystackLaunch: loadSample("haystack-launch.sample.json"),
     swapsQuote: loadSample("swaps-quote.sample.json"),
     swapsOptin: loadSample("swaps-optin.sample.json"),
     swapsTransactions: loadSample("swaps-transactions.sample.json"),
@@ -306,8 +308,10 @@ ${discovery.endpoints.map(endpointLine).join("\n")}
 - \`GET /protocols/mallow/markets\` — free ALGO/USD and BTC/USD index, max leverage, and USDC collateral for \`mainnet:mallow:v1:openLimit:attached\`. \`collateralUsd\` is margin. \`takeProfitPct\` / \`stopLossPct\` are return on margin. Positions settle on People's Exchange with a 3 bps Mallow builder fee.
 - \`GET /protocols/mallow/positions?address=\` — free open ALGO/USD and BTC/USD positions that post USDC. Copy \`positionId\`, \`market\`, and \`side\` into \`mainnet:mallow:v1:close:market\`. Other markets are omitted. An unknown address returns an empty list.
 - \`POST /execution/quotes\` — batch unsigned groups for verified shapes; flat ~0.1 USDC per request, payable on Algorand or Base. Algorand shapes take an Algorand \`userAddress\` and return Algorand groups. Morpho shapes (\`base:morpho:vault:*\`), Aave shapes (\`base:aave:v3:*\`), and Aerodrome shapes (\`base:aerodrome:v2:*\`) take a Base \`0x\` \`userAddress\` and return unsigned Base calldata (\`encodedTransactions\` hex, \`transactions[].evmCall\`). Mallow shapes (\`mainnet:mallow:v1:openLimit:attached\`, \`mainnet:mallow:v1:close:market\`, \`mainnet:mallow:v1:cancelOrder:resting\`, \`mainnet:mallow:v1:optIn:usdc\`) return unsigned Algorand groups. Haystack Launch shapes (\`mainnet:haystack:v1:launch:token\`, \`mainnet:haystack:v1:buy:bonding\`) also compile here at the same flat price; the bonding buy is not the swap SKU. Skipping Base shapes is complete for an Algorand agent. Canix never signs or submits. Read each shape's \`docsPath\` plus the protocol caveats doc before filling inputs.
-- \`GET /protocols/haystack/launches\` — paid (~0.01 USDC, research session). HayLaunch tokens still bonding. Default window is the last 60 days. \`q\` matches name or ticker; \`minProgress\` / \`maxProgress\` bound bonding percent; \`order\` is \`asc\` or \`desc\` (default \`desc\`).
-- \`GET /protocols/haystack/launches/{tokenNum}\` — free bonding status for one token. \`assetId\` works after the first buy. Optional \`address\` adds virtual holdings. Graduated tokens point at \`POST /swaps/quote\`.
+- \`GET /protocols/haystack/launches\` — paid (~0.01 USDC, research session). HayLaunch tokens still bonding. Default window is the last 60 days. \`q\` matches name or ticker; \`minProgress\` / \`maxProgress\` bound bonding percent; \`order\` is \`asc\` or \`desc\` (default \`desc\`). Example: \`GET /protocols/haystack/launches?q=len&minProgress=10&maxProgress=90&order=desc&limit=25\`.
+- \`GET /protocols/haystack/launches/{tokenNum}\` — free bonding status for one token. \`assetId\` works after the first buy. Optional \`address\` adds virtual holdings. Graduated tokens point at \`POST /swaps/quote\`. Example: \`GET /protocols/haystack/launches/175\` or \`GET /protocols/haystack/launches/0?assetId=3729195158&address=YOUR_ALGORAND_ADDRESS\`.
+- Haystack launch quote — \`POST /execution/quotes\` with \`shapeKey\` \`mainnet:haystack:v1:launch:token\`. Input: \`userAddress\`, \`symbol\`, \`name\`, \`assetUrl\` (\`ipfs://\` or \`https://\`), \`bondingTokenId\` (\`0\` = ALGO). Optional \`initialBuyAmount\`. Canix does not pin images.
+- Haystack bonding buy — \`POST /execution/quotes\` with \`shapeKey\` \`mainnet:haystack:v1:buy:bonding\`. Input: \`userAddress\`, \`tokenNum\` or \`assetId\`, \`fromAssetId\`, \`amount\`, \`slippageBps\`. \`fromAssetId\` equal to the bonding asset pays the curve directly. Any other \`fromAssetId\` routes through the Haystack router in the same group. A routed buy of 90% or more of remaining real reserves is refused.
 - Multi-router swaps — call free \`POST /swaps/quote\` (parallel compare unless \`router\` is set), sign and submit any group from free \`POST /swaps/optin\`, refresh the short-lived quote, then call paid \`POST /swaps/transactions\` for 0.005 USDC. Amounts are asset base units. Pass the quote object unchanged; do not edit \`payload\`.
 - Walletless handoff — sign only the returned \`userSignIndexes\`, preserve any pre-signed members and group order, and submit the complete group through the caller's Algod client.
 - Swap costs — the 0.005 USDC x402 access charge is separate from router fees, DEX fees, price impact, and Algorand network fees.
@@ -396,6 +400,18 @@ ${JSON.stringify(samples.executionShapes, null, 2)}
 
 \`\`\`json
 ${JSON.stringify(samples.executionQuotes, null, 2)}
+\`\`\`
+
+### GET /protocols/haystack/launches
+
+\`\`\`json
+${JSON.stringify(samples.haystackLaunches, null, 2)}
+\`\`\`
+
+### GET /protocols/haystack/launches/{tokenNum}
+
+\`\`\`json
+${JSON.stringify(samples.haystackLaunch, null, 2)}
 \`\`\`
 
 ### GET /positions

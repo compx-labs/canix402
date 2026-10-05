@@ -1,0 +1,36 @@
+{
+  "data": {
+    "tokenNum": 175,
+    "assetId": 3729195158,
+    "name": "LENIN",
+    "symbol": "LENIN",
+    "assetUrl": "ipfs://bafkreiexample",
+    "description": "",
+    "socialWebsite": "",
+    "socialX": "",
+    "socialTelegram": "",
+    "socialDiscord": "",
+    "creator": "LOLJKAN3NMRMAWAPYKQOEJPVM37KKZCMM7DMGOU2CWN45RKSDZB6QAKSMI",
+    "bondingTokenId": 0,
+    "bondingOn": 0,
+    "phase": "bonding",
+    "progressPercent": 12.5,
+    "priceBonding": "0.000001",
+    "priceUsd": "0.000002",
+    "realTokenReserves": "700000000000000",
+    "realBondingReserves": "5000000",
+    "initialRealTokenReserves": "800000000000000",
+    "virtualTokenReserves": "1000000000000000",
+    "virtualBondingReserves": "1000000000",
+    "bondingTargetUsd": "2500000000",
+    "priceMultiplier": "20",
+    "poolAppId": 0,
+    "lpTokenId": 0,
+    "buyShapeKey": "mainnet:haystack:v1:buy:bonding",
+    "userHolding": null,
+    "note": null
+  },
+  "meta": {
+    "paymentRequired": false
+  }
+}

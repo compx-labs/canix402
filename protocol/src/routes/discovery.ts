@@ -617,7 +617,7 @@ function buildAiPluginManifest() {
     description_for_human:
       "DeFi data and walletless transaction API for agents, paid per call with USDC using x402.",
     description_for_model:
-      "Use this public Caddy gateway for DeFi opportunities, positions, pricing, swap preparation, and unsigned transaction quotes. Agents may use Algorand, Base, or both. An Algorand-only agent omits a Base address; that does not change rank, eligibility, price, or access. Free discovery endpoints describe paid operations. An unpaid paid request returns HTTP 402 with PAYMENT-REQUIRED; select an accept by network, sign that USDC payment client-side, and retry with PAYMENT-SIGNATURE. The service never receives wallet keys or submits transactions.",
+      "Use this public Caddy gateway for DeFi opportunities, positions, pricing, swap preparation, unsigned transaction quotes, and Haystack Launch (bonding lists, one-token status, token launch, and bonding buys). Agents may use Algorand, Base, or both. An Algorand-only agent omits a Base address; that does not change rank, eligibility, price, or access. Free discovery endpoints describe paid operations. An unpaid paid request returns HTTP 402 with PAYMENT-REQUIRED; select an accept by network, sign that USDC payment client-side, and retry with PAYMENT-SIGNATURE. The service never receives wallet keys or submits transactions.",
     api: {
       type: "openapi",
       url: `${publicBaseUrl}/openapi.json`

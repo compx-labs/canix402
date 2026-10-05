@@ -66,11 +66,12 @@ import { config } from "../lib/config";
     <section class="panel">
       <h2>3. Probe free routes</h2>
       <p>
-        Health, metadata, <code>GET /execution/shapes</code>, and
+        Health, metadata, <code>GET /execution/shapes</code>,
+        <code>GET /protocols/haystack/launches/&#123;tokenNum&#125;</code>, and
         <code>POST /swaps/quote</code> should return <code>200</code> without payment headers.
       </p>
       <CodeBlock
-        code={`curl -i ${config.gatewayBaseUrl}/health\ncurl -i ${config.gatewayBaseUrl}/metadata\ncurl -i ${config.gatewayBaseUrl}/execution/shapes\ncurl -i ${config.gatewayBaseUrl}/swaps/quote \\\n  -H 'content-type: application/json' \\\n  -d '{"address":"YOUR_ALGORAND_ADDRESS","fromAssetId":0,"toAssetId":31566704,"amount":"1000000","type":"fixed-input"}'`}
+        code={`curl -i ${config.gatewayBaseUrl}/health\ncurl -i ${config.gatewayBaseUrl}/metadata\ncurl -i ${config.gatewayBaseUrl}/execution/shapes\ncurl -i ${config.gatewayBaseUrl}/protocols/haystack/launches/175\ncurl -i ${config.gatewayBaseUrl}/swaps/quote \\\n  -H 'content-type: application/json' \\\n  -d '{"address":"YOUR_ALGORAND_ADDRESS","fromAssetId":0,"toAssetId":31566704,"amount":"1000000","type":"fixed-input"}'`}
       />
     </section>
 
@@ -80,7 +81,9 @@ import { config } from "../lib/config";
         First call returns <code>402</code> with <code>PAYMENT-REQUIRED</code>. Select an accept by
         <code>network</code> and retry with a signed payload. Algorand is the first accept and a
         complete payment on its own. Base (<code>eip155:8453</code>) is optional and uses the same
-        price. Same pattern for opportunities, positions, execution quotes, and
+        price. Same pattern for opportunities, positions, the Haystack bonding list
+        (<code>GET /protocols/haystack/launches</code>, 0.01 USDC), execution quotes
+        (including a Haystack launch or bonding buy), and
         <code>POST /swaps/transactions</code>.
       </p>
       <PaymentFlow />

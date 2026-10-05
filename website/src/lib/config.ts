@@ -77,6 +77,8 @@ export const mcpToolNames = [
   "canix_get_openapi",
   "canix_get_token_prices",
   "canix_list_execution_shapes",
+  "canix_list_haystack_launches",
+  "canix_get_haystack_launch",
   "canix_list_opportunities",
   "canix_search_opportunities",
   "canix_get_personalized_opportunities",

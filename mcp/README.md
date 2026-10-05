@@ -4,8 +4,8 @@ MCP server that exposes canix402 free and paid gateway endpoints as agent tools.
 
 ## What it does
 
-- Free tools: health, metadata, discovery, OpenAPI, execution shape catalog, swap quotes, and swap opt-ins
-- Paid tools: opportunities (list/search/personalized/history/protocol), wallet positions, claimable rewards, eligibility, intent plans, policy validate, execution quotes, execution simulate, swap transactions, and prepaid session create/refresh
+- Free tools: health, metadata, discovery, OpenAPI, execution shape catalog, Haystack Launch status (`canix_get_haystack_launch`), swap quotes, and swap opt-ins
+- Paid tools: opportunities (list/search/personalized/history/protocol), wallet positions, claimable rewards, eligibility, intent plans, policy validate, execution quotes, execution simulate, Haystack Launch list (`canix_list_haystack_launches`, 0.01 USDC), swap transactions, and prepaid session create/refresh
 - Walletless x402 passthrough: paid tool preflight returns `PAYMENT-REQUIRED`, retry with `paymentSignature`. Session-eligible tools also accept `sessionReceipt` (`X-Canix-Session`).
 - Resources: `canix://discovery`, `canix://openapi`, `canix://execution-shapes` (live `GET /execution/shapes`, including `meta.caveatsDocsPath`), `canix://session` (prepaid session **policy**), `canix://session/{sessionId}` (remaining N/M receipt)
 - Prompt: `analyze-opportunity`
@@ -22,6 +22,14 @@ An Algorand-only agent is not penalized for omitting a Base address. Positions, 
 `protocol/docs/execution-shapes/protocol-caveats.md` for protocol-specific
 construction caveats (pool discovery, opt-ins, min-balance, slippage, liquidity
 limits, app upgrades). Do not guess those details from opportunity rows.
+
+## Haystack Launch
+
+`canix_list_haystack_launches` calls paid `GET /protocols/haystack/launches` (0.01 USDC, research session). The default window is the last 60 days. `q` matches name or ticker. `minProgress` and `maxProgress` bound bonding percent. `order` is `asc` or `desc`.
+
+`canix_get_haystack_launch` calls free `GET /protocols/haystack/launches/{tokenNum}`. Pass `tokenNum`, or `assetId` after the first buy. Optional `address` adds virtual `userHoldings`.
+
+Launch with `canix_get_execution_quote` and `mainnet:haystack:v1:launch:token`. `assetUrl` must already be `ipfs://` or `https://`. Buy a token still on the curve with `mainnet:haystack:v1:buy:bonding` at the same 0.10 USDC quote price. Pay the bonding asset directly, or pass another `fromAssetId` and the Haystack router supplies that asset. A bonding buy is not `canix_swap`. Graduated tokens use `POST /swaps/quote`.
 
 For hosted/remote agent usage, use the Cloudflare Worker remote endpoint in `mcp-worker/`.
 
