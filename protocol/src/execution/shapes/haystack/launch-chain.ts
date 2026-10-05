@@ -1,7 +1,7 @@
 import algosdk, { Algodv2, AtomicTransactionComposer, makeEmptyTransactionSigner } from "algosdk";
 
 import { ShapeBuildError, ShapeStateError } from "../../errors.js";
-import { HAYSTACK_LAUNCH_APP_ID } from "./launch-constants.js";
+import { HAYSTACK_LAUNCH_APP_CALL_MAX_FEE, HAYSTACK_LAUNCH_APP_ID } from "./launch-constants.js";
 import { decodeAssetMapTokenNum, decodeTokenInfoBox, type HaystackLaunchTokenInfo } from "./launch-codec.js";
 import { parseIndexedLaunches, type IndexedTokenLaunch } from "./launch-indexer.js";
 import { assetBoxName, tokenBoxName } from "./launch-spec.js";
@@ -81,6 +81,10 @@ export async function simulateLaunchAbi(params: {
 }): Promise<unknown> {
   const appId = params.appId ?? HAYSTACK_LAUNCH_APP_ID;
   const suggestedParams = await params.algod.getTransactionParams().do();
+  // Readonly helpers such as previewBonding submit an inner call. The default
+  // 1000 microALGO fee does not cover that inner transaction.
+  suggestedParams.fee = HAYSTACK_LAUNCH_APP_CALL_MAX_FEE;
+  suggestedParams.flatFee = true;
   const atc = new AtomicTransactionComposer();
   atc.addMethodCall({
     appID: appId,

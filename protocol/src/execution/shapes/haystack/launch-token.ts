@@ -203,8 +203,9 @@ export const haystackLaunchTokenShape: TransactionShapeSpec<
         suggestedParams
       });
     }
-    addGasCall(atc, input.userAddress, state, suggestedParams);
-    addGasCall(atc, input.userAddress, state, suggestedParams);
+    // Distinct notes keep the two otherwise identical gas() calls from sharing a txid.
+    addGasCall(atc, input.userAddress, state, suggestedParams, new Uint8Array([1]));
+    addGasCall(atc, input.userAddress, state, suggestedParams, new Uint8Array([2]));
 
     const mbrPayment = paymentToApp(input.userAddress, state, state.mbrMicroAlgos, suggestedParams);
     const metadata = launchMetadata(input);
@@ -468,12 +469,14 @@ function addGasCall(
   atc: AtomicTransactionComposer,
   sender: string,
   state: HaystackLaunchTokenState,
-  suggestedParams: algosdk.SuggestedParams
+  suggestedParams: algosdk.SuggestedParams,
+  note: Uint8Array
 ): void {
   atc.addMethodCall({
     appID: state.appId,
     method: GAS_METHOD,
     methodArgs: [],
+    note,
     sender,
     signer: makeEmptyTransactionSigner(),
     suggestedParams,

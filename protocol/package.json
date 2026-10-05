@@ -60,6 +60,8 @@
     "test:stamm-execution-live": "npm run test:stamm-production",
     "test:haystack-gold-quote": "tsx --test tests/live/haystack-gold-usdc-quote.test.ts",
     "test:live:haystack-gold-quote": "npm run test:haystack-gold-quote",
+    "test:haystack-launch-simulate": "X402_HAYSTACK_LAUNCH_LIVE=1 tsx --test tests/live/haystack-launch-simulate.test.ts",
+    "test:live:haystack-launch-simulate": "npm run test:haystack-launch-simulate",
     "test:haystack-staking-production": "tsx --test tests/live/haystack-staking-production-test.test.ts",
     "test:haystack-staking-execution-live": "npm run test:haystack-staking-production",
     "test:alpha-arcade-staking-production": "tsx --test tests/live/alpha-arcade-staking-production-test.test.ts",
