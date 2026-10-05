@@ -29,7 +29,8 @@ export function createCanixWorkerMcpServer(options: CreateWorkerServerOptions): 
         prompts: {}
       },
       instructions: [
-        "Remote canix402 MCP server for DeFi opportunities, execution quotes, and best price swaps.",
+        "Remote canix402 MCP server for DeFi opportunities, execution quotes, Haystack Launch, and best price swaps.",
+        "Haystack Launch: canix_list_haystack_launches is paid (~0.01 USDC) and canix_get_haystack_launch is free. Launch with canix_get_execution_quote shape mainnet:haystack:v1:launch:token. Buy a token still bonding with mainnet:haystack:v1:buy:bonding. A bonding buy is not canix_swap.",
         `Gateway URL: ${options.config.gatewayUrl}.`,
         "Paid tools are walletless passthrough wrappers.",
         "First paid call returns PAYMENT-REQUIRED details; retry with paymentSignature."

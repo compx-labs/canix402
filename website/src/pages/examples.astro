@@ -19,6 +19,8 @@ import executionQuotesSample from "../data/execution-quotes.sample.json";
 import swapsQuoteSample from "../data/swaps-quote.sample.json";
 import swapsOptinSample from "../data/swaps-optin.sample.json";
 import swapsTransactionsSample from "../data/swaps-transactions.sample.json";
+import haystackLaunchesSample from "../data/haystack-launches.sample.json";
+import haystackLaunchSample from "../data/haystack-launch.sample.json";
 import sessionsSample from "../data/sessions.sample.json";
 import watchSample from "../data/watch.sample.json";
 
@@ -29,7 +31,7 @@ const composeCurl = `curl -i ${config.gatewayBaseUrl}/execution/compose -H 'cont
 const simulateCurl = `curl -i ${config.gatewayBaseUrl}/execution/simulate -H 'content-type: application/json' -d '{"address":"YOUR_ALGORAND_ADDRESS","groups":[{"shapeKey":"mainnet:reti:v1:stake:algo","encodedTransactions":["<base64-unsigned-txn>"]}]}'`; // pragma: allowlist secret
 const policyCurl = `curl -i ${config.gatewayBaseUrl}/policy/validate -H 'content-type: application/json' -d '{"policy":{"schemaVersion":"1.0.0","maxProtocolWeightBps":4000,"minAlgoReserveMicroAlgos":"1000000","minTvlUsd":25000,"maxSourceAgeSeconds":86400,"noNewBorrows":true,"executionReadyOnly":true},"quotes":[{"shapeKey":"mainnet:reti:v1:stake:algo","protocol":"reti","opportunityId":"reti-staking-12","weightBps":4000,"allocatedAmount":"1000000","allocatedAssetId":0,"tvlUsd":1000000,"sourceTimestamp":"2026-08-28T11:00:00.000Z","executionReady":true}],"walletAlgoMicroAlgos":"5000000"}'`; // pragma: allowlist secret
 const pageDescription =
-  "Copy-paste Canix402 API examples for discovery, OpenAPI, x402 signed retries, opportunities, positions, execution shapes/quotes, and multi-router swaps."; // pragma: allowlist secret
+  "Copy-paste Canix402 API examples for discovery, OpenAPI, x402 signed retries, opportunities, positions, Haystack Launch, execution shapes/quotes, and multi-router swaps."; // pragma: allowlist secret
 const pageKeywords =
   "Canix402 examples, x402 payment examples, Algorand, Base, API samples, personalized opportunities, execution quotes, positions, swaps"; // pragma: allowlist secret
 const swapsQuoteCurl = `curl -i ${config.gatewayBaseUrl}/swaps/quote \\\n  -H 'content-type: application/json' \\\n  -d '{\n    "address": "YOUR_ALGORAND_ADDRESS",\n    "fromAssetId": 0,\n    "toAssetId": 31566704,\n    "amount": "1000000",\n    "type": "fixed-input"\n  }'`; // pragma: allowlist secret
@@ -297,6 +299,61 @@ const swapsQuoteCurl = `curl -i ${config.gatewayBaseUrl}/swaps/quote \\\n  -H 'c
     />
     <h3>Sample response (200)</h3>
     <CodeBlock code={format(executionQuotesSample)} />
+  </section>
+
+  <section class="panel">
+    <h2>Haystack Launch</h2>
+    <p>
+      Bonding-curve launches are separate from yield positions. List tokens still bonding, read one
+      token free, then compile a launch or a bonding buy with <code>POST /execution/quotes</code>
+      (0.10 USDC flat). A bonding buy is not <code>POST /swaps/transactions</code>. Pass an
+      <code>ipfs://</code> or <code>https://</code> image URL you already have. Holdings while a
+      token is bonding are virtual and are not wallet ASAs.
+    </p>
+    <h3>1) List tokens still bonding (paid, 0.01 USDC)</h3>
+    <p>
+      <code>GET /protocols/haystack/launches</code>. The default window is the last 60 days.
+      <code>q</code> matches name or ticker. <code>minProgress</code> and <code>maxProgress</code> are
+      inclusive bonding percents. <code>order</code> is <code>asc</code> or <code>desc</code> (default
+      <code>desc</code>). A research session can pay this route.
+    </p>
+    <CodeBlock
+      code={`curl -i '${config.gatewayBaseUrl}/protocols/haystack/launches?q=len&minProgress=10&maxProgress=90&order=desc&limit=25'`}
+    />
+    <h3>Sample list (200, trimmed)</h3>
+    <CodeBlock code={format(haystackLaunchesSample)} />
+    <h3>2) One token (free)</h3>
+    <p>
+      <code>GET /protocols/haystack/launches/&#123;tokenNum&#125;</code>. After the first buy,
+      <code>?assetId=</code> resolves the token. <code>?address=</code> adds virtual
+      <code>userHolding</code>. <code>bondingOn</code> <code>0</code> is still on the curve. A
+      graduated token sets <code>buyShapeKey</code> to null and points <code>note</code> at
+      <code>POST /swaps/quote</code>.
+    </p>
+    <CodeBlock
+      code={`curl -s ${config.gatewayBaseUrl}/protocols/haystack/launches/175 | jq\ncurl -s '${config.gatewayBaseUrl}/protocols/haystack/launches/0?assetId=3729195158&address=YOUR_ALGORAND_ADDRESS' | jq`}
+    />
+    <h3>Sample status (200, trimmed)</h3>
+    <CodeBlock code={format(haystackLaunchSample)} />
+    <h3>3) Launch a token (paid execution quote)</h3>
+    <p>
+      Shape <code>mainnet:haystack:v1:launch:token</code>. <code>bondingTokenId</code>
+      <code>0</code> is ALGO. Optional <code>initialBuyAmount</code> is bonding-asset base units. A
+      first buy that would finish the curve is rejected.
+    </p>
+    <CodeBlock
+      code={`curl -i ${config.gatewayBaseUrl}/execution/quotes \\\n  -H 'content-type: application/json' \\\n  -d '{\n    "quotes": [{\n      "shapeKey": "mainnet:haystack:v1:launch:token",\n      "input": {\n        "userAddress": "YOUR_ALGORAND_ADDRESS",\n        "symbol": "LENIN",\n        "name": "Lenin",\n        "assetUrl": "ipfs://bafkreiexample",\n        "bondingTokenId": 0,\n        "initialBuyAmount": "1000000"\n      }\n    }]\n  }'`}
+    />
+    <h3>4) Buy a token still bonding (paid execution quote)</h3>
+    <p>
+      Shape <code>mainnet:haystack:v1:buy:bonding</code>. Pay the bonding asset directly, or pass
+      another <code>fromAssetId</code> and the Haystack router supplies it in the same group. A
+      routed buy that would take 90% or more of the remaining real reserves is refused; pay in the
+      bonding asset for that size. <code>slippageBps</code> <code>50</code> is 0.50%.
+    </p>
+    <CodeBlock
+      code={`# Direct ALGO buy (bondingTokenId 0)\ncurl -i ${config.gatewayBaseUrl}/execution/quotes \\\n  -H 'content-type: application/json' \\\n  -d '{\n    "quotes": [{\n      "shapeKey": "mainnet:haystack:v1:buy:bonding",\n      "input": {\n        "userAddress": "YOUR_ALGORAND_ADDRESS",\n        "tokenNum": 175,\n        "fromAssetId": 0,\n        "amount": "1000000",\n        "slippageBps": 50\n      }\n    }]\n  }'\n\n# Routed from USDC (31566704) through the Haystack router\ncurl -i ${config.gatewayBaseUrl}/execution/quotes \\\n  -H 'content-type: application/json' \\\n  -d '{\n    "quotes": [{\n      "shapeKey": "mainnet:haystack:v1:buy:bonding",\n      "input": {\n        "userAddress": "YOUR_ALGORAND_ADDRESS",\n        "assetId": 3729195158,\n        "fromAssetId": 31566704,\n        "amount": "1000000",\n        "slippageBps": 50\n      }\n    }]\n  }'`}
+    />
   </section>
 
   <section class="panel">

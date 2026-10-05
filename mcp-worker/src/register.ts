@@ -806,7 +806,7 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
     "canix_get_execution_quote",
     {
       description:
-        "Compile one or more unsigned groups (POST /execution/quotes). Algorand shapes return Algorand groups; Morpho shapes (base:morpho:vault:*), Aave shapes (base:aave:v3:*), and Aerodrome shapes (base:aerodrome:v2:*) return unsigned Base calldata. Pass an Algorand userAddress unless the shape is on Base. Omitting a Base address does not change rank, eligibility, price, or access. Pass quotes: [{ shapeKey, input }, ...]. Required input fields vary by shapeKey — call canix_list_execution_shapes and use each shape's requiredInputs (userAddress is always required). Response data is an ExecutableQuote array. Paid flat ~0.10 USDC per request on Algorand or Base (not per item). On failure, error.details includes quoteIndex and shapeKey. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades — read protocol/docs/execution-shapes/protocol-caveats.md and each shape's docsPath.", // pragma: allowlist secret
+        "Compile one or more unsigned groups (POST /execution/quotes). Algorand shapes return Algorand groups; Morpho shapes (base:morpho:vault:*), Aave shapes (base:aave:v3:*), and Aerodrome shapes (base:aerodrome:v2:*) return unsigned Base calldata. Pass an Algorand userAddress unless the shape is on Base. Omitting a Base address does not change rank, eligibility, price, or access. Pass quotes: [{ shapeKey, input }, ...]. Required input fields vary by shapeKey — call canix_list_execution_shapes and use each shape's requiredInputs (userAddress is always required). Response data is an ExecutableQuote array. Paid flat ~0.10 USDC per request on Algorand or Base (not per item). On failure, error.details includes quoteIndex and shapeKey. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades — read protocol/docs/execution-shapes/protocol-caveats.md and each shape's docsPath. Haystack Launch compiles here too: mainnet:haystack:v1:launch:token takes an existing ipfs:// or https:// assetUrl, and mainnet:haystack:v1:buy:bonding buys a token still on the curve (direct bonding-asset payment, or a Haystack-router leg). A bonding buy is not canix_swap.", // pragma: allowlist secret
       inputSchema: {
         quotes: z
           .array(
@@ -1173,6 +1173,81 @@ export function registerCanixTools(server: McpServer, client: GatewayClient): vo
       }
     }
   );
+
+  server.registerTool(
+    "canix_list_haystack_launches",
+    {
+      description:
+        "List HayLaunch tokens still on the bonding curve via paid GET /protocols/haystack/launches (~0.01 USDC, research session). Default window is the last 60 days. q matches name or ticker. minProgress and maxProgress are inclusive bonding percents. order is asc or desc (default desc). Buy with canix_get_execution_quote shape mainnet:haystack:v1:buy:bonding.",
+      inputSchema: {
+        q: z.string().max(64).optional(),
+        minProgress: z.number().min(0).max(100).optional(),
+        maxProgress: z.number().min(0).max(100).optional(),
+        order: z.enum(["asc", "desc"]).optional(),
+        launchedAfter: z.string().optional(),
+        launchedBefore: z.string().optional(),
+        limit: z.number().int().min(1).max(100).optional(),
+        offset: z.number().int().min(0).optional(),
+        paymentSignature: paymentSignatureArgSchema(),
+        sessionReceipt: sessionReceiptArgSchema()
+      }
+    },
+    async (args) => {
+      try {
+        const params = new URLSearchParams();
+        if (args.q) params.set("q", args.q);
+        if (args.minProgress !== undefined) params.set("minProgress", String(args.minProgress));
+        if (args.maxProgress !== undefined) params.set("maxProgress", String(args.maxProgress));
+        if (args.order) params.set("order", args.order);
+        if (args.launchedAfter) params.set("launchedAfter", args.launchedAfter);
+        if (args.launchedBefore) params.set("launchedBefore", args.launchedBefore);
+        if (args.limit !== undefined) params.set("limit", String(args.limit));
+        if (args.offset !== undefined) params.set("offset", String(args.offset));
+        const query = params.toString();
+        const path = query.length > 0 ? `/protocols/haystack/launches?${query}` : "/protocols/haystack/launches";
+        const result = await client.fetchPaid(path, {
+          method: "GET",
+          ...paidAuth(args)
+        });
+        return paidToolResult(result, "0.01", {
+          path: "/protocols/haystack/launches",
+          method: "GET"
+        });
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.registerTool(
+    "canix_get_haystack_launch",
+    {
+      description:
+        "Read one HayLaunch token via free GET /protocols/haystack/launches/{tokenNum}. Pass tokenNum, or assetId after the first buy. Optional address adds virtual userHoldings. Graduated tokens point at a normal swap.",
+      inputSchema: {
+        tokenNum: z.union([z.number().int().min(0), z.string().regex(/^[0-9]+$/)]).optional(),
+        assetId: z.union([z.number().int().min(1), z.string().regex(/^[1-9][0-9]*$/)]).optional(),
+        address: AlgorandAddressSchema.optional()
+      }
+    },
+    async (args) => {
+      try {
+        if (args.tokenNum === undefined && args.assetId === undefined) {
+          return errorResult(new Error("Pass tokenNum or assetId."));
+        }
+        const tokenNum = args.tokenNum ?? 0;
+        const params = new URLSearchParams();
+        if (args.assetId !== undefined) params.set("assetId", String(args.assetId));
+        if (args.address) params.set("address", args.address);
+        const query = params.toString();
+        const path = `/protocols/haystack/launches/${encodeURIComponent(String(tokenNum))}${query.length > 0 ? `?${query}` : ""}`;
+        const body = await client.fetchFree(path);
+        return jsonResult(body);
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
 }
 
 export function registerCanixResources(server: McpServer, client: GatewayClient): void {
@@ -1364,6 +1439,7 @@ export function registerCanixPrompts(server: McpServer): void {
               "Evaluate APY/APR quality, TVL depth, protocol risk, asset exposure, and whether an execution shape exists for acting on it.",
               "Prefer opportunity.risk over raw apy when ranking or recommending. Penalize low confidence, high utilization, high volatility, exhausted reward runway, low APY stability (risk.stability / apyStdev from GET /opportunities/:id/history), and (when present) low wallet healthFactor. Do not invent missing risk numbers.",
               "Do not invent on-chain state. If data is missing, say what additional canix402 tool calls would help.",
+              "Haystack Launch is not a yield opportunity. List bonding tokens with canix_list_haystack_launches, read one free with canix_get_haystack_launch, and compile mainnet:haystack:v1:launch:token or mainnet:haystack:v1:buy:bonding with canix_get_execution_quote. A bonding buy is not canix_swap.",
               "",
               "Opportunity JSON:",
               opportunityJson

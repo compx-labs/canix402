@@ -355,6 +355,23 @@ Paid `GET /positions?address=` includes Mallow. An open perpetual is a supplied 
 
 A caveat that says the order is orphaned means a close left the take-profit or stop-loss behind. Compile `mainnet:mallow:v1:cancelOrder:resting` with that `ownerOrderId`. An open limit with attached children cancels the bracket together. A lone child cancels by its own id. Do not rewrite a failed cancel into a new order. Canix does not sign or submit.
 
+## Launching a Haystack token
+
+Haystack Launch is not a yield opportunity. Holdings while a token is bonding are virtual and do not show up on `canix_get_positions`.
+
+1. Call `canix_get_execution_quote` with shape `mainnet:haystack:v1:launch:token` (paid flat ~0.10 USDC).
+2. Required input: `userAddress`, `symbol` (max 8), `name` (max 32), `assetUrl`, `bondingTokenId`. `bondingTokenId` `0` is ALGO. Pass an image URL that already exists (`ipfs://` or `https://`, max 96 bytes). Canix does not pin images or generate art.
+3. Optional: `description`, socials, `targetBondingUsd` (micro-USD; `0` uses the contract default; below the on-chain minimum and above $500,000 are rejected), `priceMultiplier` (`0` is 20x; otherwise 5x–250x scaled by 1e9), and `initialBuyAmount` in bonding-asset base units.
+4. A first buy that would finish the curve is rejected. Sign and submit the group locally. The new ASA is created inside the group. The wallet is not opted into that ASA by this shape.
+
+## Buying a Haystack token still bonding
+
+1. List tokens with `canix_list_haystack_launches` (paid ~0.01 USDC, research session). Default window is the last 60 days. `q` matches name or ticker. `minProgress` and `maxProgress` are inclusive bonding percents from 0 to 100. `order` is `asc` or `desc` (default `desc`).
+2. Read one token free with `canix_get_haystack_launch`. Pass `tokenNum`, or `assetId` after the first buy. Optional `address` adds virtual `userHoldings`.
+3. Compile `mainnet:haystack:v1:buy:bonding` with `canix_get_execution_quote` (the 0.10 USDC quote price, not `canix_swap`). Input: `userAddress`, `tokenNum` or `assetId`, `fromAssetId`, `amount` (base units), `slippageBps`.
+4. When `fromAssetId` is the bonding asset, the group pays that asset into the curve. Any other `fromAssetId` is a Haystack-router fixed-input into the bonding asset, then the curve buy, in one atomic group. A routed buy that would take 90% or more of the remaining real reserves is refused; pay in the bonding asset instead.
+5. A buy of a graduated token is refused. Use `canix_get_quote` and `canix_swap` for the Pact pool. Canix does not sign or submit.
+
 ## Signing an execution quote
 
 For `canix_get_execution_quote`:

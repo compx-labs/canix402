@@ -612,4 +612,21 @@ Mallow is the public name. Orders settle on People's Exchange (PEX). Canix reads
 - Markets other than ALGO and BTC.
 - Market orders that open a position.
 
+## Haystack Launch
+
+HayLaunch (mainnet app `3452678093`) is separate from HAY staking. Holdings during bonding are virtual `userHoldings`, not wallet ASAs, so they do not appear on `GET /positions`.
+
+### Reads
+
+- Paid `GET /protocols/haystack/launches` lists tokens still on the curve (`bondingOn = 0`). The default window is the last 60 days when `launchedAfter` is omitted. `launchedBefore` defaults to now. `q` matches name or ticker. `minProgress` and `maxProgress` are inclusive bonding percents. `order` is `asc` or `desc` on bonding percent (default `desc`).
+- Free `GET /protocols/haystack/launches/{tokenNum}` reads one token box. `assetId` works after the first buy creates the asset map. Optional `address` adds that wallet's virtual holding. A graduated token says so and points at `POST /swaps/quote`.
+
+### Launch and buy
+
+- `mainnet:haystack:v1:launch:token` and `mainnet:haystack:v1:buy:bonding` compile through paid `POST /execution/quotes` (0.10 USDC). The bonding buy is not `POST /swaps/transactions`.
+- Pass an existing `ipfs://` or `https://` image URL. Canix does not pin files or generate images.
+- A first buy on launch that would finish the curve is refused.
+- A routed buy pays the Haystack router's guaranteed bonding-asset output into the curve. A routed buy that would take 90% or more of remaining real reserves is refused; pay the bonding asset directly so the completing buy can graduate the token.
+- Sell on the curve, claim after graduation, creator pool-fee claim, and metadata edits are not compiled yet.
+
 

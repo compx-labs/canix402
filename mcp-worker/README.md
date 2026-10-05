@@ -8,6 +8,7 @@ Stateless remote MCP server for canix402, designed for Cloudflare Workers deploy
 - Calls the public Caddy gateway (`CANIX402_GATEWAY_URL`)
 - Never stores or uses wallet mnemonics
 - For paid tools: first call returns payment requirements, retry call forwards `PAYMENT-SIGNATURE`
+- Exposes Haystack Launch: paid `canix_list_haystack_launches` (`GET /protocols/haystack/launches`, 0.01 USDC), free `canix_get_haystack_launch` (`GET /protocols/haystack/launches/{tokenNum}`), and execution-quote shapes `mainnet:haystack:v1:launch:token` and `mainnet:haystack:v1:buy:bonding` (0.10 USDC). A bonding buy is not `canix_swap`.
 - `canix_list_execution_shapes` / `canix_get_execution_quote` point at
   `protocol/docs/execution-shapes/protocol-caveats.md` so agents do not guess
   pool discovery, opt-ins, min-balance, slippage, or app upgrades

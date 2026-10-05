@@ -37,6 +37,7 @@ Use the **Caddy gateway** (`https://canix402-api.compx.io`) for all API calls. D
 - [GET /positions](https://canix402-api.compx.io/positions): 0.005 USDC — DeFi positions held by an Algorand or Base wallet
 - [GET /positions/claimable](https://canix402-api.compx.io/positions/claimable): 0.001 USDC — Claimable DeFi rewards across supported protocols
 - [POST /swaps/transactions](https://canix402-api.compx.io/swaps/transactions): 0.005 USDC — Build a walletless swap transaction group from the winning quote
+- [GET /protocols/haystack/launches](https://canix402-api.compx.io/protocols/haystack/launches): 0.01 USDC — Haystack tokens still on the bonding curve
 - [POST /execution/quotes](https://canix402-api.compx.io/execution/quotes): 0.1 USDC — Compile verified transaction shapes into unsigned Algorand groups or Base calldata
 - [POST /execution/compose](https://canix402-api.compx.io/execution/compose): 0.1 USDC — Compose opt-in → winning swap → enter as unmerged unsigned groups  # pragma: allowlist secret
 - [POST /execution/simulate](https://canix402-api.compx.io/execution/simulate): 0.1 USDC — Simulate compiled unsigned groups for predicted balance and position deltas  # pragma: allowlist secret

@@ -1,7 +1,7 @@
 {
   "data": {
     "service": "canix402",
-    "apiVersion": "1.8.0",
+    "apiVersion": "0.1.0",
     "discoveryVersion": "1.0.0",
     "capabilities": [
       "algorand-defi-opportunities",
@@ -349,17 +349,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.01"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.01"
             }
           ],
@@ -405,17 +405,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.01"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.01"
             }
           ],
@@ -466,17 +466,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.01"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.01"
             }
           ],
@@ -522,17 +522,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.05"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.05"
             }
           ],
@@ -575,17 +575,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.01"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.01"
             }
           ],
@@ -627,17 +627,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.01"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.01"
             }
           ],
@@ -682,17 +682,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.25"
             }
           ],
@@ -738,17 +738,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.25"
             }
           ],
@@ -790,17 +790,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.25"
             }
           ],
@@ -814,7 +814,7 @@
         "path": "/positions",
         "access": "paid",
         "summary": "DeFi positions held by an Algorand or Base wallet",
-        "description": "Returns normalized DeFi positions for a wallet. An Algorand address is read across Algorand protocols. LP tokens indexed by HOGSWAP (STAMM, AlgoFi, Humble) are valued via GET /lp/{asset_id}?amount= — proportional NAV, null rather than guessed. Tinyman and Pact LP collectors remain canonical for those venues (no double-count by LP ASA). A Base 0x address returns Aave V3 supply and variable debt plus staked Aerodrome basic-pool LP. Unclaimed AERO is omitted. This endpoint provides position data only; it does not build or submit transactions.",
+        "description": "Returns normalized DeFi positions for a wallet. An Algorand address is read across Algorand protocols, including Mallow open perps (close with mainnet:mallow:v1:close:market) and resting orders (cancel with mainnet:mallow:v1:cancelOrder:resting, including an orphaned take-profit or stop-loss). LP tokens indexed by HOGSWAP (STAMM, AlgoFi, Humble) are valued via GET /lp/{asset_id}?amount= — proportional NAV, null rather than guessed. Tinyman and Pact LP collectors remain canonical for those venues (no double-count by LP ASA). A Base 0x address returns Aave V3 supply and variable debt plus staked Aerodrome basic-pool LP. Unclaimed AERO is omitted. This endpoint provides position data only; it does not build or submit transactions.",
         "tags": [
           "defi",
           "positions",
@@ -843,17 +843,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.005"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.005"
             }
           ],
@@ -898,17 +898,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.001"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.001"
             }
           ],
@@ -972,17 +972,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.005"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.005"
             }
           ],
@@ -1010,12 +1010,137 @@
         ]
       },
       {
+        "id": "mallowMarkets",
+        "method": "GET",
+        "path": "/protocols/mallow/markets",
+        "access": "free",
+        "summary": "Mallow ALGO and BTC perpetual market snapshot",
+        "description": "Returns the live ALGO/USD and BTC/USD index, max leverage, USDC collateral asset, and Mallow's 3 bps builder fee. A missing pair fails that row only. Catalog data for mainnet:mallow:v1:openLimit:attached — compile the unsigned order with POST /execution/quotes. Positions settle on People's Exchange.",
+        "tags": [
+          "mallow",
+          "perps",
+          "discovery",
+          "agents"
+        ],
+        "pathParams": [],
+        "queryParams": [],
+        "responseCodes": [
+          200,
+          500
+        ]
+      },
+      {
+        "id": "mallowPositions",
+        "method": "GET",
+        "path": "/protocols/mallow/positions",
+        "access": "free",
+        "summary": "Mallow ALGO and BTC perpetual positions for one wallet",
+        "description": "Returns open ALGO/USD and BTC/USD positions that post USDC, including positionId for mainnet:mallow:v1:close:market. Other markets are omitted. An unknown address returns an empty list. Compile the unsigned close with POST /execution/quotes.",
+        "tags": [
+          "mallow",
+          "perps",
+          "discovery",
+          "agents"
+        ],
+        "pathParams": [],
+        "queryParams": [
+          "address"
+        ],
+        "responseCodes": [
+          200,
+          500
+        ]
+      },
+      {
+        "id": "haystackLaunches",
+        "method": "GET",
+        "path": "/protocols/haystack/launches",
+        "access": "paid",
+        "summary": "Haystack tokens still on the bonding curve",
+        "description": "Returns HayLaunch tokens with bondingOn = 0 inside a launch-date window. The default window is the last 60 days when launchedAfter is omitted. q is a case-insensitive name or ticker substring. minProgress and maxProgress are inclusive bonding percents from 0 to 100. order is asc or desc on bonding percent (default desc). Each row includes the buy shape key mainnet:haystack:v1:buy:bonding. Compile that buy, or mainnet:haystack:v1:launch:token, with POST /execution/quotes.",
+        "tags": [
+          "haystack",
+          "launch",
+          "discovery",
+          "x402",
+          "agents",
+          "x402-global-challenge"
+        ],
+        "pathParams": [],
+        "queryParams": [
+          "q",
+          "minProgress",
+          "maxProgress",
+          "order",
+          "launchedAfter",
+          "launchedBefore",
+          "limit",
+          "offset"
+        ],
+        "sessionAccess": "research",
+        "responseCodes": [
+          200,
+          402,
+          500
+        ],
+        "x402": {
+          "protocolVersion": 2,
+          "requiredHeaders": [
+            "PAYMENT-REQUIRED",
+            "PAYMENT-SIGNATURE",
+            "PAYMENT-RESPONSE"
+          ],
+          "facilitator": "https://facilitator.goplausible.xyz",
+          "requirementTemplate": {
+            "scheme": "exact",
+            "network": "algorand-mainnet",
+            "asset": "31566704",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+            "maxAmountRequired": "0.01"
+          },
+          "accepts": [
+            {
+              "scheme": "exact",
+              "network": "algorand-mainnet",
+              "asset": "31566704",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
+              "maxAmountRequired": "0.01"
+            }
+          ],
+          "amountUsdc": "0.01",
+          "amountMicro": "10000"
+        }
+      },
+      {
+        "id": "haystackLaunch",
+        "method": "GET",
+        "path": "/protocols/haystack/launches/:tokenNum",
+        "access": "free",
+        "summary": "One Haystack launch bonding status",
+        "description": "Returns one HayLaunch token box: phase, progress, price, reserves, and pool ids after graduation. Pass tokenNum, or assetId once the asset map exists (after the first buy). Optional address adds that wallet's virtual userHoldings. A graduated token points at POST /swaps/quote instead of the bonding buy.",
+        "tags": [
+          "haystack",
+          "launch",
+          "discovery",
+          "agents"
+        ],
+        "pathParams": [],
+        "queryParams": [
+          "assetId",
+          "address"
+        ],
+        "responseCodes": [
+          200,
+          500
+        ]
+      },
+      {
         "id": "executionQuote",
         "method": "POST",
         "path": "/execution/quotes",
         "access": "paid",
         "summary": "Compile verified transaction shapes into unsigned Algorand groups or Base calldata",
-        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman v2 swap shapes (swap:fixedInput / swap:fixedOutput via Tinyman Swap Router, falling back to a single Tinyman pool when the router is not better; Tinyman-pool only, never a cross-DEX aggregator), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, Pact Smart Router unsigned swap (`mainnet:pact:smart-router:swap:fixed-input`; local graph + Pool.prepareSwap, not Haystack), CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), Réti v1 ALGO staking shapes (stake/unstake), Alpha Arcade v1 ALPHA staking shapes (stake/unstake/claim USDC), and STAMM v1 LP mint/redeem via HOGSWAP (unsigned groups; do not hardcode router app ids), and HOGSWAP v1 swap shapes (fixed-input / fixed-output; unsigned groups; routing fee already netted into expectedOut; do not hardcode router app ids). Canix does not sign or submit transactions in this endpoint. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
+        "description": "Accepts `{ quotes: [{ shapeKey, input }, ...] }` (min 1) and returns an array of fresh, validated, unsigned transaction groups in request order. Groups are never merged across quotes. On failure the whole request fails and error.details includes quoteIndex and shapeKey. Price is flat per request (not per quote item). Use when an agent has selected one or more DeFi actions and needs deterministic transaction bytes to sign locally. Currently supports all five Tinyman v2 LP shapes (flexible/initial/single-asset add; multiple-assets-out/single-asset-out remove), Tinyman v2 swap shapes (swap:fixedInput / swap:fixedOutput via Tinyman Swap Router, falling back to a single Tinyman pool when the router is not better; Tinyman-pool only, never a cross-DEX aggregator), Tinyman farm shapes (staking-v1 farm:commit / farm:uncommit / farm:claimRewards; v2 addLiquidityAndFarm flexible/single-asset that add liquidity and commit the new LP position in one atomic group, with LP tokens remaining in the wallet), Tinyman liquid-stake/restake shapes (liquid-stake-v1 mint/burn tALGO; restake-v1 increaseStake/decreaseStake/claimRewards stALGO), Folks Finance v2 lending escrow shapes (setup depositEscrow/optEscrowAsset; deposit:escrow; withdraw:escrow), Folks Finance v2 loan credit shapes (setup:loanEscrow; setup:addCollateral; collateral:sync / collateral:reduce; borrow:variable; repay:withTxn), Folks Finance xALGO liquid-stake shapes (xalgo-v1 stake/unstake immediate), Pact v1 LP add/remove shapes, Pact Smart Router unsigned swap (`mainnet:pact:smart-router:swap:fixed-input`; local graph + Pool.prepareSwap, not Haystack), CompX v1 lending shapes (deposit/withdraw ASA; borrow:asa; repay:asa) and CompX v1 staking shapes, Dork.fi v1 ASA lending shapes (deposit/withdraw; borrow:asa; repay:asa), Myth Finance dualSTAKE shapes (dualstake-v1 mint/redeem LST; farm yield accrues passively while holding the LST), Haystack v1 single-token HAY staking shapes (stake HAY; unstake HAY and claim USDC+HAY rewards; claim USDC+HAY rewards), Haystack Launch shapes (`mainnet:haystack:v1:launch:token` creates a bonding-curve ASA from an existing ipfs:// or https:// URL; `mainnet:haystack:v1:buy:bonding` buys a token still on the curve, directly in the bonding asset or through the Haystack router — list bonding tokens with paid GET /protocols/haystack/launches and read one token free at GET /protocols/haystack/launches/{tokenNum}), Réti v1 ALGO staking shapes (stake/unstake), Alpha Arcade v1 ALPHA staking shapes (stake/unstake/claim USDC), and STAMM v1 LP mint/redeem via HOGSWAP (unsigned groups; do not hardcode router app ids), and HOGSWAP v1 swap shapes (fixed-input / fixed-output; unsigned groups; routing fee already netted into expectedOut; do not hardcode router app ids), and Mallow v1 perps shapes (`mainnet:mallow:v1:openLimit:attached` for ALGO/USD or BTC/USD limit orders with leverage and attached take-profit and stop-loss; `mainnet:mallow:v1:close:market` to close an open ALGO or BTC position in full; `mainnet:mallow:v1:cancelOrder:resting` to cancel a resting order, including an orphaned take-profit or stop-loss; `mainnet:mallow:v1:optIn:usdc`). Read `GET /protocols/mallow/markets` for the live index and max leverage, `GET /protocols/mallow/positions` for a position id, and paid `GET /positions` for the wallet snapshot that includes Mallow perps and resting orders. Canix does not sign or submit transactions in this endpoint. Do not guess pool discovery, opt-ins, min-balance, slippage, liquidity limits, or app upgrades. Read protocol/docs/execution-shapes/protocol-caveats.md (GET /execution/shapes meta.caveatsDocsPath) and each shape's docsPath.",
         "tags": [
           "execution",
           "transactions",
@@ -1041,17 +1166,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.1"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.1"
             }
           ],
@@ -1094,17 +1219,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.1"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.1"
             }
           ],
@@ -1148,17 +1273,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.1"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.1"
             }
           ],
@@ -1198,17 +1323,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.25"
             }
           ],
@@ -1248,17 +1373,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.25"
             }
           ],
@@ -1319,17 +1444,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.25"
             }
           ],
@@ -1369,17 +1494,17 @@
           "facilitator": "https://facilitator.goplausible.xyz",
           "requirementTemplate": {
             "scheme": "exact",
-            "network": "algorand",
+            "network": "algorand-mainnet",
             "asset": "31566704",
-            "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+            "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
             "maxAmountRequired": "0.25"
           },
           "accepts": [
             {
               "scheme": "exact",
-              "network": "algorand",
+              "network": "algorand-mainnet",
               "asset": "31566704",
-              "payTo": "3Y2V6ODUVUGM4TXOEXY65YLMKMVLG4PB3GSOXDCJDE4X5YQA5JA3P2FHAQ",
+              "payTo": "REPLACE_WITH_PAYTO_ADDRESS",
               "maxAmountRequired": "0.25"
             }
           ],
@@ -1532,6 +1657,8 @@
         "canix_get_openapi",
         "canix_get_token_prices",
         "canix_list_execution_shapes",
+        "canix_list_haystack_launches",
+        "canix_get_haystack_launch",
         "canix_list_opportunities",
         "canix_search_opportunities",
         "canix_get_personalized_opportunities",

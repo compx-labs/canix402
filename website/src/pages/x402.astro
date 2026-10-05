@@ -112,7 +112,13 @@ import {
       Claim desk <code>/positions/claimable?address=</code> costs
       exactly <code>{positionsClaimablePriceUsdc} USDC</code> (<code>1000</code> micro-USDC).
       Batch execution quotes at <code>POST /execution/quotes</code> cost
-      <code>{executionQuotePriceUsdc} USDC</code> flat per request (not per quote item). Haystack quote and prerequisite
+      <code>{executionQuotePriceUsdc} USDC</code> flat per request (not per quote item).
+      That price covers a Haystack token launch (<code>mainnet:haystack:v1:launch:token</code>) and a
+      buy of a token still on the bonding curve (<code>mainnet:haystack:v1:buy:bonding</code>).
+      The bonding list at <code>GET /protocols/haystack/launches</code> costs
+      <code>0.01 USDC</code>. One-token status at
+      <code>GET /protocols/haystack/launches/&#123;tokenNum&#125;</code> is free.
+      Haystack quote and prerequisite
       opt-in generation are free; only <code>POST /swaps/transactions</code> costs
       <code>0.005 USDC</code>. Discovery x402 metadata exposes both <code>amountUsdc</code> and
       <code>amountMicro</code>; Caddy <code>PAYMENT-REQUIRED</code> uses micro-USDC.
@@ -171,7 +177,8 @@ import {
       <li>No server-side wallet or mnemonic storage in MCP</li>
       <li>
         Tools include <code>canix_list_opportunities</code>,
-        <code>canix_list_execution_shapes</code>, <code>canix_get_positions</code>,
+        <code>canix_list_execution_shapes</code>, <code>canix_list_haystack_launches</code>,
+        <code>canix_get_haystack_launch</code>, <code>canix_get_positions</code>,
         <code>canix_get_plan</code>, <code>canix_compose_enter</code>,
         <code>canix_get_execution_quote</code>, <code>canix_validate_policy</code>, <code>canix_simulate_execution</code>,
         and free discovery helpers

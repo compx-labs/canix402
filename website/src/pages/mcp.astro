@@ -12,8 +12,8 @@ import { config, mcpToolNames } from "../lib/config";
   <h1 class="page-title">MCP server</h1>
   <p class="muted">
     The canix402 MCP is a remote, walletless wrapper over the public Caddy gateway. Agents connect
-    over Streamable HTTP, call typed tools for discovery, opportunity data, and unsigned quotes, and
-    sign x402 payments on the client. An agent may use Algorand, Base, or both. Algorand tool
+    over Streamable HTTP, call typed tools for discovery, opportunity data, Haystack Launch, and
+    unsigned quotes, and sign x402 payments on the client. An agent may use Algorand, Base, or both. Algorand tool
     arguments take an Algorand address alone. Omitting a Base address does not change rank,
     eligibility, price, or access.
   </p>
@@ -176,6 +176,30 @@ canix_get_execution_quote({
   </section>
 
   <section class="panel">
+    <h2>Haystack Launch</h2>
+    <ul>
+      <li>
+        <code>canix_list_haystack_launches</code> — paid bonding list from
+        <code>GET /protocols/haystack/launches</code> (0.01 USDC, research session). Default window
+        is the last 60 days.
+      </li>
+      <li>
+        <code>canix_get_haystack_launch</code> — free status from
+        <code>GET /protocols/haystack/launches/&#123;tokenNum&#125;</code>.
+      </li>
+      <li>
+        <code>canix_get_execution_quote</code> — launch with
+        <code>mainnet:haystack:v1:launch:token</code> or buy a token still bonding with
+        <code>mainnet:haystack:v1:buy:bonding</code> (0.10 USDC flat). A bonding buy is not
+        <code>canix_swap</code>.
+      </li>
+    </ul>
+    <CodeBlock
+      code={`canix_list_haystack_launches({\n  q: "len",\n  minProgress: 10,\n  maxProgress: 90,\n  order: "desc",\n  limit: 25\n})\n\ncanix_get_haystack_launch({ tokenNum: 175 })\ncanix_get_haystack_launch({\n  assetId: 3729195158,\n  address: "YOUR_ALGORAND_ADDRESS"\n})\n\ncanix_get_execution_quote({\n  quotes: [{\n    shapeKey: "mainnet:haystack:v1:launch:token",\n    input: {\n      userAddress: "YOUR_ALGORAND_ADDRESS",\n      symbol: "LENIN",\n      name: "Lenin",\n      assetUrl: "ipfs://bafkreiexample",\n      bondingTokenId: 0\n    }\n  }]\n})\n\ncanix_get_execution_quote({\n  quotes: [{\n    shapeKey: "mainnet:haystack:v1:buy:bonding",\n    input: {\n      userAddress: "YOUR_ALGORAND_ADDRESS",\n      tokenNum: 175,\n      fromAssetId: 0,\n      amount: "1000000",\n      slippageBps: 50\n    }\n  }]\n})`}
+    />
+  </section>
+
+  <section class="panel">
     <h2>Verify the deployment</h2>
     <CodeBlock
       code={`curl -s ${config.mcpUrl.replace(/\/mcp$/, "")}/health | jq\n\ncurl -s ${config.mcpWellKnownUrl} | jq`}
@@ -237,8 +261,10 @@ canix_get_execution_quote({
     <h2>Available tools</h2>
     <p>Tool names match <a href={config.discoveryUrl}>discovery</a> <code>mcpServer.tools</code>.</p>
     <p>
-      The same tools are also registered in-page on <a href="/webmcp">/webmcp</a> via the WebMCP
-      imperative API.
+      A browser subset of these tools is also registered in-page on <a href="/webmcp">/webmcp</a> via
+      the WebMCP imperative API. Haystack Launch list and status stay on the remote MCP. The
+      execution-quote tool on <code>/webmcp</code> can still compile the launch and bonding-buy
+      shapes.
     </p>
     <ul>
       {
@@ -251,8 +277,9 @@ canix_get_execution_quote({
     </ul>
     <p class="muted">
       Free tools include health, metadata, discovery, OpenAPI, execution shapes,
-      swap quotes, and opt-ins. Paid tools include opportunities, positions, claimable
-      rewards, execution quotes, and swap transactions.
+      Haystack Launch status, swap quotes, and opt-ins. Paid tools include opportunities,
+      positions, claimable rewards, the Haystack bonding list, execution quotes, and swap
+      transactions.
     </p>
   </section>
 

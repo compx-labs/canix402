@@ -1,6 +1,6 @@
 # CANIX402 — full agent integration guide
 
-> x402-gated DeFi data and walletless transaction API (version 1.8.0). Normalized yield data and multi-router swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.  # pragma: allowlist secret
+> x402-gated DeFi data and walletless transaction API (version 0.1.0). Normalized yield data and multi-router swap-group generation for autonomous agents; USDC micropayments at the gateway; no server-side signing or submission.  # pragma: allowlist secret
 
 ## Overview
 
@@ -29,7 +29,7 @@ Always call the **gateway**, not an internal upstream API. x402 enforcement, `PA
 
 ### MCP server
 
-Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_get_opportunity_history`, `canix_list_execution_shapes`, `canix_get_positions`, `canix_list_claimable`, `canix_check_eligibility`, `canix_get_plan`, `canix_get_rebalance_plan`, `canix_validate_policy`, `canix_compose_enter`, `canix_get_execution_quote`, `canix_simulate_execution`, `canix_create_session`, `canix_refresh_session`, `canix_get_session`, `canix_create_watch`, `canix_refresh_watch`, `canix_get_watch`, and free discovery helpers. Prepaid sessions: one x402 payment unlocks N research + M quotes/plans for a TTL (`sessionReceipt` / `X-Canix-Session`); one-shots remain the default. Watch retainers: `POST /watch` registers address + thresholds and delivers signed, idempotent webhooks instead of polling positions. See https://canix402.compx.io/mcp.  # pragma: allowlist secret
+Prefer the canix402 MCP for agent hosts (Cursor, Claude Desktop). Endpoint: `https://canix402-mcp.compx.io/mcp` (streamable-http). Metadata: `https://canix402-mcp.compx.io/.well-known/mcp`. Walletless: paid tool preflight returns payment requirements; retry with `paymentSignature`. Tools include `canix_list_opportunities`, `canix_get_opportunity_history`, `canix_list_execution_shapes`, `canix_get_positions`, `canix_list_claimable`, `canix_check_eligibility`, `canix_get_plan`, `canix_get_rebalance_plan`, `canix_validate_policy`, `canix_compose_enter`, `canix_get_execution_quote`, `canix_list_haystack_launches`, `canix_get_haystack_launch`, `canix_simulate_execution`, `canix_create_session`, `canix_refresh_session`, `canix_get_session`, `canix_create_watch`, `canix_refresh_watch`, `canix_get_watch`, and free discovery helpers. Prepaid sessions: one x402 payment unlocks N research + M quotes/plans for a TTL (`sessionReceipt` / `X-Canix-Session`); one-shots remain the default. Watch retainers: `POST /watch` registers address + thresholds and delivers signed, idempotent webhooks instead of polling positions. See https://canix402.compx.io/mcp.  # pragma: allowlist secret
 
 ## x402 payment flow
 
@@ -46,7 +46,7 @@ Default payment context (confirm against live discovery before integrating):
 
 - **Protocol version:** 2
 - **Algorand accept network:** algorand-mainnet
-- **Discovery template network:** algorand  # pragma: allowlist secret
+- **Discovery template network:** algorand-mainnet  # pragma: allowlist secret
 - **Algorand USDC ASA:** 31566704
 - **Base network:** eip155:8453
 - **Base USDC:** 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
@@ -93,6 +93,10 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `GET /public/agents/brownie/positions` (Free) — Public DeFi positions for the Brownie Bot showcase wallet.
 - `POST /swaps/transactions` (0.005 USDC) — Build a walletless swap transaction group from the winning quote.
 - `GET /execution/shapes` (Free) — List verified execution shape catalog metadata.
+- `GET /protocols/mallow/markets` (Free) — Mallow ALGO and BTC perpetual market snapshot.
+- `GET /protocols/mallow/positions` (Free) — Mallow ALGO and BTC perpetual positions for one wallet. Params: address=.
+- `GET /protocols/haystack/launches` (0.01 USDC) — Haystack tokens still on the bonding curve. Params: q=, minProgress=, maxProgress=, order=, launchedAfter=, launchedBefore=, limit=, offset=.
+- `GET /protocols/haystack/launches/:tokenNum` (Free) — One Haystack launch bonding status. Params: assetId=, address=.
 - `POST /execution/quotes` (0.1 USDC) — Compile verified transaction shapes into unsigned Algorand groups or Base calldata.
 - `POST /execution/compose` (0.1 USDC) — Compose opt-in → winning swap → enter as unmerged unsigned groups.  # pragma: allowlist secret
 - `POST /execution/simulate` (0.1 USDC) — Simulate compiled unsigned groups for predicted balance and position deltas.  # pragma: allowlist secret
@@ -124,12 +128,16 @@ curl -s -D - https://canix402-api.compx.io/opportunities -o /dev/null
 - `GET /execution/shapes` — free catalog of verified shape keys and requiredInputs (metadata only). `meta.caveatsDocsPath` is `protocol/docs/execution-shapes/protocol-caveats.md` (pool discovery, opt-ins, min-balance, slippage, liquidity limits, app upgrades). Do not guess those details.
 - `GET /protocols/mallow/markets` — free ALGO/USD and BTC/USD index, max leverage, and USDC collateral for `mainnet:mallow:v1:openLimit:attached`. `collateralUsd` is margin. `takeProfitPct` / `stopLossPct` are return on margin. Positions settle on People's Exchange with a 3 bps Mallow builder fee.
 - `GET /protocols/mallow/positions?address=` — free open ALGO/USD and BTC/USD positions that post USDC. Copy `positionId`, `market`, and `side` into `mainnet:mallow:v1:close:market`. Other markets are omitted. An unknown address returns an empty list.
-- `POST /execution/quotes` — batch unsigned groups for verified shapes; flat ~0.1 USDC per request, payable on Algorand or Base. Algorand shapes take an Algorand `userAddress` and return Algorand groups. Morpho shapes (`base:morpho:vault:*`), Aave shapes (`base:aave:v3:*`), and Aerodrome shapes (`base:aerodrome:v2:*`) take a Base `0x` `userAddress` and return unsigned Base calldata (`encodedTransactions` hex, `transactions[].evmCall`). Mallow shapes (`mainnet:mallow:v1:openLimit:attached`, `mainnet:mallow:v1:close:market`, `mainnet:mallow:v1:cancelOrder:resting`, `mainnet:mallow:v1:optIn:usdc`) return unsigned Algorand groups. Skipping Base shapes is complete for an Algorand agent. Canix never signs or submits. Read each shape's `docsPath` plus the protocol caveats doc before filling inputs.
+- `POST /execution/quotes` — batch unsigned groups for verified shapes; flat ~0.1 USDC per request, payable on Algorand or Base. Algorand shapes take an Algorand `userAddress` and return Algorand groups. Morpho shapes (`base:morpho:vault:*`), Aave shapes (`base:aave:v3:*`), and Aerodrome shapes (`base:aerodrome:v2:*`) take a Base `0x` `userAddress` and return unsigned Base calldata (`encodedTransactions` hex, `transactions[].evmCall`). Mallow shapes (`mainnet:mallow:v1:openLimit:attached`, `mainnet:mallow:v1:close:market`, `mainnet:mallow:v1:cancelOrder:resting`, `mainnet:mallow:v1:optIn:usdc`) return unsigned Algorand groups. Haystack Launch shapes (`mainnet:haystack:v1:launch:token`, `mainnet:haystack:v1:buy:bonding`) also compile here at the same flat price; the bonding buy is not the swap SKU. Skipping Base shapes is complete for an Algorand agent. Canix never signs or submits. Read each shape's `docsPath` plus the protocol caveats doc before filling inputs.
+- `GET /protocols/haystack/launches` — paid (~0.01 USDC, research session). HayLaunch tokens still bonding. Default window is the last 60 days. `q` matches name or ticker; `minProgress` / `maxProgress` bound bonding percent; `order` is `asc` or `desc` (default `desc`). Example: `GET /protocols/haystack/launches?q=len&minProgress=10&maxProgress=90&order=desc&limit=25`.
+- `GET /protocols/haystack/launches/{tokenNum}` — free bonding status for one token. `assetId` works after the first buy. Optional `address` adds virtual holdings. Graduated tokens point at `POST /swaps/quote`. Example: `GET /protocols/haystack/launches/175` or `GET /protocols/haystack/launches/0?assetId=3729195158&address=YOUR_ALGORAND_ADDRESS`.
+- Haystack launch quote — `POST /execution/quotes` with `shapeKey` `mainnet:haystack:v1:launch:token`. Input: `userAddress`, `symbol`, `name`, `assetUrl` (`ipfs://` or `https://`), `bondingTokenId` (`0` = ALGO). Optional `initialBuyAmount`. Canix does not pin images.
+- Haystack bonding buy — `POST /execution/quotes` with `shapeKey` `mainnet:haystack:v1:buy:bonding`. Input: `userAddress`, `tokenNum` or `assetId`, `fromAssetId`, `amount`, `slippageBps`. `fromAssetId` equal to the bonding asset pays the curve directly. Any other `fromAssetId` routes through the Haystack router in the same group. A routed buy of 90% or more of remaining real reserves is refused.
 - Multi-router swaps — call free `POST /swaps/quote` (parallel compare unless `router` is set), sign and submit any group from free `POST /swaps/optin`, refresh the short-lived quote, then call paid `POST /swaps/transactions` for 0.005 USDC. Amounts are asset base units. Pass the quote object unchanged; do not edit `payload`.
 - Walletless handoff — sign only the returned `userSignIndexes`, preserve any pre-signed members and group order, and submit the complete group through the caller's Algod client.
 - Swap costs — the 0.005 USDC x402 access charge is separate from router fees, DEX fees, price impact, and Algorand network fees.
 
-Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-known/x402.json`, `GET /execution/shapes`, `GET /protocols/mallow/markets`, `GET /protocols/mallow/positions`, `POST /swaps/quote`, `POST /swaps/optin`.
+Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-known/x402.json`, `GET /execution/shapes`, `GET /protocols/mallow/markets`, `GET /protocols/mallow/positions`, `GET /protocols/haystack/launches/{tokenNum}`, `POST /swaps/quote`, `POST /swaps/optin`.
 
 ## Error catalog
 
@@ -1493,6 +1501,85 @@ Free routes: `/health`, `/metadata`, `/discovery`, `/openapi.json`, `/.well-know
     "executionSubmitted": false,
     "quoteCount": 1,
     "note": "Unsigned groups only. Sign and submit locally; Canix never receives wallet keys."
+  }
+}
+```
+
+### GET /protocols/haystack/launches
+
+```json
+{
+  "data": {
+    "launchedAfter": "2026-08-06T21:50:00.000Z",
+    "launchedBefore": "2026-10-05T21:50:00.000Z",
+    "order": "desc",
+    "total": 1,
+    "launches": [
+      {
+        "tokenNum": 175,
+        "assetId": 3729195158,
+        "name": "LENIN",
+        "symbol": "LENIN",
+        "assetUrl": "ipfs://bafkreiexample",
+        "creator": "LOLJKAN3NMRMAWAPYKQOEJPVM37KKZCMM7DMGOU2CWN45RKSDZB6QAKSMI",
+        "bondingTokenId": 0,
+        "launchedAt": "2026-10-02T22:56:32.000Z",
+        "progressPercent": 12.5,
+        "priceBonding": "0.000001",
+        "priceUsd": "0.000002",
+        "realTokenReserves": "700000000000000",
+        "realBondingReserves": "5000000",
+        "initialRealTokenReserves": "800000000000000",
+        "bondingTargetUsd": "2500000000",
+        "priceMultiplier": "20",
+        "buyShapeKey": "mainnet:haystack:v1:buy:bonding"
+      }
+    ]
+  },
+  "meta": {
+    "paymentRequired": true,
+    "shapeKey": "mainnet:haystack:v1:buy:bonding"
+  }
+}
+```
+
+### GET /protocols/haystack/launches/{tokenNum}
+
+```json
+{
+  "data": {
+    "tokenNum": 175,
+    "assetId": 3729195158,
+    "name": "LENIN",
+    "symbol": "LENIN",
+    "assetUrl": "ipfs://bafkreiexample",
+    "description": "",
+    "socialWebsite": "",
+    "socialX": "",
+    "socialTelegram": "",
+    "socialDiscord": "",
+    "creator": "LOLJKAN3NMRMAWAPYKQOEJPVM37KKZCMM7DMGOU2CWN45RKSDZB6QAKSMI",
+    "bondingTokenId": 0,
+    "bondingOn": 0,
+    "phase": "bonding",
+    "progressPercent": 12.5,
+    "priceBonding": "0.000001",
+    "priceUsd": "0.000002",
+    "realTokenReserves": "700000000000000",
+    "realBondingReserves": "5000000",
+    "initialRealTokenReserves": "800000000000000",
+    "virtualTokenReserves": "1000000000000000",
+    "virtualBondingReserves": "1000000000",
+    "bondingTargetUsd": "2500000000",
+    "priceMultiplier": "20",
+    "poolAppId": 0,
+    "lpTokenId": 0,
+    "buyShapeKey": "mainnet:haystack:v1:buy:bonding",
+    "userHolding": null,
+    "note": null
+  },
+  "meta": {
+    "paymentRequired": false
   }
 }
 ```

@@ -1,5 +1,7 @@
 import type { TransactionShapeSpec } from "../../types.js";
+import { haystackBuyBondingShape } from "./buy-bonding.js";
 import { haystackClaimRewardsShape } from "./claim-rewards.js";
+import { haystackLaunchTokenShape } from "./launch-token.js";
 import { haystackStakeHayShape } from "./stake-hay.js";
 import { haystackUnstakeHayShape } from "./unstake-hay.js";
 
@@ -54,9 +56,28 @@ export {
 
 export { createExecutionAlgodClient, getStakerBoxRecord } from "./shared.js";
 
-/** All verified Haystack staking transaction shapes. */
+export {
+  haystackLaunchTokenShape,
+  setHaystackLaunchTokenDependenciesForTests
+} from "./launch-token.js";
+export type { HaystackLaunchTokenInput, HaystackLaunchTokenState } from "./launch-token.js";
+
+export {
+  haystackBuyBondingShape,
+  setHaystackBuyBondingDependenciesForTests
+} from "./buy-bonding.js";
+export type {
+  HaystackBuyBondingInput,
+  HaystackBuyBondingState,
+  BondingSwapLeg,
+  BondingSwapQuote
+} from "./buy-bonding.js";
+
+/** Verified Haystack staking and launch transaction shapes. */
 export const haystackShapes: readonly TransactionShapeSpec[] = [
   haystackStakeHayShape,
   haystackUnstakeHayShape,
-  haystackClaimRewardsShape
+  haystackClaimRewardsShape,
+  haystackLaunchTokenShape,
+  haystackBuyBondingShape
 ];
