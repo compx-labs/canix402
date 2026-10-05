@@ -6,22 +6,24 @@ interface Props {
 const { currentPath } = Astro.props;
 
 const links = [
-  { href: "/quickstart", label: "Quickstart" },
-  { href: "/mcp", label: "MCP" },
-  { href: "/webmcp", label: "Canix402 Live" },
-  { href: "/endpoints", label: "Endpoints" },
-  { href: "/user-agents", label: "User Agents" },
-  { href: "/transactions", label: "Transactions" },
-  { href: "/x402", label: "x402" },
-  { href: "/examples", label: "Examples" },
-  { href: "/protocols", label: "Protocols" },
-  { href: "/release-notes", label: "Releases" },
-  { href: "/faq", label: "FAQ" }
+  { href: "/quickstart", label: "Get started" },
+  { href: "/webmcp", label: "Live" },
+  { href: "/endpoints", label: "Endpoints" }
 ];
+
+const docsLinks = [
+  { href: "/mcp", label: "MCP" },
+  { href: "/x402", label: "Payments" },
+  { href: "/examples", label: "Examples" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/release-notes", label: "Releases" }
+];
+
+const docsCurrent = docsLinks.some((link) => link.href === currentPath);
 ---
 
 <header class="site-header">
-  <a class="brand-link" href="/">
+  <a class="brand-link" href="/" aria-current={currentPath === "/" ? "page" : undefined}>
     <img src="/brand/canix402-mark-v2.png" alt="CANIX402 fox mark" width="42" height="42" />
     <span>CANIX402</span>
   </a>
@@ -44,12 +46,25 @@ const links = [
         </a>
       ))
     }
+    <details class:list={["nav-docs", docsCurrent && "is-current"]}>
+      <summary>Docs</summary>
+      <div class="nav-docs-menu">
+        {
+          docsLinks.map((link) => (
+            <a href={link.href} aria-current={currentPath === link.href ? "page" : undefined}>
+              {link.label}
+            </a>
+          ))
+        }
+      </div>
+    </details>
   </nav>
 </header>
 
 <script>
   const toggle = document.querySelector<HTMLButtonElement>(".nav-toggle");
   const nav = document.querySelector<HTMLElement>("#site-nav");
+  const docs = document.querySelector<HTMLDetailsElement>(".nav-docs");
 
   if (toggle && nav) {
     const setOpen = (open: boolean) => {
@@ -69,6 +84,15 @@ const links = [
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
         setOpen(false);
+        if (docs) {
+          docs.open = false;
+        }
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      if (docs && !docs.contains(event.target as Node)) {
+        docs.open = false;
       }
     });
 

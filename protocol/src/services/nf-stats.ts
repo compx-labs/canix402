@@ -94,10 +94,20 @@ export function readProtocolVersion(): string {
   return parsed.version.trim();
 }
 
+/** Public stats ids. The shape registry records Algorand as `mainnet`. */
+const NF_STATS_NETWORK_IDS: Record<string, string> = {
+  mainnet: "algorand",
+  base: "base"
+};
+
+export function publishableNetworkId(network: string): string {
+  return NF_STATS_NETWORK_IDS[network] ?? network;
+}
+
 export function listSupportedNetworks(): string[] {
   const networks = new Set<string>();
   for (const shape of executionRegistry.list()) {
-    networks.add(shape.identity.network);
+    networks.add(publishableNetworkId(shape.identity.network));
   }
   return [...networks].sort();
 }
@@ -116,7 +126,7 @@ export function buildNfStatsDocument(input: NfStatsMeasurements): NfStatsDocumen
     }
   }
 
-  const networks = [...new Set(input.networks)].sort();
+  const networks = [...new Set(input.networks.map(publishableNetworkId))].sort();
   const asOf = input.updatedAt;
   const stat = (id: string, label: string, value: number, source: string): NfStat => ({
     id,

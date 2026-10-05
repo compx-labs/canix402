@@ -8,6 +8,7 @@ import {
 import {
   buildNfStatsDocument,
   collectNfStatsDocument,
+  listSupportedNetworks,
   publishNfStats,
   uploadNfStatsDocument,
   type NfStatsDocument,
@@ -74,7 +75,8 @@ test("stats document uses nf-stats/v1 and measured numbers", () => {
   assert.equal(document.schema, "nf-stats/v1");
   assert.equal(document.project, "canix402");
   assert.equal(document.updated_at, UPDATED_AT);
-  assert.deepEqual(document.networks, ["base", "mainnet"]);
+  assert.deepEqual(document.networks, ["algorand", "base"]);
+  assert.deepEqual(listSupportedNetworks(), ["algorand", "base"]);
   assert.ok(networksSupported);
   assert.equal(networksSupported.value, document.networks.length);
   assert.equal(networksSupported.as_of, document.updated_at);
