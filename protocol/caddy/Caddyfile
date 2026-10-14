@@ -19,7 +19,7 @@
 
 	@free {
 		method GET
-		path / /health /ready /metadata /discovery /openapi.json /llms.txt /llms-full.txt /robots.txt /favicon.ico /favicon.png /logo.png /banner.png /.well-known/x402 /.well-known/x402.json /.well-known/agent-card.json /.well-known/agent.json /.well-known/ai-plugin.json /swaps/quote /swaps/optin /pricing /execution/shapes /protocols/mallow/markets /protocols/mallow/positions /public/agents/brownie/positions /sessions/* /watch/*
+		path / /health /ready /metadata /discovery /openapi.json /llms.txt /llms-full.txt /robots.txt /favicon.ico /favicon.png /logo.png /banner.png /.well-known/x402 /.well-known/x402.json /.well-known/agent-card.json /.well-known/agent.json /.well-known/ai-plugin.json /swaps/quote /swaps/optin /pricing /execution/shapes /protocols/mallow/markets /protocols/mallow/positions /protocols/haystack/launches/* /public/agents/brownie/positions /sessions/* /watch/*
 	}
 	handle @free {
 		reverse_proxy {$UPSTREAM_API}
@@ -35,7 +35,7 @@
 
 	@session {
 		header X-Canix-Session csess_*
-		path /opportunities /opportunities/search /opportunities/personalized /opportunities/*/history /eligibility /plans /plans/rebalance /policy/validate /positions /positions/claimable /protocols/*/opportunities /swaps/transactions /execution/quotes /execution/compose /execution/simulate
+		path /opportunities /opportunities/search /opportunities/personalized /opportunities/*/history /eligibility /plans /plans/rebalance /policy/validate /positions /positions/claimable /protocols/*/opportunities /protocols/haystack/launches /swaps/transactions /execution/quotes /execution/compose /execution/simulate
 	}
 	handle @session {
 		reverse_proxy {$UPSTREAM_API}
@@ -371,6 +371,37 @@
 			accept {
 				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
 				price {$X402_PRICE_PROTOCOL_USDC}
+				network base
+				scheme exact
+				extra {
+					tag x402-global-challenge
+				}
+			}
+		}
+
+		reverse_proxy {$UPSTREAM_API}
+	}
+
+	@paid_haystack_launches path /protocols/haystack/launches
+	handle @paid_haystack_launches {
+		x402 {
+			description "canix402 Haystack launch list endpoint"
+			mime_type application/json
+			facilitator_url {$FACILITATOR_URL}
+			bazaar_profile haystack_launches
+
+			accept {
+				pay_to {$X402_PAY_TO}
+				price {$X402_PRICE_HAYSTACK_LAUNCHES_USDC}
+				network {$X402_NETWORK}
+				scheme {$X402_SCHEME}
+				extra {
+					tag x402-global-challenge
+				}
+			}
+			accept {
+				pay_to {$X402_PAY_TO_BASE:REPLACE_WITH_BASE_PAYTO_ADDRESS}
+				price {$X402_PRICE_HAYSTACK_LAUNCHES_USDC}
 				network base
 				scheme exact
 				extra {

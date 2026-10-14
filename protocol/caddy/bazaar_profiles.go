@@ -268,6 +268,38 @@ func buildBazaarExtension(profile string) (bazaar.DiscoveryExtension, error) {
 			},
 		)
 
+	case "haystack_launches":
+		return bazaar.DeclareDiscoveryExtension(
+			bazaar.MethodGET,
+			map[string]interface{}{
+				"q":           "len",
+				"minProgress": "10",
+				"maxProgress": "90",
+				"order":       "desc",
+				"limit":       "25",
+			},
+			bazaar.JSONSchema{
+				"properties": map[string]interface{}{
+					"q":              map[string]interface{}{"type": "string"},
+					"minProgress":    map[string]interface{}{"type": "string"},
+					"maxProgress":    map[string]interface{}{"type": "string"},
+					"order":          map[string]interface{}{"type": "string", "enum": []interface{}{"asc", "desc"}},
+					"launchedAfter":  map[string]interface{}{"type": "string"},
+					"launchedBefore": map[string]interface{}{"type": "string"},
+					"limit":          map[string]interface{}{"type": "string"},
+					"offset":         map[string]interface{}{"type": "string"},
+				},
+			},
+			"",
+			&bazaar.OutputConfig{
+				Example: map[string]interface{}{
+					"data": map[string]interface{}{
+						"launches": []interface{}{},
+					},
+				},
+			},
+		)
+
 	case "execution_quotes":
 		return bazaar.DeclareDiscoveryExtension(
 			bazaar.MethodPOST,
@@ -573,6 +605,7 @@ func knownBazaarProfiles() []string {
 		"positions",
 		"positions_claimable",
 		"protocol_opportunities",
+		"haystack_launches",
 		"execution_quotes",
 		"haystack_swap",
 		"plans_rebalance",
