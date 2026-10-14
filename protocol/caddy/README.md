@@ -14,6 +14,7 @@ single source directory.
   `POST /swaps/quote`, `POST /swaps/optin`,
   `GET /public/agents/brownie/positions` (Brownie Bot showcase wallet only)
   (`GET /metrics` is free on the protocol process only; not proxied as free on Caddy)
+  `GET /protocols/haystack/launches/:tokenNum` (one HayLaunch token; the list is paid)
   `GET /sessions/:sessionId` (prepaid session receipt / remaining N/M)
   `GET /watch/:watchId` (watch retainer receipt / recent firings)
 - Paid routes emit `accepts[].extra.tag = x402-global-challenge` for facilitator
@@ -35,6 +36,7 @@ single source directory.
   - `GET /positions?address=` (price: `X402_PRICE_POSITIONS_USDC`, exactly `0.005`)
   - `GET /positions/claimable?address=` (price: `X402_PRICE_POSITIONS_CLAIMABLE_USDC`, exactly `0.001`)
   - `GET /protocols/:protocol/opportunities`
+  - `GET /protocols/haystack/launches` (price: `X402_PRICE_HAYSTACK_LAUNCHES_USDC`, default `0.01`)
   - `POST /execution/quotes` (price: `X402_PRICE_EXECUTION_QUOTE_USDC`, default `0.1`)
   - `POST /execution/compose` (price: `X402_PRICE_EXECUTION_COMPOSE_USDC`, default `0.1`)
   - `POST /swaps/transactions` (price: `X402_PRICE_HAYSTACK_SWAP_USDC`, default `0.005`)
